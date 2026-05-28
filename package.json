@@ -1,0 +1,12 @@
+{
+  "name": "cafe-12-porciento",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
+    "setup": "pnpm install && pnpm --filter server db:setup",
+    "build": "pnpm --filter client build && pnpm --filter server build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

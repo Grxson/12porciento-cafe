@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String      @unique
+  category    String      @default("CAFÉ")
+  origin      String?
+  region      String?
+  altitude    Int?
+  variety     String?
+  process     String?
+  scaScore    Float?
+  roastLevel  String?
+  flavors     String?
+  recipes     String?
+  price       Float
+  weight      Int?
+  stock       Int
+  imageUrl    String
+  description String
+  isLimited   Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+  bundleItems BundleItem[]
+  reviews     Review[]
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  customerName String
+  email        String
+  phone        String?
+  address      String
+  city         String
+  state        String
+  zipCode      String
+  total        Float
+  status       String      @default("PENDING")
+  notes        String?
+  items        OrderItem[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Subscription {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  phone       String?
+  plan        String
+  bundleId    String?
+  bundle      Bundle?   @relation(fields: [bundleId], references: [id])
+  frequency   String    @default("monthly")
+  status      String    @default("ACTIVE")
+  nextBilling DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Bundle {
+  id            String         @id @default(cuid())
+  name          String
+  description   String
+  basePrice     Float
+  discountPct   Int            @default(0)
+  finalPrice    Float
+  imageUrl      String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  items         BundleItem[]
+  subscriptions Subscription[]
+}
+
+model BundleItem {
+  id        String  @id @default(cuid())
+  bundleId  String
+  productId String
+  quantity  Int     @default(1)
+  bundle    Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name       String
+  email      String
+  rating     Int
+  comment    String
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}

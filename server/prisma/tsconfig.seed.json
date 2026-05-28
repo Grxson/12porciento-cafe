@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "../dist-seed",
+    "lib": ["ES2020"],
+    "skipLibCheck": true
+  }
+}

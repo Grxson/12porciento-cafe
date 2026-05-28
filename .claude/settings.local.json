@@ -7,7 +7,15 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git branch *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Read(//home/grxson/github/**)",
+      "Bash(zip -r cafeteria-backup.zip cafeteria -x \"cafeteria/node_modules/*\" \"cafeteria/.git/objects/*\")",
+      "Bash(cd *)",
+      "Bash(unzip -l /home/grxson/github/cafeteria-backup.zip)",
+      "Bash(rm cafeteria-backup.zip)",
+      "Bash(zip -r cafeteria-backup.zip cafeteria --exclude \"cafeteria/node_modules*\" \"cafeteria/.git/objects*\" \"cafeteria/*/dist*\" \"cafeteria/*.db*\" \"cafeteria/**/*.db*\")",
+      "Bash(tar --exclude='node_modules' --exclude='.git/objects' --exclude='dist' --exclude='*.db' --exclude='*.db-journal' -czf cafeteria-backup.tar.gz cafeteria)",
+      "Bash(tar -tzf cafeteria-backup.tar.gz)"
     ]
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Thermometer, Coffee, ArrowRight, BookOpen } from 'lucide-react';
+import { Thermometer, Coffee, ArrowRight, BookOpen, Snowflake, Wrench, GlassWater } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { productsApi } from '../api';
 import type { Product, Recipe } from '../types';
@@ -13,11 +13,15 @@ interface RecipeEntry {
 
 const methodOrder = ['Espresso', 'V60', 'Pour Over V60', 'Chemex', 'Kalita Wave', 'Prensa Francesa', 'Cold Brew', 'Moka', 'Americano'];
 
-function methodIcon(method: string) {
-  if (method.toLowerCase().includes('espresso') || method.toLowerCase().includes('americano')) return '☕';
-  if (method.toLowerCase().includes('cold') || method.toLowerCase().includes('frío')) return '🧊';
-  if (method.toLowerCase().includes('moka') || method.toLowerCase().includes('presión')) return '🔩';
-  return '🫗';
+function MethodIcon({ method }: { method: string }) {
+  const m = method.toLowerCase();
+  if (m.includes('espresso') || m.includes('americano'))
+    return <Coffee className="w-5 h-5 text-gold-500" />;
+  if (m.includes('cold') || m.includes('frío'))
+    return <Snowflake className="w-5 h-5 text-gold-500" />;
+  if (m.includes('moka') || m.includes('presión'))
+    return <Wrench className="w-5 h-5 text-gold-500" />;
+  return <GlassWater className="w-5 h-5 text-gold-500" />;
 }
 
 export default function Recipes() {
@@ -150,8 +154,8 @@ export default function Recipes() {
                 >
                   {/* Method header */}
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-coffee-900 border border-coffee-700 flex items-center justify-center text-xl">
-                      {methodIcon(method)}
+                    <div className="w-12 h-12 bg-coffee-900 border border-coffee-700 flex items-center justify-center">
+                      <MethodIcon method={method} />
                     </div>
                     <div>
                       <h2 className="font-serif text-3xl text-coffee-900">{method}</h2>

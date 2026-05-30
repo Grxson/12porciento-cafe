@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { items, ...orderData } = req.body;
+    const { items, userId, ...orderData } = req.body;
 
     const total = items.reduce(
       (sum: number, item: { price: number; quantity: number }) =>
@@ -19,6 +19,7 @@ router.post('/', async (req: Request, res: Response) => {
       data: {
         ...orderData,
         total,
+        ...(userId ? { userId } : {}),
         items: {
           create: items.map((item: { productId: string; quantity: number; price: number }) => ({
             productId: item.productId,

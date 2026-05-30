@@ -8,6 +8,7 @@ import authRouter from './routes/auth';
 import dashboardRouter from './routes/dashboard';
 import bundlesRouter from './routes/bundles';
 import reviewsRouter from './routes/reviews';
+import usersRouter from './routes/users';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/bundles', bundlesRouter);
 app.use('/api/reviews', reviewsRouter);
+app.use('/api/users', usersRouter);
 app.use('/api/dashboard', dashboardRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

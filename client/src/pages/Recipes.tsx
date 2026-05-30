@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Thermometer, Coffee, ArrowRight, BookOpen } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { productsApi } from '../api';
 import type { Product, Recipe } from '../types';
 
@@ -47,6 +48,66 @@ export default function Recipes() {
     if (ib === -1) return -1;
     return ia - ib;
   });
+
+  const downloadRecipePDF = (method: string, recipe: Recipe) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a5' });
+    const W = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    // Header bar
+    doc.setFillColor(13, 8, 6);
+    doc.rect(0, 0, W, 28, 'F');
+    doc.setTextColor(201, 169, 110);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('12%', 10, 17);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text('CAFÉ DE ESPECIALIDAD', 10, 24);
+
+    // Title
+    doc.setTextColor(13, 8, 6);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(method, 10, 42);
+
+    // Gold divider
+    doc.setDrawColor(201, 169, 110);
+    doc.setLineWidth(0.5);
+    doc.line(10, 47, W - 10, 47);
+
+    // Parameters row
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(90, 46, 26);
+    const paramW = (W - 20) / 3;
+    [`Temp: ${recipe.temp}`, `Molido: ${recipe.grind}`, `Ratio: ${recipe.ratio}`]
+      .forEach((p, i) => doc.text(p, 10 + i * paramW, 54, { maxWidth: paramW - 2 }));
+
+    doc.line(10, 59, W - 10, 59);
+
+    // Steps
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(13, 8, 6);
+    doc.text('Pasos', 10, 67);
+
+    doc.setFont('helvetica', 'normal');
+    let y = 75;
+    for (let i = 0; i < recipe.steps.length; i++) {
+      const lines = doc.splitTextToSize(`${i + 1}. ${recipe.steps[i]}`, W - 20);
+      if (y + lines.length * 5 > pageH - 18) break;
+      doc.text(lines, 10, y);
+      y += lines.length * 5 + 3;
+    }
+
+    // Footer
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('12% Café de Especialidad — 12porciento.com', 10, pageH - 8);
+
+    doc.save(`receta-${method.toLowerCase().replace(/[\s/]+/g, '-')}.pdf`);
+  };
 
   return (
     <div className="pt-20 min-h-screen">
@@ -106,6 +167,13 @@ export default function Recipes() {
                         Ratio {firstRecipe.ratio}
                       </div>
                     </div>
+                    <button
+                      onClick={() => downloadRecipePDF(method, firstRecipe)}
+                      className="hidden sm:flex items-center gap-1.5 text-xs text-coffee-400 hover:text-gold-500 border border-coffee-700 hover:border-gold-500/40 px-3 py-1.5 transition-colors ml-auto"
+                      title="Descargar receta en PDF"
+                    >
+                      ↓ PDF
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

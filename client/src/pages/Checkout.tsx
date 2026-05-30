@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { ordersApi } from '../api';
 import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 
 interface FormData {
   customerName: string;
@@ -27,8 +28,16 @@ const mexicanStates = [
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const navigate = useNavigate();
+  const user = useUser((s) => s.user);
   const [form, setForm] = useState<FormData>({
-    customerName: '', email: '', phone: '', address: '', city: '', state: '', zipCode: '', notes: '',
+    customerName: user?.name ?? '',
+    email: user?.email ?? '',
+    phone: user?.phone ?? '',
+    address: user?.address ?? '',
+    city: user?.city ?? '',
+    state: user?.state ?? '',
+    zipCode: user?.zipCode ?? '',
+    notes: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,6 +54,7 @@ export default function Checkout() {
     try {
       await ordersApi.create({
         ...form,
+        ...(user ? { userId: user.id } : {}),
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity, price: i.product.price })),
       });
       clearCart();
@@ -81,6 +91,20 @@ export default function Checkout() {
             Hemos recibido tu pedido. Tostamos a pedido para garantizar frescura máxima — recibirás
             tu café dentro de los próximos 3-5 días hábiles.
           </p>
+          {!user && (
+            <div className="bg-coffee-800 border border-coffee-700 p-5 mb-6 text-left">
+              <p className="text-cream text-sm font-medium mb-1">¿Quieres rastrear este pedido?</p>
+              <p className="text-coffee-400 text-xs mb-3">
+                Crea tu cuenta con el mismo email y podrás ver tu historial de pedidos.
+              </p>
+              <Link
+                to={`/registro?email=${encodeURIComponent(form.email)}`}
+                className="btn-primary text-sm inline-block"
+              >
+                Crear cuenta gratuita
+              </Link>
+            </div>
+          )}
           <Link to="/tienda" className="btn-primary block">Seguir comprando</Link>
         </motion.div>
       </div>

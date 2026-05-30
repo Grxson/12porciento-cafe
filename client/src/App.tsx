@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
+import { useUser } from './context/UserContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -10,6 +11,9 @@ import About from './pages/About';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Recipes from './pages/Recipes';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
 import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
 import Dashboard from './admin/Dashboard';
@@ -22,6 +26,11 @@ import AdminBundles from './admin/Bundles';
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
   return token ? <>{children}</> : <Navigate to="/admin/login" replace />;
+};
+
+const UserRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = useUser((s) => s.token);
+  return token ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 const PublicLayout = ({ children }: { children: React.ReactNode }) => (
@@ -44,6 +53,16 @@ export default function App() {
         <Route path="/carrito" element={<PublicLayout><Cart /></PublicLayout>} />
         <Route path="/checkout" element={<PublicLayout><Checkout /></PublicLayout>} />
         <Route path="/recetas" element={<PublicLayout><Recipes /></PublicLayout>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Register />} />
+        <Route
+          path="/perfil/*"
+          element={
+            <UserRoute>
+              <PublicLayout><Profile /></PublicLayout>
+            </UserRoute>
+          }
+        />
 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>

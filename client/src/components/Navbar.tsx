@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import UserMenu from './UserMenu';
 
 const links = [
   { to: '/tienda', label: 'Tienda' },
@@ -54,6 +55,7 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-4">
+          <UserMenu />
           <button
             onClick={() => navigate('/carrito')}
             className="relative text-coffee-200 hover:text-cream transition-colors"

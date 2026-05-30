@@ -38,12 +38,12 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
       prisma.review.count({ where: { isApproved: false } }),
     ]);
 
-    const totalRevenue = allOrders.reduce((sum, o) => sum + o.total, 0);
+    const totalRevenue = allOrders.reduce((sum: number, o: { total: number }) => sum + o.total, 0);
     const monthOrders = await prisma.order.findMany({
       where: { createdAt: { gte: startOfMonth } },
       select: { total: true },
     });
-    const revenueThisMonth = monthOrders.reduce((sum, o) => sum + o.total, 0);
+    const revenueThisMonth = monthOrders.reduce((sum: number, o: { total: number }) => sum + o.total, 0);
 
     res.json({
       totalOrders,

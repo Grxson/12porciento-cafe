@@ -15,73 +15,203 @@
     @apply bg-coffee-50 text-coffee-900 font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif;
+    font-feature-settings: 'smcp' 0;
   }
 
   ::selection {
-    @apply bg-gold-500/30 text-cream;
+    @apply bg-gold-500/30 text-coffee-950;
   }
 
   ::-webkit-scrollbar {
-    width: 5px;
+    width: 4px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-coffee-100;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gold-500/60 rounded-full;
+    @apply bg-gold-500/40 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gold-500;
+    @apply bg-gold-500/70;
+  }
+
+  /* Focus ring — accessible, on-brand */
+  :focus-visible {
+    outline: 2px solid theme('colors.gold.500');
+    outline-offset: 2px;
+  }
+
+  /* Smooth image rendering */
+  img {
+    image-rendering: -webkit-optimize-contrast;
   }
 }
 
 @layer components {
+  /* ── Buttons ── */
   .btn-primary {
-    @apply bg-gold-500 text-coffee-950 px-8 py-3 font-semibold tracking-widest hover:bg-gold-400 active:bg-gold-600 transition-all duration-200 uppercase text-sm;
+    @apply inline-flex items-center justify-center bg-gold-500 text-coffee-950 px-8 py-3.5
+           font-semibold tracking-[0.15em] text-sm uppercase
+           hover:bg-gold-400 active:scale-[0.98]
+           transition-all duration-200 cursor-pointer select-none;
   }
 
   .btn-outline {
-    @apply border border-coffee-800 text-coffee-900 px-8 py-3 hover:bg-coffee-900 hover:text-cream transition-all duration-300 uppercase text-sm tracking-wide;
+    @apply inline-flex items-center justify-center border border-coffee-800 text-coffee-900 px-8 py-3.5
+           text-sm tracking-[0.15em] uppercase font-medium
+           hover:bg-coffee-900 hover:text-cream
+           transition-all duration-300 cursor-pointer;
   }
 
   .btn-outline-dark {
-    @apply border border-cream/30 text-cream px-8 py-3 hover:border-cream/70 hover:bg-cream/5 transition-all duration-300 uppercase text-sm tracking-wide;
+    @apply inline-flex items-center justify-center border border-cream/25 text-cream px-8 py-3.5
+           text-sm tracking-[0.15em] uppercase font-medium
+           hover:border-cream/60 hover:bg-cream/5
+           transition-all duration-300 cursor-pointer;
   }
 
+  .btn-ghost {
+    @apply inline-flex items-center justify-center text-coffee-400 hover:text-cream
+           text-sm tracking-wide transition-colors duration-200 cursor-pointer;
+  }
+
+  /* ── Section titles ── */
   .section-title {
     @apply font-serif text-4xl md:text-5xl text-cream leading-tight;
   }
 
-  .gold-line {
-    @apply w-12 h-[2px] bg-gold-500;
+  .section-title-dark {
+    @apply font-serif text-4xl md:text-5xl text-coffee-900 leading-tight;
   }
 
+  /* ── Decorative line ── */
+  .gold-line {
+    @apply w-12 h-[1.5px] bg-gradient-to-r from-gold-500 to-gold-300;
+  }
+
+  /* ── Cards ── */
   .card-dark {
-    @apply bg-coffee-800 border border-coffee-700 hover:border-gold-500/30 transition-all duration-300;
+    @apply bg-coffee-800 border border-coffee-700 hover:border-gold-500/30
+           transition-all duration-300;
   }
 
   .card-light {
-    @apply bg-white border border-coffee-200 hover:border-gold-500/60 shadow-sm hover:shadow-md transition-all duration-300;
+    @apply bg-white border border-coffee-200 hover:border-gold-500/50
+           hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]
+           transition-all duration-300;
   }
 
+  /* ── Badges ── */
   .sca-badge {
-    @apply inline-flex items-center gap-1 bg-gold-500/10 border border-gold-500/30 text-gold-500 text-xs px-2 py-1 font-medium;
+    @apply inline-flex items-center gap-1.5 bg-gold-500/10 border border-gold-500/25
+           text-gold-500 text-xs px-2.5 py-1 font-medium tracking-wide;
   }
 
   .limited-badge {
-    @apply inline-flex items-center gap-1 bg-red-900/30 border border-red-500/30 text-red-400 text-xs px-2 py-1 font-medium;
+    @apply inline-flex items-center gap-1 bg-red-950/60 border border-red-500/30
+           text-red-400 text-xs px-2.5 py-1 font-medium tracking-wide backdrop-blur-sm;
+  }
+
+  /* ── Page header (shared across pages) ── */
+  .page-header {
+    @apply bg-coffee-900 border-b border-coffee-800/60 py-16 md:py-20;
+  }
+
+  /* ── Form inputs ── */
+  .input-dark {
+    @apply w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm
+           placeholder:text-coffee-500
+           focus:border-gold-500/60 focus:outline-none focus:ring-0
+           transition-colors duration-200;
+  }
+
+  .input-light {
+    @apply w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm
+           placeholder:text-coffee-400
+           focus:border-gold-500 focus:outline-none focus:ring-0
+           transition-colors duration-200;
+  }
+
+  /* ── Skeleton loading ── */
+  .skeleton {
+    @apply bg-coffee-200 animate-pulse rounded-none;
+  }
+
+  .skeleton-dark {
+    @apply bg-coffee-800 animate-pulse rounded-none;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    @apply border-t border-coffee-200;
+  }
+
+  .divider-dark {
+    @apply border-t border-coffee-800;
   }
 }
 
 @layer utilities {
   .text-gradient-gold {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-gold-500 to-gold-300;
+    @apply text-transparent bg-clip-text;
+    background-image: linear-gradient(135deg, theme('colors.gold.400'), theme('colors.gold.600'));
   }
 
-  .bg-noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  /* Shimmer animation for skeleton */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      theme('colors.coffee.200') 25%,
+      theme('colors.coffee.100') 50%,
+      theme('colors.coffee.200') 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
+
+  .shimmer-dark {
+    background: linear-gradient(
+      90deg,
+      theme('colors.coffee.800') 25%,
+      theme('colors.coffee.700') 50%,
+      theme('colors.coffee.800') 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Noise texture overlay */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  }
+
+  /* Prose body text */
+  .prose-coffee {
+    @apply text-coffee-700 leading-relaxed;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }

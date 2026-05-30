@@ -27,8 +27,11 @@ export default {
         cream: '#f5f0e8',
       },
       fontFamily: {
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        sans:  ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display SC"', '"Playfair Display"', 'Georgia', 'serif'],
+        sans:  ['Karla', 'system-ui', 'sans-serif'],
+      },
+      letterSpacing: {
+        widest: '0.3em',
       },
       animation: {
         'float':    'float 4s ease-in-out infinite',

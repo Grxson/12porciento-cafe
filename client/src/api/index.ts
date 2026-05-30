@@ -1,11 +1,15 @@
 import axios from 'axios';
+import type { UserProfile, Order, Review, Subscription } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('admin_token');
+  const isAdminContext = window.location.pathname.startsWith('/admin');
+  const token = isAdminContext
+    ? localStorage.getItem('admin_token')
+    : (localStorage.getItem('user_token') ?? localStorage.getItem('admin_token'));
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -14,9 +18,13 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('admin_token');
-      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
-        window.location.href = '/admin/login';
+      if (window.location.pathname.startsWith('/admin')) {
+        localStorage.removeItem('admin_token');
+        if (window.location.pathname !== '/admin/login') {
+          window.location.href = '/admin/login';
+        }
+      } else {
+        localStorage.removeItem('user_token');
       }
     }
     return Promise.reject(err);
@@ -64,6 +72,23 @@ export const reviewsApi = {
 export const authApi = {
   login: (email: string, password: string) => api.post('/auth/login', { email, password }),
   me: () => api.get('/auth/me'),
+};
+
+export const usersApi = {
+  register: (data: { name: string; email: string; password: string }) =>
+    api.post<{ token: string; user: UserProfile }>('/users/register', data),
+  login: (email: string, password: string) =>
+    api.post<{ token: string; user: UserProfile }>('/users/login', { email, password }),
+  me: () => api.get<UserProfile>('/users/me'),
+  update: (data: Partial<Omit<UserProfile, 'id' | 'email' | 'createdAt'>>) =>
+    api.put<UserProfile>('/users/me', data),
+  myOrders: () => api.get<Order[]>('/users/me/orders'),
+  myReviews: () => api.get<Review[]>('/users/me/reviews'),
+  mySubscription: () => api.get<Subscription | null>('/users/me/subscription'),
+  cancelSubscription: (id: string) =>
+    api.put(`/users/me/subscription/${id}/status`, { status: 'CANCELLED' }),
+  pauseSubscription: (id: string) =>
+    api.put(`/users/me/subscription/${id}/status`, { status: 'PAUSED' }),
 };
 
 export const dashboardApi = {

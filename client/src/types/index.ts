@@ -61,6 +61,7 @@ export interface Order {
   total: number;
   status: OrderStatus;
   notes?: string;
+  userId?: string;
   items: OrderItemFull[];
   createdAt: string;
   updatedAt: string;
@@ -110,6 +111,18 @@ export interface Subscription {
 
 export type SubscriptionPlan = 'FUNDADOR' | 'EXPLORADOR' | 'CONNOISSEUR';
 export type SubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  createdAt: string;
+}
 
 export interface DashboardStats {
   totalOrders: number;

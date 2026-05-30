@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { MapPin, Award, Leaf, ChevronDown, ArrowRight } from 'lucide-react';
+import { MapPin, Award, Leaf, ChevronDown, ArrowRight, Zap, Flame } from 'lucide-react';
 import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import ScrollReveal from '../components/ScrollReveal';
@@ -139,6 +139,30 @@ export default function Home() {
         </motion.div>
       </section>
 
+      {/* ── TRUST STRIP ── */}
+      <section className="bg-coffee-900/80 border-y border-coffee-800/40 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-coffee-800/40">
+            {[
+              { Icon: Zap,     label: 'Envío 24–48h',   sub: 'Express a todo México' },
+              { Icon: Flame,   label: 'Tueste a pedido', sub: 'Máx. 7 días del tueste' },
+              { Icon: Leaf,    label: '100% México',     sub: 'Orígenes certificados' },
+              { Icon: Award,   label: 'SCA ≥ 84 pts',   sub: 'Curado bajo protocolo' },
+            ].map(({ Icon, label, sub }) => (
+              <div key={label} className="flex items-center gap-3 px-4 sm:px-6 py-4 md:py-5">
+                <div className="w-8 h-8 border border-gold-500/20 flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-gold-500" />
+                </div>
+                <div>
+                  <p className="text-cream text-xs font-semibold tracking-wide">{label}</p>
+                  <p className="text-coffee-400 text-[10px] tracking-wide mt-0.5">{sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── THE 12% STORY ── */}
       <section className="py-24 bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -198,6 +222,57 @@ export default function Home() {
                   </div>
                   <h3 className="font-serif text-xl text-cream mb-3">{title}</h3>
                   <p className="text-coffee-300 text-sm leading-relaxed">{desc}</p>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIOS ── */}
+      <section className="py-24 bg-coffee-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal className="text-center mb-16">
+            <div className="gold-line mx-auto mb-6" />
+            <h2 className="section-title">Lo que dicen nuestros clientes</h2>
+            <p className="text-coffee-300 mt-4 max-w-xl mx-auto">Más de 400 suscriptores en México. Esto es lo que nos comparten.</p>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: 'Carlos M.',
+                location: 'Ciudad de México',
+                stars: 5,
+                quote: 'La tostión del Chiapas Geisha fue reveladora. Nunca había probado notas tan claras de jazmín y durazno en una taza. Completamente diferente a lo que conocía.',
+              },
+              {
+                name: 'Ana P.',
+                location: 'Guadalajara',
+                stars: 5,
+                quote: 'Soy suscriptora desde el primer lote. La trazabilidad real, con nombre del productor y altitud de la finca, me hace sentir conexión genuina con el origen.',
+              },
+              {
+                name: 'Rodrigo V.',
+                location: 'Monterrey',
+                stars: 5,
+                quote: 'El pedido llega en 48h perfectamente empacado con las notas de catación impresas. Se nota el cuidado en cada detalle. Vale cada peso.',
+              },
+            ].map(({ name, location, stars, quote }, i) => (
+              <ScrollReveal key={name} delay={i * 0.12}>
+                <div className="bg-coffee-900 border border-coffee-800 hover:border-gold-500/30 transition-all duration-300 p-8 flex flex-col gap-6 h-full">
+                  <div className="flex gap-1">
+                    {Array.from({ length: stars }).map((_, j) => (
+                      <svg key={j} className="w-4 h-4 fill-gold-500 text-gold-500" viewBox="0 0 20 20" aria-hidden="true">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-coffee-200 text-sm leading-relaxed italic flex-1">"{quote}"</p>
+                  <div className="border-t border-coffee-800 pt-4">
+                    <p className="text-cream text-sm font-semibold">{name}</p>
+                    <p className="text-coffee-400 text-xs mt-0.5">{location}</p>
+                  </div>
                 </div>
               </ScrollReveal>
             ))}

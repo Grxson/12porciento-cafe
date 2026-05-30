@@ -96,8 +96,8 @@ export default function About() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {values.map(({ title, body }, i) => (
               <ScrollReveal key={title} delay={i * 0.1}>
-                <div className="bg-coffee-800 border border-coffee-700 hover:border-gold-500/40 transition-all duration-300 p-8">
-                  <div className="w-8 h-[2px] bg-gold-500/60 mb-4" />
+                <div className="bg-coffee-800 border border-coffee-700 hover:border-gold-500/40 transition-all duration-300 p-8 cursor-default">
+                  <div className="gold-line mb-5" />
                   <h3 className="font-serif text-xl text-cream mb-3">{title}</h3>
                   <p className="text-coffee-300 text-sm leading-relaxed">{body}</p>
                 </div>
@@ -121,7 +121,7 @@ export default function About() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {origins.map(({ region, altitude, notes }, i) => (
               <ScrollReveal key={region} delay={i * 0.1}>
-                <div className="card-light p-6 flex gap-5">
+                <div className="card-light p-6 flex gap-5 border-l-2 border-gold-500/30 pl-5 hover:border-gold-500/60 transition-colors">
                   <div className="w-10 h-10 border border-gold-500/40 flex items-center justify-center shrink-0 mt-1">
                     <MapPin className="w-4 h-4 text-gold-500" />
                   </div>

@@ -132,7 +132,15 @@ router.get('/me/subscription', requireUserAuth, async (req: UserAuthRequest, res
   try {
     const subscription = await prisma.subscription.findFirst({
       where: { userId: req.user!.id, status: 'ACTIVE' },
-      include: { bundle: true },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true },
+            },
+          },
+        },
+      },
     });
     res.json(subscription ?? null);
   } catch {

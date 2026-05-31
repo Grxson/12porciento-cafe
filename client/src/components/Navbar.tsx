@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import UserMenu from './UserMenu';
+import CartDrawer from './CartDrawer';
 
 const links = [
   { to: '/tienda', label: 'Tienda' },
@@ -16,7 +17,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const count = useCart((s) => s.count());
-  const navigate = useNavigate();
+  const openDrawer = useCart((s) => s.openDrawer);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
@@ -25,6 +26,7 @@ export default function Navbar() {
   }, []);
 
   return (
+    <>
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
@@ -57,7 +59,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <UserMenu />
           <button
-            onClick={() => navigate('/carrito')}
+            onClick={openDrawer}
             className="relative text-coffee-200 hover:text-cream transition-colors"
             aria-label="Carrito"
           >
@@ -112,5 +114,7 @@ export default function Navbar() {
         )}
       </AnimatePresence>
     </header>
+    <CartDrawer />
+    </>
   );
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Thermometer, Coffee, ArrowRight, BookOpen, Snowflake, Wrench, GlassWater } from 'lucide-react';
+import { Thermometer, Coffee, ArrowRight, BookOpen, Snowflake, Wrench, GlassWater, Lock } from 'lucide-react';
+import { useUser } from '../context/UserContext';
 import jsPDF from 'jspdf';
 import { productsApi } from '../api';
 import type { Product, Recipe } from '../types';
@@ -25,6 +26,7 @@ function MethodIcon({ method }: { method: string }) {
 }
 
 export default function Recipes() {
+  const token = useUser((s) => s.token);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -140,6 +142,26 @@ export default function Recipes() {
             <p className="text-coffee-500">No hay recetas disponibles aún.</p>
           </div>
         ) : (
+          <>
+          {!token && (
+            <div className="mb-10 bg-coffee-900 border border-gold-500/20 p-5 flex items-start gap-4">
+              <Lock className="w-5 h-5 text-gold-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-cream font-medium text-sm mb-1">Recetas exclusivas para miembros</p>
+                <p className="text-coffee-400 text-sm">
+                  Los parámetros son visibles para todos. Crea una cuenta gratuita para ver los pasos completos y videos guía de cada método.
+                </p>
+                <div className="flex gap-3 mt-3">
+                  <Link to="/registro" className="text-xs bg-gold-500 text-coffee-950 px-4 py-2 font-semibold tracking-widest uppercase hover:bg-gold-400 transition-colors">
+                    Crear cuenta
+                  </Link>
+                  <Link to="/login" className="text-xs border border-coffee-700 text-coffee-300 px-4 py-2 hover:border-gold-500/50 transition-colors">
+                    Iniciar sesión
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="space-y-16">
             {sortedMethods.map((method, mi) => {
               const entries = grouped[method];
@@ -199,14 +221,48 @@ export default function Recipes() {
                         </div>
                       </div>
                       <p className="text-xs text-gold-500 uppercase tracking-widest mb-3">Pasos</p>
-                      <ol className="space-y-3">
-                        {firstRecipe.steps.map((step, si) => (
-                          <li key={si} className="flex gap-3 text-sm text-coffee-300">
-                            <span className="text-gold-500 font-bold w-4 shrink-0">{si + 1}.</span>
-                            {step}
-                          </li>
-                        ))}
-                      </ol>
+
+                      {token ? (
+                        <ol className="space-y-3">
+                          {firstRecipe.steps.map((step, si) => (
+                            <li key={si} className="flex gap-3 text-sm text-coffee-300">
+                              <span className="text-gold-500 font-bold w-4 shrink-0">{si + 1}.</span>
+                              {step}
+                            </li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <div className="relative">
+                          {/* Blurred preview */}
+                          <ol className="space-y-3 select-none pointer-events-none" aria-hidden="true">
+                            {firstRecipe.steps.slice(0, 2).map((step, si) => (
+                              <li key={si} className="flex gap-3 text-sm text-coffee-300 blur-sm">
+                                <span className="text-gold-500 font-bold w-4 shrink-0">{si + 1}.</span>
+                                {step}
+                              </li>
+                            ))}
+                            {firstRecipe.steps.length > 2 && (
+                              <li className="flex gap-3 text-sm text-coffee-500 blur-sm">
+                                <span className="w-4 shrink-0">…</span>
+                                y {firstRecipe.steps.length - 2} pasos más
+                              </li>
+                            )}
+                          </ol>
+                          {/* Lock overlay */}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-coffee-900/80 backdrop-blur-[2px]">
+                            <Lock className="w-6 h-6 text-gold-500 mb-2" />
+                            <p className="text-cream text-xs text-center mb-3 font-medium leading-relaxed px-2">
+                              Inicia sesión para ver<br />la receta completa
+                            </p>
+                            <Link
+                              to="/login"
+                              className="text-xs bg-gold-500 text-coffee-950 px-4 py-2 font-semibold tracking-widest uppercase hover:bg-gold-400 transition-colors"
+                            >
+                              Iniciar sesión
+                            </Link>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Recommended coffees */}
@@ -239,10 +295,25 @@ export default function Recipes() {
                       </div>
                     </div>
                   </div>
+                  {token && firstRecipe.videoUrl && (
+                    <div className="mt-6">
+                      <p className="text-xs text-coffee-500 uppercase tracking-widest mb-3">Video guía</p>
+                      <div className="aspect-video w-full max-w-2xl">
+                        <iframe
+                          src={firstRecipe.videoUrl}
+                          title={`Cómo preparar ${method}`}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    </div>
+                  )}
                 </motion.section>
               );
             })}
           </div>
+          </>
         )}
       </div>
     </div>

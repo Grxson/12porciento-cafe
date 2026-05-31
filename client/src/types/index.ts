@@ -5,6 +5,7 @@ export interface Recipe {
   grind: string;
   ratio: string;
   steps: string[];
+  videoUrl?: string;
 }
 
 export interface Review {
@@ -96,21 +97,43 @@ export interface BundleItem {
   product: Product;
 }
 
+export interface SubscriptionItem {
+  id: string;
+  productId: string;
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    imageUrl: string;
+    price: number;
+    scaScore?: number;
+  };
+}
+
 export interface Subscription {
   id: string;
   name: string;
   email: string;
   phone?: string;
-  plan: SubscriptionPlan;
-  bundleId?: string;
+  plan: SubscriptionPlan | 'EMPRESARIAL';
+  grindPreference: 'MOLIDO' | 'GRANO';
+  fulfillmentStatus: 'PENDIENTE' | 'PREPARANDO' | 'ENVIADO' | 'ENTREGADO';
   frequency: string;
   status: SubscriptionStatus;
   nextBilling: string;
   createdAt: string;
+  items: SubscriptionItem[];
 }
 
-export type SubscriptionPlan = 'FUNDADOR' | 'EXPLORADOR' | 'CONNOISSEUR';
+export type SubscriptionPlan = 'FUNDADOR' | 'EXPLORADOR' | 'CONNOISSEUR' | 'EMPRESARIAL';
 export type SubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
+
+export const PLAN_SLOTS: Record<SubscriptionPlan, { min: number; max: number; price: number; allowLimited: boolean }> = {
+  FUNDADOR:    { min: 2, max: 2,  price: 350,  allowLimited: false },
+  EXPLORADOR:  { min: 2, max: 3,  price: 650,  allowLimited: true },
+  CONNOISSEUR: { min: 3, max: 3,  price: 890,  allowLimited: true },
+  EMPRESARIAL: { min: 10, max: 99, price: 0,   allowLimited: true },
+};
 
 export interface UserProfile {
   id: string;

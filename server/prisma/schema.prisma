@@ -31,8 +31,9 @@ model Product {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   orderItems  OrderItem[]
-  bundleItems BundleItem[]
-  reviews     Review[]
+  bundleItems       BundleItem[]
+  reviews           Review[]
+  subscriptionItems SubscriptionItem[]
 }
 
 model Order {
@@ -65,20 +66,29 @@ model OrderItem {
 }
 
 model Subscription {
-  id          String    @id @default(cuid())
-  name        String
-  email       String    @unique
-  phone       String?
-  plan        String
-  bundleId    String?
-  bundle      Bundle?   @relation(fields: [bundleId], references: [id])
-  userId      String?
-  user        User?     @relation(fields: [userId], references: [id])
-  frequency   String    @default("monthly")
-  status      String    @default("ACTIVE")
-  nextBilling DateTime
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                String             @id @default(cuid())
+  name              String
+  email             String             @unique
+  phone             String?
+  plan              String
+  grindPreference   String             @default("GRANO")
+  fulfillmentStatus String             @default("PENDIENTE")
+  userId            String?
+  user              User?              @relation(fields: [userId], references: [id])
+  frequency         String             @default("monthly")
+  status            String             @default("ACTIVE")
+  nextBilling       DateTime
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  items             SubscriptionItem[]
+}
+
+model SubscriptionItem {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  productId      String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id])
 }
 
 model Bundle {
@@ -93,7 +103,6 @@ model Bundle {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   items         BundleItem[]
-  subscriptions Subscription[]
 }
 
 model BundleItem {

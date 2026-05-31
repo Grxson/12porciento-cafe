@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe } from 'lucide-react';
 import { productsApi, reviewsApi } from '../api';
 import { useCart } from '../context/CartContext';
 import StarRating from '../components/StarRating';
+import CoffeeTimeline from '../components/CoffeeTimeline';
 import type { Product, Review } from '../types';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
@@ -95,8 +96,14 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Image */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="relative">
-            <div className="aspect-square overflow-hidden">
-              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+            <div className="aspect-[3/4] overflow-hidden">
+              <motion.img
+                src={product.imageUrl}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                whileHover={{ scale: 1.04 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+              />
             </div>
             <div className="absolute top-4 left-4 flex gap-2">
               {product.isLimited && <span className="limited-badge uppercase tracking-wider">Edición Limitada</span>}
@@ -224,6 +231,14 @@ export default function ProductDetail() {
           </div>
 
           <div className="py-10">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={tab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.25 }}
+              >
             {/* Description tab */}
             {tab === 'info' && (
               <div className="max-w-2xl">
@@ -367,6 +382,7 @@ export default function ProductDetail() {
                 <p className="text-coffee-400 text-xs mt-6 italic">
                   * Tostado a pedido en lotes pequeños para garantizar frescura. Envío dentro de los 7 días posteriores al tueste.
                 </p>
+                <CoffeeTimeline product={product} />
               </div>
             )}
 

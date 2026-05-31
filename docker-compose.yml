@@ -1,8 +1,8 @@
 services:
   server:
     build:
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./server/Dockerfile
     ports:
       - '3001:3001'
     environment:
@@ -11,6 +11,7 @@ services:
       NODE_ENV: production
       PORT: 3001
       CLIENT_URL: http://localhost
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
     volumes:
       - db_data:/app/data
     restart: unless-stopped
@@ -22,10 +23,11 @@ services:
 
   client:
     build:
-      context: ./client
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./client/Dockerfile
       args:
         VITE_API_URL: /api
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
     ports:
       - '80:80'
     depends_on:

@@ -48,9 +48,17 @@ export const ordersApi = {
 };
 
 export const subscriptionsApi = {
-  create: (data: any) => api.post('/subscriptions', data),
+  create: (data: {
+    name: string; email: string; phone?: string; plan: string;
+    frequency: string; grindPreference: string; items: string[];
+    userId?: string;
+  }) => api.post('/subscriptions', data),
   list: (params?: Record<string, string>) => api.get('/subscriptions', { params }),
   updateStatus: (id: string, status: string) => api.put(`/subscriptions/${id}/status`, { status }),
+  updateItems: (id: string, items: string[], grindPreference?: string) =>
+    api.put(`/subscriptions/${id}/items`, { items, grindPreference }),
+  updateFulfillment: (id: string, fulfillmentStatus: string) =>
+    api.put(`/subscriptions/${id}/fulfillment`, { fulfillmentStatus }),
 };
 
 export const bundlesApi = {
@@ -89,6 +97,11 @@ export const usersApi = {
     api.put(`/users/me/subscription/${id}/status`, { status: 'CANCELLED' }),
   pauseSubscription: (id: string) =>
     api.put(`/users/me/subscription/${id}/status`, { status: 'PAUSED' }),
+};
+
+export const paymentsApi = {
+  createIntent: (data: { items: { productId: string; quantity: number }[] }) =>
+    api.post<{ clientSecret: string; amount: number }>('/payments/create-intent', data),
 };
 
 export const dashboardApi = {

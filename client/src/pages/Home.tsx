@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { MapPin, Award, Leaf, ChevronDown, ArrowRight, Zap, Flame } from 'lucide-react';
+import { MapPin, Award, Leaf, ChevronDown, ArrowRight, Zap, Flame, Sprout, SunMedium, FlaskConical, Coffee } from 'lucide-react';
 import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import ScrollReveal from '../components/ScrollReveal';
@@ -229,6 +229,43 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── PROCESO DE ESPECIALIDAD ── */}
+      <section className="py-20 bg-coffee-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <div className="text-center mb-14">
+              <div className="gold-line mx-auto mb-4" />
+              <h2 className="section-title mb-3">Del origen a tu taza</h2>
+              <p className="text-coffee-400 max-w-xl mx-auto text-sm leading-relaxed">
+                Cada lote recorre un camino de precisión y cuidado antes de llegar a tus manos.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <div className="relative flex flex-col md:flex-row items-start md:items-center gap-0">
+            {/* Connecting line — desktop only */}
+            <div className="hidden md:block absolute top-10 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-gold-500/40 to-transparent" />
+
+            {[
+              { num: '01', icon: Sprout, title: 'Origen', desc: 'Fincas seleccionadas en alturas de 1,200–1,800 msnm en Veracruz y Chiapas' },
+              { num: '02', icon: SunMedium, title: 'Cosecha', desc: 'Selección manual de cerezas en su punto exacto de maduración' },
+              { num: '03', icon: FlaskConical, title: 'Proceso', desc: 'Lavado, Natural o Honey según el perfil sensorial deseado para ese lote' },
+              { num: '04', icon: Flame, title: 'Tueste', desc: 'Perfil de tueste único por origen, ejecutado en lotes pequeños a pedido' },
+              { num: '05', icon: Coffee, title: 'Tu Taza', desc: 'Envío dentro de los 7 días del tueste para máxima frescura garantizada' },
+            ].map(({ num, icon: Icon, title, desc }, i) => (
+              <ScrollReveal key={num} delay={i * 0.12} direction="up" className="flex-1 flex flex-col items-center text-center px-4 py-6 relative z-10">
+                <div className="w-20 h-20 rounded-full bg-coffee-800 border-2 border-gold-500/50 flex items-center justify-center mb-4 group-hover:border-gold-500 transition-colors">
+                  <Icon className="w-8 h-8 text-gold-400" />
+                </div>
+                <span className="text-[10px] text-gold-600 tracking-[0.3em] uppercase mb-1">{num}</span>
+                <h3 className="font-serif text-xl text-cream mb-2">{title}</h3>
+                <p className="text-coffee-400 text-xs leading-relaxed max-w-[180px]">{desc}</p>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── TESTIMONIOS ── */}
       <section className="py-24 bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -328,29 +365,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── SUSCRIPCIÓN CTA ── */}
-      <section className="py-24 bg-coffee-900 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gold-500/5 rounded-full blur-2xl -translate-x-1/2 translate-y-1/2" />
-        </div>
-
-        <div className="relative max-w-3xl mx-auto px-4 text-center">
-          <ScrollReveal>
-            <div className="gold-line mx-auto mb-6" />
-            <h2 className="section-title mb-6">
-              Café fresco, cada mes,<br />
-              <em className="text-gold-500">en tu puerta</em>
-            </h2>
-            <p className="text-coffee-300 text-lg mb-4">
-              Desde <span className="text-gold-500 font-semibold">$240 / mes</span>
-            </p>
-            <p className="text-coffee-400 mb-10 max-w-xl mx-auto">
-              Suscríbete y recibe lotes seleccionados, tostados a pedido, con notas de
-              catación e información completa de trazabilidad. Cancela cuando quieras.
-            </p>
-            <Link to="/suscripciones" className="btn-primary">Ver planes de suscripción</Link>
-          </ScrollReveal>
+      {/* ── SUSCRIPCION CTA ── */}
+      <section className="relative overflow-hidden bg-coffee-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[500px]">
+            {/* Image side */}
+            <div className="relative hidden lg:block">
+              <img
+                src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80"
+                alt="Café de especialidad"
+                className="w-full h-full object-cover opacity-60"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-coffee-950" />
+            </div>
+            {/* Text side */}
+            <div className="flex flex-col justify-center py-20 lg:pl-12">
+              <ScrollReveal direction="right">
+                <div className="gold-line mb-6" />
+                <h2 className="section-title mb-4">
+                  Café fresco,<br />cada mes
+                </h2>
+                <p className="text-coffee-300 leading-relaxed mb-6 max-w-md">
+                  Suscríbete y recibe lotes seleccionados de origen único directamente en tu puerta.
+                  Tostados a pedido, enviados frescos.
+                </p>
+                <p className="text-gold-500 text-2xl font-serif mb-8">Desde $350 / mes</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link to="/suscripciones" className="btn-primary">Ver suscripciones</Link>
+                  <Link to="/tienda" className="btn-outline-dark">Explorar tienda</Link>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
         </div>
       </section>
     </div>

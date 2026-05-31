@@ -1,6 +1,13 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -44,6 +51,7 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => (
 export default function App() {
   return (
     <CartProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
         <Route path="/tienda" element={<PublicLayout><Shop /></PublicLayout>} />

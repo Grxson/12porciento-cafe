@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
-import { ordersApi } from '../api';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Check, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ordersApi, paymentsApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
+import StripePaymentForm from '../components/StripePaymentForm';
 
 interface FormData {
   customerName: string;
@@ -27,8 +28,8 @@ const mexicanStates = [
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
-  const navigate = useNavigate();
   const user = useUser((s) => s.user);
+  const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState<FormData>({
     customerName: user?.name ?? '',
     email: user?.email ?? '',
@@ -39,31 +40,50 @@ export default function Checkout() {
     zipCode: user?.zipCode ?? '',
     notes: '',
   });
-  const [loading, setLoading] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
+  const [intentAmount, setIntentAmount] = useState(0);
+  const [loadingIntent, setLoadingIntent] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
-    setLoading(true);
+    setLoadingIntent(true);
     setError('');
+    try {
+      const res = await paymentsApi.createIntent({
+        items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+      });
+      setClientSecret(res.data.clientSecret);
+      setIntentAmount(res.data.amount);
+      setStep(2);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Error al iniciar el pago. Intenta de nuevo.');
+    } finally {
+      setLoadingIntent(false);
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
     try {
       await ordersApi.create({
         ...form,
         ...(user ? { userId: user.id } : {}),
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity, price: i.product.price })),
       });
-      clearCart();
-      setSuccess(true);
     } catch {
-      setError('Error al procesar el pedido. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
+      // Order creation best-effort — payment already confirmed
     }
+    clearCart();
+    setSuccess(true);
+  };
+
+  const handlePaymentError = (msg: string) => {
+    setError(msg);
   };
 
   if (items.length === 0 && !success) {
@@ -88,7 +108,7 @@ export default function Checkout() {
           </div>
           <h2 className="font-serif text-3xl text-cream mb-3">¡Pedido confirmado!</h2>
           <p className="text-coffee-300 leading-relaxed mb-8">
-            Hemos recibido tu pedido. Tostamos a pedido para garantizar frescura máxima — recibirás
+            Tu pago fue procesado exitosamente. Tostamos a pedido para garantizar frescura máxima — recibirás
             tu café dentro de los próximos 3-5 días hábiles.
           </p>
           {!user && (
@@ -115,119 +135,143 @@ export default function Checkout() {
     <div className="min-h-screen pt-20 pb-24">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="gold-line mb-4" />
-        <h1 className="font-serif text-4xl text-coffee-900 mb-10">Checkout</h1>
+        <h1 className="font-serif text-4xl text-coffee-900 mb-4">Checkout</h1>
+
+        {/* Step indicator */}
+        <div className="flex items-center gap-3 mb-10">
+          {[
+            { n: 1, label: 'Datos de envío' },
+            { n: 2, label: 'Pago' },
+          ].map(({ n, label }, i, arr) => (
+            <div key={n} className="flex items-center gap-2">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                step >= n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-100 text-coffee-400'
+              }`}>
+                {step > n ? <Check className="w-3.5 h-3.5" /> : n}
+              </div>
+              <span className={`text-sm transition-colors ${step === n ? 'text-coffee-900 font-medium' : 'text-coffee-400'}`}>
+                {label}
+              </span>
+              {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-coffee-300 ml-1" />}
+            </div>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-4">
-            <h2 className="font-serif text-xl text-coffee-900 mb-4">Datos de envío</h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { name: 'customerName', label: 'Nombre completo', placeholder: 'Tu nombre', required: true },
-                { name: 'email', label: 'Email', placeholder: 'tu@email.com', required: true, type: 'email' },
-              ].map(({ name, label, placeholder, required, type = 'text' }) => (
-                <div key={name}>
-                  <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">{label} {required && '*'}</label>
-                  <input
-                    name={name}
-                    type={type}
-                    required={required}
-                    value={(form as any)[name]}
-                    onChange={handleChange}
-                    className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none transition-colors"
-                    placeholder={placeholder}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Teléfono</label>
-              <input
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none transition-colors"
-                placeholder="55 1234 5678"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Dirección *</label>
-              <input
-                name="address"
-                required
-                value={form.address}
-                onChange={handleChange}
-                className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none transition-colors"
-                placeholder="Calle, número, colonia"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Ciudad *</label>
-                <input
-                  name="city"
-                  required
-                  value={form.city}
-                  onChange={handleChange}
-                  className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none transition-colors"
-                  placeholder="Ciudad"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Estado *</label>
-                <select
-                  name="state"
-                  required
-                  value={form.state}
-                  onChange={handleChange}
-                  className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none transition-colors"
+          <div className="lg:col-span-2">
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.form
+                  key="step1"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  onSubmit={handleShippingSubmit}
+                  className="space-y-4"
                 >
-                  <option value="">Seleccionar</option>
-                  {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">CP *</label>
-                <input
-                  name="zipCode"
-                  required
-                  value={form.zipCode}
-                  onChange={handleChange}
-                  className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none transition-colors"
-                  placeholder="12345"
-                />
-              </div>
-            </div>
+                  <h2 className="font-serif text-xl text-coffee-900 mb-4">Datos de envío</h2>
 
-            <div>
-              <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Notas adicionales</label>
-              <textarea
-                name="notes"
-                value={form.notes}
-                onChange={handleChange}
-                rows={3}
-                className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none transition-colors resize-none"
-                placeholder="Instrucciones especiales, referencia de entrega..."
-              />
-            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { name: 'customerName', label: 'Nombre completo *', placeholder: 'Tu nombre', required: true },
+                      { name: 'email', label: 'Email *', placeholder: 'tu@email.com', required: true, type: 'email' },
+                    ].map(({ name, label, placeholder, required, type = 'text' }) => (
+                      <div key={name}>
+                        <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">{label}</label>
+                        <input
+                          name={name} type={type} required={required}
+                          value={(form as any)[name]} onChange={handleChange}
+                          className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                          placeholder={placeholder}
+                        />
+                      </div>
+                    ))}
+                  </div>
 
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+                  <div>
+                    <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Teléfono</label>
+                    <input name="phone" value={form.phone} onChange={handleChange}
+                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                      placeholder="55 1234 5678" />
+                  </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Procesando...' : `Confirmar pedido — $${total().toLocaleString('es-MX')} MXN`}
-            </button>
+                  <div>
+                    <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Dirección *</label>
+                    <input name="address" required value={form.address} onChange={handleChange}
+                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                      placeholder="Calle, número, colonia" />
+                  </div>
 
-            <p className="text-coffee-500 text-xs text-center">
-              El pago se coordina por transferencia. Te enviaremos los datos de pago al email proporcionado.
-            </p>
-          </form>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Ciudad *</label>
+                      <input name="city" required value={form.city} onChange={handleChange}
+                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                        placeholder="Ciudad" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Estado *</label>
+                      <select name="state" required value={form.state} onChange={handleChange}
+                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none">
+                        <option value="">Seleccionar</option>
+                        {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">CP *</label>
+                      <input name="zipCode" required value={form.zipCode} onChange={handleChange}
+                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                        placeholder="12345" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Notas adicionales</label>
+                    <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
+                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none resize-none"
+                      placeholder="Instrucciones especiales..." />
+                  </div>
+
+                  {error && <p className="text-red-400 text-sm">{error}</p>}
+
+                  <button type="submit" disabled={loadingIntent}
+                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    {loadingIntent ? 'Iniciando pago...' : (
+                      <><span>Continuar al pago</span><ChevronRight className="w-4 h-4" /></>
+                    )}
+                  </button>
+                </motion.form>
+              )}
+
+              {step === 2 && clientSecret && (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <button onClick={() => { setStep(1); setError(''); }}
+                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 transition-colors text-sm">
+                      <ChevronLeft className="w-4 h-4" /> Volver a envío
+                    </button>
+                  </div>
+                  <h2 className="font-serif text-xl text-coffee-900 mb-6">Pago seguro</h2>
+
+                  {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+
+                  <StripePaymentForm
+                    clientSecret={clientSecret}
+                    amount={intentAmount}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Order summary */}
           <div>

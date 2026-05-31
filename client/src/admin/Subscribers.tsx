@@ -2,6 +2,23 @@ import { useEffect, useState } from 'react';
 import { subscriptionsApi } from '../api';
 import type { Subscription, SubscriptionStatus } from '../types';
 
+function FulfillmentBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    PENDIENTE:  'text-yellow-400 bg-yellow-900/20 border-yellow-500/30',
+    PREPARANDO: 'text-blue-400 bg-blue-900/20 border-blue-500/30',
+    ENVIADO:    'text-green-400 bg-green-900/20 border-green-500/30',
+    ENTREGADO:  'text-coffee-300 bg-coffee-800/40 border-coffee-700',
+  };
+  const labels: Record<string, string> = {
+    PENDIENTE: 'Pendiente', PREPARANDO: 'Preparando', ENVIADO: 'Enviado', ENTREGADO: 'Entregado',
+  };
+  return (
+    <span className={`text-[10px] px-2 py-0.5 border rounded-sm whitespace-nowrap ${styles[status] ?? styles.PENDIENTE}`}>
+      {labels[status] ?? status}
+    </span>
+  );
+}
+
 const statusConfig: Record<SubscriptionStatus, { label: string; color: string }> = {
   ACTIVE:    { label: 'Activa',     color: 'text-green-400' },
   PAUSED:    { label: 'Pausada',    color: 'text-yellow-400' },
@@ -68,7 +85,7 @@ export default function AdminSubscribers() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-coffee-800">
-                  {['Nombre', 'Email', 'Plan', 'Frecuencia', 'Próximo cobro', 'Estado', 'Acciones'].map((h) => (
+                  {['Nombre', 'Email', 'Plan', 'Molienda', 'Frecuencia', 'Próximo cobro', 'Estado', 'Entrega', 'Cafés', 'Acciones'].map((h) => (
                     <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
                   ))}
                 </tr>
@@ -88,6 +105,11 @@ export default function AdminSubscribers() {
                           {planLabels[sub.plan] ?? sub.plan}
                         </span>
                       </td>
+                      <td className="px-4 py-3">
+                        <span className="text-[10px] px-2 py-0.5 border border-coffee-700 bg-coffee-800/40 text-coffee-300 rounded-sm uppercase tracking-wider">
+                          {sub.grindPreference || 'GRANO'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-coffee-300 capitalize">
                         {sub.frequency === 'monthly' ? 'Mensual' : 'Bimestral'}
                       </td>
@@ -96,6 +118,35 @@ export default function AdminSubscribers() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-1">
+                          <FulfillmentBadge status={sub.fulfillmentStatus ?? 'PENDIENTE'} />
+                          <select
+                            value={sub.fulfillmentStatus ?? 'PENDIENTE'}
+                            onChange={async (e) => {
+                              await subscriptionsApi.updateFulfillment(sub.id, e.target.value);
+                              load();
+                            }}
+                            className="text-xs bg-coffee-800 border border-coffee-700 text-cream px-2 py-1 focus:outline-none focus:border-gold-500"
+                          >
+                            {['PENDIENTE','PREPARANDO','ENVIADO','ENTREGADO'].map((s) => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {sub.items && sub.items.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {sub.items.map((item: any) => (
+                              <div key={item.id} className="flex items-center gap-1 bg-coffee-800 px-2 py-0.5">
+                                <img src={item.product?.imageUrl} className="w-4 h-4 object-cover" alt="" />
+                                <span className="text-[10px] text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">

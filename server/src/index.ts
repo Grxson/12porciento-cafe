@@ -6,6 +6,7 @@ import ordersRouter from './routes/orders';
 import subscriptionsRouter from './routes/subscriptions';
 import authRouter from './routes/auth';
 import dashboardRouter from './routes/dashboard';
+import paymentsRouter from './routes/payments';
 import bundlesRouter from './routes/bundles';
 import reviewsRouter from './routes/reviews';
 import usersRouter from './routes/users';
@@ -29,6 +30,7 @@ app.use('/api/bundles', bundlesRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/payments', paymentsRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

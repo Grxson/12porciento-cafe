@@ -5,18 +5,24 @@ import type { CartItem, Product } from '../types';
 
 interface CartStore {
   items: CartItem[];
+  drawerOpen: boolean;
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   total: () => number;
   count: () => number;
+  openDrawer: () => void;
+  closeDrawer: () => void;
 }
 
 export const useCart = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      drawerOpen: false,
+      openDrawer: () => set({ drawerOpen: true }),
+      closeDrawer: () => set({ drawerOpen: false }),
 
       addItem: (product, quantity = 1) => {
         const items = get().items;
@@ -56,7 +62,7 @@ export const useCart = create<CartStore>()(
 
       count: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
-    { name: 'cafe-12-cart' },
+    { name: 'cafe-12-cart', partialize: (state) => ({ items: state.items }) },
   ),
 );
 

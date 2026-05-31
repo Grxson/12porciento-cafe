@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe } from 'lucide-react';
 import { productsApi, reviewsApi } from '../api';
 import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
 import type { Product, Review } from '../types';
@@ -23,6 +24,7 @@ export default function ProductDetail() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const addItem = useCart((s) => s.addItem);
+  const token = useUser((s) => s.token);
 
   useEffect(() => {
     if (!slug) return;
@@ -419,6 +421,21 @@ export default function ProductDetail() {
                         </li>
                       ))}
                     </ol>
+
+                    {recipe.videoUrl && token && (
+                      <div className="mt-5 pt-5 border-t border-coffee-200">
+                        <p className="text-[10px] text-coffee-400 uppercase tracking-widest mb-3">Video guía</p>
+                        <div className="aspect-video">
+                          <iframe
+                            src={recipe.videoUrl}
+                            title={recipe.title}
+                            className="w-full h-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -506,6 +523,8 @@ export default function ProductDetail() {
                 </div>
               </div>
             )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>

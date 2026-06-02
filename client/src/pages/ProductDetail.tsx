@@ -8,6 +8,7 @@ import { useUser } from '../context/UserContext';
 import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
 import Breadcrumbs from '../components/Breadcrumbs';
+import BrewingGuideModal from '../components/BrewingGuideModal';
 import type { Product, Review } from '../types';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
@@ -24,6 +25,7 @@ export default function ProductDetail() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviewError, setReviewError] = useState('');
+  const [brewingOpen, setBrewingOpen] = useState(false);
   const addItem = useCart((s) => s.addItem);
   const token = useUser((s) => s.token);
 
@@ -212,6 +214,16 @@ export default function ProductDetail() {
               <p className="text-coffee-500 text-xs mt-3">
                 {product.stock} unidades disponibles{isCafe ? ' · Tostado a pedido' : ''}
               </p>
+
+              {isCafe && product.recipes && product.recipes.length > 0 && (
+                <button
+                  onClick={() => setBrewingOpen(true)}
+                  className="btn-outline w-full flex items-center justify-center gap-2 mt-4"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Guía de Preparación
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
@@ -534,6 +546,12 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      <BrewingGuideModal
+        recipes={product.recipes || []}
+        open={brewingOpen}
+        onClose={() => setBrewingOpen(false)}
+      />
     </div>
   );
 }

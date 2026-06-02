@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
@@ -12,20 +12,38 @@ const links = [
   { to: '/recetas', label: 'Recetas' },
   { to: '/suscripciones', label: 'Suscripciones' },
   { to: '/nosotros', label: 'Nosotros' },
+  { to: '/quiz', label: 'Quiz' },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const { dark, toggle } = useTheme();
   const count = useCart((s) => s.count());
   const openDrawer = useCart((s) => s.openDrawer);
+  const { dark, toggle } = useTheme();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
 
   return (
     <>
@@ -58,7 +76,7 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={toggle}
             className="text-coffee-200 hover:text-cream transition-colors"
@@ -90,28 +108,44 @@ export default function Navbar() {
             className="md:hidden text-coffee-200 hover:text-cream transition-colors"
             aria-label="Menú"
           >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <AnimatePresence mode="wait">
+              {open
+                ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X className="w-5 h-5" /></motion.span>
+                : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Menu className="w-5 h-5" /></motion.span>
+              }
+            </AnimatePresence>
           </button>
         </div>
       </div>
+    </header>
 
-      <AnimatePresence>
-        {open && (
+    <AnimatePresence>
+      {open && (
+        <>
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-coffee-900 border-t border-coffee-800 overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-coffee-950/70 backdrop-blur-sm md:hidden"
+            onClick={() => setOpen(false)}
+          />
+          <motion.div
+            ref={menuRef}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-coffee-900 border-l border-coffee-800 flex flex-col pt-20 pb-8 md:hidden"
           >
-            <nav className="flex flex-col p-6 gap-6">
+            <nav className="flex flex-col px-6 gap-1">
               {links.map(({ to, label }) => (
                 <NavLink
                   key={to}
                   to={to}
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
-                    `text-base tracking-widest uppercase ${
-                      isActive ? 'text-gold-500' : 'text-coffee-200'
+                    `py-3 text-sm tracking-widest uppercase border-b border-coffee-800/50 transition-colors ${
+                      isActive ? 'text-gold-500' : 'text-coffee-200 hover:text-cream'
                     }`
                   }
                 >
@@ -120,9 +154,9 @@ export default function Navbar() {
               ))}
             </nav>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+        </>
+      )}
+    </AnimatePresence>
     <CartDrawer />
     </>
   );

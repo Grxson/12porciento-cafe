@@ -30,6 +30,7 @@ import AdminSubscribers from './admin/Subscribers';
 import AdminReviews from './admin/Reviews';
 import AdminBundles from './admin/Bundles';
 import ToastContainer from './components/Toast';
+import NotFound from './pages/NotFound';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
@@ -85,7 +86,7 @@ export default function App() {
           <Route path="resenas" element={<AdminReviews />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </CartProvider>
   );

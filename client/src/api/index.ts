@@ -74,6 +74,7 @@ export const reviewsApi = {
   create: (productId: string, data: any) => api.post(`/reviews/product/${productId}`, data),
   adminList: () => api.get('/reviews/admin/all'),
   approve: (id: string) => api.put(`/reviews/${id}/approve`),
+  respond: (id: string, adminResponse: string) => api.put(`/reviews/${id}/respond`, { adminResponse }),
   delete: (id: string) => api.delete(`/reviews/${id}`),
 };
 

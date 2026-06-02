@@ -122,10 +122,12 @@ model Review {
   email      String
   rating     Int
   comment    String
-  isApproved Boolean  @default(false)
-  userId     String?
-  user       User?    @relation(fields: [userId], references: [id])
-  createdAt  DateTime @default(now())
+  isApproved    Boolean   @default(false)
+  adminResponse String?
+  respondedAt   DateTime?
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
 }
 
 model PromoCode {

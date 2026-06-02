@@ -59,6 +59,23 @@ router.put('/:id/approve', requireAuth, async (req: AuthRequest, res: Response) 
   }
 });
 
+router.put('/:id/respond', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { adminResponse } = req.body;
+    if (!adminResponse?.trim()) {
+      res.status(400).json({ error: 'La respuesta no puede estar vacía' });
+      return;
+    }
+    const review = await prisma.review.update({
+      where: { id: req.params.id },
+      data: { adminResponse, respondedAt: new Date() },
+    });
+    res.json({ data: review });
+  } catch {
+    res.status(500).json({ error: 'Error al responder reseña' });
+  }
+});
+
 router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     await prisma.review.delete({ where: { id: req.params.id } });

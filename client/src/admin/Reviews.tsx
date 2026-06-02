@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, Trash2 } from 'lucide-react';
+import { Star, Check, Trash2, MessageSquare, X } from 'lucide-react';
 import { reviewsApi } from '../api';
-import StarRating from '../components/StarRating';
 import type { Review } from '../types';
 
+type ReviewWithResponse = Review & { adminResponse?: string };
+
 export default function AdminReviews() {
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ReviewWithResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('pending');
+  const [responding, setResponding] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState('');
 
   const load = () => {
     reviewsApi.adminList().then((r) => { setReviews(r.data.data); setLoading(false); });
@@ -26,85 +29,126 @@ export default function AdminReviews() {
     load();
   };
 
+  const submitResponse = async (id: string) => {
+    if (!responseText.trim()) return;
+    await reviewsApi.respond(id, responseText);
+    setResponding(null);
+    setResponseText('');
+    load();
+  };
+
   const filtered = reviews.filter((r) => {
     if (filter === 'pending') return !r.isApproved;
     if (filter === 'approved') return r.isApproved;
     return true;
   });
 
-  const pending = reviews.filter((r) => !r.isApproved).length;
-
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-cream">Reseñas</h1>
-          <p className="text-coffee-400 text-sm mt-1">
-            {pending > 0 && <span className="text-yellow-400">{pending} pendientes · </span>}
-            {reviews.length} total
-          </p>
+          <p className="text-coffee-400 text-sm mt-1">{reviews.filter((r) => !r.isApproved).length} pendientes</p>
         </div>
-
         <div className="flex gap-2">
           {(['all', 'pending', 'approved'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-xs px-3 py-1.5 border transition-all ${
-                filter === f ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-700 text-coffee-400 hover:border-coffee-500'
+              className={`text-xs px-3 py-1.5 tracking-wider uppercase transition-all ${
+                filter === f ? 'bg-gold-500 text-coffee-950' : 'border border-coffee-700 text-coffee-400 hover:text-cream'
               }`}
             >
-              {{ all: 'Todas', pending: 'Pendientes', approved: 'Aprobadas' }[f]}
+              {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : 'Aprobadas'}
             </button>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20">
+        <div className="flex justify-center py-10">
           <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 text-coffee-500">No hay reseñas en esta categoría.</div>
+        <p className="text-center text-coffee-500 py-10">No hay reseñas.</p>
       ) : (
-        <div className="space-y-4">
-          {filtered.map((review) => (
-            <div key={review.id} className={`bg-coffee-900 border p-5 ${review.isApproved ? 'border-coffee-800' : 'border-yellow-500/30'}`}>
+        <div className="space-y-3">
+          {filtered.map((r) => (
+            <div key={r.id} className="bg-coffee-900 border border-coffee-800 p-5">
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <StarRating value={review.rating} size={14} readonly />
-                    <span className="text-cream font-medium text-sm">{review.name}</span>
-                    <span className="text-coffee-500 text-xs">{review.email}</span>
-                    {!review.isApproved && (
-                      <span className="bg-yellow-900/40 text-yellow-400 text-[10px] px-2 py-0.5 uppercase tracking-widest">Pendiente</span>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? 'fill-gold-500 text-gold-500' : 'text-coffee-700'}`} />
+                      ))}
+                    </div>
+                    <span className="text-cream text-sm font-medium">{r.name}</span>
+                    <span className="text-coffee-500 text-xs">{r.email}</span>
+                    {r.product && <span className="text-coffee-400 text-xs">· {r.product.name}</span>}
+                    {!r.isApproved && (
+                      <span className="text-xs px-2 py-0.5 bg-yellow-900/30 text-yellow-400">Pendiente</span>
                     )}
                   </div>
-                  <p className="text-coffee-300 text-sm mb-2">{review.comment}</p>
-                  <div className="flex items-center gap-3 text-xs text-coffee-500">
-                    <span>{new Date(review.createdAt).toLocaleDateString('es-MX')}</span>
-                    {review.product && (
-                      <span>· <span className="text-coffee-400">{review.product.name}</span></span>
-                    )}
-                  </div>
+                  <p className="text-coffee-200 text-sm leading-relaxed">{r.comment}</p>
+
+                  {r.adminResponse && (
+                    <div className="mt-3 pl-4 border-l-2 border-gold-500/30">
+                      <p className="text-coffee-500 text-xs uppercase tracking-wider mb-1">Respuesta del equipo</p>
+                      <p className="text-coffee-300 text-sm">{r.adminResponse}</p>
+                    </div>
+                  )}
+
+                  {responding === r.id && (
+                    <div className="mt-3 flex gap-2">
+                      <textarea
+                        value={responseText}
+                        onChange={(e) => setResponseText(e.target.value)}
+                        placeholder="Escribe tu respuesta..."
+                        rows={2}
+                        className="flex-1 bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none resize-none"
+                      />
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => submitResponse(r.id)}
+                          className="px-3 py-2 bg-gold-500 text-coffee-950 text-sm hover:bg-gold-400 transition-colors"
+                        >
+                          Enviar
+                        </button>
+                        <button
+                          onClick={() => { setResponding(null); setResponseText(''); }}
+                          className="px-3 py-2 border border-coffee-700 text-coffee-400 hover:text-cream transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex gap-2 shrink-0">
-                  {!review.isApproved && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => { setResponding(r.id); setResponseText(''); }}
+                    className="p-2 text-coffee-400 hover:text-gold-500 transition-colors"
+                    title="Responder"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </button>
+                  {!r.isApproved && (
                     <button
-                      onClick={() => approve(review.id)}
+                      onClick={() => approve(r.id)}
+                      className="p-2 text-coffee-400 hover:text-green-400 transition-colors"
                       title="Aprobar"
-                      className="text-green-400 hover:text-green-300 transition-colors p-1"
                     >
-                      <CheckCircle size={18} />
+                      <Check className="w-4 h-4" />
                     </button>
                   )}
                   <button
-                    onClick={() => remove(review.id)}
+                    onClick={() => remove(r.id)}
+                    className="p-2 text-coffee-400 hover:text-red-400 transition-colors"
                     title="Eliminar"
-                    className="text-red-400 hover:text-red-300 transition-colors p-1"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

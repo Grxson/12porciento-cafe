@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { ordersApi } from '../api';
 import type { Order, OrderStatus } from '../types';
 
@@ -16,38 +16,88 @@ const allStatuses = Object.keys(statusConfig) as OrderStatus[];
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
+  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const load = () => {
-    const params: Record<string, string> | undefined = filter ? { status: filter } : undefined;
+  const load = (overrides?: Record<string, string>) => {
+    setLoading(true);
+    const params: Record<string, string> = {};
+    const s = overrides?.status ?? status;
+    const q = overrides?.search ?? search;
+    const df = overrides?.dateFrom ?? dateFrom;
+    const dt = overrides?.dateTo ?? dateTo;
+    if (s) params.status = s;
+    if (q) params.search = q;
+    if (df) params.dateFrom = df;
+    if (dt) params.dateTo = dt;
     ordersApi.list(params).then((r) => { setOrders(r.data); setLoading(false); });
   };
 
-  useEffect(load, [filter]);
+  useEffect(() => { load(); }, [status]);
 
-  const updateStatus = async (id: string, status: string) => {
-    await ordersApi.updateStatus(id, status);
+  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); load(); };
+
+  const clearFilters = () => {
+    setStatus(''); setSearch(''); setDateFrom(''); setDateTo('');
+    ordersApi.list().then((r) => { setOrders(r.data); setLoading(false); });
+  };
+
+  const updateStatus = async (id: string, newStatus: string) => {
+    await ordersApi.updateStatus(id, newStatus);
     load();
   };
 
+  const hasFilters = status || search || dateFrom || dateTo;
+
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-cream">Pedidos</h1>
           <p className="text-coffee-400 text-sm mt-1">{orders.length} pedidos</p>
         </div>
+      </div>
 
+      <form onSubmit={handleSearch} className="bg-coffee-900 border border-coffee-800 p-4 mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
+          <input
+            ref={searchRef}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Nombre o email..."
+            className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm pl-9 pr-3 py-2 focus:outline-none focus:border-gold-500/50"
+          />
+        </div>
         <select
-          value={filter}
-          onChange={(e) => { setFilter(e.target.value); setLoading(true); }}
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
           className="bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none"
         >
           <option value="">Todos los estados</option>
           {allStatuses.map((s) => <option key={s} value={s}>{statusConfig[s].label}</option>)}
         </select>
-      </div>
+        <div className="flex gap-2">
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+            className="flex-1 bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none" />
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+            className="flex-1 bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none" />
+        </div>
+        <div className="flex gap-2">
+          <button type="submit" className="flex-1 bg-gold-500 text-coffee-950 text-sm font-medium px-4 py-2 hover:bg-gold-400 transition-colors">
+            Filtrar
+          </button>
+          {hasFilters && (
+            <button type="button" onClick={clearFilters} className="px-3 py-2 border border-coffee-700 text-coffee-400 hover:text-cream transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </form>
 
       {loading ? (
         <div className="flex justify-center py-20">

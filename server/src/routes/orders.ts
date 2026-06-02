@@ -46,9 +46,27 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { status, limit = '50' } = req.query;
+    const { status, limit = '100', search, dateFrom, dateTo } = req.query;
     const where: any = {};
+
     if (status) where.status = status;
+
+    if (search) {
+      where.OR = [
+        { customerName: { contains: search as string } },
+        { email: { contains: search as string } },
+      ];
+    }
+
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) where.createdAt.gte = new Date(dateFrom as string);
+      if (dateTo) {
+        const end = new Date(dateTo as string);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
 
     const orders = await prisma.order.findMany({
       where,

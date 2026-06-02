@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
-  ExternalLink, Star, Gift, Menu, X,
+  ExternalLink, Star, Gift, Menu, X, Tag, UserSearch,
 } from 'lucide-react';
 
 const navLinks = [
@@ -12,6 +12,8 @@ const navLinks = [
   { to: '/admin/suscriptores', label: 'Suscriptores', icon: Users },
   { to: '/admin/bundles',      label: 'Bundles',      icon: Gift },
   { to: '/admin/resenas',      label: 'Reseñas',      icon: Star },
+  { to: '/admin/clientes',     label: 'Clientes',     icon: UserSearch },
+  { to: '/admin/descuentos',   label: 'Descuentos',   icon: Tag },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -21,6 +23,8 @@ const pageTitles: Record<string, string> = {
   '/admin/suscriptores': 'Suscriptores',
   '/admin/bundles':      'Bundles',
   '/admin/resenas':      'Reseñas',
+  '/admin/clientes':     'Clientes',
+  '/admin/descuentos':   'Descuentos',
 };
 
 export default function AdminLayout() {

@@ -29,6 +29,8 @@ import AdminOrders from './admin/Orders';
 import AdminSubscribers from './admin/Subscribers';
 import AdminReviews from './admin/Reviews';
 import AdminBundles from './admin/Bundles';
+import AdminPromoCodes from './admin/PromoCodes';
+import AdminCustomers from './admin/Customers';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
 import Quiz from './pages/Quiz';
@@ -87,6 +89,8 @@ export default function App() {
           <Route path="suscriptores" element={<AdminSubscribers />} />
           <Route path="bundles" element={<AdminBundles />} />
           <Route path="resenas" element={<AdminReviews />} />
+          <Route path="clientes" element={<AdminCustomers />} />
+          <Route path="descuentos" element={<AdminPromoCodes />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

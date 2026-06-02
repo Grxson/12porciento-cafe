@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { MapPin, Award, Leaf, ChevronDown, ArrowRight, Zap, Flame, Sprout, SunMedium, FlaskConical, Coffee } from 'lucide-react';
+import TestimonialsSlider from '../components/TestimonialsSlider';
 import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import ScrollReveal from '../components/ScrollReveal';
@@ -397,6 +398,49 @@ export default function Home() {
               </ScrollReveal>
             </div>
           </div>
+        </div>
+      </section>
+
+      <TestimonialsSlider />
+
+      {/* ── ROASTING SCHEDULE ── */}
+      <section className="py-16 px-4 bg-coffee-950 border-t border-coffee-800/40">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-3">Transparencia total</p>
+            <h2 className="font-serif text-4xl text-cream">Calendario de Tueste</h2>
+            <p className="text-coffee-400 mt-3 max-w-md mx-auto">
+              Tostamos por lotes pequeños, bajo pedido. Tu café llega máximo 7 días después del tueste.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {(['Lunes', 'Miércoles', 'Viernes', 'Sábado'] as const).map((day, i) => {
+              const roastDays = [1, 3, 5, 6];
+              const isToday = roastDays[i] === new Date().getDay();
+              return (
+                <div
+                  key={day}
+                  className={`p-5 border text-center transition-all ${
+                    isToday
+                      ? 'border-gold-500/60 bg-gold-500/10'
+                      : 'border-coffee-800 bg-coffee-900/40'
+                  }`}
+                >
+                  {isToday && (
+                    <div className="flex items-center justify-center gap-1.5 mb-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gold-500 animate-pulse" />
+                      <span className="text-gold-500 text-xs tracking-widest uppercase">Hoy</span>
+                    </div>
+                  )}
+                  <p className={`font-medium ${isToday ? 'text-cream' : 'text-coffee-300'}`}>{day}</p>
+                  <p className="text-coffee-500 text-xs mt-1">8:00 – 14:00</p>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-center text-coffee-600 text-xs tracking-wider mt-6">
+            Pedidos antes de las 12pm se tuestan en el próximo día programado.
+          </p>
         </div>
       </section>
     </div>

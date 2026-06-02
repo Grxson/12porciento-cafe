@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
+import Breadcrumbs from '../components/Breadcrumbs';
 import type { Product, Review } from '../types';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
@@ -91,6 +92,11 @@ export default function ProductDetail() {
   return (
     <div className="pt-20 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <Breadcrumbs crumbs={[
+          { label: 'Inicio', to: '/' },
+          { label: 'Tienda', to: '/tienda' },
+          { label: product.name },
+        ]} />
         <Link to="/tienda" className="inline-flex items-center gap-2 text-coffee-500 hover:text-coffee-900 transition-colors text-sm mb-10">
           <ArrowLeft className="w-4 h-4" /> Volver a la tienda
         </Link>

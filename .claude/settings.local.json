@@ -40,7 +40,8 @@
       "Bash(/model sonnet *)",
       "Bash(pnpm --filter server add stripe)",
       "Bash(pnpm --filter client add @stripe/stripe-js @stripe/react-stripe-js)",
-      "Bash(~/.local/bin/pnpm --filter server add stripe)"
+      "Bash(~/.local/bin/pnpm --filter server add stripe)",
+      "Bash(pnpm --filter client exec tsc --noEmit)"
     ]
   }
 }

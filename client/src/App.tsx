@@ -29,6 +29,7 @@ import AdminOrders from './admin/Orders';
 import AdminSubscribers from './admin/Subscribers';
 import AdminReviews from './admin/Reviews';
 import AdminBundles from './admin/Bundles';
+import ToastContainer from './components/Toast';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
@@ -51,6 +52,7 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => (
 export default function App() {
   return (
     <CartProvider>
+      <ToastContainer />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />

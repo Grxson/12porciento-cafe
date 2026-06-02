@@ -10,6 +10,7 @@ import paymentsRouter from './routes/payments';
 import bundlesRouter from './routes/bundles';
 import reviewsRouter from './routes/reviews';
 import usersRouter from './routes/users';
+import promoCodesRouter from './routes/promoCodes';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/payments', paymentsRouter);
+app.use('/api/promo-codes', promoCodesRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

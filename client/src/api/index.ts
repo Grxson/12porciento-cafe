@@ -104,6 +104,20 @@ export const paymentsApi = {
     api.post<{ clientSecret: string; amount: number }>('/payments/create-intent', data),
 };
 
+export const promoCodesApi = {
+  list: () => api.get('/promo-codes'),
+  create: (data: { code: string; discount: number; type: string; maxUses?: number; expiresAt?: string }) =>
+    api.post('/promo-codes', data),
+  toggle: (id: string) => api.put(`/promo-codes/${id}/toggle`),
+  delete: (id: string) => api.delete(`/promo-codes/${id}`),
+  validate: (code: string) => api.post('/promo-codes/validate', { code }),
+};
+
+export const customersApi = {
+  list: (params?: Record<string, string>) => api.get('/customers', { params }),
+  getById: (id: string) => api.get(`/customers/${id}`),
+};
+
 export const dashboardApi = {
   stats: () => api.get('/dashboard/stats'),
 };

@@ -128,6 +128,18 @@ model Review {
   createdAt  DateTime @default(now())
 }
 
+model PromoCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  discount    Float
+  type        String    @default("PERCENT")
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+}
+
 model AdminUser {
   id        String   @id @default(cuid())
   name      String

@@ -4,13 +4,13 @@ services:
       context: .
       dockerfile: ./server/Dockerfile
     ports:
-      - '3001:3001'
+      - '0.0.0.0:3001:3001'
     environment:
       DATABASE_URL: file:/app/data/cafe.db
       JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
       NODE_ENV: production
       PORT: 3001
-      CLIENT_URL: http://localhost
+      CLIENT_URL: ${CLIENT_URL:-http://localhost}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
     volumes:
       - db_data:/app/data
@@ -29,7 +29,7 @@ services:
         VITE_API_URL: /api
         VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
     ports:
-      - '80:80'
+      - '0.0.0.0:80:80'
     depends_on:
       server:
         condition: service_healthy

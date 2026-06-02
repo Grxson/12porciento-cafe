@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Menu, X } from 'lucide-react';
+import { ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useTheme } from '../context/ThemeContext';
 import UserMenu from './UserMenu';
 import CartDrawer from './CartDrawer';
 
@@ -16,6 +17,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { dark, toggle } = useTheme();
   const count = useCart((s) => s.count());
   const openDrawer = useCart((s) => s.openDrawer);
 
@@ -57,6 +59,13 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={toggle}
+            className="text-coffee-200 hover:text-cream transition-colors"
+            aria-label="Cambiar tema"
+          >
+            {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
           <UserMenu />
           <button
             onClick={openDrawer}

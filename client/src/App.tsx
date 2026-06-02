@@ -31,6 +31,7 @@ import AdminReviews from './admin/Reviews';
 import AdminBundles from './admin/Bundles';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
+import Quiz from './pages/Quiz';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
@@ -74,6 +75,8 @@ export default function App() {
             </UserRoute>
           }
         />
+
+        <Route path="/quiz" element={<Quiz />} />
 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>

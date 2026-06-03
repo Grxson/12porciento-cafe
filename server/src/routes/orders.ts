@@ -72,7 +72,7 @@ router.post('/', async (req: Request, res: Response) => {
       to: order.email,
       customerName: order.customerName,
       orderId: order.id,
-      items: order.items.map((i) => ({
+      items: order.items.map((i: { product: { name: string }; quantity: number; price: number }) => ({
         name: i.product.name,
         quantity: i.quantity,
         price: i.price,

@@ -39,7 +39,7 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   let amount: number;
 
   try {
-    amount = await prisma.$transaction(async (tx) => {
+    amount = await prisma.$transaction(async (tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) => {
       let totalAmount = 0;
       for (const item of items) {
         const product = await tx.product.findUnique({

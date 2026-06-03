@@ -21,14 +21,18 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false);
   const [tab, setTab] = useState<Tab>('info');
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [reviewForm, setReviewForm] = useState({ name: '', email: '', rating: 0, comment: '' });
+  const addItem = useCart((s) => s.addItem);
+  const token = useUser((s) => s.token);
+  const loggedUser = useUser((s) => s.user);
+  const [reviewForm, setReviewForm] = useState({ name: loggedUser?.name ?? '', email: loggedUser?.email ?? '', rating: 0, comment: '' });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [brewingOpen, setBrewingOpen] = useState(false);
-  const addItem = useCart((s) => s.addItem);
-  const token = useUser((s) => s.token);
-  const loggedUser = useUser((s) => s.user);
+
+  useEffect(() => {
+    if (loggedUser) setReviewForm((f) => ({ ...f, name: loggedUser.name, email: loggedUser.email }));
+  }, [loggedUser?.id]);
 
   useEffect(() => {
     if (!slug) return;
@@ -57,7 +61,7 @@ export default function ProductDetail() {
     try {
       await reviewsApi.create(product.id, reviewForm);
       setReviewSuccess(true);
-      setReviewForm({ name: '', email: '', rating: 0, comment: '' });
+      setReviewForm({ name: loggedUser?.name ?? '', email: loggedUser?.email ?? '', rating: 0, comment: '' });
     } catch (err: any) {
       setReviewError(err.response?.data?.error || 'Error al enviar reseña.');
     } finally {
@@ -493,12 +497,7 @@ export default function ProductDetail() {
                         <button onClick={() => setReviewSuccess(false)} className="text-gold-600 text-xs mt-3 underline">Escribir otra</button>
                       </div>
                     ) : (
-                      <form onSubmit={(e) => {
-                        if (loggedUser) {
-                          setReviewForm((f) => ({ ...f, name: loggedUser.name, email: loggedUser.email }));
-                        }
-                        handleReviewSubmit(e);
-                      }} className="space-y-4">
+                      <form onSubmit={handleReviewSubmit} className="space-y-4">
                         {loggedUser && (
                           <div className="flex items-center gap-2 bg-coffee-50 border border-coffee-200 px-3 py-2 text-xs text-coffee-600">
                             <div className="w-6 h-6 rounded-full bg-gold-500 flex items-center justify-center text-coffee-950 font-bold text-[10px] shrink-0">

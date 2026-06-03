@@ -41,7 +41,14 @@
       "Bash(pnpm --filter server add stripe)",
       "Bash(pnpm --filter client add @stripe/stripe-js @stripe/react-stripe-js)",
       "Bash(~/.local/bin/pnpm --filter server add stripe)",
-      "Bash(pnpm --filter client exec tsc --noEmit)"
+      "Bash(pnpm --filter client exec tsc --noEmit)",
+      "Bash(git merge *)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name add_payment_intent_id)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name add_avatar_stripe_customer)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name add_avatar_stripe_customer --create-only)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate deploy)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push --accept-data-loss)"
     ]
   }
 }

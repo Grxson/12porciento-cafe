@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { prisma } from '../db';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.get('/product/:productId', async (req: Request, res: Response) => {
   try {

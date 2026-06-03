@@ -1,41 +1,54 @@
 import express from 'express';
 import Stripe from 'stripe';
-import { PrismaClient } from '@prisma/client';
+import rateLimit from 'express-rate-limit';
+import { prisma } from '../db';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
 });
 
-router.post('/create-intent', async (req, res) => {
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { error: 'Demasiados intentos. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post('/create-intent', paymentLimiter, async (req, res) => {
   const { items } = req.body as { items: { productId: string; quantity: number }[] };
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items requeridos' });
   }
 
+  let amount: number;
+
   try {
-    let amount = 0;
-
-    for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { price: true, stock: true, isActive: true },
-      });
-
-      if (!product || !product.isActive) {
-        return res.status(404).json({ error: `Producto ${item.productId} no encontrado` });
+    amount = await prisma.$transaction(async (tx) => {
+      let totalAmount = 0;
+      for (const item of items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { price: true, stock: true, isActive: true, name: true },
+        });
+        if (!product || !product.isActive) {
+          throw new Error(`Producto ${item.productId} no disponible`);
+        }
+        if (product.stock < item.quantity) {
+          throw new Error(`Stock insuficiente para "${product.name}"`);
+        }
+        totalAmount += product.price * item.quantity;
       }
+      return totalAmount;
+    });
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message || 'Error al verificar stock' });
+  }
 
-      if (product.stock < item.quantity) {
-        return res.status(400).json({ error: `Stock insuficiente para producto ${item.productId}` });
-      }
-
-      amount += product.price * item.quantity;
-    }
-
+  try {
     // Stripe uses smallest currency unit (centavos for MXN)
     const amountCentavos = Math.round(amount * 100);
 
@@ -54,6 +67,7 @@ router.post('/create-intent', async (req, res) => {
 
     return res.json({
       clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
       amount,
     });
   } catch (error: any) {

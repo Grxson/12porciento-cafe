@@ -1,14 +1,22 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
+import { prisma } from '../db';
 
 const router = Router();
-const prisma = new PrismaClient();
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Demasiados intentos. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // POST /api/users/register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', authLimiter, async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -41,7 +49,7 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 // POST /api/users/login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', authLimiter, async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {

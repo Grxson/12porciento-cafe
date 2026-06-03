@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/auth';
+import { prisma } from '../db';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.get('/', async (req, res) => {
   const bundles = await prisma.bundle.findMany({

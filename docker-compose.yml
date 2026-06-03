@@ -12,6 +12,7 @@ services:
       PORT: 3001
       CLIENT_URL: ${CLIENT_URL:-http://localhost}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
     volumes:
       - db_data:/app/data
     restart: unless-stopped

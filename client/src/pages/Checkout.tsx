@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft } from 'lucide-react';
-import { ordersApi, paymentsApi } from '../api';
+import { Check, ChevronRight, ChevronLeft, Tag, Loader2 } from 'lucide-react';
+import { ordersApi, paymentsApi, promoCodesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import StripePaymentForm from '../components/StripePaymentForm';
@@ -52,6 +52,11 @@ export default function Checkout() {
   const [intentAmount, setIntentAmount] = useState(0);
   const [loadingIntent, setLoadingIntent] = useState(false);
   const [error, setError] = useState('');
+  const [promoInput, setPromoInput] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
 
@@ -59,6 +64,24 @@ export default function Checkout() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     if (fieldErrors[e.target.name as keyof FormData]) {
       setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+    }
+  };
+
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    try {
+      const res = await promoCodesApi.validate(promoInput.trim());
+      const { discount, type } = res.data.data;
+      const sub = total();
+      const discountAmt = type === 'PERCENTAGE' ? sub * (discount / 100) : Math.min(discount, sub);
+      setPromoCode(promoInput.trim().toUpperCase());
+      setPromoDiscount(discountAmt);
+    } catch (err: any) {
+      setPromoError(err.response?.data?.error || 'Código inválido');
+    } finally {
+      setPromoLoading(false);
     }
   };
 
@@ -76,6 +99,7 @@ export default function Checkout() {
     try {
       const res = await paymentsApi.createIntent({
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        ...(promoCode ? { promoCode } : {}),
       });
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');
@@ -94,6 +118,7 @@ export default function Checkout() {
         ...form,
         ...(user ? { userId: user.id } : {}),
         ...(paymentIntentId ? { paymentIntentId } : {}),
+        ...(promoCode ? { promoCode } : {}),
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity, price: i.product.price })),
       });
     } catch (err: any) {
@@ -318,10 +343,57 @@ export default function Checkout() {
                   </div>
                 ))}
               </div>
+              {/* Promo code */}
+              {step === 1 && (
+                <div className="border-t border-coffee-200 pt-4 mb-4">
+                  <p className="text-[10px] text-coffee-500 uppercase tracking-widest mb-2">Código de descuento</p>
+                  {promoCode ? (
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-3.5 h-3.5 text-green-600" />
+                        <span className="text-green-700 text-xs font-medium">{promoCode}</span>
+                        <span className="text-green-600 text-xs">− ${promoDiscount.toLocaleString('es-MX')}</span>
+                      </div>
+                      <button onClick={() => { setPromoCode(''); setPromoDiscount(0); setPromoInput(''); }}
+                        className="text-coffee-400 hover:text-red-500 transition-colors">
+                        <Check className="w-3 h-3 rotate-45" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        value={promoInput}
+                        onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
+                        placeholder="CÓDIGO"
+                        className="flex-1 bg-white border border-coffee-300 text-coffee-900 px-3 py-2 text-xs focus:border-gold-500 focus:outline-none uppercase"
+                      />
+                      <button onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()}
+                        className="bg-coffee-100 border border-coffee-300 text-coffee-700 px-3 py-2 text-xs hover:bg-coffee-200 transition-colors disabled:opacity-50 flex items-center gap-1">
+                        {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aplicar'}
+                      </button>
+                    </div>
+                  )}
+                  {promoError && <p className="text-red-400 text-xs mt-1">{promoError}</p>}
+                </div>
+              )}
+
               <div className="border-t border-coffee-200 pt-4">
+                {promoDiscount > 0 && (
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-coffee-600">Subtotal</span>
+                    <span className="text-coffee-700">${total().toLocaleString('es-MX')}</span>
+                  </div>
+                )}
+                {promoDiscount > 0 && (
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-green-600">Descuento</span>
+                    <span className="text-green-600">− ${promoDiscount.toLocaleString('es-MX')}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-semibold">
                   <span className="text-coffee-900">Total</span>
-                  <span className="text-gold-600 text-lg">${total().toLocaleString('es-MX')}</span>
+                  <span className="text-gold-600 text-lg">${Math.max(total() - promoDiscount, 0).toLocaleString('es-MX')}</span>
                 </div>
                 <p className="text-coffee-500 text-xs mt-1">+ envío según destino</p>
               </div>

@@ -34,8 +34,16 @@ api.interceptors.response.use(
   },
 );
 
+export interface ProductsListResponse {
+  data: import('../types').Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export const productsApi = {
-  list: (params?: Record<string, string>) => api.get('/products', { params }),
+  list: (params?: Record<string, string>) => api.get<ProductsListResponse>('/products', { params }),
   adminList: () => api.get('/products/admin/all'),
   getBySlug: (slug: string) => api.get(`/products/${slug}`),
   create: (data: any) => api.post('/products', data),
@@ -104,8 +112,8 @@ export const usersApi = {
 };
 
 export const paymentsApi = {
-  createIntent: (data: { items: { productId: string; quantity: number }[] }) =>
-    api.post<{ clientSecret: string; paymentIntentId: string; amount: number }>('/payments/create-intent', data),
+  createIntent: (data: { items: { productId: string; quantity: number }[]; promoCode?: string }) =>
+    api.post<{ clientSecret: string; paymentIntentId: string; amount: number; subtotal: number; discountAmount: number }>('/payments/create-intent', data),
 };
 
 export const promoCodesApi = {

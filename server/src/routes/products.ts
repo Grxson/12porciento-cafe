@@ -12,19 +12,45 @@ const parseProduct = (p: any) => ({
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { process, roast, limited, limit, category } = req.query;
+    const { process, roast, limited, limit, category, sort, search, page, pageSize } = req.query;
     const where: any = { isActive: true };
     if (process) where.process = process;
     if (roast) where.roastLevel = roast;
     if (limited === 'true') where.isLimited = true;
     if (category && category !== 'TODOS') where.category = category;
+    if (search) {
+      where.OR = [
+        { name: { contains: search as string } },
+        { description: { contains: search as string } },
+      ];
+    }
 
-    const products = await prisma.product.findMany({
-      where,
-      take: limit ? parseInt(limit as string) : undefined,
-      orderBy: { createdAt: 'desc' },
+    const orderBy: any =
+      sort === 'sca'        ? { scaScore: 'desc' } :
+      sort === 'price_asc'  ? { price: 'asc' } :
+      sort === 'price_desc' ? { price: 'desc' } :
+                              { createdAt: 'desc' };
+
+    const ps = pageSize ? Math.min(parseInt(pageSize as string), 100) : undefined;
+    const pg = page ? Math.max(parseInt(page as string) - 1, 0) : 0;
+
+    const [products, total] = await prisma.$transaction([
+      prisma.product.findMany({
+        where,
+        orderBy,
+        take: ps ?? (limit ? parseInt(limit as string) : undefined),
+        skip: ps ? pg * ps : undefined,
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    res.json({
+      data: products.map(parseProduct),
+      total,
+      page: pg + 1,
+      pageSize: ps ?? total,
+      totalPages: ps ? Math.ceil(total / ps) : 1,
     });
-    res.json(products.map(parseProduct));
   } catch {
     res.status(500).json({ error: 'Error al obtener productos' });
   }

@@ -24,8 +24,15 @@ export default function AdminProducts() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [loadError, setLoadError] = useState('');
+
   const load = () => {
-    productsApi.adminList().then((r) => { setProducts(r.data); setLoading(false); });
+    setLoading(true);
+    setLoadError('');
+    productsApi.adminList()
+      .then((r) => { setProducts(r.data); })
+      .catch(() => { setLoadError('Error al cargar productos. Intenta de nuevo.'); })
+      .finally(() => setLoading(false));
   };
 
   useEffect(load, []);
@@ -118,6 +125,13 @@ export default function AdminProducts() {
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+        </div>
+      ) : loadError ? (
+        <div className="text-center py-20">
+          <p className="text-red-400 mb-4">{loadError}</p>
+          <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+            Reintentar
+          </button>
         </div>
       ) : (
         <div className="bg-coffee-900 border border-coffee-800 overflow-hidden">

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CartItem, Product } from '../types';

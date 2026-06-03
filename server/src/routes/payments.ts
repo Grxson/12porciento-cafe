@@ -17,8 +17,20 @@ const paymentLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+async function applyPromo(subtotal: number, promoCode?: string): Promise<{ finalAmount: number; discountAmount: number }> {
+  if (!promoCode) return { finalAmount: subtotal, discountAmount: 0 };
+  const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
+  if (!promo || !promo.isActive) return { finalAmount: subtotal, discountAmount: 0 };
+  if (promo.expiresAt && new Date() > promo.expiresAt) return { finalAmount: subtotal, discountAmount: 0 };
+  if (promo.maxUses && promo.usedCount >= promo.maxUses) return { finalAmount: subtotal, discountAmount: 0 };
+  const discount = promo.type === 'PERCENTAGE'
+    ? subtotal * (promo.discount / 100)
+    : Math.min(promo.discount, subtotal);
+  return { finalAmount: Math.max(subtotal - discount, 0), discountAmount: discount };
+}
+
 router.post('/create-intent', paymentLimiter, async (req, res) => {
-  const { items } = req.body as { items: { productId: string; quantity: number }[] };
+  const { items, promoCode } = req.body as { items: { productId: string; quantity: number }[]; promoCode?: string };
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items requeridos' });
@@ -27,7 +39,7 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   let amount: number;
 
   try {
-    amount = await prisma.$transaction(async (tx: typeof prisma) => {
+    amount = await prisma.$transaction(async (tx) => {
       let totalAmount = 0;
       for (const item of items) {
         const product = await tx.product.findUnique({
@@ -49,8 +61,8 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   }
 
   try {
-    // Stripe uses smallest currency unit (centavos for MXN)
-    const amountCentavos = Math.round(amount * 100);
+    const { finalAmount, discountAmount } = await applyPromo(amount, promoCode);
+    const amountCentavos = Math.round(finalAmount * 100);
 
     if (amountCentavos < 1000) {
       return res.status(400).json({ error: 'El monto mínimo es $10 MXN' });
@@ -62,13 +74,16 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
       automatic_payment_methods: { enabled: true },
       metadata: {
         items: JSON.stringify(items.map((i) => ({ productId: i.productId, quantity: i.quantity }))),
+        ...(promoCode ? { promoCode } : {}),
       },
     });
 
     return res.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      amount,
+      amount: finalAmount,
+      subtotal: amount,
+      discountAmount,
     });
   } catch (error: any) {
     console.error('Stripe error:', error);

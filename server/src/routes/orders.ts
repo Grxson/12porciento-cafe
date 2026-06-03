@@ -9,9 +9,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
 });
 
+async function applyPromo(subtotal: number, promoCode?: string): Promise<number> {
+  if (!promoCode) return subtotal;
+  const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
+  if (!promo || !promo.isActive) return subtotal;
+  const discount = promo.type === 'PERCENTAGE'
+    ? subtotal * (promo.discount / 100)
+    : Math.min(promo.discount, subtotal);
+  return Math.max(subtotal - discount, 0);
+}
+
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { items, userId, paymentIntentId, ...orderData } = req.body;
+    const { items, userId, paymentIntentId, promoCode, ...orderData } = req.body;
 
     if (paymentIntentId) {
       try {
@@ -26,17 +36,19 @@ router.post('/', async (req: Request, res: Response) => {
       console.warn('[orders] Order created without paymentIntentId — guest/legacy order');
     }
 
-    const total = items.reduce(
+    const subtotal = items.reduce(
       (sum: number, item: { price: number; quantity: number }) =>
         sum + item.price * item.quantity,
       0,
     );
+    const total = await applyPromo(subtotal, promoCode);
 
     const order = await prisma.order.create({
       data: {
         ...orderData,
         total,
         ...(userId ? { userId } : {}),
+        ...(paymentIntentId ? { paymentIntentId } : {}),
         items: {
           create: items.map((item: { productId: string; quantity: number; price: number }) => ({
             productId: item.productId,

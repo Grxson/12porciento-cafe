@@ -12,6 +12,7 @@ import reviewsRouter from './routes/reviews';
 import usersRouter from './routes/users';
 import promoCodesRouter from './routes/promoCodes';
 import customersRouter from './routes/customers';
+import webhookRouter from './routes/webhook';
 
 dotenv.config();
 
@@ -22,6 +23,10 @@ app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true,
 }));
+
+// Webhook must receive raw body — register before express.json()
+app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRouter);
+
 app.use(express.json());
 
 app.use('/api/products', productsRouter);

@@ -20,7 +20,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
 
   useEffect(() => {
     productsApi.list({ category: 'CAFÉ' }).then((r) => {
-      setProducts(r.data.filter((p: Product) => p.isActive));
+      setProducts(r.data.data.filter((p: Product) => p.isActive));
       setLoading(false);
     });
   }, []);

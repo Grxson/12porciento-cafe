@@ -32,7 +32,7 @@ export default function Recipes() {
 
   useEffect(() => {
     productsApi.list({ category: 'CAFÉ' }).then((r) => {
-      setProducts(r.data);
+      setProducts(r.data.data);
       setLoading(false);
     });
   }, []);

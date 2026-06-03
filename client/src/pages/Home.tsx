@@ -56,7 +56,7 @@ export default function Home() {
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   useEffect(() => {
-    productsApi.list({ limit: '3' }).then((r) => setFeatured(r.data));
+    productsApi.list({ limit: '3' }).then((r) => setFeatured(r.data.data));
   }, []);
 
   return (

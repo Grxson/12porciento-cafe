@@ -48,7 +48,8 @@
       "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name add_avatar_stripe_customer --create-only)",
       "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate deploy)",
       "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push)",
-      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push --accept-data-loss)"
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push --accept-data-loss)",
+      "Bash(docker compose *)"
     ]
   }
 }

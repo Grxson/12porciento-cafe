@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../db';
+import { sendOrderConfirmation } from '../email';
 
 const router = Router();
 
@@ -97,6 +98,21 @@ router.post('/', async (req: Request, res: Response) => {
       }
 
       console.log(`[webhook] Order created from PaymentIntent ${intent.id}`);
+
+      // Send confirmation email — fire and forget
+      const emailItems = orderItems.map(async (item) => {
+        const product = await prisma.product.findUnique({ where: { id: item.productId }, select: { name: true } });
+        return { name: product?.name ?? item.productId, quantity: item.quantity, price: item.price };
+      });
+      Promise.all(emailItems).then((resolvedItems) => {
+        sendOrderConfirmation({
+          to: intent.metadata?.email || '',
+          customerName: intent.metadata?.customerName || 'Cliente',
+          orderId: intent.id,
+          items: resolvedItems,
+          total,
+        }).catch(() => {});
+      }).catch(() => {});
     } catch (err: any) {
       if (err.code === 'P2002') {
         // Unique constraint — order already exists (race condition with frontend)

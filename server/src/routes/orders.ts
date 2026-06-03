@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
+import { sendOrderConfirmation } from '../email';
 
 const router = Router();
 
@@ -66,6 +67,18 @@ router.post('/', async (req: Request, res: Response) => {
         data: { stock: { decrement: item.quantity } },
       });
     }
+
+    sendOrderConfirmation({
+      to: order.email,
+      customerName: order.customerName,
+      orderId: order.id,
+      items: order.items.map((i) => ({
+        name: i.product.name,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+      total: order.total,
+    }).catch(() => {});
 
     res.status(201).json(order);
   } catch {

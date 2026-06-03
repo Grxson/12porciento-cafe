@@ -62,10 +62,21 @@ router.post('/', async (req: Request, res: Response) => {
     });
 
     for (const item of items) {
-      await prisma.product.update({
-        where: { id: item.productId },
-        data: { stock: { decrement: item.quantity } },
-      });
+      const prod = await prisma.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
+      if (prod) {
+        await prisma.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
+        await prisma.stockMovement.create({
+          data: {
+            productId: item.productId,
+            type: 'SALE',
+            quantity: -item.quantity,
+            previousStock: prod.stock,
+            newStock: prod.stock - item.quantity,
+            orderId: order.id,
+            notes: `Pedido #${order.id.slice(-8).toUpperCase()}`,
+          },
+        });
+      }
     }
 
     sendOrderConfirmation({

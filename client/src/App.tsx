@@ -31,6 +31,7 @@ import AdminReviews from './admin/Reviews';
 import AdminBundles from './admin/Bundles';
 import AdminPromoCodes from './admin/PromoCodes';
 import AdminCustomers from './admin/Customers';
+import AdminInventory from './admin/Inventory';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
 import Quiz from './pages/Quiz';
@@ -91,6 +92,7 @@ export default function App() {
           <Route path="resenas" element={<AdminReviews />} />
           <Route path="clientes" element={<AdminCustomers />} />
           <Route path="descuentos" element={<AdminPromoCodes />} />
+          <Route path="inventario" element={<AdminInventory />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

@@ -13,6 +13,7 @@ import usersRouter from './routes/users';
 import promoCodesRouter from './routes/promoCodes';
 import customersRouter from './routes/customers';
 import webhookRouter from './routes/webhook';
+import inventoryRouter from './routes/inventory';
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/promo-codes', promoCodesRouter);
 app.use('/api/customers', customersRouter);
+app.use('/api/inventory', inventoryRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

@@ -24,16 +24,31 @@ model Product {
   price       Float
   weight      Int?
   stock       Int
+  lowStockThreshold Int    @default(10)
   imageUrl    String
   description String
   isLimited   Boolean     @default(false)
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  orderItems  OrderItem[]
+  orderItems        OrderItem[]
   bundleItems       BundleItem[]
   reviews           Review[]
   subscriptionItems SubscriptionItem[]
+  stockMovements    StockMovement[]
+}
+
+model StockMovement {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type          String   // SALE | RESTOCK | ADJUSTMENT | LOSS | RETURN | INITIAL
+  quantity      Int      // positive = in, negative = out
+  previousStock Int
+  newStock      Int
+  notes         String?
+  orderId       String?
+  createdAt     DateTime @default(now())
 }
 
 model Order {

@@ -1,14 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { mexicanStates } from '../../constants/mexico';
+
+function resizeToBase64(file: File, size = 256): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2;
+      const sy = (img.height - min) / 2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 
 export default function ProfileSettings() {
   const user = useUser((s) => s.user);
   const updateProfile = useUser((s) => s.updateProfile);
   const { add } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', state: '', zipCode: '', avatarUrl: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,6 +50,16 @@ export default function ProfileSettings() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { add('Imagen muy grande (máx 5 MB)', 'error'); return; }
+    try {
+      const base64 = await resizeToBase64(file);
+      setForm((f) => ({ ...f, avatarUrl: base64 }));
+    } catch { add('No se pudo procesar la imagen', 'error'); }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,21 +85,45 @@ export default function ProfileSettings() {
         <div>
           <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-3">Foto de perfil</label>
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-coffee-800 border border-coffee-700 flex items-center justify-center shrink-0">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="relative w-16 h-16 rounded-full overflow-hidden bg-coffee-800 border-2 border-coffee-700 hover:border-gold-500/60 transition-colors group shrink-0"
+            >
               {form.avatarUrl ? (
-                <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gold-500/20 flex items-center justify-center">
-                  <span className="font-serif text-xl text-gold-500 font-bold">
-                    {user?.name?.charAt(0).toUpperCase() ?? <User className="w-6 h-6 text-coffee-500" />}
+                  <span className="font-serif text-2xl text-gold-500 font-bold">
+                    {user?.name?.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
+              <div className="absolute inset-0 bg-coffee-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera className="w-5 h-5 text-cream" />
+              </div>
+            </button>
+            <div>
+              <button type="button" onClick={() => fileRef.current?.click()}
+                className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 hover:border-gold-500/60 px-4 py-2 transition-colors flex items-center gap-2">
+                <Camera className="w-3.5 h-3.5" /> Subir foto
+              </button>
+              {form.avatarUrl && (
+                <button type="button" onClick={() => setForm((f) => ({ ...f, avatarUrl: '' }))}
+                  className="text-xs text-coffee-500 hover:text-red-400 transition-colors mt-1 block">
+                  Quitar foto
+                </button>
+              )}
+              <p className="text-coffee-600 text-[10px] mt-1">JPG, PNG, WebP · máx 5 MB</p>
             </div>
-            <input name="avatarUrl" value={form.avatarUrl} onChange={handleChange}
-              className="flex-1 bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
-              placeholder="https://... (URL de imagen)" />
           </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={handleAvatarFile}
+          />
         </div>
 
         <div>

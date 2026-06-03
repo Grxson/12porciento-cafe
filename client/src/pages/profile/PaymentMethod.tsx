@@ -22,11 +22,10 @@ const CARD_STYLE = {
   },
 };
 
-function AddCardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
+function AddCardForm({ clientSecret, onSuccess, onCancel }: { clientSecret: string; onSuccess: () => void; onCancel: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
   const { add } = useToast();
-  const setDefaultPaymentMethod = usersApi.setDefaultPaymentMethod;
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,13 +35,12 @@ function AddCardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel:
     try {
       const card = elements.getElement(CardElement);
       if (!card) return;
-      const { error, setupIntent } = await stripe.confirmCardSetup(
-        (elements as any)._commonOptions?.clientSecret ?? '',
-        { payment_method: { card } },
-      );
+      const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+        payment_method: { card },
+      });
       if (error) { add(error.message ?? 'Error al guardar tarjeta', 'error'); return; }
       if (setupIntent?.payment_method) {
-        await setDefaultPaymentMethod(setupIntent.payment_method as string);
+        await usersApi.setDefaultPaymentMethod(setupIntent.payment_method as string);
         add('Tarjeta guardada', 'success');
         onSuccess();
       }
@@ -87,7 +85,7 @@ function AddCardWithSetup({ onSuccess, onCancel }: { onSuccess: () => void; onCa
 
   return (
     <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <AddCardForm onSuccess={onSuccess} onCancel={onCancel} />
+      <AddCardForm clientSecret={clientSecret} onSuccess={onSuccess} onCancel={onCancel} />
     </Elements>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee } from 'lucide-react';
+import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, AlertTriangle, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { subscriptionsApi } from '../api';
 import { useUser } from '../context/UserContext';
 import ScrollReveal from '../components/ScrollReveal';
@@ -71,6 +72,8 @@ export default function Subscriptions() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
+  const hasAddress = !!(user?.address && user?.city && user?.state && user?.zipCode);
+
   const goToStep = (n: Step) => {
     setStep(n);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -92,6 +95,12 @@ export default function Subscriptions() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlan) return;
+
+    if (user && !hasAddress) {
+      setError('Necesitas agregar tu dirección de envío en tu perfil antes de suscribirte.');
+      return;
+    }
+
     setLoading(true); setError('');
     try {
       await subscriptionsApi.create({
@@ -298,6 +307,30 @@ export default function Subscriptions() {
                   <p className="font-serif text-2xl text-cream">${selectedPlan.price} <span className="text-coffee-500 text-sm font-sans">/ mes</span></p>
                 )}
               </div>
+              {/* Address validation banner */}
+              {user && !hasAddress && (
+                <div className="flex items-start gap-3 bg-yellow-900/20 border border-yellow-500/30 p-4 mb-6">
+                  <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-yellow-300 text-sm font-medium mb-1">Dirección de envío requerida</p>
+                    <p className="text-yellow-400/70 text-xs leading-relaxed mb-2">
+                      Necesitas agregar tu dirección de envío completa antes de activar tu suscripción.
+                    </p>
+                    <Link to="/perfil/datos" className="inline-flex items-center gap-1 text-xs text-gold-400 hover:text-gold-300 underline transition-colors">
+                      <MapPin className="w-3 h-3" /> Ir a mis datos
+                    </Link>
+                  </div>
+                </div>
+              )}
+              {!user && (
+                <div className="flex items-start gap-3 bg-coffee-800/60 border border-coffee-700 p-4 mb-6">
+                  <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
+                  <p className="text-coffee-300 text-xs leading-relaxed">
+                    Para recibir tus envíos necesitamos tu dirección. <Link to="/registro" className="text-gold-400 hover:text-gold-300 underline">Crea tu cuenta</Link> y agrégala en tu perfil antes de confirmar.
+                  </p>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="gold-line mb-5" />
                 <h3 className="font-serif text-2xl text-cream mb-6">Tus datos</h3>
@@ -332,8 +365,17 @@ export default function Subscriptions() {
                     ))}
                   </div>
                 </div>
-                {error && <p className="text-red-400 text-sm">{error}</p>}
-                <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                {error && (
+                  <div className="flex items-start gap-2 text-red-400 text-sm">
+                    <span>{error}</span>
+                    {error.includes('dirección') && (
+                      <Link to="/perfil/datos" className="text-gold-400 hover:text-gold-300 underline text-xs shrink-0 self-center">
+                        Ir ahora
+                      </Link>
+                    )}
+                  </div>
+                )}
+                <button type="submit" disabled={loading || (!!user && !hasAddress)} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
                   {loading ? 'Procesando…' : 'Confirmar suscripción'}
                 </button>
                 <p className="text-coffee-600 text-xs text-center">

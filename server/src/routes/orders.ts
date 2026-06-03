@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
-import { sendOrderConfirmation } from '../email';
+import { sendOrderConfirmation, sendOrderStatusUpdate } from '../email';
 
 const router = Router();
 
@@ -155,6 +155,17 @@ router.put('/:id/status', requireAuth, async (req: AuthRequest, res: Response) =
       where: { id: req.params.id },
       data: { status },
     });
+
+    // Notify customer on relevant status changes — fire and forget
+    if (['PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].includes(status)) {
+      sendOrderStatusUpdate({
+        to: order.email,
+        customerName: order.customerName,
+        orderId: order.id,
+        status,
+      }).catch(() => {});
+    }
+
     res.json(order);
   } catch {
     res.status(500).json({ error: 'Error al actualizar pedido' });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Tag, Loader2 } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin } from 'lucide-react';
 import { ordersApi, paymentsApi, promoCodesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
@@ -183,6 +183,18 @@ export default function Checkout() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="gold-line mb-4" />
         <h1 className="font-serif text-4xl text-coffee-900 mb-4">Checkout</h1>
+
+        {/* Address save suggestion for logged-in users with no saved address */}
+        {user && !user.address && step === 1 && (
+          <div className="flex items-start gap-3 bg-gold-50 border border-gold-200 p-3 mb-6">
+            <MapPin className="w-4 h-4 text-gold-600 shrink-0 mt-0.5" />
+            <p className="text-coffee-700 text-xs leading-relaxed">
+              Completa tu dirección aquí y{' '}
+              <Link to="/perfil/datos" className="text-gold-600 hover:text-gold-700 underline">guárdala en tu perfil</Link>
+              {' '}para que se autocomplete en futuros pedidos.
+            </p>
+          </div>
+        )}
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 mb-10">

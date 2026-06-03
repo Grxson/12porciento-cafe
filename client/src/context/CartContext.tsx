@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CartItem, Product } from '../types';
@@ -66,7 +66,6 @@ export const useCart = create<CartStore>()(
   ),
 );
 
-const CartContext = createContext(null);
-export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  return <CartContext.Provider value={null}>{children}</CartContext.Provider>;
-};
+export const CartProvider = ({ children }: { children: React.ReactNode }) => (
+  <>{children}</>
+);

@@ -91,7 +91,23 @@ export default function Subscription() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h3 className="font-serif text-xl text-cream">{sub.plan}</h3>
-              <span className="text-[10px] px-2 py-1 bg-green-900/30 text-green-400 border border-green-500/20 uppercase tracking-wider">Activa</span>
+              {(() => {
+                const statusStyles: Record<string, string> = {
+                  ACTIVE:    'bg-green-900/30 text-green-400 border-green-500/20',
+                  PAUSED:    'bg-yellow-900/30 text-yellow-400 border-yellow-500/20',
+                  CANCELLED: 'bg-red-900/30 text-red-400 border-red-500/20',
+                };
+                const statusLabels: Record<string, string> = {
+                  ACTIVE: 'Activa', PAUSED: 'Pausada', CANCELLED: 'Cancelada',
+                };
+                const cls = statusStyles[sub.status] ?? statusStyles.ACTIVE;
+                const lbl = statusLabels[sub.status] ?? 'Activa';
+                return (
+                  <span className={`text-[10px] px-2 py-1 border uppercase tracking-wider ${cls}`}>
+                    {lbl}
+                  </span>
+                );
+              })()}
             </div>
             <p className="text-coffee-400 text-sm">
               {sub.frequency === 'bimonthly' ? 'Cada 2 meses' : 'Mensual'} · {sub.grindPreference === 'GRANO' ? 'Grano entero' : 'Molido'}

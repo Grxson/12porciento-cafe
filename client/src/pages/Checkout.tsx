@@ -6,6 +6,7 @@ import { ordersApi, paymentsApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import StripePaymentForm from '../components/StripePaymentForm';
+import { mexicanStates } from '../constants/mexico';
 
 interface FormData {
   customerName: string;
@@ -18,13 +19,19 @@ interface FormData {
   notes: string;
 }
 
-const mexicanStates = [
-  'Aguascalientes','Baja California','Baja California Sur','Campeche','Chiapas','Chihuahua',
-  'Ciudad de México','Coahuila','Colima','Durango','Estado de México','Guanajuato','Guerrero',
-  'Hidalgo','Jalisco','Michoacán','Morelos','Nayarit','Nuevo León','Oaxaca','Puebla','Querétaro',
-  'Quintana Roo','San Luis Potosí','Sinaloa','Sonora','Tabasco','Tamaulipas','Tlaxcala','Veracruz',
-  'Yucatán','Zacatecas',
-];
+const validateShipping = (form: FormData): Partial<Record<keyof FormData, string>> => {
+  const errors: Partial<Record<keyof FormData, string>> = {};
+  if (!form.customerName.trim() || form.customerName.trim().length < 2) {
+    errors.customerName = 'Nombre requerido (mínimo 2 caracteres)';
+  }
+  if (!/^\d{5}$/.test(form.zipCode)) {
+    errors.zipCode = 'CP debe ser 5 dígitos';
+  }
+  if (form.phone && !/^\d{10}$/.test(form.phone.replace(/[\s\-()]/g, ''))) {
+    errors.phone = 'Teléfono debe ser 10 dígitos';
+  }
+  return errors;
+};
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
@@ -41,17 +48,29 @@ export default function Checkout() {
     notes: '',
   });
   const [clientSecret, setClientSecret] = useState('');
+  const [paymentIntentId, setPaymentIntentId] = useState('');
   const [intentAmount, setIntentAmount] = useState(0);
   const [loadingIntent, setLoadingIntent] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    if (fieldErrors[e.target.name as keyof FormData]) {
+      setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+    }
+  };
 
   const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
+    const validationErrors = validateShipping(form);
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      return;
+    }
+    setFieldErrors({});
     setLoadingIntent(true);
     setError('');
     try {
@@ -59,6 +78,7 @@ export default function Checkout() {
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
       });
       setClientSecret(res.data.clientSecret);
+      setPaymentIntentId(res.data.paymentIntentId ?? '');
       setIntentAmount(res.data.amount);
       setStep(2);
     } catch (err: any) {
@@ -73,10 +93,12 @@ export default function Checkout() {
       await ordersApi.create({
         ...form,
         ...(user ? { userId: user.id } : {}),
+        ...(paymentIntentId ? { paymentIntentId } : {}),
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity, price: i.product.price })),
       });
-    } catch {
-      // Order creation best-effort — payment already confirmed
+    } catch (err: any) {
+      console.error('Order creation failed after payment:', err);
+      setError('Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte con el email de confirmación de Stripe.');
     }
     clearCart();
     setSuccess(true);
@@ -173,27 +195,33 @@ export default function Checkout() {
                   <h2 className="font-serif text-xl text-coffee-900 mb-4">Datos de envío</h2>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[
-                      { name: 'customerName', label: 'Nombre completo *', placeholder: 'Tu nombre', required: true },
-                      { name: 'email', label: 'Email *', placeholder: 'tu@email.com', required: true, type: 'email' },
-                    ].map(({ name, label, placeholder, required, type = 'text' }) => (
-                      <div key={name}>
-                        <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">{label}</label>
-                        <input
-                          name={name} type={type} required={required}
-                          value={(form as any)[name]} onChange={handleChange}
-                          className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
-                          placeholder={placeholder}
-                        />
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Nombre completo *</label>
+                      <input
+                        name="customerName" type="text" required
+                        value={form.customerName} onChange={handleChange}
+                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-sm focus:outline-none ${fieldErrors.customerName ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
+                        placeholder="Tu nombre"
+                      />
+                      {fieldErrors.customerName && <p className="text-red-400 text-xs mt-1">{fieldErrors.customerName}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Email *</label>
+                      <input
+                        name="email" type="email" required
+                        value={form.email} onChange={handleChange}
+                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                        placeholder="tu@email.com"
+                      />
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Teléfono</label>
                     <input name="phone" value={form.phone} onChange={handleChange}
-                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                      className={`w-full bg-white border text-coffee-900 px-4 py-3 text-sm focus:outline-none ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
                       placeholder="55 1234 5678" />
+                    {fieldErrors.phone && <p className="text-red-400 text-xs mt-1">{fieldErrors.phone}</p>}
                   </div>
 
                   <div>
@@ -221,8 +249,9 @@ export default function Checkout() {
                     <div>
                       <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">CP *</label>
                       <input name="zipCode" required value={form.zipCode} onChange={handleChange}
-                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-sm focus:outline-none ${fieldErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
                         placeholder="12345" />
+                      {fieldErrors.zipCode && <p className="text-red-400 text-xs mt-1">{fieldErrors.zipCode}</p>}
                     </div>
                   </div>
 

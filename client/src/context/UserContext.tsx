@@ -27,8 +27,8 @@ export const useUser = create<UserStore>()(
         const { token, user } = res.data;
         localStorage.setItem('user_token', token);
         set({ user, token });
-        // Warm SW runtime cache for offline recipe access
-        fetch('/api/products?category=CAFÉ&limit=100').catch(() => {});
+        const apiBase = import.meta.env.VITE_API_URL || '/api';
+        fetch(`${apiBase}/products?category=${encodeURIComponent('CAFÉ')}&limit=100`).catch(() => {});
         try {
           const sub = await usersApi.mySubscription();
           set({ hasSubscription: sub.data !== null });
@@ -42,7 +42,8 @@ export const useUser = create<UserStore>()(
         const { token, user } = res.data;
         localStorage.setItem('user_token', token);
         set({ user, token });
-        fetch('/api/products?category=CAFÉ&limit=100').catch(() => {});
+        const apiBase = import.meta.env.VITE_API_URL || '/api';
+        fetch(`${apiBase}/products?category=${encodeURIComponent('CAFÉ')}&limit=100`).catch(() => {});
       },
 
       logout: () => {

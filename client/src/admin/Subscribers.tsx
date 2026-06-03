@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { subscriptionsApi } from '../api';
+import ConfirmDialog from '../components/ConfirmDialog';
 import type { Subscription, SubscriptionStatus } from '../types';
 
 function FulfillmentBadge({ status }: { status: string }) {
@@ -34,11 +35,29 @@ const planLabels: Record<string, string> = {
 export default function AdminSubscribers() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [filter, setFilter] = useState('');
+  const [cancelConfirm, setCancelConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   const load = () => {
+    setLoading(true);
+    setLoadError('');
     const params: Record<string, string> | undefined = filter ? { status: filter } : undefined;
-    subscriptionsApi.list(params).then((r) => { setSubs(r.data); setLoading(false); });
+    subscriptionsApi.list(params)
+      .then((r) => { setSubs(r.data); })
+      .catch(() => { setLoadError('Error al cargar suscriptores. Intenta de nuevo.'); })
+      .finally(() => setLoading(false));
+  };
+
+  const confirmCancel = async () => {
+    if (!cancelConfirm) return;
+    setCancelling(true);
+    try {
+      await subscriptionsApi.updateStatus(cancelConfirm.id, 'CANCELLED');
+      setCancelConfirm(null);
+      load();
+    } finally { setCancelling(false); }
   };
 
   useEffect(load, [filter]);
@@ -77,17 +96,31 @@ export default function AdminSubscribers() {
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
         </div>
+      ) : loadError ? (
+        <div className="text-center py-20">
+          <p className="text-red-400 mb-4">{loadError}</p>
+          <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+            Reintentar
+          </button>
+        </div>
       ) : subs.length === 0 ? (
         <div className="text-center py-20 text-coffee-500">No hay suscriptores con ese filtro.</div>
       ) : (
         <div className="bg-coffee-900 border border-coffee-800 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[700px] text-sm">
               <thead>
                 <tr className="border-b border-coffee-800">
-                  {['Nombre', 'Email', 'Plan', 'Molienda', 'Frecuencia', 'Próximo cobro', 'Estado', 'Entrega', 'Cafés', 'Acciones'].map((h) => (
-                    <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
-                  ))}
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Nombre</th>
+                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Email</th>
+                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Plan</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Molienda</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Frecuencia</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Próximo cobro</th>
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Estado</th>
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Entrega</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Cafés</th>
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -99,21 +132,21 @@ export default function AdminSubscribers() {
                         <p className="text-cream font-medium">{sub.name}</p>
                         {sub.phone && <p className="text-coffee-500 text-xs">{sub.phone}</p>}
                       </td>
-                      <td className="px-4 py-3 text-coffee-300">{sub.email}</td>
-                      <td className="px-4 py-3">
+                      <td className="hidden sm:table-cell px-4 py-3 text-coffee-300">{sub.email}</td>
+                      <td className="hidden sm:table-cell px-4 py-3">
                         <span className="text-gold-500 text-xs font-medium uppercase tracking-wider">
                           {planLabels[sub.plan] ?? sub.plan}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="hidden lg:table-cell px-4 py-3">
                         <span className="text-[10px] px-2 py-0.5 border border-coffee-700 bg-coffee-800/40 text-coffee-300 rounded-sm uppercase tracking-wider">
                           {sub.grindPreference || 'GRANO'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-coffee-300 capitalize">
+                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-300 capitalize">
                         {sub.frequency === 'monthly' ? 'Mensual' : 'Bimestral'}
                       </td>
-                      <td className="px-4 py-3 text-coffee-300">
+                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-300">
                         {new Date(sub.nextBilling).toLocaleDateString('es-MX')}
                       </td>
                       <td className="px-4 py-3">
@@ -136,7 +169,7 @@ export default function AdminSubscribers() {
                           </select>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="hidden lg:table-cell px-4 py-3">
                         {sub.items && sub.items.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {sub.items.map((item: any) => (
@@ -168,10 +201,7 @@ export default function AdminSubscribers() {
                           )}
                           {sub.status !== 'CANCELLED' && (
                             <button
-                              onClick={() => {
-                                if (confirm(`¿Cancelar suscripción de ${sub.name}?`))
-                                  updateStatus(sub.id, 'CANCELLED');
-                              }}
+                              onClick={() => setCancelConfirm({ id: sub.id, name: sub.name })}
                               className="text-xs text-red-400 hover:text-red-300 transition-colors"
                             >
                               Cancelar
@@ -187,6 +217,17 @@ export default function AdminSubscribers() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!cancelConfirm}
+        title="Cancelar suscripción"
+        description={`¿Cancelar la suscripción de ${cancelConfirm?.name}? El suscriptor perderá acceso al siguiente envío.`}
+        confirmLabel="Sí, cancelar"
+        confirmVariant="danger"
+        loading={cancelling}
+        onConfirm={confirmCancel}
+        onCancel={() => setCancelConfirm(null)}
+      />
     </div>
   );
 }

@@ -1,22 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
-
-const mexicanStates = [
-  'Aguascalientes','Baja California','Baja California Sur','Campeche','Chiapas','Chihuahua',
-  'Ciudad de México','Coahuila','Colima','Durango','Estado de México','Guanajuato','Guerrero',
-  'Hidalgo','Jalisco','Michoacán','Morelos','Nayarit','Nuevo León','Oaxaca','Puebla','Querétaro',
-  'Quintana Roo','San Luis Potosí','Sinaloa','Sonora','Tabasco','Tamaulipas','Tlaxcala','Veracruz',
-  'Yucatán','Zacatecas',
-];
+import { useToast } from '../../context/ToastContext';
+import { mexicanStates } from '../../constants/mexico';
 
 export default function ProfileSettings() {
   const user = useUser((s) => s.user);
   const updateProfile = useUser((s) => s.updateProfile);
+  const { add } = useToast();
   const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', state: '', zipCode: '' });
   const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -41,10 +34,10 @@ export default function ProfileSettings() {
     setError('');
     try {
       await updateProfile(form);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      add('Datos guardados exitosamente', 'success');
     } catch {
       setError('Error al guardar cambios');
+      add('Error al guardar cambios', 'error');
     } finally {
       setLoading(false);
     }
@@ -100,7 +93,7 @@ export default function ProfileSettings() {
 
         <button type="submit" disabled={loading}
           className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-          {saved ? <><Check className="w-4 h-4" /> Guardado</> : loading ? 'Guardando...' : 'Guardar cambios'}
+          {loading ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
     </motion.div>

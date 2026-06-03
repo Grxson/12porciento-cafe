@@ -1,13 +1,30 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import Stripe from 'stripe';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { prisma } from '../db';
 
 const router = Router();
-const prisma = new PrismaClient();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2026-05-27.dahlia',
+});
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { items, userId, ...orderData } = req.body;
+    const { items, userId, paymentIntentId, ...orderData } = req.body;
+
+    if (paymentIntentId) {
+      try {
+        const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        if (intent.status !== 'succeeded') {
+          return res.status(400).json({ error: 'El pago no ha sido confirmado.' });
+        }
+      } catch {
+        return res.status(400).json({ error: 'No se pudo verificar el pago.' });
+      }
+    } else {
+      console.warn('[orders] Order created without paymentIntentId — guest/legacy order');
+    }
 
     const total = items.reduce(
       (sum: number, item: { price: number; quantity: number }) =>

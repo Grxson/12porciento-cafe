@@ -16,6 +16,7 @@ const allStatuses = Object.keys(statusConfig) as OrderStatus[];
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -25,6 +26,7 @@ export default function AdminOrders() {
 
   const load = (overrides?: Record<string, string>) => {
     setLoading(true);
+    setLoadError('');
     const params: Record<string, string> = {};
     const s = overrides?.status ?? status;
     const q = overrides?.search ?? search;
@@ -34,7 +36,10 @@ export default function AdminOrders() {
     if (q) params.search = q;
     if (df) params.dateFrom = df;
     if (dt) params.dateTo = dt;
-    ordersApi.list(params).then((r) => { setOrders(r.data); setLoading(false); });
+    ordersApi.list(params)
+      .then((r) => { setOrders(r.data); })
+      .catch(() => { setLoadError('Error al cargar pedidos. Intenta de nuevo.'); })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, [status]);
@@ -43,7 +48,7 @@ export default function AdminOrders() {
 
   const clearFilters = () => {
     setStatus(''); setSearch(''); setDateFrom(''); setDateTo('');
-    ordersApi.list().then((r) => { setOrders(r.data); setLoading(false); });
+    load({ status: '', search: '', dateFrom: '', dateTo: '' });
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
@@ -102,6 +107,13 @@ export default function AdminOrders() {
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+        </div>
+      ) : loadError ? (
+        <div className="text-center py-20">
+          <p className="text-red-400 mb-4">{loadError}</p>
+          <button onClick={() => load()} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+            Reintentar
+          </button>
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-20 text-coffee-500">No hay pedidos con ese filtro.</div>

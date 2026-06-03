@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
 import { productsApi } from '../api';
+import ConfirmDialog from '../components/ConfirmDialog';
 import type { Product } from '../types';
 
 const emptyForm = {
@@ -20,6 +21,8 @@ export default function AdminProducts() {
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [catFilter, setCatFilter] = useState('TODOS');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     productsApi.adminList().then((r) => { setProducts(r.data); setLoading(false); });
@@ -61,10 +64,20 @@ export default function AdminProducts() {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`¿Eliminar "${name}"?`)) return;
-    await productsApi.delete(id);
-    load();
+  const handleDelete = (id: string, name: string) => {
+    setDeleteConfirm({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(true);
+    try {
+      await productsApi.delete(deleteConfirm.id);
+      setDeleteConfirm(null);
+      load();
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const toggleActive = async (p: Product) => {
@@ -165,6 +178,17 @@ export default function AdminProducts() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Eliminar producto"
+        description={`¿Eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        confirmVariant="danger"
+        loading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
 
       {/* Modal */}
       <AnimatePresence>

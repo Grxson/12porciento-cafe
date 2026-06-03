@@ -1,10 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
+import { prisma } from '../db';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
   FUNDADOR:    { min: 2, max: 2 },

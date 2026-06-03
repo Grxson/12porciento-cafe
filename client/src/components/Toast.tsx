@@ -1,17 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 const icons = {
   success: CheckCircle,
   error: AlertCircle,
   info: Info,
+  warning: AlertTriangle,
 };
 
 const colors = {
   success: 'border-green-500/40 bg-green-900/20 text-green-300',
   error: 'border-red-500/40 bg-red-900/20 text-red-300',
   info: 'border-gold-500/40 bg-coffee-900 text-cream',
+  warning: 'border-yellow-500/40 bg-yellow-900/20 text-yellow-300',
 };
 
 export default function ToastContainer() {

@@ -9,7 +9,7 @@ api.interceptors.request.use((config) => {
   const isAdminContext = window.location.pathname.startsWith('/admin');
   const token = isAdminContext
     ? localStorage.getItem('admin_token')
-    : (localStorage.getItem('user_token') ?? localStorage.getItem('admin_token'));
+    : localStorage.getItem('user_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -25,6 +25,9 @@ api.interceptors.response.use(
         }
       } else {
         localStorage.removeItem('user_token');
+        if (window.location.pathname !== '/login') {
+          window.location.href = `/login?return=${encodeURIComponent(window.location.pathname)}`;
+        }
       }
     }
     return Promise.reject(err);
@@ -102,7 +105,7 @@ export const usersApi = {
 
 export const paymentsApi = {
   createIntent: (data: { items: { productId: string; quantity: number }[] }) =>
-    api.post<{ clientSecret: string; amount: number }>('/payments/create-intent', data),
+    api.post<{ clientSecret: string; paymentIntentId: string; amount: number }>('/payments/create-intent', data),
 };
 
 export const promoCodesApi = {

@@ -15,15 +15,34 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    usersApi.myOrders().then((r) => { setOrders(r.data); setLoading(false); });
-  }, []);
+  const load = () => {
+    setLoading(true);
+    setError('');
+    usersApi.myOrders()
+      .then((r) => { setOrders(r.data); })
+      .catch(() => { setError('No se pudieron cargar tus pedidos.'); })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
 
   if (loading) {
     return (
       <div className="flex justify-center py-12">
         <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-red-400 mb-4">{error}</p>
+        <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+          Reintentar
+        </button>
       </div>
     );
   }

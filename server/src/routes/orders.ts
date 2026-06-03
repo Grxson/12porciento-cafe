@@ -75,7 +75,7 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { status, limit = '100', search, dateFrom, dateTo } = req.query;
+    const { status, search, dateFrom, dateTo, page, pageSize } = req.query;
     const where: any = {};
 
     if (status) where.status = status;
@@ -97,13 +97,21 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
       }
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      include: { items: { include: { product: true } } },
-      orderBy: { createdAt: 'desc' },
-      take: parseInt(limit as string),
-    });
-    res.json(orders);
+    const ps = pageSize ? Math.min(parseInt(pageSize as string), 200) : 50;
+    const pg = page ? Math.max(parseInt(page as string) - 1, 0) : 0;
+
+    const [orders, total] = await prisma.$transaction([
+      prisma.order.findMany({
+        where,
+        include: { items: { include: { product: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: ps,
+        skip: pg * ps,
+      }),
+      prisma.order.count({ where }),
+    ]);
+
+    res.json({ data: orders, total, page: pg + 1, pageSize: ps, totalPages: Math.ceil(total / ps) });
   } catch {
     res.status(500).json({ error: 'Error al obtener pedidos' });
   }

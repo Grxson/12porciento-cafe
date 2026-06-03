@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Search, X } from 'lucide-react';
+import { ChevronDown, Search, X, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { ordersApi } from '../api';
 import type { Order, OrderStatus } from '../types';
 
@@ -15,6 +15,9 @@ const allStatuses = Object.keys(statusConfig) as OrderStatus[];
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [status, setStatus] = useState('');
@@ -32,23 +35,31 @@ export default function AdminOrders() {
     const q = overrides?.search ?? search;
     const df = overrides?.dateFrom ?? dateFrom;
     const dt = overrides?.dateTo ?? dateTo;
+    const p = overrides?.page ?? String(page);
     if (s) params.status = s;
     if (q) params.search = q;
     if (df) params.dateFrom = df;
     if (dt) params.dateTo = dt;
+    params.page = p;
+    params.pageSize = '50';
     ordersApi.list(params)
-      .then((r) => { setOrders(r.data); })
+      .then((r) => {
+        const res = r.data as any;
+        setOrders(res.data ?? res);
+        setTotal(res.total ?? res.length ?? 0);
+        setTotalPages(res.totalPages ?? 1);
+      })
       .catch(() => { setLoadError('Error al cargar pedidos. Intenta de nuevo.'); })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, [status]);
+  useEffect(() => { load(); }, [status, page]);
 
-  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); load(); };
+  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); load({ page: '1' }); };
 
   const clearFilters = () => {
-    setStatus(''); setSearch(''); setDateFrom(''); setDateTo('');
-    load({ status: '', search: '', dateFrom: '', dateTo: '' });
+    setStatus(''); setSearch(''); setDateFrom(''); setDateTo(''); setPage(1);
+    load({ status: '', search: '', dateFrom: '', dateTo: '', page: '1' });
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
@@ -63,7 +74,7 @@ export default function AdminOrders() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-cream">Pedidos</h1>
-          <p className="text-coffee-400 text-sm mt-1">{orders.length} pedidos</p>
+          <p className="text-coffee-400 text-sm mt-1">{total} pedidos</p>
         </div>
       </div>
 
@@ -199,6 +210,20 @@ export default function AdminOrders() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <button onClick={() => setPage((p) => Math.max(p - 1, 1))} disabled={page === 1}
+            className="p-2 border border-coffee-700 text-coffee-400 hover:border-coffee-500 disabled:opacity-40 transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="text-coffee-400 text-sm">Página {page} de {totalPages}</span>
+          <button onClick={() => setPage((p) => Math.min(p + 1, totalPages))} disabled={page === totalPages}
+            className="p-2 border border-coffee-700 text-coffee-400 hover:border-coffee-500 disabled:opacity-40 transition-colors">
+            <ChevronRightIcon className="w-4 h-4" />
+          </button>
         </div>
       )}
     </div>

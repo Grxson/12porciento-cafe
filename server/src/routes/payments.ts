@@ -1,6 +1,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import rateLimit from 'express-rate-limit';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 
 const router = express.Router();
@@ -39,7 +40,7 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   let amount: number;
 
   try {
-    amount = await prisma.$transaction(async (tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) => {
+    amount = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       let totalAmount = 0;
       for (const item of items) {
         const product = await tx.product.findUnique({

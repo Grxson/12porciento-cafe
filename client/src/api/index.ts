@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { UserProfile, Order, Review, Subscription } from '../types';
+import type { UserProfile, Order, Review, Subscription, PaymentMethod } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -109,10 +109,23 @@ export const usersApi = {
     api.put(`/users/me/subscription/${id}/status`, { status: 'CANCELLED' }),
   pauseSubscription: (id: string) =>
     api.put(`/users/me/subscription/${id}/status`, { status: 'PAUSED' }),
+  setupPaymentMethod: () =>
+    api.post<{ clientSecret: string }>('/users/me/payment-methods/setup'),
+  listPaymentMethods: () =>
+    api.get<{ methods: PaymentMethod[]; defaultId: string | null }>('/users/me/payment-methods'),
+  setDefaultPaymentMethod: (paymentMethodId: string) =>
+    api.post('/users/me/payment-methods/default', { paymentMethodId }),
+  deletePaymentMethod: (pmId: string) =>
+    api.delete(`/users/me/payment-methods/${pmId}`),
 };
 
 export const paymentsApi = {
-  createIntent: (data: { items: { productId: string; quantity: number }[]; promoCode?: string }) =>
+  createIntent: (data: {
+    items: { productId: string; quantity: number }[];
+    promoCode?: string;
+    stripeCustomerId?: string;
+    paymentMethodId?: string;
+  }) =>
     api.post<{ clientSecret: string; paymentIntentId: string; amount: number; subtotal: number; discountAmount: number }>('/payments/create-intent', data),
 };
 

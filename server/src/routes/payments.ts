@@ -31,7 +31,12 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<{ final
 }
 
 router.post('/create-intent', paymentLimiter, async (req, res) => {
-  const { items, promoCode } = req.body as { items: { productId: string; quantity: number }[]; promoCode?: string };
+  const { items, promoCode, stripeCustomerId, paymentMethodId } = req.body as {
+    items: { productId: string; quantity: number }[];
+    promoCode?: string;
+    stripeCustomerId?: string;
+    paymentMethodId?: string;
+  };
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items requeridos' });
@@ -72,7 +77,10 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCentavos,
       currency: 'mxn',
-      automatic_payment_methods: { enabled: true },
+      ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
+      ...(paymentMethodId
+        ? { payment_method: paymentMethodId, confirmation_method: 'manual' }
+        : { automatic_payment_methods: { enabled: true } }),
       metadata: {
         items: JSON.stringify(items.map((i) => ({ productId: i.productId, quantity: i.quantity }))),
         ...(promoCode ? { promoCode } : {}),

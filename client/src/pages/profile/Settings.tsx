@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { User } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { mexicanStates } from '../../constants/mexico';
@@ -8,7 +9,7 @@ export default function ProfileSettings() {
   const user = useUser((s) => s.user);
   const updateProfile = useUser((s) => s.updateProfile);
   const { add } = useToast();
-  const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', state: '', zipCode: '' });
+  const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', state: '', zipCode: '', avatarUrl: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,6 +22,7 @@ export default function ProfileSettings() {
         city: user.city ?? '',
         state: user.state ?? '',
         zipCode: user.zipCode ?? '',
+        avatarUrl: user.avatarUrl ?? '',
       });
     }
   }, [user]);
@@ -47,6 +49,28 @@ export default function ProfileSettings() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <h2 className="font-serif text-2xl text-cream mb-6">Datos personales</h2>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+
+        {/* Avatar */}
+        <div>
+          <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-3">Foto de perfil</label>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-coffee-800 border border-coffee-700 flex items-center justify-center shrink-0">
+              {form.avatarUrl ? (
+                <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ) : (
+                <div className="w-full h-full bg-gold-500/20 flex items-center justify-center">
+                  <span className="font-serif text-xl text-gold-500 font-bold">
+                    {user?.name?.charAt(0).toUpperCase() ?? <User className="w-6 h-6 text-coffee-500" />}
+                  </span>
+                </div>
+              )}
+            </div>
+            <input name="avatarUrl" value={form.avatarUrl} onChange={handleChange}
+              className="flex-1 bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+              placeholder="https://... (URL de imagen)" />
+          </div>
+        </div>
+
         <div>
           <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Nombre *</label>
           <input name="name" required value={form.name} onChange={handleChange}

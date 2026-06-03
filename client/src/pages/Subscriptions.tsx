@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, AlertTriangle, MapPin } from 'lucide-react';
+import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, AlertTriangle, MapPin, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { subscriptionsApi } from '../api';
 import { useUser } from '../context/UserContext';
@@ -58,6 +58,7 @@ interface FormData { name: string; email: string; phone: string; frequency: stri
 
 export default function Subscriptions() {
   const user = useUser((s) => s.user);
+  const hasSubscription = useUser((s) => s.hasSubscription);
   const [step, setStep] = useState<Step>(1);
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
   const [selectedCoffees, setSelectedCoffees] = useState<string[]>([]);
@@ -191,6 +192,20 @@ export default function Subscriptions() {
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              {hasSubscription && (
+                <div className="flex items-center justify-between bg-gold-500/10 border border-gold-500/30 px-5 py-4 mb-8">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-gold-500 shrink-0" />
+                    <div>
+                      <p className="text-cream text-sm font-medium">Ya tienes una suscripción activa</p>
+                      <p className="text-coffee-400 text-xs">Selecciona un plan diferente para hacer el cambio o mejora al siguiente nivel.</p>
+                    </div>
+                  </div>
+                  <Link to="/perfil/suscripcion" className="text-xs text-gold-500 hover:text-gold-400 border border-gold-500/30 px-3 py-1.5 transition-colors whitespace-nowrap">
+                    Ver mi plan
+                  </Link>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                 {plans.map((plan, i) => (
                   <motion.div
@@ -245,7 +260,7 @@ export default function Subscriptions() {
                             : 'bg-coffee-800 text-coffee-300 border border-coffee-700 group-hover:border-gold-500/40 group-hover:text-cream'
                           }`}
                       >
-                        Elegir {plan.name} <ChevronRight className="w-3.5 h-3.5" />
+                        {hasSubscription ? `Cambiar a ${plan.name}` : `Elegir ${plan.name}`} <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </motion.div>

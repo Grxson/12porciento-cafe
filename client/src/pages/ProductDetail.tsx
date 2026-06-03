@@ -28,6 +28,7 @@ export default function ProductDetail() {
   const [brewingOpen, setBrewingOpen] = useState(false);
   const addItem = useCart((s) => s.addItem);
   const token = useUser((s) => s.token);
+  const loggedUser = useUser((s) => s.user);
 
   useEffect(() => {
     if (!slug) return;
@@ -492,7 +493,20 @@ export default function ProductDetail() {
                         <button onClick={() => setReviewSuccess(false)} className="text-gold-600 text-xs mt-3 underline">Escribir otra</button>
                       </div>
                     ) : (
-                      <form onSubmit={handleReviewSubmit} className="space-y-4">
+                      <form onSubmit={(e) => {
+                        if (loggedUser) {
+                          setReviewForm((f) => ({ ...f, name: loggedUser.name, email: loggedUser.email }));
+                        }
+                        handleReviewSubmit(e);
+                      }} className="space-y-4">
+                        {loggedUser && (
+                          <div className="flex items-center gap-2 bg-coffee-50 border border-coffee-200 px-3 py-2 text-xs text-coffee-600">
+                            <div className="w-6 h-6 rounded-full bg-gold-500 flex items-center justify-center text-coffee-950 font-bold text-[10px] shrink-0">
+                              {loggedUser.name.charAt(0).toUpperCase()}
+                            </div>
+                            Publicando como <span className="font-medium text-coffee-800">{loggedUser.name}</span>
+                          </div>
+                        )}
                         <div>
                           <p className="text-xs text-coffee-600 uppercase tracking-widest mb-2">Calificación *</p>
                           <StarRating
@@ -502,7 +516,7 @@ export default function ProductDetail() {
                           />
                         </div>
 
-                        {[
+                        {!loggedUser && [
                           { key: 'name', label: 'Nombre *', required: true, type: 'text' },
                           { key: 'email', label: 'Email *', required: true, type: 'email' },
                         ].map(({ key, label, required, type }) => (

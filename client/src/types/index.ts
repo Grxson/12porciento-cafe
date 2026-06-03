@@ -144,7 +144,17 @@ export interface UserProfile {
   city?: string;
   state?: string;
   zipCode?: string;
+  avatarUrl?: string;
+  stripeDefaultPaymentMethodId?: string;
   createdAt: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
 }
 
 export interface DashboardStats {

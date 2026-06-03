@@ -2,8 +2,13 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
+import Stripe from 'stripe';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2026-05-27.dahlia',
+});
 
 const router = Router();
 
@@ -35,7 +40,7 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: { name, email, password: hashed },
-      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, createdAt: true },
+      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
     });
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: 'USER' },
@@ -83,7 +88,7 @@ router.get('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) =
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, createdAt: true },
+      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
     });
     if (!user) { res.status(404).json({ error: 'Usuario no encontrado' }); return; }
     res.json(user);
@@ -95,11 +100,11 @@ router.get('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) =
 // PUT /api/users/me
 router.put('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
-    const { name, phone, address, city, state, zipCode } = req.body;
+    const { name, phone, address, city, state, zipCode, avatarUrl } = req.body;
     const user = await prisma.user.update({
       where: { id: req.user!.id },
-      data: { name, phone, address, city, state, zipCode },
-      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, createdAt: true },
+      data: { name, phone, address, city, state, zipCode, ...(avatarUrl !== undefined ? { avatarUrl } : {}) },
+      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
     });
     res.json(user);
   } catch {
@@ -175,6 +180,89 @@ router.put('/me/subscription/:id/status', requireUserAuth, async (req: UserAuthR
     res.json(updated);
   } catch {
     res.status(500).json({ error: 'Error al actualizar suscripción' });
+  }
+});
+
+// POST /api/users/me/payment-methods/setup — create SetupIntent (creates Stripe Customer if needed)
+router.post('/me/payment-methods/setup', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    let user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user) { res.status(404).json({ error: 'Usuario no encontrado' }); return; }
+
+    let stripeCustomerId = user.stripeCustomerId;
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name,
+        metadata: { userId: user.id },
+      });
+      stripeCustomerId = customer.id;
+      await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId } });
+    }
+
+    const setupIntent = await stripe.setupIntents.create({
+      customer: stripeCustomerId,
+      payment_method_types: ['card'],
+    });
+
+    res.json({ clientSecret: setupIntent.client_secret });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al crear intento de configuración' });
+  }
+});
+
+// GET /api/users/me/payment-methods — list saved payment methods
+router.get('/me/payment-methods', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user?.stripeCustomerId) { res.json({ methods: [], defaultId: null }); return; }
+
+    const methods = await stripe.paymentMethods.list({
+      customer: user.stripeCustomerId,
+      type: 'card',
+    });
+
+    res.json({
+      methods: methods.data.map((pm) => ({
+        id: pm.id,
+        brand: pm.card?.brand,
+        last4: pm.card?.last4,
+        expMonth: pm.card?.exp_month,
+        expYear: pm.card?.exp_year,
+      })),
+      defaultId: user.stripeDefaultPaymentMethodId,
+    });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener métodos de pago' });
+  }
+});
+
+// POST /api/users/me/payment-methods/default — set default payment method
+router.post('/me/payment-methods/default', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const { paymentMethodId } = req.body;
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { stripeDefaultPaymentMethodId: paymentMethodId },
+    });
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Error al guardar método de pago' });
+  }
+});
+
+// DELETE /api/users/me/payment-methods/:pmId — detach payment method
+router.delete('/me/payment-methods/:pmId', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    await stripe.paymentMethods.detach(req.params.pmId);
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (user?.stripeDefaultPaymentMethodId === req.params.pmId) {
+      await prisma.user.update({ where: { id: user.id }, data: { stripeDefaultPaymentMethodId: null } });
+    }
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Error al eliminar método de pago' });
   }
 });
 

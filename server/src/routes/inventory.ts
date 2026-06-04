@@ -15,21 +15,22 @@ router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
       orderBy: { name: 'asc' },
     });
 
-    const totalUnits = products.reduce((s: number, p: typeof products[0]) => s + p.stock, 0);
-    const totalValue = products.reduce((s: number, p: typeof products[0]) => s + p.stock * p.price, 0);
-    const lowStock   = products.filter((p: typeof products[0]) => p.stock > 0 && p.stock <= p.lowStockThreshold);
-    const outOfStock = products.filter((p: typeof products[0]) => p.stock === 0);
+    type P = typeof products[number];
+    const totalUnits = products.reduce((s: number, p: P) => s + p.stock, 0);
+    const totalValue = products.reduce((s: number, p: P) => s + p.stock * p.price, 0);
+    const lowStock   = products.filter((p: P) => p.stock > 0 && p.stock <= p.lowStockThreshold);
+    const outOfStock = products.filter((p: P) => p.stock === 0);
 
     res.json({
       summary: {
         totalSKUs: products.length,
-        activeSKUs: products.filter((p: typeof products[0]) => p.isActive).length,
+        activeSKUs: products.filter((p: P) => p.isActive).length,
         totalUnits,
         totalValue,
         lowStockCount: lowStock.length,
         outOfStockCount: outOfStock.length,
       },
-      products: products.map((p: typeof products[0]) => ({
+      products: products.map((p: P) => ({
         ...p,
         status: p.stock === 0 ? 'OUT' : p.stock <= p.lowStockThreshold ? 'LOW' : 'OK',
         inventoryValue: p.stock * p.price,

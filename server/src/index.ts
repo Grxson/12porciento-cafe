@@ -14,6 +14,7 @@ import promoCodesRouter from './routes/promoCodes';
 import customersRouter from './routes/customers';
 import webhookRouter from './routes/webhook';
 import inventoryRouter from './routes/inventory';
+import subscriptionPaymentsRouter from './routes/subscription-payments';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use(cors({
 
 // Webhook must receive raw body — register before express.json()
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRouter);
+app.use('/api/subscription-payments/webhook', express.raw({ type: 'application/json' }), subscriptionPaymentsRouter);
 
 app.use(express.json());
 
@@ -44,6 +46,7 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api/promo-codes', promoCodesRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/inventory', inventoryRouter);
+app.use('/api/subscription-payments', subscriptionPaymentsRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

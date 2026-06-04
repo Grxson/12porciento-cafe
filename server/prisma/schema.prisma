@@ -97,6 +97,38 @@ model Subscription {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   items             SubscriptionItem[]
+
+  stripeSubscriptionId  String? @unique
+  stripeCustomerId      String?
+  stripePaymentMethodId String?
+
+  lastPaymentId     String?
+  lastPaymentDate   DateTime?
+  failedAttempts    Int     @default(0)
+  lastFailureReason String?
+
+  payments SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  stripeInvoiceId String? @unique
+  stripeChargeId  String? @unique
+
+  amount      Float
+  status      String   @default("PENDING")
+  billingDate DateTime
+
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subscriptionId])
+  @@index([billingDate])
 }
 
 model SubscriptionItem {
@@ -143,7 +175,27 @@ model Review {
   respondedAt   DateTime?
   userId        String?
   user          User?     @relation(fields: [userId], references: [id])
+  replies       ReviewReply[] @relation("replies")
   createdAt     DateTime  @default(now())
+}
+
+model ReviewReply {
+  id       String @id @default(cuid())
+  reviewId String
+  review   Review @relation("replies", fields: [reviewId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation("reviewReplies", fields: [userId], references: [id], onDelete: SetNull)
+
+  name       String
+  content    String
+  isApproved Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([reviewId])
+  @@index([userId])
 }
 
 model PromoCode {
@@ -184,4 +236,5 @@ model User {
   orders                       Order[]
   reviews                      Review[]
   subscriptions                Subscription[]
+  reviewReplies                ReviewReply[] @relation("reviewReplies")
 }

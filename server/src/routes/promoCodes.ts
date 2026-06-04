@@ -24,7 +24,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       data: {
         code: (code as string).toUpperCase(),
         discount: parseFloat(discount),
-        type: type ?? 'PERCENT',
+        type: type ?? 'PERCENTAGE',
         maxUses: maxUses ? parseInt(maxUses) : null,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
       },

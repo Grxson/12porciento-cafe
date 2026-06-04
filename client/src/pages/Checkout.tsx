@@ -100,6 +100,8 @@ export default function Checkout() {
       const res = await paymentsApi.createIntent({
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
         ...(promoCode ? { promoCode } : {}),
+        ...(user?.stripeCustomerId ? { stripeCustomerId: user.stripeCustomerId } : {}),
+        ...(user?.stripeDefaultPaymentMethodId ? { paymentMethodId: user.stripeDefaultPaymentMethodId } : {}),
       });
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');

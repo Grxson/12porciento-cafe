@@ -145,6 +145,7 @@ export interface UserProfile {
   state?: string;
   zipCode?: string;
   avatarUrl?: string;
+  stripeCustomerId?: string;
   stripeDefaultPaymentMethodId?: string;
   createdAt: string;
 }

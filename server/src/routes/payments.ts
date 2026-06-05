@@ -74,6 +74,10 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
       return res.status(400).json({ error: 'El monto mínimo es $10 MXN' });
     }
 
+    if (paymentMethodId && !stripeCustomerId) {
+      return res.status(400).json({ error: 'Tu método de pago guardado requiere información de cliente. Intenta actualizar tu perfil o usar un método de pago nuevo.' });
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCentavos,
       currency: 'mxn',

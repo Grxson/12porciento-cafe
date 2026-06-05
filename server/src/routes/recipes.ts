@@ -297,8 +297,9 @@ router.delete('/admin/:id/steps/:stepId', requireAuth, async (req: AuthRequest, 
       where: { recipeId: req.params.id },
       orderBy: { order: 'asc' },
     });
+    type S = typeof remaining[number];
     await prisma.$transaction(
-      remaining.map((s, i) => prisma.recipeStep.update({ where: { id: s.id }, data: { order: i + 1 } }))
+      remaining.map((s: S, i: number) => prisma.recipeStep.update({ where: { id: s.id }, data: { order: i + 1 } }))
     );
 
     res.json({ success: true });

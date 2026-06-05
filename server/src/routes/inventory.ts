@@ -215,11 +215,12 @@ router.get('/alerts', requireAuth, async (_req: AuthRequest, res: Response) => {
       orderBy: { expiryDate: 'asc' },
     });
 
+    type M = typeof expiringMovements[number];
     res.json({
       outOfStock,
       lowStock,
       overstock,
-      expiringBatches: expiringMovements.map((m) => ({
+      expiringBatches: expiringMovements.map((m: M) => ({
         productId: m.productId,
         productName: m.product.name,
         batchNumber: m.batchNumber,
@@ -251,7 +252,8 @@ router.get('/export-csv', requireAuth, async (_req: AuthRequest, res: Response) 
     });
 
     const headers = ['SKU', 'Nombre', 'Categoría', 'Stock', 'Umbral', 'Precio', 'Costo', 'Proveedor', 'Peso (g)', 'Activo'];
-    const rows = products.map((p) => [
+    type P = typeof products[number];
+    const rows = products.map((p: P) => [
       p.sku ?? '',
       p.name,
       p.category,
@@ -265,7 +267,7 @@ router.get('/export-csv', requireAuth, async (_req: AuthRequest, res: Response) 
     ]);
 
     const csv = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .map((row) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');

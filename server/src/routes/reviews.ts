@@ -148,7 +148,23 @@ router.get('/:reviewId/replies', async (req: Request, res: Response) => {
 // POST /:reviewId/reply
 router.post('/:reviewId/reply', async (req: Request, res: Response) => {
   try {
-    const { name, content, userId } = req.body;
+    const { name, content } = req.body;
+
+    // Extract userId from auth token if present (don't trust body)
+    let userId: string | undefined;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const payload = jwt.verify(
+          authHeader.replace('Bearer ', ''),
+          process.env.JWT_SECRET!
+        ) as { id: string };
+        userId = payload.id;
+      } catch {
+        // invalid token — proceed as guest
+      }
+    }
 
     if (!content?.trim()) {
       return res.status(400).json({ error: 'El contenido es requerido' });

@@ -9,6 +9,7 @@ import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BrewingGuideModal from '../components/BrewingGuideModal';
+import ReviewThread from '../components/ReviewThread';
 import type { Product, Review } from '../types';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
@@ -481,6 +482,7 @@ export default function ProductDetail() {
                           <StarRating value={review.rating} size={16} readonly />
                         </div>
                         <p className="text-coffee-700 text-sm leading-relaxed">{review.comment}</p>
+                        <ReviewThread reviewId={review.id} />
                       </div>
                     ))
                   )}

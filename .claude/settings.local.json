@@ -63,7 +63,21 @@
       "Bash(git *)",
       "Bash(pnpm --filter server add node-cron)",
       "Bash(pnpm --filter server add -D @types/node-cron)",
-      "Bash(node -e \"const Stripe = require\\('/home/grxson/github/12porciento-cafe/node_modules/.pnpm/stripe@22.2.0/node_modules/stripe'\\); const s = new Stripe\\('sk_test'\\); console.log\\('ok'\\)\")"
+      "Bash(node -e \"const Stripe = require\\('/home/grxson/github/12porciento-cafe/node_modules/.pnpm/stripe@22.2.0/node_modules/stripe'\\); const s = new Stripe\\('sk_test'\\); console.log\\('ok'\\)\")",
+      "Bash(pnpm --filter server add socket.io)",
+      "Bash(pnpm --filter cafe-12-server add socket.io)",
+      "Bash(grep -rn \"DATABASE_URL\" .env*)",
+      "Bash(ls -la prisma/*.db)",
+      "Bash(ls -la .env*)",
+      "Bash(echo \"---EXIT: $?---\")",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(sed -n '18,50p' client/src/pages/ProductDetail.tsx)",
+      "Bash(sed -n '410,430p' client/src/pages/ProductDetail.tsx)",
+      "Bash(sed -n '555,570p' client/src/pages/ProductDetail.tsx)",
+      "Bash(ls src/pages/admin)",
+      "Bash(grep -rln \"recipe\\\\|Recipe\" src/pages/admin)",
+      "Bash(echo \"EXIT $?\")"
     ]
   }
 }

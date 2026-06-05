@@ -7,7 +7,6 @@ const router = Router();
 const parseProduct = (p: any) => ({
   ...p,
   flavors: p.flavors ? JSON.parse(p.flavors) : [],
-  recipes: p.recipes ? JSON.parse(p.recipes) : [],
 });
 
 router.get('/', async (req: Request, res: Response) => {
@@ -77,12 +76,15 @@ router.get('/:slug', async (req: Request, res: Response) => {
 
 router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { flavors, recipes, ...data } = req.body;
+    const { flavors, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
     const product = await prisma.product.create({
       data: {
         ...data,
         flavors: flavors ? JSON.stringify(flavors) : null,
-        recipes: recipes ? JSON.stringify(recipes) : null,
+        sku: sku?.trim() || null,
+        costPrice: costPrice !== undefined && costPrice !== '' ? parseFloat(costPrice) : null,
+        supplier: supplier?.trim() || null,
+        minOrderQty: minOrderQty ? parseInt(minOrderQty) : 1,
       },
     });
     res.status(201).json(parseProduct(product));
@@ -93,13 +95,16 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
 router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { flavors, recipes, ...data } = req.body;
+    const { flavors, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
     const product = await prisma.product.update({
       where: { id: req.params.id },
       data: {
         ...data,
         ...(flavors !== undefined && { flavors: JSON.stringify(flavors) }),
-        ...(recipes !== undefined && { recipes: JSON.stringify(recipes) }),
+        ...(sku !== undefined && { sku: sku?.trim() || null }),
+        ...(costPrice !== undefined && { costPrice: costPrice !== '' ? parseFloat(costPrice) : null }),
+        ...(supplier !== undefined && { supplier: supplier?.trim() || null }),
+        ...(minOrderQty !== undefined && { minOrderQty: minOrderQty ? parseInt(minOrderQty) : null }),
       },
     });
     res.json(parseProduct(product));

@@ -10,7 +10,8 @@ router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
     const products = await prisma.product.findMany({
       select: {
         id: true, name: true, slug: true, category: true, imageUrl: true,
-        price: true, stock: true, lowStockThreshold: true, isActive: true,
+        price: true, costPrice: true, stock: true, lowStockThreshold: true,
+        isActive: true, sku: true, supplier: true,
       },
       orderBy: { name: 'asc' },
     });
@@ -34,6 +35,8 @@ router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
         ...p,
         status: p.stock === 0 ? 'OUT' : p.stock <= p.lowStockThreshold ? 'LOW' : 'OK',
         inventoryValue: p.stock * p.price,
+        costValue: p.costPrice ? p.stock * p.costPrice : null,
+        margin: p.costPrice ? ((p.price - p.costPrice) / p.price * 100).toFixed(1) : null,
       })),
     });
   } catch (err) {
@@ -92,11 +95,15 @@ router.get('/products/:id/movements', requireAuth, async (req: AuthRequest, res:
 // POST /adjust — manual stock adjustment
 router.post('/adjust', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, type, quantity, notes } = req.body as {
+    const { productId, type, quantity, notes, unitCost, batchNumber, expiryDate, supplier } = req.body as {
       productId: string;
       type: 'RESTOCK' | 'ADJUSTMENT' | 'LOSS' | 'RETURN';
       quantity: number;
       notes?: string;
+      unitCost?: number;
+      batchNumber?: string;
+      expiryDate?: string;
+      supplier?: string;
     };
 
     if (!productId || !type || quantity === undefined) {
@@ -145,6 +152,10 @@ router.post('/adjust', requireAuth, async (req: AuthRequest, res: Response) => {
           previousStock: product.stock,
           newStock,
           notes: notes ?? null,
+          unitCost: unitCost ?? null,
+          batchNumber: batchNumber?.trim() ?? null,
+          expiryDate: expiryDate ? new Date(expiryDate) : null,
+          supplier: supplier?.trim() ?? null,
         },
       }),
     ]);
@@ -172,6 +183,97 @@ router.put('/products/:id/threshold', requireAuth, async (req: AuthRequest, res:
     res.json(product);
   } catch {
     res.status(500).json({ error: 'Error al actualizar umbral' });
+  }
+});
+
+// GET /alerts — products that need attention
+router.get('/alerts', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      select: {
+        id: true, name: true, slug: true, sku: true, category: true,
+        stock: true, lowStockThreshold: true, price: true, costPrice: true,
+        supplier: true, imageUrl: true,
+      },
+    });
+
+    type P = typeof products[number];
+
+    const outOfStock = products.filter((p: P) => p.stock === 0);
+    const lowStock = products.filter((p: P) => p.stock > 0 && p.stock <= p.lowStockThreshold);
+    const overstock = products.filter((p: P) => p.stock > p.lowStockThreshold * 10);
+
+    const soon = new Date();
+    soon.setDate(soon.getDate() + 30);
+    const expiringMovements = await prisma.stockMovement.findMany({
+      where: {
+        expiryDate: { lte: soon, gte: new Date() },
+        type: 'RESTOCK',
+      },
+      include: { product: { select: { id: true, name: true } } },
+      orderBy: { expiryDate: 'asc' },
+    });
+
+    res.json({
+      outOfStock,
+      lowStock,
+      overstock,
+      expiringBatches: expiringMovements.map((m) => ({
+        productId: m.productId,
+        productName: m.product.name,
+        batchNumber: m.batchNumber,
+        expiryDate: m.expiryDate,
+        quantity: m.quantity,
+      })),
+      summary: {
+        outOfStockCount: outOfStock.length,
+        lowStockCount: lowStock.length,
+        overstockCount: overstock.length,
+        expiringCount: expiringMovements.length,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener alertas' });
+  }
+});
+
+// GET /export-csv — download inventory as CSV
+router.get('/export-csv', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const products = await prisma.product.findMany({
+      select: {
+        sku: true, name: true, category: true, stock: true, lowStockThreshold: true,
+        price: true, costPrice: true, supplier: true, weight: true, isActive: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const headers = ['SKU', 'Nombre', 'Categoría', 'Stock', 'Umbral', 'Precio', 'Costo', 'Proveedor', 'Peso (g)', 'Activo'];
+    const rows = products.map((p) => [
+      p.sku ?? '',
+      p.name,
+      p.category,
+      p.stock,
+      p.lowStockThreshold,
+      p.price.toFixed(2),
+      p.costPrice?.toFixed(2) ?? '',
+      p.supplier ?? '',
+      p.weight ?? '',
+      p.isActive ? 'Sí' : 'No',
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="inventario-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.send('﻿' + csv);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al exportar inventario' });
   }
 });
 

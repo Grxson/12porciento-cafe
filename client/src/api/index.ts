@@ -72,6 +72,29 @@ export const subscriptionsApi = {
     api.put(`/subscriptions/${id}/fulfillment`, { fulfillmentStatus }),
 };
 
+export const subscriptionPaymentsApi = {
+  getNextBilling: (subscriptionId: string) =>
+    api.get<{
+      nextBilling: string;
+      status: string;
+      frequency: string;
+      daysUntilBilling: number;
+    }>(`/subscription-payments/user/${subscriptionId}/next-billing`),
+  getPaymentHistory: (subscriptionId: string) =>
+    api.get<{
+      subscriptionId: string;
+      plan: string;
+      nextBilling: string;
+      payments: Array<{
+        id: string;
+        amount: number;
+        status: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED';
+        billingDate: string;
+        errorMessage?: string | null;
+      }>;
+    }>(`/subscription-payments/user/${subscriptionId}/payments`),
+};
+
 export const bundlesApi = {
   list: () => api.get('/bundles'),
   getById: (id: string) => api.get(`/bundles/${id}`),
@@ -87,6 +110,11 @@ export const reviewsApi = {
   approve: (id: string) => api.put(`/reviews/${id}/approve`),
   respond: (id: string, adminResponse: string) => api.put(`/reviews/${id}/respond`, { adminResponse }),
   delete: (id: string) => api.delete(`/reviews/${id}`),
+  listReplies: (reviewId: string) => api.get(`/reviews/${reviewId}/replies`),
+  createReply: (reviewId: string, data: { name?: string; content: string }) =>
+    api.post(`/reviews/${reviewId}/reply`, data),
+  approveReply: (replyId: string) => api.put(`/reviews/reply/${replyId}/approve`),
+  deleteReply: (replyId: string) => api.delete(`/reviews/reply/${replyId}`),
 };
 
 export const authApi = {

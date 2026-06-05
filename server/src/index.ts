@@ -15,6 +15,7 @@ import customersRouter from './routes/customers';
 import webhookRouter from './routes/webhook';
 import inventoryRouter from './routes/inventory';
 import subscriptionPaymentsRouter from './routes/subscription-payments';
+import { startBillingScheduler } from './jobs/billing';
 
 dotenv.config();
 
@@ -58,3 +59,5 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 app.listen(PORT, () => {
   console.log(`Café 12% server running on port ${PORT}`);
 });
+
+startBillingScheduler();

@@ -70,6 +70,19 @@ router.get('/admin/all', requireAuth, async (_req: AuthRequest, res: Response) =
   }
 });
 
+// PUT /reply/:replyId/approve — admin only
+router.put('/reply/:replyId/approve', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const reply = await prisma.reviewReply.update({
+      where: { id: req.params.replyId },
+      data: { isApproved: true },
+    });
+    res.json({ data: reply });
+  } catch {
+    res.status(500).json({ error: 'Error al aprobar respuesta' });
+  }
+});
+
 router.put('/:id/approve', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const review = await prisma.review.update({
@@ -96,6 +109,16 @@ router.put('/:id/respond', requireAuth, async (req: AuthRequest, res: Response) 
     res.json({ data: review });
   } catch {
     res.status(500).json({ error: 'Error al responder reseña' });
+  }
+});
+
+// DELETE /reply/:replyId — admin only
+router.delete('/reply/:replyId', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    await prisma.reviewReply.delete({ where: { id: req.params.replyId } });
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: 'Error al eliminar respuesta' });
   }
 });
 
@@ -161,29 +184,6 @@ router.post('/:reviewId/reply', async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al crear respuesta' });
-  }
-});
-
-// PUT /reply/:replyId/approve — admin only
-router.put('/reply/:replyId/approve', requireAuth, async (req: AuthRequest, res: Response) => {
-  try {
-    const reply = await prisma.reviewReply.update({
-      where: { id: req.params.replyId },
-      data: { isApproved: true },
-    });
-    res.json({ data: reply });
-  } catch {
-    res.status(500).json({ error: 'Error al aprobar respuesta' });
-  }
-});
-
-// DELETE /reply/:replyId — admin only
-router.delete('/reply/:replyId', requireAuth, async (req: AuthRequest, res: Response) => {
-  try {
-    await prisma.reviewReply.delete({ where: { id: req.params.replyId } });
-    res.json({ success: true });
-  } catch {
-    res.status(500).json({ error: 'Error al eliminar respuesta' });
   }
 });
 

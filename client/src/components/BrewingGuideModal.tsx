@@ -88,11 +88,14 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
               <h4 className="text-coffee-400 text-xs tracking-[0.3em] uppercase mb-3">Pasos</h4>
               <ol className="space-y-3">
                 {recipe.steps.map((step, i) => (
-                  <li key={i} className="flex gap-3">
+                  <li key={step.id} className="flex gap-3">
                     <span className="w-6 h-6 rounded-full border border-gold-500/40 text-gold-500 text-xs flex items-center justify-center shrink-0 mt-0.5">
                       {i + 1}
                     </span>
-                    <span className="text-coffee-300 text-sm leading-relaxed">{step}</span>
+                    <span className="text-coffee-300 text-sm leading-relaxed">
+                      {step.title && <span className="text-cream font-medium">{step.title}: </span>}
+                      {step.description}
+                    </span>
                   </li>
                 ))}
               </ol>

@@ -1,11 +1,34 @@
-export interface Recipe {
+export interface RecipeStep {
+  id: string;
+  recipeId: string;
+  order: number;
   title: string;
+  description: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  duration?: number | null;
+}
+
+export interface Recipe {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string | null;
   method: string;
-  temp: string;
-  grind: string;
-  ratio: string;
-  steps: string[];
-  videoUrl?: string;
+  difficulty: 'FÁCIL' | 'MEDIA' | 'DIFÍCIL';
+  prepTime?: number | null;
+  yield?: string | null;
+  temp?: string | null;
+  grind?: string | null;
+  ratio?: string | null;
+  isPremium: boolean;
+  isPublished: boolean;
+  productId?: string | null;
+  product?: { id: string; name: string; slug: string; imageUrl: string } | null;
+  steps: RecipeStep[];
+  locked?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Review {
@@ -33,10 +56,13 @@ export interface Product {
   scaScore?: number;
   roastLevel?: string;
   flavors: string[];
-  recipes: Recipe[];
   price: number;
   weight?: number;
   stock: number;
+  sku?: string | null;
+  costPrice?: number | null;
+  supplier?: string | null;
+  minOrderQty?: number | null;
   imageUrl: string;
   description: string;
   isLimited: boolean;

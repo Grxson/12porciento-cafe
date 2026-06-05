@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { UserProfile, Order, Review, Subscription, PaymentMethod } from '../types';
+import type { UserProfile, Order, Review, Subscription, PaymentMethod, Recipe, RecipeStep } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -70,6 +70,39 @@ export const subscriptionsApi = {
     api.put(`/subscriptions/${id}/items`, { items, grindPreference }),
   updateFulfillment: (id: string, fulfillmentStatus: string) =>
     api.put(`/subscriptions/${id}/fulfillment`, { fulfillmentStatus }),
+};
+
+export const recipesApi = {
+  list: (params?: { method?: string; productId?: string; premium?: boolean }) =>
+    api.get<{ data: Recipe[] }>('/recipes', { params }),
+  getById: (id: string) => api.get<{ data: Recipe }>(`/recipes/${id}`),
+  getBySlug: (slug: string) => api.get<{ data: Recipe }>(`/recipes/by-slug/${slug}`),
+  adminList: () => api.get<{ data: Recipe[] }>('/recipes/admin/all'),
+  create: (data: Partial<Recipe> & { title: string; slug: string; method: string }) =>
+    api.post<{ data: Recipe }>('/recipes/admin', data),
+  update: (id: string, data: Partial<Recipe>) =>
+    api.put<{ data: Recipe }>(`/recipes/admin/${id}`, data),
+  delete: (id: string) => api.delete(`/recipes/admin/${id}`),
+  addStep: (recipeId: string, data: Partial<RecipeStep> & { title: string; description: string }) =>
+    api.post<{ data: RecipeStep }>(`/recipes/admin/${recipeId}/steps`, data),
+  updateStep: (recipeId: string, stepId: string, data: Partial<RecipeStep>) =>
+    api.put<{ data: RecipeStep }>(`/recipes/admin/${recipeId}/steps/${stepId}`, data),
+  deleteStep: (recipeId: string, stepId: string) =>
+    api.delete(`/recipes/admin/${recipeId}/steps/${stepId}`),
+  reorderSteps: (recipeId: string, stepIds: string[]) =>
+    api.put<{ data: RecipeStep[] }>(`/recipes/admin/${recipeId}/steps/reorder`, { stepIds }),
+};
+
+export const inventoryApi = {
+  overview: () => api.get('/inventory'),
+  movements: (params?: Record<string, string>) => api.get('/inventory/movements', { params }),
+  alerts: () => api.get('/inventory/alerts'),
+  adjust: (data: {
+    productId: string; type: string; quantity: number; notes?: string;
+    unitCost?: number; batchNumber?: string; expiryDate?: string; supplier?: string;
+  }) => api.post('/inventory/adjust', data),
+  updateThreshold: (productId: string, threshold: number) =>
+    api.put(`/inventory/products/${productId}/threshold`, { threshold }),
 };
 
 export const subscriptionPaymentsApi = {

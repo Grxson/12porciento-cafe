@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe } from 'lucide-react';
-import { productsApi, reviewsApi } from '../api';
+import { productsApi, reviewsApi, recipesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import StarRating from '../components/StarRating';
@@ -10,7 +10,7 @@ import CoffeeTimeline from '../components/CoffeeTimeline';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BrewingGuideModal from '../components/BrewingGuideModal';
 import ReviewThread from '../components/ReviewThread';
-import type { Product, Review } from '../types';
+import type { Product, Review, Recipe } from '../types';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
 
@@ -22,8 +22,8 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false);
   const [tab, setTab] = useState<Tab>('info');
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [productRecipes, setProductRecipes] = useState<Recipe[]>([]);
   const addItem = useCart((s) => s.addItem);
-  const token = useUser((s) => s.token);
   const loggedUser = useUser((s) => s.user);
   const [reviewForm, setReviewForm] = useState({ name: loggedUser?.name ?? '', email: loggedUser?.email ?? '', rating: 0, comment: '' });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
@@ -41,6 +41,7 @@ export default function ProductDetail() {
       setProduct(r.data);
       setLoading(false);
       reviewsApi.listByProduct(r.data.id).then((rr) => setReviews(rr.data.data || []));
+      recipesApi.list({ productId: r.data.id }).then((rr) => setProductRecipes(rr.data.data)).catch(() => {});
     });
   }, [slug]);
 
@@ -93,7 +94,7 @@ export default function ProductDetail() {
   const tabs: { id: Tab; label: string; icon: any; count?: number }[] = [
     { id: 'info', label: 'Descripción', icon: Coffee },
     ...(isCafe ? [{ id: 'ficha' as Tab, label: 'Ficha Técnica', icon: FlaskConical }] : []),
-    ...(isCafe && product.recipes.length > 0 ? [{ id: 'recipes' as Tab, label: 'Recetas', icon: BookOpen, count: product.recipes.length }] : []),
+    ...(isCafe && productRecipes.length > 0 ? [{ id: 'recipes' as Tab, label: 'Recetas', icon: BookOpen, count: productRecipes.length }] : []),
     { id: 'reviews', label: 'Reseñas', icon: MessageSquare, count: reviews.length },
   ];
 
@@ -221,7 +222,7 @@ export default function ProductDetail() {
                 {product.stock} unidades disponibles{isCafe ? ' · Tostado a pedido' : ''}
               </p>
 
-              {isCafe && product.recipes && product.recipes.length > 0 && (
+              {isCafe && productRecipes.length > 0 && (
                 <button
                   onClick={() => setBrewingOpen(true)}
                   className="btn-outline w-full flex items-center justify-center gap-2 mt-4"
@@ -415,8 +416,8 @@ export default function ProductDetail() {
             {/* Recipes tab */}
             {tab === 'recipes' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {product.recipes.map((recipe, i) => (
-                  <div key={i} className="bg-white border border-coffee-200 p-6">
+                {productRecipes.map((recipe) => (
+                  <div key={recipe.id} className="bg-white border border-coffee-200 p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-serif text-xl text-coffee-900">{recipe.title}</h3>
                       <span className="text-xs text-gold-600 border border-gold-500/40 px-2 py-1 uppercase tracking-widest">{recipe.method}</span>
@@ -439,27 +440,16 @@ export default function ProductDetail() {
 
                     <ol className="space-y-3">
                       {recipe.steps.map((step, si) => (
-                        <li key={si} className="flex gap-3 text-sm text-coffee-700">
+                        <li key={step.id} className="flex gap-3 text-sm text-coffee-700">
                           <span className="text-gold-600 font-bold w-5 shrink-0">{si + 1}.</span>
-                          {step}
+                          <span>
+                            <span className="font-medium text-coffee-900">{step.title}</span>
+                            {step.title && step.description ? ' — ' : ''}
+                            {step.description}
+                          </span>
                         </li>
                       ))}
                     </ol>
-
-                    {recipe.videoUrl && token && (
-                      <div className="mt-5 pt-5 border-t border-coffee-200">
-                        <p className="text-[10px] text-coffee-400 uppercase tracking-widest mb-3">Video guía</p>
-                        <div className="aspect-video">
-                          <iframe
-                            src={recipe.videoUrl}
-                            title={recipe.title}
-                            className="w-full h-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -563,7 +553,7 @@ export default function ProductDetail() {
       </div>
 
       <BrewingGuideModal
-        recipes={product.recipes || []}
+        recipes={productRecipes}
         open={brewingOpen}
         onClose={() => setBrewingOpen(false)}
       />

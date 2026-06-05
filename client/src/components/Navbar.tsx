@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 import UserMenu from './UserMenu';
+import NotificationBell from './NotificationBell';
 import CartDrawer from './CartDrawer';
 
 const links = [
@@ -21,6 +23,7 @@ export default function Navbar() {
   const count = useCart((s) => s.count());
   const openDrawer = useCart((s) => s.openDrawer);
   const { dark, toggle } = useTheme();
+  const user = useUser((s) => s.user);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -85,6 +88,7 @@ export default function Navbar() {
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
           <UserMenu />
+          {user && <NotificationBell />}
           <button
             onClick={openDrawer}
             className="relative text-coffee-200 hover:text-cream transition-colors"

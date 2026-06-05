@@ -4,6 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
   ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse,
 } from 'lucide-react';
+import NotificationBell from '../components/NotificationBell';
 
 const navLinks = [
   { to: '/admin/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
@@ -134,6 +135,7 @@ export default function AdminLayout() {
             <span className="text-coffee-500 text-xs hidden md:block">
               {new Date().toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}
             </span>
+            <NotificationBell />
             <div className="w-7 h-7 bg-gold-500/20 border border-gold-500/30 flex items-center justify-center">
               <span className="text-gold-500 text-xs font-bold">A</span>
             </div>

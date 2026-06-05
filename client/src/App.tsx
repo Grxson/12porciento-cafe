@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
+import { NotificationsProvider } from './context/NotificationsContext';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -56,6 +57,7 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => (
 
 export default function App() {
   return (
+    <NotificationsProvider>
     <CartProvider>
       <ToastContainer />
       <ScrollToTop />
@@ -98,5 +100,6 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </CartProvider>
+    </NotificationsProvider>
   );
 }

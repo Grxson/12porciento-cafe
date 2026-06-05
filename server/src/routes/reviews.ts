@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
+import { emitEvent } from '../socket';
 
 const router = Router();
 
@@ -51,6 +52,13 @@ router.post('/product/:productId', async (req: Request, res: Response) => {
       },
     });
 
+    emitEvent({
+      event: 'new_review',
+      title: 'Nueva reseña',
+      message: `${review.name} dejó una reseña — ${review.rating}★`,
+      data: { reviewId: review.id, productId: review.productId, rating: review.rating },
+    });
+
     res.status(201).json({ data: review, message: 'Reseña enviada, pendiente de aprobación' });
   } catch (err) {
     console.error('Review creation error:', err);
@@ -88,6 +96,13 @@ router.put('/:id/approve', requireAuth, async (req: AuthRequest, res: Response) 
     const review = await prisma.review.update({
       where: { id: req.params.id },
       data: { isApproved: true },
+    });
+    emitEvent({
+      event: 'review_approved',
+      title: 'Reseña aprobada',
+      message: 'Tu reseña ha sido aprobada y publicada',
+      data: { reviewId: review.id },
+      targetUserId: review.userId ?? undefined,
     });
     res.json({ data: review });
   } catch {

@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import Stripe from 'stripe';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
+import { emitEvent } from '../socket';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
@@ -177,6 +178,15 @@ router.put('/me/subscription/:id/status', requireUserAuth, async (req: UserAuthR
       where: { id: req.params.id },
       data: { status },
     });
+    if (status === 'CANCELLED') {
+      emitEvent({
+        event: 'subscription_cancelled',
+        title: 'Suscripción cancelada',
+        message: `Suscripción ${sub.plan} cancelada`,
+        data: { subscriptionId: sub.id, plan: sub.plan },
+        targetUserId: req.user!.id,
+      });
+    }
     res.json(updated);
   } catch {
     res.status(500).json({ error: 'Error al actualizar suscripción' });

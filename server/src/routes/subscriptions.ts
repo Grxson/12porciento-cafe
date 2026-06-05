@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
+import { emitEvent } from '../socket';
 
 const router = Router();
 
@@ -46,6 +47,13 @@ router.post('/', async (req: Request, res: Response) => {
         items: { create: items.map((productId: string) => ({ productId })) },
       },
       include: { items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true } } } } },
+    });
+
+    emitEvent({
+      event: 'subscription_created',
+      title: 'Nueva suscripción',
+      message: `${subscription.name} se suscribió al plan ${subscription.plan}`,
+      data: { subscriptionId: subscription.id, plan: subscription.plan },
     });
 
     res.status(201).json(subscription);

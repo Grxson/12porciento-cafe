@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { sendOrderConfirmation, sendOrderStatusUpdate } from '../email';
+import { emitEvent } from '../socket';
 
 const router = Router();
 
@@ -90,6 +91,13 @@ router.post('/', async (req: Request, res: Response) => {
       })),
       total: order.total,
     }).catch(() => {});
+
+    emitEvent({
+      event: 'new_order',
+      title: 'Nuevo pedido',
+      message: `Pedido de ${order.customerName} — $${order.total.toFixed(2)} MXN`,
+      data: { orderId: order.id, total: order.total, customerName: order.customerName },
+    });
 
     res.status(201).json(order);
   } catch {

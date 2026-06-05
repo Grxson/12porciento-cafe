@@ -16,6 +16,8 @@ import webhookRouter from './routes/webhook';
 import inventoryRouter from './routes/inventory';
 import subscriptionPaymentsRouter from './routes/subscription-payments';
 import { startBillingScheduler } from './jobs/billing';
+import http from 'http';
+import { initSocket } from './socket';
 
 dotenv.config();
 
@@ -56,7 +58,10 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`Café 12% server running on port ${PORT}`);
 });
 

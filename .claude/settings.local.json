@@ -52,7 +52,18 @@
       "Bash(docker compose *)",
       "Bash(npm --version)",
       "Bash(pnpm build *)",
-      "Bash(git reset *)"
+      "Bash(git reset *)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name add_subscription_billing_and_review_replies)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name add_subscription_billing_and_review_replies --skip-generate)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate status)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate resolve --applied 20260603020000_add_avatar_stripe_customer)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate resolve --applied 20260603030000_inventory)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma generate)",
+      "Bash(git *)",
+      "Bash(pnpm --filter server add node-cron)",
+      "Bash(pnpm --filter server add -D @types/node-cron)",
+      "Bash(node -e \"const Stripe = require\\('/home/grxson/github/12porciento-cafe/node_modules/.pnpm/stripe@22.2.0/node_modules/stripe'\\); const s = new Stripe\\('sk_test'\\); console.log\\('ok'\\)\")"
     ]
   }
 }

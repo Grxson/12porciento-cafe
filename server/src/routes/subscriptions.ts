@@ -28,9 +28,11 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    const existing = await prisma.subscription.findUnique({ where: { email } });
+    const existing = await prisma.subscription.findFirst({
+      where: { email, status: { in: ['ACTIVE', 'PAUSED'] } },
+    });
     if (existing) {
-      res.status(409).json({ error: 'Ya existe una suscripción con este email' });
+      res.status(409).json({ error: 'Ya tienes una suscripción activa o pausada con este email' });
       return;
     }
 

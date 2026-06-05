@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { CreditCard, AlertTriangle, Edit3, Lock, Check } from 'lucide-react';
 import { usersApi, subscriptionsApi } from '../../api';
 import { useUser } from '../../context/UserContext';
+import SubscriptionBilling from './SubscriptionBilling';
 import CoffeePicker from '../../components/CoffeePicker';
 import type { Subscription as Sub, SubscriptionPlan } from '../../types';
 import { PLAN_SLOTS } from '../../types';
@@ -156,6 +157,11 @@ export default function Subscription() {
             {new Date(sub.nextBilling).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
         </div>
+      </div>
+
+      {/* Billing panel */}
+      <div className="mt-6 pt-6 border-t border-coffee-700 max-w-2xl">
+        <SubscriptionBilling subscriptionId={sub.id} />
       </div>
 
       {/* Edit picker */}

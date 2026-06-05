@@ -123,6 +123,14 @@ router.post('/webhook/invoice', async (req: Request, res: Response) => {
     const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSubId } });
     if (!sub) return res.json({ received: true, status: 'not_found' });
 
+    // Idempotency check for failed payments
+    if (invoice.id) {
+      const existingFailed = await prisma.subscriptionPayment.findUnique({
+        where: { stripeInvoiceId: invoice.id },
+      });
+      if (existingFailed) return res.json({ received: true, status: 'already_processed' });
+    }
+
     await prisma.subscriptionPayment.create({
       data: {
         subscriptionId: sub.id,

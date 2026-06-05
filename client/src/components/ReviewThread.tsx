@@ -138,7 +138,7 @@ export default function ReviewThread({ reviewId }: Props) {
           {error && <p className="text-xs text-red-400">{error}</p>}
           <button
             type="button"
-            onClick={() => { setShowForm(false); setError(null); setContent(''); }}
+            onClick={() => { setShowForm(false); setError(null); setContent(''); setGuestName(''); }}
             className="text-xs text-coffee-500 hover:text-coffee-300 transition-colors"
           >
             Cancelar

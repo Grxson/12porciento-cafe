@@ -28,8 +28,9 @@ export default function NotificationBell() {
   }, []);
 
   const handleOpen = () => {
-    setOpen((v) => !v);
-    if (!open && unreadCount > 0) markAllRead();
+    const isOpening = !open;
+    setOpen(isOpening);
+    if (isOpening && unreadCount > 0) markAllRead();
   };
 
   return (

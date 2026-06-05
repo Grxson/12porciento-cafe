@@ -70,6 +70,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (connectedRef.current) return;
+
+    // Don't connect if no auth token (unauthenticated visitors)
+    const isAdmin = window.location.pathname.startsWith('/admin');
+    const token = isAdmin
+      ? localStorage.getItem('admin_token')
+      : localStorage.getItem('user_token');
+    if (!token) return;
+
     connectedRef.current = true;
 
     const socket = getSocket();

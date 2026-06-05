@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Package, TrendingUp, TrendingDown, AlertTriangle, XCircle,
-  ArrowUpCircle, ArrowDownCircle, RefreshCw, Search, ChevronLeft, ChevronRight, SlidersHorizontal,
+  ArrowUpCircle, ArrowDownCircle, RefreshCw, Search, ChevronLeft, ChevronRight, SlidersHorizontal, Download,
 } from 'lucide-react';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
@@ -45,7 +45,7 @@ const STATUS_CONFIG = {
 // ── Main Component ────────────────────────────────────────────────────────
 
 export default function Inventory() {
-  const [tab, setTab] = useState<'overview' | 'movements' | 'adjust'>('overview');
+  const [tab, setTab] = useState<'overview' | 'movements' | 'adjust' | 'alerts'>('overview');
   const [summary, setSummary] = useState<Summary | null>(null);
   const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
@@ -67,6 +67,21 @@ export default function Inventory() {
   const [adjQty, setAdjQty] = useState('');
   const [adjNotes, setAdjNotes] = useState('');
   const [adjSaving, setAdjSaving] = useState(false);
+
+  // Alerts
+  const [alerts, setAlerts] = useState<{
+    outOfStock: any[];
+    lowStock: any[];
+    overstock: any[];
+    expiringBatches: any[];
+    summary: { outOfStockCount: number; lowStockCount: number; overstockCount: number; expiringCount: number };
+  } | null>(null);
+
+  // New batch/cost fields for adjust form
+  const [adjUnitCost, setAdjUnitCost] = useState('');
+  const [adjBatchNumber, setAdjBatchNumber] = useState('');
+  const [adjExpiryDate, setAdjExpiryDate] = useState('');
+  const [adjSupplier, setAdjSupplier] = useState('');
 
   const loadOverview = () => {
     setLoading(true);
@@ -94,8 +109,15 @@ export default function Inventory() {
       .finally(() => setMovLoading(false));
   };
 
+  const loadAlerts = () => {
+    api.get('/inventory/alerts')
+      .then((r) => setAlerts(r.data))
+      .catch(() => add('Error al cargar alertas', 'error'));
+  };
+
   useEffect(() => { loadOverview(); }, []);
   useEffect(() => { if (tab === 'movements') loadMovements(1); }, [tab, filterType, filterProduct, filterFrom, filterTo]);
+  useEffect(() => { if (tab === 'alerts') loadAlerts(); }, [tab]);
 
   const handleAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,9 +129,14 @@ export default function Inventory() {
         type: adjType,
         quantity: parseInt(adjQty),
         notes: adjNotes || undefined,
+        unitCost: adjUnitCost ? parseFloat(adjUnitCost) : undefined,
+        batchNumber: adjBatchNumber || undefined,
+        expiryDate: adjExpiryDate || undefined,
+        supplier: adjSupplier || undefined,
       });
       add(`Stock ajustado exitosamente`, 'success');
       setAdjQty(''); setAdjNotes(''); setAdjProduct('');
+      setAdjUnitCost(''); setAdjBatchNumber(''); setAdjExpiryDate(''); setAdjSupplier('');
       loadOverview();
     } catch (err: any) {
       add(err.response?.data?.error ?? 'Error al ajustar stock', 'error');
@@ -170,6 +197,7 @@ export default function Inventory() {
           { id: 'overview',   label: 'Resumen' },
           { id: 'movements',  label: 'Movimientos' },
           { id: 'adjust',     label: 'Ajustar stock' },
+          { id: 'alerts',     label: 'Alertas' },
         ] as const).map(({ id, label }) => (
           <button key={id} onClick={() => setTab(id)}
             className={`px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors ${
@@ -186,11 +214,17 @@ export default function Inventory() {
           <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>
         ) : (
           <>
-            <div className="relative max-w-sm mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar producto..."
-                className="w-full bg-coffee-900 border border-coffee-800 text-cream text-sm pl-9 pr-3 py-2 focus:border-gold-500/50 focus:outline-none" />
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="relative max-w-sm flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
+                <input value={search} onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar producto..."
+                  className="w-full bg-coffee-900 border border-coffee-800 text-cream text-sm pl-9 pr-3 py-2 focus:border-gold-500/50 focus:outline-none" />
+              </div>
+              <a href={`${import.meta.env.VITE_API_URL || '/api'}/inventory/export-csv`} download
+                className="flex items-center gap-1.5 px-3 py-2 text-xs border border-coffee-700 text-coffee-400 hover:text-cream hover:border-coffee-600 transition-colors whitespace-nowrap">
+                <Download className="w-3.5 h-3.5" /> Exportar CSV
+              </a>
             </div>
             <div className="bg-coffee-900 border border-coffee-800 overflow-hidden">
               <div className="overflow-x-auto">
@@ -431,12 +465,117 @@ export default function Inventory() {
                 className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none resize-none" />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Costo unitario (MXN)</label>
+                <input type="number" step="0.01" value={adjUnitCost} onChange={(e) => setAdjUnitCost(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Número de lote</label>
+                <input value={adjBatchNumber} onChange={(e) => setAdjBatchNumber(e.target.value)}
+                  placeholder="LOT-2026-001"
+                  className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Fecha de caducidad</label>
+                <input type="date" value={adjExpiryDate} onChange={(e) => setAdjExpiryDate(e.target.value)}
+                  className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Proveedor</label>
+                <input value={adjSupplier} onChange={(e) => setAdjSupplier(e.target.value)}
+                  placeholder="Nombre del proveedor"
+                  className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
+              </div>
+            </div>
+
             <button type="submit" disabled={adjSaving || !adjProduct || !adjQty}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
               {adjSaving ? 'Registrando...' : 'Registrar movimiento'}
             </button>
           </form>
         </div>
+      )}
+
+      {/* ── Alerts tab ── */}
+      {tab === 'alerts' && (
+        !alerts ? (
+          <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>
+        ) : (
+          <div className="space-y-6">
+            {alerts.outOfStock.length > 0 && (
+              <div>
+                <h3 className="text-xs text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <XCircle className="w-4 h-4" /> Agotados ({alerts.outOfStock.length})
+                </h3>
+                <div className="space-y-2">
+                  {alerts.outOfStock.map((p: any) => (
+                    <div key={p.id} className="flex items-center justify-between bg-red-900/10 border border-red-500/20 p-3">
+                      <div className="flex items-center gap-3">
+                        <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
+                        <div>
+                          <p className="text-cream text-sm">{p.name}</p>
+                          {p.sku && <p className="text-coffee-500 text-xs">SKU: {p.sku}</p>}
+                        </div>
+                      </div>
+                      <span className="text-red-400 text-xs font-medium">Stock: 0</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {alerts.lowStock.length > 0 && (
+              <div>
+                <h3 className="text-xs text-yellow-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" /> Stock bajo ({alerts.lowStock.length})
+                </h3>
+                <div className="space-y-2">
+                  {alerts.lowStock.map((p: any) => (
+                    <div key={p.id} className="flex items-center justify-between bg-yellow-900/10 border border-yellow-500/20 p-3">
+                      <div className="flex items-center gap-3">
+                        <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
+                        <div>
+                          <p className="text-cream text-sm">{p.name}</p>
+                          {p.supplier && <p className="text-coffee-500 text-xs">Proveedor: {p.supplier}</p>}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-yellow-400 text-xs font-medium">Stock: {p.stock}</p>
+                        <p className="text-coffee-500 text-xs">Umbral: {p.lowStockThreshold}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {alerts.expiringBatches.length > 0 && (
+              <div>
+                <h3 className="text-xs text-orange-400 uppercase tracking-widest mb-3">
+                  Lotes por vencer (próximos 30 días) ({alerts.expiringBatches.length})
+                </h3>
+                <div className="space-y-2">
+                  {alerts.expiringBatches.map((b: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between bg-orange-900/10 border border-orange-500/20 p-3">
+                      <p className="text-cream text-sm">{b.productName}</p>
+                      <div className="text-right">
+                        {b.batchNumber && <p className="text-coffee-400 text-xs">Lote: {b.batchNumber}</p>}
+                        <p className="text-orange-400 text-xs">{new Date(b.expiryDate).toLocaleDateString('es-MX')}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {alerts.summary.outOfStockCount === 0 && alerts.summary.lowStockCount === 0 && alerts.expiringBatches.length === 0 && (
+              <p className="text-center text-coffee-500 text-sm py-12">Sin alertas activas ✓</p>
+            )}
+          </div>
+        )
       )}
     </div>
   );

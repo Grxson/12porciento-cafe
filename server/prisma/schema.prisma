@@ -25,6 +25,10 @@ model Product {
   weight      Int?
   stock       Int
   lowStockThreshold Int    @default(10)
+  sku           String?  @unique
+  costPrice     Float?
+  supplier      String?
+  minOrderQty   Int?     @default(1)
   imageUrl    String
   description String
   isLimited   Boolean     @default(false)
@@ -36,6 +40,7 @@ model Product {
   reviews           Review[]
   subscriptionItems SubscriptionItem[]
   stockMovements    StockMovement[]
+  linkedRecipes Recipe[] @relation("productRecipes")
 }
 
 model StockMovement {
@@ -48,7 +53,15 @@ model StockMovement {
   newStock      Int
   notes         String?
   orderId       String?
+  unitCost    Float?
+  batchNumber String?
+  expiryDate  DateTime?
+  supplier    String?
   createdAt     DateTime @default(now())
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 model Order {
@@ -177,6 +190,49 @@ model Review {
   user          User?     @relation(fields: [userId], references: [id])
   replies       ReviewReply[] @relation("replies")
   createdAt     DateTime  @default(now())
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?
+  method      String
+  difficulty  String   @default("MEDIA")
+  prepTime    Int?
+  yield       String?
+  temp        String?
+  grind       String?
+  ratio       String?
+  isPremium   Boolean  @default(false)
+  isPublished Boolean  @default(false)
+
+  productId   String?
+  product     Product? @relation("productRecipes", fields: [productId], references: [id], onDelete: SetNull)
+
+  steps       RecipeStep[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+  @@index([method])
+  @@index([isPremium])
+}
+
+model RecipeStep {
+  id          String  @id @default(cuid())
+  recipeId    String
+  recipe      Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  order       Int
+  title       String
+  description String
+  imageUrl    String?
+  videoUrl    String?
+  duration    Int?
+
+  @@index([recipeId])
+  @@unique([recipeId, order])
 }
 
 model ReviewReply {

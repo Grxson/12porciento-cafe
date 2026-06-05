@@ -143,6 +143,22 @@ export default function Inventory() {
     } finally { setAdjSaving(false); }
   };
 
+  const handleExportCsv = async () => {
+    try {
+      const res = await api.get('/inventory/export-csv', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inventario-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      add('Error al exportar inventario', 'error');
+    }
+  };
+
   const filteredProducts = products.filter((p) =>
     !search || p.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -221,10 +237,10 @@ export default function Inventory() {
                   placeholder="Buscar producto..."
                   className="w-full bg-coffee-900 border border-coffee-800 text-cream text-sm pl-9 pr-3 py-2 focus:border-gold-500/50 focus:outline-none" />
               </div>
-              <a href={`${import.meta.env.VITE_API_URL || '/api'}/inventory/export-csv`} download
+              <button onClick={handleExportCsv}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs border border-coffee-700 text-coffee-400 hover:text-cream hover:border-coffee-600 transition-colors whitespace-nowrap">
                 <Download className="w-3.5 h-3.5" /> Exportar CSV
-              </a>
+              </button>
             </div>
             <div className="bg-coffee-900 border border-coffee-800 overflow-hidden">
               <div className="overflow-x-auto">
@@ -559,7 +575,7 @@ export default function Inventory() {
                 </h3>
                 <div className="space-y-2">
                   {alerts.expiringBatches.map((b: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between bg-orange-900/10 border border-orange-500/20 p-3">
+                    <div key={`${b.productId}-${b.batchNumber ?? i}`} className="flex items-center justify-between bg-orange-900/10 border border-orange-500/20 p-3">
                       <p className="text-cream text-sm">{b.productName}</p>
                       <div className="text-right">
                         {b.batchNumber && <p className="text-coffee-400 text-xs">Lote: {b.batchNumber}</p>}

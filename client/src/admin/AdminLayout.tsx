@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
-  ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse,
+  ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
 } from 'lucide-react';
 import NotificationBell from '../components/NotificationBell';
 
@@ -10,6 +10,7 @@ const navLinks = [
   { to: '/admin/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
   { to: '/admin/productos',    label: 'Productos',    icon: Package },
   { to: '/admin/inventario',   label: 'Inventario',   icon: Warehouse },
+  { to: '/admin/recetas',      label: 'Recetas',      icon: BookOpen },
   { to: '/admin/pedidos',      label: 'Pedidos',      icon: ShoppingBag },
   { to: '/admin/suscriptores', label: 'Suscriptores', icon: Users },
   { to: '/admin/bundles',      label: 'Bundles',      icon: Gift },
@@ -22,6 +23,7 @@ const pageTitles: Record<string, string> = {
   '/admin/dashboard':    'Dashboard',
   '/admin/productos':    'Productos',
   '/admin/inventario':   'Inventario',
+  '/admin/recetas':      'Recetas',
   '/admin/pedidos':      'Pedidos',
   '/admin/suscriptores': 'Suscriptores',
   '/admin/bundles':      'Bundles',

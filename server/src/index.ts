@@ -15,6 +15,7 @@ import customersRouter from './routes/customers';
 import webhookRouter from './routes/webhook';
 import inventoryRouter from './routes/inventory';
 import subscriptionPaymentsRouter from './routes/subscription-payments';
+import recipesRouter from './routes/recipes';
 import { startBillingScheduler } from './jobs/billing';
 import http from 'http';
 import { initSocket } from './socket';
@@ -50,6 +51,7 @@ app.use('/api/promo-codes', promoCodesRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/subscription-payments', subscriptionPaymentsRouter);
+app.use('/api/recipes', recipesRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

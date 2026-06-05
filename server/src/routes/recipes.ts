@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
 
@@ -8,7 +9,6 @@ const router = Router();
 async function hasRecipeAccess(authHeader: string | undefined): Promise<boolean> {
   if (!authHeader?.startsWith('Bearer ')) return false;
   try {
-    const jwt = require('jsonwebtoken');
     const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as { id: string; role: string };
     if (payload.role === 'ADMIN') return true;
     const sub = await prisma.subscription.findFirst({ where: { userId: payload.id, status: 'ACTIVE' } });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Send, User } from 'lucide-react';
 import { reviewsApi } from '../api';
 import { useUser } from '../context/UserContext';
@@ -25,6 +25,13 @@ export default function ReviewThread({ reviewId }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     loadReplies();
@@ -63,7 +70,7 @@ export default function ReviewThread({ reviewId }: Props) {
       setShowForm(false);
       setSuccessMsg('Respuesta enviada. Será visible tras aprobación.');
       await loadReplies();
-      setTimeout(() => setSuccessMsg(null), 4000);
+      successTimerRef.current = setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al enviar respuesta');
     } finally {

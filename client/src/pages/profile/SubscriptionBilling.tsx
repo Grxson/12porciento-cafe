@@ -152,10 +152,10 @@ export default function SubscriptionBilling({ subscriptionId }: Props) {
                     )}
                   </div>
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_CLASSES[payment.status]}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_CLASSES[payment.status] ?? 'text-coffee-400 bg-coffee-800/20 border-coffee-700'}`}
                   >
                     <Icon className="w-3 h-3" />
-                    {STATUS_LABELS[payment.status]}
+                    {STATUS_LABELS[payment.status] ?? payment.status}
                   </span>
                 </div>
               );

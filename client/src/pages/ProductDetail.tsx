@@ -60,7 +60,7 @@ export default function ProductDetail() {
     setReviewSubmitting(true);
     setReviewError('');
     try {
-      await reviewsApi.create(product.id, reviewForm);
+      await reviewsApi.create(product.id, { ...reviewForm, userId: loggedUser?.id });
       setReviewSuccess(true);
       setReviewForm({ name: loggedUser?.name ?? '', email: loggedUser?.email ?? '', rating: 0, comment: '' });
     } catch (err: any) {

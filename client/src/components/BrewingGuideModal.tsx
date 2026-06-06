@@ -9,6 +9,15 @@ interface Props {
   onClose: () => void;
 }
 
+function getVideoEmbed(url: string): { type: 'youtube' | 'vimeo' | 'native' | 'link'; src: string } {
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/);
+  if (yt) return { type: 'youtube', src: `https://www.youtube.com/embed/${yt[1]}` };
+  const vm = url.match(/vimeo\.com\/(\d+)/);
+  if (vm) return { type: 'vimeo', src: `https://player.vimeo.com/video/${vm[1]}` };
+  if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'native', src: url };
+  return { type: 'link', src: url };
+}
+
 const methodIcons: Record<string, string> = {
   'V60': '🫖', 'Pour Over': '🫖', 'Espresso': '☕',
   'Prensa Francesa': '🏺', 'AeroPress': '🔄', 'Chemex': '⚗️',
@@ -92,10 +101,35 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
                     <span className="w-6 h-6 rounded-full border border-gold-500/40 text-gold-500 text-xs flex items-center justify-center shrink-0 mt-0.5">
                       {i + 1}
                     </span>
-                    <span className="text-coffee-300 text-sm leading-relaxed">
+                    <div className="text-coffee-300 text-sm leading-relaxed">
                       {step.title && <span className="text-cream font-medium">{step.title}: </span>}
                       {step.description}
-                    </span>
+                      {step.videoUrl && (() => {
+                        const embed = getVideoEmbed(step.videoUrl!);
+                        if (embed.type === 'youtube' || embed.type === 'vimeo') {
+                          return (
+                            <div className="mt-2 aspect-video w-full rounded-lg overflow-hidden bg-coffee-900">
+                              <iframe
+                                src={embed.src}
+                                className="w-full h-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                title="Video del paso"
+                              />
+                            </div>
+                          );
+                        }
+                        if (embed.type === 'native') {
+                          return <video src={embed.src} controls className="mt-2 w-full rounded-lg bg-coffee-900" />;
+                        }
+                        return (
+                          <a href={step.videoUrl!} target="_blank" rel="noopener noreferrer"
+                            className="mt-2 flex items-center gap-1 text-xs text-gold-400 hover:text-gold-300 transition-colors">
+                            Ver video
+                          </a>
+                        );
+                      })()}
+                    </div>
                   </li>
                 ))}
               </ol>

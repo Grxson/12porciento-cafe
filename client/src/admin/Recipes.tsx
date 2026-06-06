@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, ChevronUp, ChevronDown, Eye, EyeOff, Star, BookOpen } from 'lucide-react';
-import { recipesApi, productsApi } from '../api';
+import { recipesApi } from '../api';
+import SearchableProductSelect from '../components/SearchableProductSelect';
 import { useToast } from '../context/ToastContext';
 import type { Recipe, RecipeStep } from '../types';
 
@@ -19,13 +20,13 @@ const emptyStepForm = { title: '', description: '', imageUrl: '', videoUrl: '', 
 export default function AdminRecipes() {
   const { add } = useToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const [recipeModal, setRecipeModal] = useState<'add' | 'edit' | null>(null);
   const [recipeForm, setRecipeForm] = useState(emptyRecipeForm);
   const [editRecipeId, setEditRecipeId] = useState<string | null>(null);
+  const [editingRecipeProduct, setEditingRecipeProduct] = useState<{ id: string; name: string } | null>(null);
   const [savingRecipe, setSavingRecipe] = useState(false);
 
   const [stepModal, setStepModal] = useState<{ recipeId: string; stepId?: string } | null>(null);
@@ -35,12 +36,8 @@ export default function AdminRecipes() {
   const load = async () => {
     setLoading(true);
     try {
-      const [recipeRes, productRes] = await Promise.all([
-        recipesApi.adminList(),
-        productsApi.adminList(),
-      ]);
+      const recipeRes = await recipesApi.adminList();
       setRecipes(recipeRes.data.data);
-      setProducts((productRes.data as any[]).map((p: any) => ({ id: p.id, name: p.name })));
     } catch {
       add('Error al cargar recetas', 'error');
     } finally {
@@ -50,7 +47,7 @@ export default function AdminRecipes() {
 
   useEffect(() => { load(); }, []);
 
-  const openAddRecipe = () => { setRecipeForm(emptyRecipeForm); setEditRecipeId(null); setRecipeModal('add'); };
+  const openAddRecipe = () => { setRecipeForm(emptyRecipeForm); setEditRecipeId(null); setEditingRecipeProduct(null); setRecipeModal('add'); };
 
   const openEditRecipe = (r: Recipe) => {
     setRecipeForm({
@@ -62,6 +59,7 @@ export default function AdminRecipes() {
       productId: r.productId ?? '',
     });
     setEditRecipeId(r.id);
+    setEditingRecipeProduct(r.product ? { id: r.product.id, name: r.product.name } : null);
     setRecipeModal('edit');
   };
 
@@ -330,11 +328,11 @@ export default function AdminRecipes() {
                   </div>
                   <div>
                     <label className="block text-xs text-coffee-400 mb-1">Café relacionado</label>
-                    <select value={recipeForm.productId} onChange={(e) => setRecipeForm((f) => ({ ...f, productId: e.target.value }))}
-                      className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500">
-                      <option value="">— Ninguno (receta general) —</option>
-                      {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
+                    <SearchableProductSelect
+                      value={recipeForm.productId}
+                      onChange={(id) => setRecipeForm((f) => ({ ...f, productId: id }))}
+                      initialLabel={editingRecipeProduct?.name ?? ''}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-6">

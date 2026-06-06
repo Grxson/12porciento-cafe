@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin } from 'lucide-react';
-import { ordersApi, paymentsApi, promoCodesApi } from '../api';
+import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { ordersApi, paymentsApi, promoCodesApi, usersApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import StripePaymentForm from '../components/StripePaymentForm';
 import { mexicanStates } from '../constants/mexico';
+import type { PaymentMethod } from '../types';
 
 interface FormData {
   customerName: string;
@@ -36,7 +38,8 @@ const validateShipping = (form: FormData): Partial<Record<keyof FormData, string
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const user = useUser((s) => s.user);
-  const [step, setStep] = useState<1 | 2>(1);
+  // step 1 = shipping, '2a' = card selection, 2 = payment UI
+  const [step, setStep] = useState<1 | '2a' | 2>(1);
   const [form, setForm] = useState<FormData>({
     customerName: user?.name ?? '',
     email: user?.email ?? '',
@@ -59,6 +62,36 @@ export default function Checkout() {
   const [promoError, setPromoError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
+
+  // Saved payment methods state
+  const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
+  const [defaultMethodId, setDefaultMethodId] = useState<string | null>(null);
+  const [selectedMethodId, setSelectedMethodId] = useState<string | 'new'>('new');
+  const [loadingMethods, setLoadingMethods] = useState(false);
+  const [confirmingSaved, setConfirmingSaved] = useState(false);
+
+  // Fetch saved payment methods when user has a Stripe customer ID
+  useEffect(() => {
+    if (!user?.stripeCustomerId) return;
+    let cancelled = false;
+    setLoadingMethods(true);
+    usersApi.listPaymentMethods()
+      .then((res) => {
+        if (cancelled) return;
+        const { methods, defaultId } = res.data;
+        setSavedMethods(methods);
+        setDefaultMethodId(defaultId);
+        setSelectedMethodId(defaultId ?? (methods.length > 0 ? methods[0].id : 'new'));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSavedMethods([]);
+          setSelectedMethodId('new');
+        }
+      })
+      .finally(() => { if (!cancelled) setLoadingMethods(false); });
+    return () => { cancelled = true; };
+  }, [user?.stripeCustomerId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -94,14 +127,28 @@ export default function Checkout() {
       return;
     }
     setFieldErrors({});
+    setError('');
+
+    // If the user has saved methods, show the card-selection step first
+    if (user?.stripeCustomerId && savedMethods.length > 0) {
+      setStep('2a');
+      return;
+    }
+
+    // Otherwise create intent immediately (new-card flow)
+    await createIntentAndAdvance('new');
+  };
+
+  const createIntentAndAdvance = async (methodChoice: string | 'new') => {
     setLoadingIntent(true);
     setError('');
     try {
+      const useSavedCard = methodChoice !== 'new' && user?.stripeCustomerId;
       const res = await paymentsApi.createIntent({
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
         ...(promoCode ? { promoCode } : {}),
         ...(user?.stripeCustomerId ? { stripeCustomerId: user.stripeCustomerId } : {}),
-        ...(user?.stripeCustomerId && user?.stripeDefaultPaymentMethodId ? { paymentMethodId: user.stripeDefaultPaymentMethodId } : {}),
+        ...(useSavedCard ? { paymentMethodId: methodChoice } : {}),
       });
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');
@@ -111,6 +158,29 @@ export default function Checkout() {
       setError(err.response?.data?.error || 'Error al iniciar el pago. Intenta de nuevo.');
     } finally {
       setLoadingIntent(false);
+    }
+  };
+
+  const handleCardSelectionSubmit = async () => {
+    await createIntentAndAdvance(selectedMethodId);
+  };
+
+  const handleConfirmSavedCard = async () => {
+    setConfirmingSaved(true);
+    setError('');
+    try {
+      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+      if (!stripe) throw new Error('Stripe no disponible');
+      const result = await stripe.confirmCardPayment(clientSecret);
+      if (result.error) {
+        setError(result.error.message || 'Error al procesar el pago.');
+      } else {
+        await handlePaymentSuccess();
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error al procesar el pago.');
+    } finally {
+      setConfirmingSaved(false);
     }
   };
 
@@ -203,19 +273,24 @@ export default function Checkout() {
           {[
             { n: 1, label: 'Datos de envío' },
             { n: 2, label: 'Pago' },
-          ].map(({ n, label }, i, arr) => (
-            <div key={n} className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                step >= n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-100 text-coffee-400'
-              }`}>
-                {step > n ? <Check className="w-3.5 h-3.5" /> : n}
+          ].map(({ n, label }, i, arr) => {
+            const stepNum = step === '2a' ? 2 : (step as number);
+            const isActive = stepNum === n;
+            const isPast = stepNum > n;
+            return (
+              <div key={n} className="flex items-center gap-2">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                  stepNum >= n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-100 text-coffee-400'
+                }`}>
+                  {isPast ? <Check className="w-3.5 h-3.5" /> : n}
+                </div>
+                <span className={`text-sm transition-colors ${isActive ? 'text-coffee-900 font-medium' : 'text-coffee-400'}`}>
+                  {label}
+                </span>
+                {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-coffee-300 ml-1" />}
               </div>
-              <span className={`text-sm transition-colors ${step === n ? 'text-coffee-900 font-medium' : 'text-coffee-400'}`}>
-                {label}
-              </span>
-              {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-coffee-300 ml-1" />}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -312,6 +387,108 @@ export default function Checkout() {
                 </motion.form>
               )}
 
+              {step === '2a' && (
+                <motion.div
+                  key="step2a"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <button
+                      onClick={() => { setStep(1); setError(''); }}
+                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 transition-colors text-sm"
+                    >
+                      <ChevronLeft className="w-4 h-4" /> Volver a envío
+                    </button>
+                  </div>
+                  <h2 className="font-serif text-xl text-coffee-900 mb-6">Método de pago</h2>
+
+                  {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+
+                  <div className="space-y-3 mb-6">
+                    {loadingMethods ? (
+                      <div className="flex items-center gap-2 text-coffee-400 text-sm py-4">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Cargando métodos de pago...
+                      </div>
+                    ) : (
+                      <>
+                        {savedMethods.map((m) => (
+                          <label
+                            key={m.id}
+                            className={`flex items-center gap-4 p-4 border cursor-pointer transition-colors ${
+                              selectedMethodId === m.id
+                                ? 'border-gold-500 bg-gold-50'
+                                : 'border-coffee-200 bg-white hover:border-coffee-400'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value={m.id}
+                              checked={selectedMethodId === m.id}
+                              onChange={() => setSelectedMethodId(m.id)}
+                              className="accent-gold-500"
+                            />
+                            <CreditCard
+                              className={`w-5 h-5 shrink-0 ${selectedMethodId === m.id ? 'text-gold-600' : 'text-coffee-400'}`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-coffee-900 text-sm font-medium capitalize">
+                                {m.brand} •••• {m.last4}
+                                {m.id === defaultMethodId && (
+                                  <span className="ml-2 text-[10px] text-gold-600 uppercase tracking-widest border border-gold-400 px-1.5 py-0.5">
+                                    predeterminada
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-coffee-500 text-xs">
+                                Vence {String(m.expMonth).padStart(2, '0')}/{m.expYear}
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+
+                        <label
+                          className={`flex items-center gap-4 p-4 border cursor-pointer transition-colors ${
+                            selectedMethodId === 'new'
+                              ? 'border-gold-500 bg-gold-50'
+                              : 'border-coffee-200 bg-white hover:border-coffee-400'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="new"
+                            checked={selectedMethodId === 'new'}
+                            onChange={() => setSelectedMethodId('new')}
+                            className="accent-gold-500"
+                          />
+                          <CreditCard
+                            className={`w-5 h-5 shrink-0 ${selectedMethodId === 'new' ? 'text-gold-600' : 'text-coffee-400'}`}
+                          />
+                          <p className="text-coffee-900 text-sm font-medium">Usar tarjeta nueva</p>
+                        </label>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleCardSelectionSubmit}
+                    disabled={loadingIntent || loadingMethods}
+                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loadingIntent ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Iniciando pago...</>
+                    ) : (
+                      <><span>Continuar</span><ChevronRight className="w-4 h-4" /></>
+                    )}
+                  </button>
+                </motion.div>
+              )}
+
               {step === 2 && clientSecret && (
                 <motion.div
                   key="step2"
@@ -321,21 +498,60 @@ export default function Checkout() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center gap-3 mb-6">
-                    <button onClick={() => { setStep(1); setError(''); }}
-                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 transition-colors text-sm">
-                      <ChevronLeft className="w-4 h-4" /> Volver a envío
+                    <button
+                      onClick={() => {
+                        setClientSecret('');
+                        setPaymentIntentId('');
+                        setError('');
+                        setStep(savedMethods.length > 0 && !!user?.stripeCustomerId ? '2a' : 1);
+                      }}
+                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 transition-colors text-sm"
+                    >
+                      <ChevronLeft className="w-4 h-4" /> Volver
                     </button>
                   </div>
                   <h2 className="font-serif text-xl text-coffee-900 mb-6">Pago seguro</h2>
 
                   {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
-                  <StripePaymentForm
-                    clientSecret={clientSecret}
-                    amount={intentAmount}
-                    onSuccess={handlePaymentSuccess}
-                    onError={handlePaymentError}
-                  />
+                  {selectedMethodId !== 'new' && savedMethods.some((m) => m.id === selectedMethodId) ? (
+                    (() => {
+                      const savedCard = savedMethods.find((m) => m.id === selectedMethodId)!;
+                      return (
+                        <div className="space-y-6">
+                          <div className="flex items-center gap-4 p-4 border border-gold-400 bg-gold-50">
+                            <CreditCard className="w-6 h-6 text-gold-600 shrink-0" />
+                            <div>
+                              <p className="text-coffee-900 text-sm font-medium capitalize">
+                                {savedCard.brand} •••• {savedCard.last4}
+                              </p>
+                              <p className="text-coffee-500 text-xs">
+                                Vence {String(savedCard.expMonth).padStart(2, '0')}/{savedCard.expYear}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleConfirmSavedCard}
+                            disabled={confirmingSaved}
+                            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {confirmingSaved ? (
+                              <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
+                            ) : (
+                              `Pagar $${intentAmount.toLocaleString('es-MX')} MXN`
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <StripePaymentForm
+                      clientSecret={clientSecret}
+                      amount={intentAmount}
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                    />
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

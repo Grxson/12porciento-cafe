@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import {
   Package, TrendingUp, TrendingDown, AlertTriangle, XCircle,
   ArrowUpCircle, ArrowDownCircle, RefreshCw, Search, ChevronLeft, ChevronRight, SlidersHorizontal, Download,
+  History,
 } from 'lucide-react';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
@@ -22,6 +22,8 @@ interface Movement {
   id: string; productId: string; type: string; quantity: number;
   previousStock: number; newStock: number; notes: string | null;
   orderId: string | null; createdAt: string;
+  unitCost?: number | null; batchNumber?: string | null;
+  expiryDate?: string | null; supplier?: string | null;
   product?: { id: string; name: string; imageUrl: string; category: string };
 }
 
@@ -82,6 +84,21 @@ export default function Inventory() {
   const [adjBatchNumber, setAdjBatchNumber] = useState('');
   const [adjExpiryDate, setAdjExpiryDate] = useState('');
   const [adjSupplier, setAdjSupplier] = useState('');
+
+  // Per-product movement history modal
+  const [historyProduct, setHistoryProduct] = useState<InventoryProduct | null>(null);
+  const [historyMovements, setHistoryMovements] = useState<Movement[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openHistory = (p: InventoryProduct) => {
+    setHistoryProduct(p);
+    setHistoryMovements([]);
+    setHistoryLoading(true);
+    api.get(`/inventory/products/${p.id}/movements`)
+      .then((r) => setHistoryMovements(r.data))
+      .catch(() => add('Error al cargar historial', 'error'))
+      .finally(() => setHistoryLoading(false));
+  };
 
   const loadOverview = () => {
     setLoading(true);
@@ -285,12 +302,21 @@ export default function Inventory() {
                             <span className={`text-[10px] px-2 py-1 border ${s.cls}`}>{s.label}</span>
                           </td>
                           <td className="px-4 py-3">
-                            <button
-                              onClick={() => { setTab('adjust'); setAdjProduct(p.id); setAdjType('RESTOCK'); }}
-                              className="text-xs text-gold-500 hover:text-gold-400 border border-gold-500/30 px-3 py-1 transition-colors"
-                            >
-                              Reabastecer
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => { setTab('adjust'); setAdjProduct(p.id); setAdjType('RESTOCK'); }}
+                                className="text-xs text-gold-500 hover:text-gold-400 border border-gold-500/30 px-3 py-1 transition-colors"
+                              >
+                                Reabastecer
+                              </button>
+                              <button
+                                onClick={() => openHistory(p)}
+                                title="Ver historial de movimientos"
+                                className="text-xs text-coffee-400 hover:text-cream border border-coffee-700 px-2 py-1 transition-colors"
+                              >
+                                <History className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -587,11 +613,96 @@ export default function Inventory() {
               </div>
             )}
 
-            {alerts.summary.outOfStockCount === 0 && alerts.summary.lowStockCount === 0 && alerts.expiringBatches.length === 0 && (
+            {alerts.overstock.length > 0 && (
+              <div>
+                <h3 className="text-xs text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" /> Sobreabasto ({alerts.overstock.length})
+                </h3>
+                <div className="space-y-2">
+                  {alerts.overstock.map((p: any) => (
+                    <div key={p.id} className="flex items-center justify-between bg-blue-900/10 border border-blue-500/20 p-3">
+                      <div className="flex items-center gap-3">
+                        <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
+                        <div>
+                          <p className="text-cream text-sm">{p.name}</p>
+                          <p className="text-coffee-500 text-xs">Umbral: {p.lowStockThreshold}</p>
+                        </div>
+                      </div>
+                      <span className="text-blue-400 text-xs font-medium">Stock: {p.stock}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {alerts.summary.outOfStockCount === 0 && alerts.summary.lowStockCount === 0 &&
+              alerts.expiringBatches.length === 0 && alerts.overstock.length === 0 && (
               <p className="text-center text-coffee-500 text-sm py-12">Sin alertas activas ✓</p>
             )}
           </div>
         )
+      )}
+
+      {/* ── Per-product movement history modal ── */}
+      {historyProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setHistoryProduct(null)}>
+          <div className="bg-coffee-950 border border-coffee-800 w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-coffee-800">
+              <div>
+                <p className="text-cream font-medium">{historyProduct.name}</p>
+                <p className="text-coffee-500 text-xs mt-0.5">Historial de movimientos (últimos 100)</p>
+              </div>
+              <button onClick={() => setHistoryProduct(null)} className="text-coffee-500 hover:text-cream text-xl leading-none">✕</button>
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {historyLoading ? (
+                <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>
+              ) : historyMovements.length === 0 ? (
+                <p className="text-center text-coffee-500 text-sm py-12">Sin movimientos registrados</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-coffee-950">
+                    <tr className="border-b border-coffee-800">
+                      {['Fecha', 'Tipo', 'Cantidad', 'Antes → Después', 'Notas'].map((h) => (
+                        <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyMovements.map((m) => {
+                      const mt = MOVEMENT_TYPES[m.type] ?? MOVEMENT_TYPES.ADJUSTMENT;
+                      const Icon = mt.icon;
+                      return (
+                        <tr key={m.id} className="border-b border-coffee-800/40 hover:bg-coffee-800/20 transition-colors">
+                          <td className="px-4 py-2.5 text-coffee-400 text-xs whitespace-nowrap">
+                            {new Date(m.createdAt).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <div className={`flex items-center gap-1.5 ${mt.color}`}>
+                              <Icon className="w-3.5 h-3.5" />
+                              <span className="text-xs font-medium">{mt.label}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <span className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5 text-coffee-400 text-xs">
+                            {m.previousStock} → <span className="text-cream font-medium">{m.newStock}</span>
+                          </td>
+                          <td className="px-4 py-2.5 text-coffee-500 text-xs max-w-[160px] truncate">
+                            {m.notes ?? '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -606,10 +717,14 @@ function ThresholdEditor({ productId, current, onSaved }: { productId: string; c
   const save = async () => {
     const n = parseInt(val);
     if (isNaN(n) || n < 0) return;
-    await api.put(`/inventory/products/${productId}/threshold`, { threshold: n }).catch(() => {});
-    add('Umbral actualizado', 'success');
-    setEditing(false);
-    onSaved();
+    try {
+      await api.put(`/inventory/products/${productId}/threshold`, { threshold: n });
+      add('Umbral actualizado', 'success');
+      setEditing(false);
+      onSaved();
+    } catch {
+      add('Error al actualizar umbral', 'error');
+    }
   };
 
   if (!editing) return (

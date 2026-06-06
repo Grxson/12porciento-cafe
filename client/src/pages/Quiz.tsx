@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Coffee } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Coffee, Loader2 } from 'lucide-react';
+import { productsApi } from '../api';
+import type { Product } from '../types';
+import ProductCard from '../components/ProductCard';
 
 interface Question {
   id: string;
@@ -86,14 +89,82 @@ function getResult(answers: Answers): { roast: string; process: string; label: s
   };
 }
 
+// Maps quiz flavor answer → keywords to look for in product.flavors
+const flavorKeywords: Record<string, string[]> = {
+  chocolate: ['chocolate', 'caramelo', 'cacao'],
+  fruity:    ['fruta', 'frutal', 'floral', 'berry'],
+  nutty:     ['nuez', 'almendra', 'especia'],
+  citrus:    ['cítrico', 'limón', 'naranja', 'acidez'],
+};
+
+function scoreProducts(products: Product[], flavorAnswer: string): Product[] {
+  const keywords = flavorKeywords[flavorAnswer] ?? [];
+  const scored = products.map((p) => {
+    const flavorsLower = p.flavors.map((f) => f.toLowerCase());
+    const hits = keywords.filter((k) => flavorsLower.some((f) => f.includes(k))).length;
+    return { product: p, score: hits + (p.scaScore ?? 0) / 100 };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map((s) => s.product);
+}
+
+async function fetchRecommendations(answers: Answers): Promise<Product[]> {
+  const result = getResult(answers);
+
+  // Primary fetch: roast + pageSize 12
+  const primary = await productsApi.list({ roast: result.roast, pageSize: '12' });
+  let products = primary.data.data;
+
+  // Broaden if fewer than 3 results
+  if (products.length < 3) {
+    const broad = await productsApi.list({ pageSize: '12' });
+    products = broad.data.data;
+  }
+
+  // Final fallback: top SCA
+  if (products.length < 3) {
+    const fallback = await productsApi.list({ sort: 'sca', pageSize: '6' });
+    products = fallback.data.data;
+  }
+
+  // Rank by flavor affinity + SCA score, cap at 6
+  const ranked = scoreProducts(products, answers.flavor ?? '');
+  return ranked.slice(0, 6);
+}
+
 export default function Quiz() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [done, setDone] = useState(false);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [recsLoading, setRecsLoading] = useState(false);
+  const [recsError, setRecsError] = useState(false);
   const navigate = useNavigate();
 
   const q = questions[step];
   const result = done ? getResult(answers) : null;
+
+  // Fetch recommendations exactly once when quiz completes
+  useEffect(() => {
+    if (!done) return;
+    let cancelled = false;
+    setRecsLoading(true);
+    setRecsError(false);
+    setRecommendations([]);
+
+    fetchRecommendations(answers)
+      .then((products) => {
+        if (!cancelled) setRecommendations(products);
+      })
+      .catch(() => {
+        if (!cancelled) setRecsError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setRecsLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const answer = (value: string) => {
     const next = { ...answers, [q.id]: value };
@@ -105,8 +176,17 @@ export default function Quiz() {
     }
   };
 
+  const resetQuiz = () => {
+    setStep(0);
+    setAnswers({});
+    setDone(false);
+    setRecommendations([]);
+    setRecsLoading(false);
+    setRecsError(false);
+  };
+
   return (
-    <div className="min-h-screen bg-coffee-950 flex items-center justify-center px-4 pt-20">
+    <div className="min-h-screen bg-coffee-950 flex flex-col items-center px-4 pt-20 pb-20">
       <div className="w-full max-w-lg">
         <div className="text-center mb-10">
           <Coffee className="w-10 h-10 text-gold-500/60 mx-auto mb-4" />
@@ -166,9 +246,9 @@ export default function Quiz() {
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center"
             >
-              <div className="border border-gold-500/30 bg-coffee-900/60 p-8 mb-6">
+              {/* Profile card */}
+              <div className="border border-gold-500/30 bg-coffee-900/60 p-8 mb-6 text-center">
                 <p className="text-gold-500 text-xs tracking-[0.3em] uppercase mb-3">Tu perfil</p>
                 <h2 className="font-serif text-3xl text-cream mb-2">{result!.label}</h2>
                 <p className="text-coffee-300 mb-4">{result!.desc}</p>
@@ -177,19 +257,59 @@ export default function Quiz() {
                   <span className="px-3 py-1 bg-coffee-800 text-coffee-200">Proceso: {result!.process}</span>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+
+              {/* CTA buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
                 <button
                   onClick={() => navigate(`/tienda${result!.filter}`)}
                   className="btn-primary flex items-center gap-2"
                 >
                   Ver mis cafés <ArrowRight className="w-4 h-4" />
                 </button>
-                <button
-                  onClick={() => { setStep(0); setAnswers({}); setDone(false); }}
-                  className="btn-outline-dark"
-                >
+                <button onClick={resetQuiz} className="btn-outline-dark">
                   Repetir quiz
                 </button>
+              </div>
+
+              {/* Recommendations section */}
+              <div className="mt-2">
+                <div className="mb-6 text-center">
+                  <p className="text-gold-500 text-xs tracking-[0.3em] uppercase mb-1">Para ti</p>
+                  <h3 className="font-serif text-2xl text-cream">Tus cafés recomendados</h3>
+                </div>
+
+                {recsLoading && (
+                  <div className="flex flex-col items-center gap-3 py-12 text-coffee-400">
+                    <Loader2 className="w-7 h-7 animate-spin text-gold-500/60" />
+                    <span className="text-sm tracking-wide">Buscando los mejores cafés para ti…</span>
+                  </div>
+                )}
+
+                {!recsLoading && recsError && (
+                  <div className="border border-coffee-700 bg-coffee-900/40 p-6 text-center text-coffee-400 text-sm">
+                    No pudimos cargar las recomendaciones. Usa el botón de arriba para explorar la tienda.
+                  </div>
+                )}
+
+                {!recsLoading && !recsError && recommendations.length === 0 && (
+                  <div className="border border-coffee-700 bg-coffee-900/40 p-6 text-center text-coffee-400 text-sm">
+                    No encontramos cafés disponibles en este momento.{' '}
+                    <button
+                      onClick={() => navigate(`/tienda${result!.filter}`)}
+                      className="text-gold-500 hover:text-gold-400 transition-colors underline underline-offset-2"
+                    >
+                      Ver tienda completa
+                    </button>
+                  </div>
+                )}
+
+                {!recsLoading && !recsError && recommendations.length > 0 && (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {recommendations.map((product, i) => (
+                      <ProductCard key={product.id} product={product} index={i} />
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

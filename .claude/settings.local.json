@@ -80,7 +80,11 @@
       "Bash(echo \"EXIT $?\")",
       "Bash(pnpm run *)",
       "Bash(pnpm prisma *)",
-      "Bash(echo Build exit code: $? *)"
+      "Bash(echo Build exit code: $? *)",
+      "Bash(sed -n '175,185p' client/src/types/index.ts)",
+      "Bash(sed -n '1,15p' client/src/types/index.ts)",
+      "Bash(sed -n '264,275p' client/src/pages/Recipes.tsx)",
+      "Bash(pnpm exec *)"
     ]
   }
 }

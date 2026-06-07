@@ -7,6 +7,7 @@ services:
       - '0.0.0.0:3001:3001'
     environment:
       DATABASE_URL: file:/app/data/cafe.db
+      UPLOAD_DIR: /app/data/uploads
       JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
       NODE_ENV: production
       PORT: 3001

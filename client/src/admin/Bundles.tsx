@@ -6,6 +6,7 @@ import { useModuleList } from './hooks/useModuleList';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
 import FormField from './components/FormField';
+import ImageUploader from './components/ImageUploader';
 
 // ── types ──────────────────────────────────────────────────────────────────
 type ModalMode = 'add' | 'edit';
@@ -388,11 +389,10 @@ export default function AdminBundles() {
                 />
               </div>
 
-              <FormField
-                label="URL imagen"
+              <ImageUploader
+                label="Imagen del bundle"
                 value={form.imageUrl}
-                onChange={(v) => setField('imageUrl', String(v))}
-                placeholder="https://..."
+                onChange={(url) => setField('imageUrl', url)}
               />
 
               {/* isActive toggle — edit only */}

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
 import { productsApi } from '../api';
 import ConfirmDialog from '../components/ConfirmDialog';
+import ImageUploader from './components/ImageUploader';
+import { resolveImageUrl } from './utils/imageUrl';
 import type { Product } from '../types';
 
 const emptyForm = {
@@ -149,7 +151,7 @@ export default function AdminProducts() {
                   <tr key={p.id} className="border-b border-coffee-800/50 hover:bg-coffee-800/30 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <img src={p.imageUrl} alt={p.name} className="w-10 h-10 object-cover shrink-0" />
+                        <img src={resolveImageUrl(p.imageUrl)} alt={p.name} className="w-10 h-10 object-cover shrink-0" />
                         <div>
                           <p className="text-cream font-medium">{p.name}</p>
                           {p.isLimited && <span className="text-xs text-red-400">Limitado</span>}
@@ -317,15 +319,11 @@ export default function AdminProducts() {
                   ))}
                 </div>
 
-                <div>
-                  <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">URL Imagen</label>
-                  <input
-                    value={form.imageUrl}
-                    onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
-                    className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
-                    placeholder="https://..."
-                  />
-                </div>
+                <ImageUploader
+                  label="Imagen del producto"
+                  value={form.imageUrl}
+                  onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
+                />
 
                 {isCafe && (
                   <div>

@@ -5,6 +5,8 @@ import {
   ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
 } from 'lucide-react';
 import NotificationBell from '../components/NotificationBell';
+import { ModuleProvider } from './context/ModuleContext';
+import ToastContainer from './components/ToastContainer';
 
 const navLinks = [
   { to: '/admin/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
@@ -32,7 +34,7 @@ const pageTitles: Record<string, string> = {
   '/admin/descuentos':   'Descuentos',
 };
 
-export default function AdminLayout() {
+function AdminLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -149,5 +151,14 @@ export default function AdminLayout() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function AdminLayout() {
+  return (
+    <ModuleProvider>
+      <AdminLayoutInner />
+      <ToastContainer />
+    </ModuleProvider>
   );
 }

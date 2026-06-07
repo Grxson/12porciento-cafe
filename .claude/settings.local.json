@@ -84,7 +84,19 @@
       "Bash(sed -n '175,185p' client/src/types/index.ts)",
       "Bash(sed -n '1,15p' client/src/types/index.ts)",
       "Bash(sed -n '264,275p' client/src/pages/Recipes.tsx)",
-      "Bash(pnpm exec *)"
+      "Bash(pnpm exec *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(grep -iE \"test|vitest|jest\" package.json)",
+      "Bash(grep -iE \"\\\\\"test\\\\\"|vitest|jest\" server/package.json)",
+      "Bash(node -e \"console.log\\(Object.keys\\(require\\('./client/package.json'\\).scripts||{}\\).join\\(', '\\)\\)\")",
+      "Bash(node -e \"console.log\\(Object.keys\\(require\\('./client/package.json'\\).devDependencies||{}\\).join\\(', '\\)\\)\")",
+      "Bash(pnpm *)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./server/package.json'\\).scripts,null,2\\)\\)\")",
+      "Bash(node -e \"const r=require\\('/tmp/sub_resp.json'\\); console.log\\('status:',r.status,'email:',r.email,'plan:',r.plan,'items:',r.items?.length, r.error||''\\)\")",
+      "Read(//tmp/**)",
+      "Bash(node -e \"console.log\\('INACTIVE'.toLowerCase\\(\\).includes\\('ACTIVE'.toLowerCase\\(\\)\\)\\)\")",
+      "Bash(npx vitest *)",
+      "Bash(npm test *)"
     ]
   }
 }

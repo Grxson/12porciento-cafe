@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, ChevronDown, BookOpen } from 'lucide-react';
-import type { Recipe } from '../../types';
+import type { Recipe, RecipeStep } from '../../types';
+import StepList from './StepList';
 
 interface RecipeListProps {
   recipes: Recipe[];
@@ -10,9 +11,13 @@ interface RecipeListProps {
   onEdit: (recipe: Recipe) => void;
   onDelete: (recipe: Recipe) => void;
   onAddNew: () => void;
+  onAddStep: (recipeId: string) => void;
+  onEditStep: (recipeId: string, step: RecipeStep) => void;
+  onDeleteStep: (recipeId: string, step: RecipeStep) => void;
+  onReorderStep: (recipeId: string, stepIds: string[]) => Promise<void>;
 }
 
-export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNew }: RecipeListProps) {
+export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNew, onAddStep, onEditStep, onDeleteStep, onReorderStep }: RecipeListProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'published' | 'draft' | 'premium'>('all');
 
@@ -119,11 +124,11 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
                     exit={{ height: 0, opacity: 0 }}
                     className="border-t border-coffee-800 bg-coffee-800/20 overflow-hidden"
                   >
-                    <div className="p-4">
+                    <div className="p-4 space-y-3">
                       {recipe.description && (
-                        <p className="text-xs text-coffee-300 mb-3">{recipe.description}</p>
+                        <p className="text-xs text-coffee-300">{recipe.description}</p>
                       )}
-                      <div className="space-y-2">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
                         <p className="text-xs text-coffee-400">
                           <strong>Slug:</strong> {recipe.slug}
                         </p>
@@ -137,9 +142,16 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
                             <strong>Café:</strong> {recipe.product.name}
                           </p>
                         )}
-                        <p className="text-xs text-coffee-400">
-                          <strong>Pasos:</strong> {recipe.steps.length}
-                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-coffee-400 mb-2"><strong>Pasos ({recipe.steps.length})</strong></p>
+                        <StepList
+                          steps={recipe.steps}
+                          onAddNew={() => onAddStep(recipe.id)}
+                          onEdit={(s) => onEditStep(recipe.id, s)}
+                          onDelete={(s) => onDeleteStep(recipe.id, s)}
+                          onReorder={(ids) => onReorderStep(recipe.id, ids)}
+                        />
                       </div>
                     </div>
                   </motion.div>

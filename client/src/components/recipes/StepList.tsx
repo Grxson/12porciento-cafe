@@ -1,5 +1,5 @@
 // client/src/components/recipes/StepList.tsx
-import { useState, type DragEvent } from 'react';
+import { useState, useEffect, type DragEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GripVertical, Plus, Edit2, Trash2 } from 'lucide-react';
 import type { RecipeStep } from '../../types';
@@ -16,6 +16,12 @@ interface StepListProps {
 export default function StepList({ steps, onReorder, onEdit, onDelete, onAddNew }: StepListProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [orderedSteps, setOrderedSteps] = useState<RecipeStep[]>(steps);
+
+  // Sync local order with prop changes (add/edit/delete/refresh from parent).
+  // Skip while a drag is in progress so we don't clobber the in-flight reorder.
+  useEffect(() => {
+    if (!draggedId) setOrderedSteps(steps);
+  }, [steps, draggedId]);
 
   const handleDragStart = (id: string) => {
     setDraggedId(id);

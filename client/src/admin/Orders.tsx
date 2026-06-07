@@ -64,8 +64,14 @@ export default function AdminOrders() {
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
-    await ordersApi.updateStatus(id, newStatus);
-    load();
+    const prev = orders;
+    // Optimistic: reflect the new status immediately, revert on failure
+    setOrders((list) => list.map((o) => (o.id === id ? { ...o, status: newStatus as OrderStatus } : o)));
+    try {
+      await ordersApi.updateStatus(id, newStatus);
+    } catch {
+      setOrders(prev);
+    }
   };
 
   const hasFilters = status || search || dateFrom || dateTo;

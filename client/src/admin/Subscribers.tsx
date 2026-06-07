@@ -288,11 +288,14 @@ export default function AdminSubscribers() {
   useEffect(load, [filter]);
 
   const updateStatus = async (id: string, status: string) => {
+    const prev = subs;
+    // Optimistic: reflect the new status immediately, revert on failure
+    setSubs((list) => list.map((s) => (s.id === id ? { ...s, status: status as SubscriptionStatus } : s)));
     try {
       await subscriptionsApi.updateStatus(id, status);
       addToast(status === 'ACTIVE' ? 'Suscripción activada.' : 'Suscripción pausada.', 'success');
-      load();
     } catch {
+      setSubs(prev);
       addToast('Error al actualizar el estado.', 'error');
     }
   };

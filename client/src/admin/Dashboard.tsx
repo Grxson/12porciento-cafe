@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   TrendingUp, ShoppingBag, Users, Star, AlertTriangle, ArrowUpRight,
+  Package, Gift, Tag, Plus,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -110,6 +112,22 @@ export default function Dashboard() {
       <div>
         <h1 className="font-serif text-3xl text-cream">Dashboard</h1>
         <p className="text-coffee-400 text-sm mt-1">Resumen general de la operación</p>
+      </div>
+
+      {/* Quick actions */}
+      <div className="flex flex-wrap gap-2">
+        <Link to="/admin/productos" className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors">
+          <Package size={16} /> Nuevo producto
+        </Link>
+        <Link to="/admin/bundles" className="flex items-center gap-2 px-4 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors">
+          <Gift size={16} /> Nuevo bundle
+        </Link>
+        <Link to="/admin/descuentos" className="flex items-center gap-2 px-4 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors">
+          <Tag size={16} /> Nuevo código
+        </Link>
+        <Link to="/admin/inventario" className="flex items-center gap-2 px-4 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors">
+          <Plus size={16} /> Ajustar inventario
+        </Link>
       </div>
 
       {/* Stat cards */}

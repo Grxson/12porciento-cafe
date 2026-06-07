@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { sendOrderConfirmation } from '../email';
 
@@ -71,35 +72,51 @@ router.post('/', async (req: Request, res: Response) => {
     const total = intent.amount / 100;
 
     try {
-      await prisma.order.create({
-        data: {
-          customerName: intent.metadata?.customerName || 'Cliente',
-          email: intent.metadata?.email || '',
-          phone: intent.metadata?.phone || null,
-          address: intent.metadata?.address || '',
-          city: intent.metadata?.city || '',
-          state: intent.metadata?.state || '',
-          zipCode: intent.metadata?.zipCode || '',
-          total,
-          paymentIntentId: intent.id,
-          notes: intent.metadata?.notes || null,
-          items: {
-            create: orderItems,
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        const created = await tx.order.create({
+          data: {
+            customerName: intent.metadata?.customerName || 'Cliente',
+            email: intent.metadata?.email || '',
+            phone: intent.metadata?.phone || null,
+            address: intent.metadata?.address || '',
+            city: intent.metadata?.city || '',
+            state: intent.metadata?.state || '',
+            zipCode: intent.metadata?.zipCode || '',
+            total,
+            paymentIntentId: intent.id,
+            notes: intent.metadata?.notes || null,
+            items: {
+              create: orderItems,
+            },
           },
-        },
-      });
+        });
 
-      // Decrement stock
-      for (const item of orderItems) {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } },
-        }).catch(() => {});
-      }
+        // Decrement stock and record stock movements atomically
+        for (const item of orderItems) {
+          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (prod) {
+            await tx.stockMovement.create({
+              data: {
+                productId: item.productId,
+                type: 'SALE',
+                quantity: -item.quantity,
+                previousStock: prod.stock,
+                newStock: prod.stock - item.quantity,
+                orderId: created.id,
+                notes: `Webhook PI ${intent.id}`,
+              },
+            });
+          }
+        }
+      });
 
       console.log(`[webhook] Order created from PaymentIntent ${intent.id}`);
 
-      // Send confirmation email — fire and forget
+      // Send confirmation email — fire and forget, outside the transaction
       const emailItems = orderItems.map(async (item) => {
         const product = await prisma.product.findUnique({ where: { id: item.productId }, select: { name: true } });
         return { name: product?.name ?? item.productId, quantity: item.quantity, price: item.price };
@@ -123,6 +140,18 @@ router.post('/', async (req: Request, res: Response) => {
         return;
       }
     }
+  }
+
+  if (event.type === 'payment_intent.payment_failed') {
+    const intent = event.data.object as { id: string; amount: number; last_payment_error?: { code?: string; message?: string } };
+    console.error('[webhook] payment_failed', {
+      id: intent.id,
+      amount: intent.amount,
+      code: intent.last_payment_error?.code ?? 'unknown',
+      message: intent.last_payment_error?.message ?? 'no message',
+    });
+    res.json({ received: true });
+    return;
   }
 
   res.json({ received: true });

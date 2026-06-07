@@ -77,9 +77,17 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
               layout
               className="bg-coffee-900 border border-coffee-800 overflow-hidden"
             >
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setExpanded(expanded === recipe.id ? null : recipe.id)}
-                className="w-full flex items-center justify-between p-4 hover:bg-coffee-800/50 transition-colors text-left"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setExpanded(expanded === recipe.id ? null : recipe.id);
+                  }
+                }}
+                className="w-full flex items-center justify-between p-4 hover:bg-coffee-800/50 transition-colors text-left cursor-pointer focus:outline-none focus:bg-coffee-800/50"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
@@ -114,7 +122,7 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
                   </button>
                   <ChevronDown className={`w-4 h-4 text-coffee-500 transition-transform ${expanded === recipe.id ? 'rotate-180' : ''}`} />
                 </div>
-              </button>
+              </div>
 
               <AnimatePresence>
                 {expanded === recipe.id && (

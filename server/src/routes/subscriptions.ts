@@ -29,10 +29,15 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    const existing = await prisma.subscription.findFirst({
-      where: { email, status: { in: ['ACTIVE', 'PAUSED'] } },
-    });
-    if (existing) {
+    const subItemsInclude = {
+      items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true } } } },
+    };
+
+    // email is globally @unique, so check for ANY existing subscription (not just
+    // ACTIVE/PAUSED). A CANCELLED one must be reactivated, otherwise create() hits
+    // a P2002 unique-constraint error and 500s.
+    const existing = await prisma.subscription.findUnique({ where: { email } });
+    if (existing && (existing.status === 'ACTIVE' || existing.status === 'PAUSED')) {
       res.status(409).json({ error: 'Ya tienes una suscripción activa o pausada con este email' });
       return;
     }
@@ -40,14 +45,33 @@ router.post('/', async (req: Request, res: Response) => {
     const nextBilling = new Date();
     nextBilling.setMonth(nextBilling.getMonth() + (frequency === 'bimonthly' ? 2 : 1));
 
-    const subscription = await prisma.subscription.create({
-      data: {
-        name, email, phone, plan, frequency, grindPreference, nextBilling,
-        ...(userId ? { userId } : {}),
-        items: { create: items.map((productId: string) => ({ productId })) },
-      },
-      include: { items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true } } } } },
-    });
+    let subscription;
+    if (existing) {
+      // Reactivate the cancelled subscription: replace its coffees and reset state.
+      const [, updated] = await prisma.$transaction([
+        prisma.subscriptionItem.deleteMany({ where: { subscriptionId: existing.id } }),
+        prisma.subscription.update({
+          where: { id: existing.id },
+          data: {
+            name, phone, plan, frequency, grindPreference, nextBilling,
+            status: 'ACTIVE', fulfillmentStatus: 'PENDIENTE',
+            ...(userId ? { userId } : {}),
+            items: { create: items.map((productId: string) => ({ productId })) },
+          },
+          include: subItemsInclude,
+        }),
+      ]);
+      subscription = updated;
+    } else {
+      subscription = await prisma.subscription.create({
+        data: {
+          name, email, phone, plan, frequency, grindPreference, nextBilling,
+          ...(userId ? { userId } : {}),
+          items: { create: items.map((productId: string) => ({ productId })) },
+        },
+        include: subItemsInclude,
+      });
+    }
 
     emitEvent({
       event: 'subscription_created',

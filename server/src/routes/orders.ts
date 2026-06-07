@@ -56,10 +56,8 @@ router.post('/', async (req: Request, res: Response) => {
       if (existing) return res.json(existing);
     }
 
-    let order: Prisma.OrderGetPayload<{ include: { items: { include: { product: true } } } }>;
-
     try {
-      order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const created = await tx.order.create({
           data: {
             ...orderData,
@@ -97,6 +95,29 @@ router.post('/', async (req: Request, res: Response) => {
 
         return created;
       });
+
+      // Email send is intentionally outside the transaction so a mail failure cannot
+      // roll back a committed order.
+      sendOrderConfirmation({
+        to: order.email,
+        customerName: order.customerName,
+        orderId: order.id,
+        items: order.items.map((i: { product: { name: string }; quantity: number; price: number }) => ({
+          name: i.product.name,
+          quantity: i.quantity,
+          price: i.price,
+        })),
+        total: order.total,
+      }).catch(() => {});
+
+      emitEvent({
+        event: 'new_order',
+        title: 'Nuevo pedido',
+        message: `Pedido de ${order.customerName} — $${order.total.toFixed(2)} MXN`,
+        data: { orderId: order.id, total: order.total, customerName: order.customerName },
+      });
+
+      res.status(201).json(order);
     } catch (err: any) {
       // P2002 = unique constraint violation: another path created the order between
       // our findUnique check and the create (TOCTOU race). Resolve by returning the
@@ -110,29 +131,6 @@ router.post('/', async (req: Request, res: Response) => {
       }
       throw err;
     }
-
-    // Email send is intentionally outside the transaction so a mail failure cannot
-    // roll back a committed order.
-    sendOrderConfirmation({
-      to: order.email,
-      customerName: order.customerName,
-      orderId: order.id,
-      items: order.items.map((i: { product: { name: string }; quantity: number; price: number }) => ({
-        name: i.product.name,
-        quantity: i.quantity,
-        price: i.price,
-      })),
-      total: order.total,
-    }).catch(() => {});
-
-    emitEvent({
-      event: 'new_order',
-      title: 'Nuevo pedido',
-      message: `Pedido de ${order.customerName} — $${order.total.toFixed(2)} MXN`,
-      data: { orderId: order.id, total: order.total, customerName: order.customerName },
-    });
-
-    res.status(201).json(order);
   } catch {
     res.status(500).json({ error: 'Error al crear pedido' });
   }

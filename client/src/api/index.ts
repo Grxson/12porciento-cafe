@@ -230,9 +230,8 @@ export const uploadsApi = {
   upload: (file: File) => {
     const fd = new FormData();
     fd.append('image', file);
-    return api.post<{ data: { url: string; thumbUrl: string } }>('/uploads', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // Let axios set Content-Type with the multipart boundary (do not set it manually).
+    return api.post<{ data: { url: string; thumbUrl: string } }>('/uploads', fd);
   },
 };
 

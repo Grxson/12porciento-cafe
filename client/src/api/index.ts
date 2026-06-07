@@ -186,6 +186,15 @@ export const paymentsApi = {
     promoCode?: string;
     stripeCustomerId?: string;
     paymentMethodId?: string;
+    customerName?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    notes?: string;
+    userId?: string;
   }) =>
     api.post<{ clientSecret: string; paymentIntentId: string; amount: number; subtotal: number; discountAmount: number }>('/payments/create-intent', data),
 };

@@ -2,6 +2,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import rateLimit from 'express-rate-limit';
 import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { prisma } from '../db';
 
 const router = express.Router();
@@ -31,11 +32,34 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<{ final
 }
 
 router.post('/create-intent', paymentLimiter, async (req, res) => {
-  const { items, promoCode, stripeCustomerId, paymentMethodId } = req.body as {
+  const {
+    items,
+    promoCode,
+    stripeCustomerId,
+    paymentMethodId,
+    customerName,
+    email,
+    phone,
+    address,
+    city,
+    state,
+    zipCode,
+    notes,
+    userId,
+  } = req.body as {
     items: { productId: string; quantity: number }[];
     promoCode?: string;
     stripeCustomerId?: string;
     paymentMethodId?: string;
+    customerName?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    notes?: string;
+    userId?: string;
   };
 
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -78,6 +102,9 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Tu método de pago guardado requiere información de cliente. Intenta actualizar tu perfil o usar un método de pago nuevo.' });
     }
 
+    const s = (v?: string) => (v ? v.slice(0, 500) : undefined);
+    const idempotencyKey = (req.headers['idempotency-key'] as string) || randomUUID();
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCentavos,
       currency: 'mxn',
@@ -88,8 +115,17 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
       metadata: {
         items: JSON.stringify(items.map((i) => ({ productId: i.productId, quantity: i.quantity }))),
         ...(promoCode ? { promoCode } : {}),
+        ...(s(customerName) ? { customerName: s(customerName)! } : {}),
+        ...(s(email) ? { email: s(email)! } : {}),
+        ...(s(phone) ? { phone: s(phone)! } : {}),
+        ...(s(address) ? { address: s(address)! } : {}),
+        ...(s(city) ? { city: s(city)! } : {}),
+        ...(s(state) ? { state: s(state)! } : {}),
+        ...(s(zipCode) ? { zipCode: s(zipCode)! } : {}),
+        ...(s(notes) ? { notes: s(notes)! } : {}),
+        ...(s(userId) ? { userId: s(userId)! } : {}),
       },
-    });
+    }, { idempotencyKey });
 
     return res.json({
       clientSecret: paymentIntent.client_secret,

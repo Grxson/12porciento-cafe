@@ -149,6 +149,15 @@ export default function Checkout() {
         ...(promoCode ? { promoCode } : {}),
         ...(user?.stripeCustomerId ? { stripeCustomerId: user.stripeCustomerId } : {}),
         ...(useSavedCard ? { paymentMethodId: methodChoice } : {}),
+        customerName: form.customerName,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        city: form.city,
+        state: form.state,
+        zipCode: form.zipCode,
+        notes: form.notes,
+        ...(user ? { userId: user.id } : {}),
       });
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');

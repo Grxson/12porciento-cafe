@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { sendOrderConfirmation, sendOrderStatusUpdate } from '../email';
@@ -45,41 +46,73 @@ router.post('/', async (req: Request, res: Response) => {
     );
     const total = await applyPromo(subtotal, promoCode);
 
-    const order = await prisma.order.create({
-      data: {
-        ...orderData,
-        total,
-        ...(userId ? { userId } : {}),
-        ...(paymentIntentId ? { paymentIntentId } : {}),
-        items: {
-          create: items.map((item: { productId: string; quantity: number; price: number }) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-        },
-      },
-      include: { items: { include: { product: true } } },
-    });
-
-    for (const item of items) {
-      const prod = await prisma.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
-      if (prod) {
-        await prisma.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
-        await prisma.stockMovement.create({
-          data: {
-            productId: item.productId,
-            type: 'SALE',
-            quantity: -item.quantity,
-            previousStock: prod.stock,
-            newStock: prod.stock - item.quantity,
-            orderId: order.id,
-            notes: `Pedido #${order.id.slice(-8).toUpperCase()}`,
-          },
-        });
-      }
+    // Idempotency check: if another path (webhook / client retry) already created
+    // the order for this paymentIntentId, return it immediately — no duplicate, no error.
+    if (paymentIntentId) {
+      const existing = await prisma.order.findUnique({
+        where: { paymentIntentId },
+        include: { items: { include: { product: true } } },
+      });
+      if (existing) return res.json(existing);
     }
 
+    let order: Prisma.OrderGetPayload<{ include: { items: { include: { product: true } } } }>;
+
+    try {
+      order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        const created = await tx.order.create({
+          data: {
+            ...orderData,
+            total,
+            ...(userId ? { userId } : {}),
+            ...(paymentIntentId ? { paymentIntentId } : {}),
+            items: {
+              create: items.map((item: { productId: string; quantity: number; price: number }) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.price,
+              })),
+            },
+          },
+          include: { items: { include: { product: true } } },
+        });
+
+        for (const item of items) {
+          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
+          if (prod) {
+            await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
+            await tx.stockMovement.create({
+              data: {
+                productId: item.productId,
+                type: 'SALE',
+                quantity: -item.quantity,
+                previousStock: prod.stock,
+                newStock: prod.stock - item.quantity,
+                orderId: created.id,
+                notes: `Pedido #${created.id.slice(-8).toUpperCase()}`,
+              },
+            });
+          }
+        }
+
+        return created;
+      });
+    } catch (err: any) {
+      // P2002 = unique constraint violation: another path created the order between
+      // our findUnique check and the create (TOCTOU race). Resolve by returning the
+      // existing order rather than surfacing a 500 to the user.
+      if (err?.code === 'P2002' && paymentIntentId) {
+        const existing = await prisma.order.findUnique({
+          where: { paymentIntentId },
+          include: { items: { include: { product: true } } },
+        });
+        if (existing) return res.json(existing);
+      }
+      throw err;
+    }
+
+    // Email send is intentionally outside the transaction so a mail failure cannot
+    // roll back a committed order.
     sendOrderConfirmation({
       to: order.email,
       customerName: order.customerName,

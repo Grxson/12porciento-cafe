@@ -7,6 +7,7 @@ import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
 import FormField from './components/FormField';
 import ImageUploader from './components/ImageUploader';
+import AdminModal from './components/AdminModal';
 
 // ── types ──────────────────────────────────────────────────────────────────
 type ModalMode = 'add' | 'edit';
@@ -327,29 +328,29 @@ export default function AdminBundles() {
       )}
 
       {/* ── Create / Edit Modal ──────────────────────────────────────────── */}
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-coffee-900 border border-coffee-700 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-serif text-xl text-cream">
-                {modalMode === 'add' ? 'Nuevo bundle' : 'Editar bundle'}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="text-coffee-400 hover:text-cream transition-colors"
-                aria-label="Cerrar"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
+      <AdminModal
+        open={modalOpen}
+        title={modalMode === 'add' ? 'Nuevo bundle' : 'Editar bundle'}
+        onClose={closeModal}
+        footer={
+          <>
+            <button
+              onClick={closeModal}
+              disabled={saving}
+              className="flex-1 px-4 py-2 border border-coffee-700 text-coffee-400 text-sm hover:text-cream transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex-1 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-coffee-950 text-sm font-semibold transition-colors disabled:opacity-50"
+            >
+              {saving ? 'Guardando...' : modalMode === 'add' ? 'Crear bundle' : 'Guardar cambios'}
+            </button>
+          </>
+        }
+      >
             {/* Base fields */}
             <div className="space-y-4">
               <FormField
@@ -508,27 +509,7 @@ export default function AdminBundles() {
                 </div>
               )}
             </div>
-
-            {/* Modal actions */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-coffee-800">
-              <button
-                onClick={closeModal}
-                disabled={saving}
-                className="flex-1 px-4 py-2 border border-coffee-700 text-coffee-400 text-sm hover:text-cream transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-coffee-950 text-sm font-semibold transition-colors disabled:opacity-50"
-              >
-                {saving ? 'Guardando...' : modalMode === 'add' ? 'Crear bundle' : 'Guardar cambios'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </AdminModal>
 
       {/* ── Delete ConfirmDialog ─────────────────────────────────────────── */}
       <ConfirmDialog

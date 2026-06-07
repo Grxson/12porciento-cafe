@@ -16,6 +16,8 @@ import webhookRouter from './routes/webhook';
 import inventoryRouter from './routes/inventory';
 import subscriptionPaymentsRouter from './routes/subscription-payments';
 import recipesRouter from './routes/recipes';
+import uploadsRouter from './routes/uploads';
+import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import http from 'http';
 import { initSocket } from './socket';
@@ -52,6 +54,8 @@ app.use('/api/customers', customersRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/subscription-payments', subscriptionPaymentsRouter);
 app.use('/api/recipes', recipesRouter);
+app.use('/api/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));
+app.use('/api/uploads', uploadsRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

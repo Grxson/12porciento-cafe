@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { ordersApi, paymentsApi, promoCodesApi, usersApi } from '../api';
+import { retryWithBackoff } from '../services/paymentRetry';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import StripePaymentForm from '../components/StripePaymentForm';
@@ -62,6 +63,9 @@ export default function Checkout() {
   const [promoError, setPromoError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
+
+  // Stable idempotency key for the current checkout attempt — prevents duplicate PaymentIntents on retry/double-submit
+  const idempotencyKeyRef = useRef<string>(crypto.randomUUID());
 
   // Saved payment methods state
   const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
@@ -144,7 +148,7 @@ export default function Checkout() {
     setError('');
     try {
       const useSavedCard = methodChoice !== 'new' && user?.stripeCustomerId;
-      const res = await paymentsApi.createIntent({
+      const payload = {
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
         ...(promoCode ? { promoCode } : {}),
         ...(user?.stripeCustomerId ? { stripeCustomerId: user.stripeCustomerId } : {}),
@@ -158,7 +162,10 @@ export default function Checkout() {
         zipCode: form.zipCode,
         notes: form.notes,
         ...(user ? { userId: user.id } : {}),
-      });
+      };
+      const res = await retryWithBackoff(() =>
+        paymentsApi.createIntent(payload, idempotencyKeyRef.current),
+      );
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');
       setIntentAmount(res.data.amount);

@@ -181,22 +181,29 @@ export const usersApi = {
 };
 
 export const paymentsApi = {
-  createIntent: (data: {
-    items: { productId: string; quantity: number }[];
-    promoCode?: string;
-    stripeCustomerId?: string;
-    paymentMethodId?: string;
-    customerName?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-    notes?: string;
-    userId?: string;
-  }) =>
-    api.post<{ clientSecret: string; paymentIntentId: string; amount: number; subtotal: number; discountAmount: number }>('/payments/create-intent', data),
+  createIntent: (
+    data: {
+      items: { productId: string; quantity: number }[];
+      promoCode?: string;
+      stripeCustomerId?: string;
+      paymentMethodId?: string;
+      customerName?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      city?: string;
+      state?: string;
+      zipCode?: string;
+      notes?: string;
+      userId?: string;
+    },
+    idempotencyKey?: string,
+  ) =>
+    api.post<{ clientSecret: string; paymentIntentId: string; amount: number; subtotal: number; discountAmount: number }>(
+      '/payments/create-intent',
+      data,
+      idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined,
+    ),
 };
 
 export const promoCodesApi = {

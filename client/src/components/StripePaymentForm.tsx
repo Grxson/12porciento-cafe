@@ -10,6 +10,7 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 import { Lock } from 'lucide-react';
+import { friendlyStripeError } from '../services/paymentRetry';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -38,7 +39,7 @@ function PaymentFormInner({ amount, onSuccess, onError }: Omit<Props, 'clientSec
     setLoading(false);
 
     if (error) {
-      onError(error.message || 'Error al procesar el pago.');
+      onError(friendlyStripeError(error));
     } else {
       onSuccess();
     }

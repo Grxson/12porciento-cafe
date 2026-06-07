@@ -112,7 +112,8 @@ export default function Checkout() {
       const res = await promoCodesApi.validate(promoInput.trim());
       const { discount, type } = res.data.data;
       const sub = total();
-      const discountAmt = type === 'PERCENTAGE' ? sub * (discount / 100) : Math.min(discount, sub);
+      // Any non-FIXED type is a percentage (matches server applyPromo + legacy 'PERCENT' rows)
+      const discountAmt = type !== 'FIXED' ? sub * (discount / 100) : Math.min(discount, sub);
       setPromoCode(promoInput.trim().toUpperCase());
       setPromoDiscount(discountAmt);
     } catch (err: any) {

@@ -46,6 +46,7 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
+        _count: { select: { orders: true, subscriptions: true } },
       },
     });
     if (!user) { res.status(404).json({ error: 'Cliente no encontrado' }); return; }

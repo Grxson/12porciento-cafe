@@ -72,11 +72,11 @@ export default function AdminCustomers() {
             <p className="text-coffee-600 text-xs mt-3">Cliente desde {new Date(selected.createdAt).toLocaleDateString('es-MX')}</p>
             <div className="flex gap-6 mt-4 pt-4 border-t border-coffee-800">
               <div className="text-center">
-                <p className="text-cream font-bold text-xl">{selected._count.orders}</p>
+                <p className="text-cream font-bold text-xl">{selected._count?.orders ?? selected.orders?.length ?? 0}</p>
                 <p className="text-coffee-500 text-xs">Pedidos</p>
               </div>
               <div className="text-center">
-                <p className="text-cream font-bold text-xl">{selected._count.subscriptions}</p>
+                <p className="text-cream font-bold text-xl">{selected._count?.subscriptions ?? selected.subscriptions?.length ?? 0}</p>
                 <p className="text-coffee-500 text-xs">Suscripciones</p>
               </div>
               <div className="text-center">

@@ -25,9 +25,11 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<{ final
   if (!promo || !promo.isActive) return { finalAmount: subtotal, discountAmount: 0 };
   if (promo.expiresAt && new Date() > promo.expiresAt) return { finalAmount: subtotal, discountAmount: 0 };
   if (promo.maxUses && promo.usedCount >= promo.maxUses) return { finalAmount: subtotal, discountAmount: 0 };
-  const discount = promo.type === 'PERCENTAGE'
-    ? subtotal * (promo.discount / 100)
-    : Math.min(promo.discount, subtotal);
+  // Any non-FIXED type is a percentage (schema/admin form historically used both
+  // 'PERCENT' and 'PERCENTAGE'; only 'FIXED' is a flat amount).
+  const discount = promo.type === 'FIXED'
+    ? Math.min(promo.discount, subtotal)
+    : subtotal * (promo.discount / 100);
   return { finalAmount: Math.max(subtotal - discount, 0), discountAmount: discount };
 }
 

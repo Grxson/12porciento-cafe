@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Search, X, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { ChevronDown, Search, X, ChevronLeft, ChevronRight as ChevronRightIcon, Download } from 'lucide-react';
 import { ordersApi } from '../api';
+import { exportToCsv } from './utils/csvExport';
 import type { Order, OrderStatus } from '../types';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
@@ -76,6 +77,37 @@ export default function AdminOrders() {
           <h1 className="font-serif text-3xl text-cream">Pedidos</h1>
           <p className="text-coffee-400 text-sm mt-1">{total} pedidos</p>
         </div>
+        <button
+          onClick={() => exportToCsv(
+            orders.map((o) => ({
+              id: o.id,
+              cliente: o.customerName,
+              email: o.email,
+              telefono: o.phone ?? '',
+              ciudad: o.city,
+              estado: o.state,
+              total: o.total,
+              status: statusConfig[o.status as OrderStatus]?.label ?? o.status,
+              fecha: new Date(o.createdAt).toLocaleDateString('es-MX'),
+            })),
+            'pedidos',
+            [
+              { key: 'id', label: 'ID' },
+              { key: 'cliente', label: 'Cliente' },
+              { key: 'email', label: 'Email' },
+              { key: 'telefono', label: 'Teléfono' },
+              { key: 'ciudad', label: 'Ciudad' },
+              { key: 'estado', label: 'Estado' },
+              { key: 'total', label: 'Total' },
+              { key: 'status', label: 'Estatus' },
+              { key: 'fecha', label: 'Fecha' },
+            ],
+          )}
+          disabled={orders.length === 0}
+          className="px-4 py-2 border border-coffee-700 text-coffee-400 text-sm hover:text-cream transition-colors disabled:opacity-50 flex items-center gap-2"
+        >
+          <Download size={16} /> Exportar CSV
+        </button>
       </div>
 
       <form onSubmit={handleSearch} className="bg-coffee-900 border border-coffee-800 p-4 mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">

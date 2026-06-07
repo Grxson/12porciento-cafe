@@ -70,6 +70,8 @@ export const subscriptionsApi = {
     api.put(`/subscriptions/${id}/items`, { items, grindPreference }),
   updateFulfillment: (id: string, fulfillmentStatus: string) =>
     api.put(`/subscriptions/${id}/fulfillment`, { fulfillmentStatus }),
+  adminUpdate: (id: string, data: { plan?: string; frequency?: string; grindPreference?: string; items?: string[] }) =>
+    api.put(`/subscriptions/${id}/admin`, data),
 };
 
 export const recipesApi = {

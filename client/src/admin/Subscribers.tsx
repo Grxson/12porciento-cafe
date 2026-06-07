@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { subscriptionsApi } from '../api';
+import { subscriptionsApi, productsApi } from '../api';
 import ConfirmDialog from '../components/ConfirmDialog';
 import type { Subscription, SubscriptionStatus } from '../types';
+import { useModuleToast } from './context/ModuleContext';
 
 function FulfillmentBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
@@ -30,15 +31,236 @@ const planLabels: Record<string, string> = {
   FUNDADOR:    'Fundador',
   EXPLORADOR:  'Explorador',
   CONNOISSEUR: 'Connoisseur',
+  EMPRESARIAL: 'Empresarial',
 };
 
+const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
+  FUNDADOR:    { min: 2, max: 2 },
+  EXPLORADOR:  { min: 2, max: 3 },
+  CONNOISSEUR: { min: 3, max: 3 },
+  EMPRESARIAL: { min: 10, max: 99 },
+};
+
+const SELECT_CLASS = 'bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
+
+interface EditModalProps {
+  sub: Subscription;
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function EditModal({ sub, onClose, onSaved }: EditModalProps) {
+  const { addToast } = useModuleToast();
+
+  const [plan, setPlan] = useState<string>(sub.plan);
+  const [frequency, setFrequency] = useState<string>(sub.frequency ?? 'monthly');
+  const [grindPreference, setGrindPreference] = useState<string>(sub.grindPreference ?? 'GRANO');
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>(
+    sub.items ? sub.items.map((it: any) => it.productId) : [],
+  );
+  const [productToAdd, setProductToAdd] = useState('');
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setLoadingProducts(true);
+    productsApi.adminList()
+      .then((r) => {
+        // adminList returns the bare array directly
+        const list = Array.isArray(r.data) ? r.data : (r.data as any)?.data ?? [];
+        setProducts(list);
+        if (list.length > 0) {
+          const firstNotSelected = list.find((p: any) => !selectedItemIds.includes(p.id));
+          setProductToAdd(firstNotSelected?.id ?? list[0].id);
+        }
+      })
+      .catch(() => addToast('No se pudieron cargar los productos.', 'error'))
+      .finally(() => setLoadingProducts(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const slots = PLAN_SLOTS[plan] ?? { min: 1, max: 99 };
+  const countValid = selectedItemIds.length >= slots.min && selectedItemIds.length <= slots.max;
+
+  const addProduct = () => {
+    if (!productToAdd) return;
+    if (selectedItemIds.includes(productToAdd)) return; // no duplicates
+    const newSelected = [...selectedItemIds, productToAdd];
+    setSelectedItemIds(newSelected);
+    // Move selector to next unselected product (use the post-add array, not stale state)
+    const next = products.find((p: any) => !newSelected.includes(p.id));
+    setProductToAdd(next ? next.id : '');
+  };
+
+  const removeProduct = (pid: string) => {
+    setSelectedItemIds((prev) => prev.filter((id) => id !== pid));
+  };
+
+  const getProductName = (pid: string) => {
+    const p = products.find((pr: any) => pr.id === pid);
+    return p?.name ?? pid;
+  };
+
+  const handleSave = async () => {
+    if (!countValid) {
+      addToast(`El plan ${planLabels[plan] ?? plan} requiere entre ${slots.min} y ${slots.max} cafés.`, 'error');
+      return;
+    }
+    setSaving(true);
+    try {
+      await subscriptionsApi.adminUpdate(sub.id, {
+        plan,
+        frequency,
+        grindPreference,
+        items: selectedItemIds,
+      });
+      addToast('Suscripción actualizada correctamente.', 'success');
+      onSaved();
+      onClose();
+    } catch (err: any) {
+      const msg = err?.response?.data?.error ?? 'Error al guardar cambios.';
+      addToast(msg, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-coffee-900 border border-coffee-700 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="font-serif text-xl text-cream">Editar suscripción</h2>
+            <p className="text-coffee-400 text-xs mt-0.5">{sub.name} · {sub.email}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-coffee-500 hover:text-cream transition-colors text-xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* Plan */}
+          <div>
+            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
+            <select value={plan} onChange={(e) => setPlan(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+              {Object.entries(planLabels).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Frequency */}
+          <div>
+            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
+            <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+              <option value="monthly">Mensual</option>
+              <option value="bimonthly">Bimestral</option>
+            </select>
+          </div>
+
+          {/* Grind */}
+          <div>
+            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
+            <select value={grindPreference} onChange={(e) => setGrindPreference(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+              <option value="GRANO">Grano</option>
+              <option value="MOLIDO">Molido</option>
+            </select>
+          </div>
+
+          {/* Coffee items */}
+          <div>
+            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Cafés seleccionados</label>
+
+            {/* Slot hint */}
+            <p className={`text-xs mb-2 ${countValid ? 'text-coffee-400' : 'text-red-400'}`}>
+              El plan {planLabels[plan] ?? plan} requiere entre {slots.min} y {slots.max} cafés
+              {' '}— actualmente {selectedItemIds.length}
+            </p>
+
+            {/* Selected chips */}
+            {selectedItemIds.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {selectedItemIds.map((pid) => (
+                  <span key={pid} className="flex items-center gap-1 bg-coffee-800 border border-coffee-700 px-2 py-0.5 text-xs text-cream">
+                    {getProductName(pid)}
+                    <button
+                      onClick={() => removeProduct(pid)}
+                      className="text-coffee-500 hover:text-red-400 transition-colors ml-1 leading-none"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Add product row */}
+            {loadingProducts ? (
+              <p className="text-xs text-coffee-500">Cargando productos…</p>
+            ) : (
+              <div className="flex gap-2">
+                <select
+                  value={productToAdd}
+                  onChange={(e) => setProductToAdd(e.target.value)}
+                  className={`flex-1 ${SELECT_CLASS}`}
+                >
+                  {products
+                    .filter((p: any) => !selectedItemIds.includes(p.id))
+                    .map((p: any) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                </select>
+                <button
+                  onClick={addProduct}
+                  disabled={!productToAdd || products.filter((p: any) => !selectedItemIds.includes(p.id)).length === 0}
+                  className="px-3 py-2 text-xs bg-coffee-800 border border-coffee-700 text-gold-500 hover:border-gold-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Agregar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer actions */}
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-coffee-800">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-coffee-400 hover:text-cream border border-coffee-700 hover:border-coffee-600 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || !countValid}
+            className="px-4 py-2 text-sm bg-gold-600 text-coffee-950 font-medium hover:bg-gold-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Guardando…' : 'Guardar cambios'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminSubscribers() {
+  const { addToast } = useModuleToast();
+
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [filter, setFilter] = useState('');
   const [cancelConfirm, setCancelConfirm] = useState<{ id: string; name: string } | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [editingSub, setEditingSub] = useState<Subscription | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -56,15 +278,33 @@ export default function AdminSubscribers() {
     try {
       await subscriptionsApi.updateStatus(cancelConfirm.id, 'CANCELLED');
       setCancelConfirm(null);
+      addToast('Suscripción cancelada.', 'success');
       load();
+    } catch {
+      addToast('Error al cancelar la suscripción.', 'error');
     } finally { setCancelling(false); }
   };
 
   useEffect(load, [filter]);
 
   const updateStatus = async (id: string, status: string) => {
-    await subscriptionsApi.updateStatus(id, status);
-    load();
+    try {
+      await subscriptionsApi.updateStatus(id, status);
+      addToast(status === 'ACTIVE' ? 'Suscripción activada.' : 'Suscripción pausada.', 'success');
+      load();
+    } catch {
+      addToast('Error al actualizar el estado.', 'error');
+    }
+  };
+
+  const updateFulfillment = async (id: string, fulfillmentStatus: string) => {
+    try {
+      await subscriptionsApi.updateFulfillment(id, fulfillmentStatus);
+      addToast('Estado de entrega actualizado.', 'success');
+      load();
+    } catch {
+      addToast('Error al actualizar el estado de entrega.', 'error');
+    }
   };
 
   const active = subs.filter((s) => s.status === 'ACTIVE').length;
@@ -158,8 +398,7 @@ export default function AdminSubscribers() {
                           <select
                             value={sub.fulfillmentStatus ?? 'PENDIENTE'}
                             onChange={async (e) => {
-                              await subscriptionsApi.updateFulfillment(sub.id, e.target.value);
-                              load();
+                              await updateFulfillment(sub.id, e.target.value);
                             }}
                             className="text-xs bg-coffee-800 border border-coffee-700 text-cream px-2 py-1 focus:outline-none focus:border-gold-500"
                           >
@@ -182,7 +421,13 @@ export default function AdminSubscribers() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => setEditingSub(sub)}
+                            className="text-xs text-gold-400 hover:text-gold-300 transition-colors"
+                          >
+                            Editar
+                          </button>
                           {sub.status !== 'ACTIVE' && (
                             <button
                               onClick={() => updateStatus(sub.id, 'ACTIVE')}
@@ -216,6 +461,14 @@ export default function AdminSubscribers() {
             </table>
           </div>
         </div>
+      )}
+
+      {editingSub && (
+        <EditModal
+          sub={editingSub}
+          onClose={() => setEditingSub(null)}
+          onSaved={load}
+        />
       )}
 
       <ConfirmDialog

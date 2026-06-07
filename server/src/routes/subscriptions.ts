@@ -135,6 +135,83 @@ router.put('/:id/items', requireUserAuth, async (req: UserAuthRequest, res: Resp
   }
 });
 
+// PUT /:id/admin — admin: edit plan, frequency, grindPreference, and coffee items
+router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { plan, frequency, grindPreference, items } = req.body as {
+      plan?: string; frequency?: string; grindPreference?: string; items?: string[];
+    };
+
+    const sub = await prisma.subscription.findUnique({ where: { id: req.params.id } });
+    if (!sub) {
+      res.status(404).json({ error: 'Suscripción no encontrada' });
+      return;
+    }
+
+    // Determine the effective plan (new one if provided, else current) for slot validation
+    const effectivePlan = plan ?? sub.plan;
+    const slots = PLAN_SLOTS[effectivePlan];
+    if (!slots) {
+      res.status(400).json({ error: 'Plan inválido' });
+      return;
+    }
+
+    // If items provided, validate against the effective plan's slot range
+    if (items !== undefined) {
+      if (!Array.isArray(items) || items.length < slots.min || items.length > slots.max) {
+        res.status(400).json({ error: `El plan ${effectivePlan} requiere entre ${slots.min} y ${slots.max} cafés` });
+        return;
+      }
+    } else if (plan) {
+      // Plan changed without new items: ensure the existing item count still fits the new plan
+      const currentItemCount = await prisma.subscriptionItem.count({ where: { subscriptionId: sub.id } });
+      if (currentItemCount < slots.min || currentItemCount > slots.max) {
+        res.status(400).json({
+          error: `El plan ${effectivePlan} requiere entre ${slots.min} y ${slots.max} cafés. Actualiza la selección de cafés al mismo tiempo.`,
+        });
+        return;
+      }
+    }
+
+    const updateData: any = {};
+    if (plan) updateData.plan = plan;
+    if (frequency) updateData.frequency = frequency;
+    if (grindPreference) updateData.grindPreference = grindPreference;
+
+    // Replace items + update fields atomically when items are provided
+    if (items !== undefined) {
+      const [, updated] = await prisma.$transaction([
+        prisma.subscriptionItem.deleteMany({ where: { subscriptionId: sub.id } }),
+        prisma.subscription.update({
+          where: { id: sub.id },
+          data: {
+            ...updateData,
+            items: { create: items.map((productId: string) => ({ productId })) },
+          },
+          include: {
+            items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true } } } },
+          },
+        }),
+      ]);
+      res.json(updated);
+      return;
+    }
+
+    // No items change — just update scalar fields
+    const updated = await prisma.subscription.update({
+      where: { id: sub.id },
+      data: updateData,
+      include: {
+        items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true } } } },
+      },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar suscripción' });
+  }
+});
+
 // GET / — admin list
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {

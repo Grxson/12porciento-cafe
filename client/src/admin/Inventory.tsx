@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
+import QuickAdjustPopover from './components/QuickAdjustPopover';
+import { resolveImageUrl } from './utils/imageUrl';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -87,6 +89,7 @@ export default function Inventory() {
 
   // Per-product movement history modal
   const [historyProduct, setHistoryProduct] = useState<InventoryProduct | null>(null);
+  const [quickAdjustId, setQuickAdjustId] = useState<string | null>(null);
   const [historyMovements, setHistoryMovements] = useState<Movement[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
@@ -276,7 +279,7 @@ export default function Inventory() {
                         <tr key={p.id} className="border-b border-coffee-800/50 hover:bg-coffee-800/20 transition-colors">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <img src={p.imageUrl} alt={p.name} className="w-9 h-9 object-cover shrink-0" />
+                              <img src={resolveImageUrl(p.imageUrl)} alt={p.name} className="w-9 h-9 object-cover shrink-0" />
                               <div>
                                 <p className="text-cream text-sm font-medium leading-tight">{p.name}</p>
                                 {!p.isActive && <span className="text-[10px] text-coffee-600">Inactivo</span>}
@@ -302,12 +305,12 @@ export default function Inventory() {
                             <span className={`text-[10px] px-2 py-1 border ${s.cls}`}>{s.label}</span>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
+                            <div className="relative flex items-center gap-2">
                               <button
-                                onClick={() => { setTab('adjust'); setAdjProduct(p.id); setAdjType('RESTOCK'); }}
+                                onClick={() => setQuickAdjustId(quickAdjustId === p.id ? null : p.id)}
                                 className="text-xs text-gold-500 hover:text-gold-400 border border-gold-500/30 px-3 py-1 transition-colors"
                               >
-                                Reabastecer
+                                Ajuste rápido
                               </button>
                               <button
                                 onClick={() => openHistory(p)}
@@ -316,6 +319,17 @@ export default function Inventory() {
                               >
                                 <History className="w-3.5 h-3.5" />
                               </button>
+                              {quickAdjustId === p.id && (
+                                <QuickAdjustPopover
+                                  productId={p.id}
+                                  productName={p.name}
+                                  currentStock={p.stock}
+                                  onClose={() => setQuickAdjustId(null)}
+                                  onDone={(newStock) =>
+                                    setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, stock: newStock } : x)))
+                                  }
+                                />
+                              )}
                             </div>
                           </td>
                         </tr>

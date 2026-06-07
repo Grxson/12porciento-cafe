@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 export interface ModuleListConfig {
   onSuccess?: (action: 'create' | 'update' | 'delete', message?: string) => void;
@@ -25,12 +25,13 @@ export function useModuleList<T extends { id: string }>(
       const res = await fetchList();
       setItems(res.data?.data || []);
     } catch (err: any) {
-      setError(err?.response?.data?.error || 'Error al cargar');
-      config?.onError?.(error || 'Error');
+      const msg = err?.response?.data?.error || 'Error al cargar';
+      setError(msg);
+      config?.onError?.(msg);
     } finally {
       setLoading(false);
     }
-  }, [fetchList, config]);
+  }, [fetchList]);
 
   useEffect(() => {
     load();
@@ -51,7 +52,7 @@ export function useModuleList<T extends { id: string }>(
         throw err;
       }
     },
-    [createItem, config],
+    [createItem],
   );
 
   const update = useCallback(
@@ -69,7 +70,7 @@ export function useModuleList<T extends { id: string }>(
         throw err;
       }
     },
-    [updateItem, config],
+    [updateItem],
   );
 
   const remove = useCallback(
@@ -91,25 +92,27 @@ export function useModuleList<T extends { id: string }>(
         throw err;
       }
     },
-    [deleteItem, config],
+    [deleteItem],
   );
 
-  const filtered = items.filter((item) => {
-    return Object.entries(filters).every(([key, value]) => {
-      if (value === undefined || value === null || value === '') return true;
-      const itemValue = (item as any)[key];
-      return itemValue === value;
+  const filtered = useMemo(() => {
+    return items.filter((item) => {
+      return Object.entries(filters).every(([key, value]) => {
+        if (value === undefined || value === null || value === '') return true;
+        const itemValue = (item as any)[key];
+        return itemValue === value;
+      });
     });
-  });
+  }, [items, filters]);
 
-  const toggleSelect = (id: string) => {
+  const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
   const deleteSelected = useCallback(
     async () => {
@@ -126,6 +129,15 @@ export function useModuleList<T extends { id: string }>(
     [selected, remove],
   );
 
+  // Filters support exact equality for non-string values and .includes() for string values
+  const selectAll = useCallback(() => {
+    setSelected(new Set(items.map((i) => i.id)));
+  }, [items]);
+
+  const clearSelect = useCallback(() => {
+    setSelected(new Set());
+  }, []);
+
   return {
     items: filtered,
     allItems: items,
@@ -139,8 +151,8 @@ export function useModuleList<T extends { id: string }>(
     deleteSelected,
     selected,
     toggleSelect,
-    selectAll: () => setSelected(new Set(items.map((i) => i.id))),
-    clearSelect: () => setSelected(new Set()),
+    selectAll,
+    clearSelect,
     reload: load,
   };
 }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Search, Users, ShoppingBag, ChevronRight } from 'lucide-react';
+import { Search, Users, ShoppingBag, ChevronRight, Download } from 'lucide-react';
 import { customersApi } from '../api';
+import { useModuleToast } from './context/ModuleContext';
+import { exportToCsv } from './utils/csvExport';
 
 interface CustomerSummary {
   id: string;
@@ -24,18 +26,26 @@ export default function AdminCustomers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<CustomerDetail | null>(null);
+  const { addToast } = useModuleToast();
 
   const load = (q?: string) => {
     setLoading(true);
     const params = q ? { search: q } : undefined;
-    customersApi.list(params).then((r) => { setCustomers(r.data.data); setLoading(false); });
+    customersApi
+      .list(params)
+      .then((r) => { setCustomers(r.data.data); setLoading(false); })
+      .catch(() => { setLoading(false); addToast('Error al cargar clientes', 'error'); });
   };
 
   useEffect(() => { load(); }, []);
 
   const openDetail = async (id: string) => {
-    const r = await customersApi.getById(id);
-    setSelected(r.data.data);
+    try {
+      const r = await customersApi.getById(id);
+      setSelected(r.data.data);
+    } catch {
+      addToast('Error al cargar detalle del cliente', 'error');
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -100,6 +110,28 @@ export default function AdminCustomers() {
                 </div>
               )}
             </div>
+
+            <div className="bg-coffee-900 border border-coffee-800 p-6">
+              <p className="text-coffee-400 text-xs uppercase tracking-wider mb-3">Reseñas</p>
+              {!selected.reviews || selected.reviews.length === 0 ? (
+                <p className="text-coffee-600 text-sm">Sin reseñas.</p>
+              ) : (
+                <div className="space-y-3">
+                  {selected.reviews.map((r: any) => (
+                    <div key={r.id} className="py-3 border-b border-coffee-800 last:border-0">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="text-coffee-200 text-sm font-medium">{r.product?.name}</p>
+                        <p className="text-coffee-500 text-xs">{new Date(r.createdAt).toLocaleDateString('es-MX')}</p>
+                      </div>
+                      <p className="text-gold-500 text-sm mb-1">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</p>
+                      {(r.comment ?? r.content) && (
+                        <p className="text-coffee-400 text-sm">{r.comment ?? r.content}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -128,6 +160,23 @@ export default function AdminCustomers() {
         </div>
         <button type="submit" className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors">
           Buscar
+        </button>
+        <button
+          type="button"
+          disabled={customers.length === 0}
+          onClick={() =>
+            exportToCsv(customers, 'clientes', [
+              { key: 'name', label: 'Nombre' },
+              { key: 'email', label: 'Email' },
+              { key: 'phone', label: 'Teléfono' },
+              { key: 'city', label: 'Ciudad' },
+              { key: 'state', label: 'Estado' },
+              { key: 'createdAt', label: 'Registro' },
+            ])
+          }
+          className="px-4 py-2 border border-coffee-700 text-coffee-400 text-sm hover:text-cream transition-colors disabled:opacity-50 flex items-center gap-2"
+        >
+          <Download size={16} /> Exportar CSV
         </button>
       </form>
 

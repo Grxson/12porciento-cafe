@@ -151,23 +151,31 @@ function RecipesContent() {
         onReorderStep={handleReorderStep}
       />
 
-      <RecipeEditor
-        open={recipeModal.open}
-        recipe={recipeModal.recipe}
-        mode={recipeModal.recipe ? 'edit' : 'add'}
-        onClose={handleCloseRecipeModal}
-        onSave={handleSaveRecipe}
-        loading={savingRecipe}
-      />
+      {/* Mounted only while open + keyed by identity so the form re-initializes
+          from fresh props each time (useRecipeForm/useState seed once per mount). */}
+      {recipeModal.open && (
+        <RecipeEditor
+          key={recipeModal.recipe?.id ?? 'new'}
+          open
+          recipe={recipeModal.recipe}
+          mode={recipeModal.recipe ? 'edit' : 'add'}
+          onClose={handleCloseRecipeModal}
+          onSave={handleSaveRecipe}
+          loading={savingRecipe}
+        />
+      )}
 
-      <StepEditor
-        open={!!stepModal}
-        step={editingStep}
-        mode={stepModal?.stepId ? 'edit' : 'add'}
-        onClose={handleCloseStepModal}
-        onSave={handleSaveStep}
-        loading={savingStep}
-      />
+      {stepModal && (
+        <StepEditor
+          key={stepModal.stepId ?? `new-${stepModal.recipeId}`}
+          open
+          step={editingStep}
+          mode={stepModal.stepId ? 'edit' : 'add'}
+          onClose={handleCloseStepModal}
+          onSave={handleSaveStep}
+          loading={savingStep}
+        />
+      )}
     </div>
   );
 }

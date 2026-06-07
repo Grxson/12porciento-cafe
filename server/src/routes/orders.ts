@@ -16,9 +16,12 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<number>
   if (!promoCode) return subtotal;
   const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
   if (!promo || !promo.isActive) return subtotal;
-  const discount = promo.type === 'PERCENTAGE'
-    ? subtotal * (promo.discount / 100)
-    : Math.min(promo.discount, subtotal);
+  // Treat anything that isn't an explicit FIXED amount as a percentage. Historic rows
+  // and the admin form have used both 'PERCENT' and 'PERCENTAGE' for percentage promos.
+  const isFixed = promo.type === 'FIXED';
+  const discount = isFixed
+    ? Math.min(promo.discount, subtotal)
+    : subtotal * (promo.discount / 100);
   return Math.max(subtotal - discount, 0);
 }
 

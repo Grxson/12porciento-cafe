@@ -36,6 +36,8 @@ import AdminInventory from './admin/Inventory';
 import AdminRecipesPage from './admin/Recipes';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
+import BottomNav from './components/BottomNav';
+import InstallPrompt from './components/InstallPrompt';
 import Quiz from './pages/Quiz';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
@@ -51,8 +53,10 @@ const UserRoute = ({ children }: { children: React.ReactNode }) => {
 const PublicLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen flex flex-col">
     <Navbar />
-    <main className="flex-1">{children}</main>
+    <main className="flex-1 pb-20 md:pb-0">{children}</main>
     <Footer />
+    <BottomNav />
+    <InstallPrompt />
   </div>
 );
 

@@ -2,6 +2,20 @@
 
 Planes de implementación estructurados en fases: Planning → Coding → Testing.
 
+## Master Roadmap
+
+### [2026-06-08: Master Polish Roadmap](2026-06-08-master-polish-roadmap.md)
+
+**4 initiatives consolidated:** Gallery (3–4h) → Stripe (3–4h) → Recipes (2–3h) → PWA (3–4h). Total 12–18h.
+- **Gallery:** Multi-image product galleries, admin + storefront UI
+- **Stripe:** 6 payment bugs fixed (idempotency, atomicity, logging, retry)
+- **Recipes:** Refactor monolith into modular components + context + drag-drop
+- **PWA:** Mobile polish, install prompt, bottom nav, responsive pages
+
+**Status:** All 4 plans detailed, ready for execution. Execute serially or Gallery+Stripe+Recipes in parallel, then PWA.
+
+---
+
 ## Active Plans
 
 ### 1. [Recetas: CRUD Mejorado con UI/UX Interactivo](2026-06-07-recipes-crud-ui.md)

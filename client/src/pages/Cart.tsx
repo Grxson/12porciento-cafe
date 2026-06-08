@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, total, count } = useCart();
@@ -24,7 +25,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-24 bg-coffee-50">
+    <div className="min-h-screen pt-20 pb-24 md:pb-0 bg-coffee-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-10">
@@ -51,9 +52,9 @@ export default function Cart() {
                   {/* Product image */}
                   <Link to={`/tienda/${product.slug}`} className="shrink-0">
                     <img
-                      src={product.imageUrl}
+                      src={resolveImageUrl(product.imageUrl)}
                       alt={product.name}
-                      className="w-24 h-24 object-cover"
+                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover shrink-0"
                     />
                   </Link>
 
@@ -63,7 +64,7 @@ export default function Cart() {
                       <div className="min-w-0">
                         <Link
                           to={`/tienda/${product.slug}`}
-                          className="font-serif text-lg text-coffee-900 hover:text-gold-600 transition-colors leading-snug block"
+                          className="font-serif text-lg text-coffee-900 hover:text-gold-600 transition-colors leading-snug block truncate"
                         >
                           {product.name}
                         </Link>
@@ -82,7 +83,7 @@ export default function Cart() {
                       <button
                         onClick={() => removeItem(product.id)}
                         aria-label="Eliminar producto"
-                        className="text-coffee-300 hover:text-red-400 transition-colors cursor-pointer shrink-0 p-1"
+                        className="text-coffee-300 hover:text-red-400 transition-colors cursor-pointer shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -94,7 +95,7 @@ export default function Cart() {
                         <button
                           onClick={() => updateQuantity(product.id, quantity - 1)}
                           aria-label="Reducir cantidad"
-                          className="w-9 h-9 flex items-center justify-center text-coffee-500 hover:text-coffee-900 hover:bg-coffee-50 transition-colors cursor-pointer"
+                          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 hover:bg-coffee-50 transition-colors cursor-pointer"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -102,7 +103,7 @@ export default function Cart() {
                         <button
                           onClick={() => updateQuantity(product.id, quantity + 1)}
                           aria-label="Aumentar cantidad"
-                          className="w-9 h-9 flex items-center justify-center text-coffee-500 hover:text-coffee-900 hover:bg-coffee-50 transition-colors cursor-pointer"
+                          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 hover:bg-coffee-50 transition-colors cursor-pointer"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -138,7 +139,7 @@ export default function Cart() {
               </div>
               <p className="text-coffee-400 text-xs mb-6">+ envío según destino</p>
 
-              <Link to="/checkout" className="btn-primary w-full flex items-center justify-center gap-2">
+              <Link to="/checkout" className="btn-primary w-full min-h-[52px] flex items-center justify-center gap-2">
                 Proceder al pago <ArrowRight className="w-4 h-4" />
               </Link>
 

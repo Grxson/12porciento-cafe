@@ -268,7 +268,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-24">
+    <div className="min-h-screen pt-20 pb-24 md:pb-0">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="gold-line mb-4" />
         <h1 className="font-serif text-4xl text-coffee-900 mb-4">Checkout</h1>
@@ -331,7 +331,7 @@ export default function Checkout() {
                       <input
                         name="customerName" type="text" required
                         value={form.customerName} onChange={handleChange}
-                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-sm focus:outline-none ${fieldErrors.customerName ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
+                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.customerName ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
                         placeholder="Tu nombre"
                       />
                       {fieldErrors.customerName && <p className="text-red-400 text-xs mt-1">{fieldErrors.customerName}</p>}
@@ -341,7 +341,7 @@ export default function Checkout() {
                       <input
                         name="email" type="email" required
                         value={form.email} onChange={handleChange}
-                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                         placeholder="tu@email.com"
                       />
                     </div>
@@ -350,7 +350,7 @@ export default function Checkout() {
                   <div>
                     <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Teléfono</label>
                     <input name="phone" value={form.phone} onChange={handleChange}
-                      className={`w-full bg-white border text-coffee-900 px-4 py-3 text-sm focus:outline-none ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
+                      className={`w-full bg-white border text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
                       placeholder="55 1234 5678" />
                     {fieldErrors.phone && <p className="text-red-400 text-xs mt-1">{fieldErrors.phone}</p>}
                   </div>
@@ -358,21 +358,21 @@ export default function Checkout() {
                   <div>
                     <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Dirección *</label>
                     <input name="address" required value={form.address} onChange={handleChange}
-                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                       placeholder="Calle, número, colonia" />
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Ciudad *</label>
                       <input name="city" required value={form.city} onChange={handleChange}
-                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none"
+                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                         placeholder="Ciudad" />
                     </div>
                     <div>
                       <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Estado *</label>
                       <select name="state" required value={form.state} onChange={handleChange}
-                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none">
+                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none">
                         <option value="">Seleccionar</option>
                         {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
@@ -380,7 +380,7 @@ export default function Checkout() {
                     <div>
                       <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">CP *</label>
                       <input name="zipCode" required value={form.zipCode} onChange={handleChange}
-                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-sm focus:outline-none ${fieldErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
+                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
                         placeholder="12345" />
                       {fieldErrors.zipCode && <p className="text-red-400 text-xs mt-1">{fieldErrors.zipCode}</p>}
                     </div>
@@ -389,14 +389,14 @@ export default function Checkout() {
                   <div>
                     <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Notas adicionales</label>
                     <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
-                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-sm focus:border-gold-500 focus:outline-none resize-none"
+                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base focus:border-gold-500 focus:outline-none resize-none"
                       placeholder="Instrucciones especiales..." />
                   </div>
 
                   {error && <p className="text-red-400 text-sm">{error}</p>}
 
                   <button type="submit" disabled={loadingIntent}
-                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     {loadingIntent ? 'Iniciando pago...' : (
                       <><span>Continuar al pago</span><ChevronRight className="w-4 h-4" /></>
                     )}
@@ -495,7 +495,7 @@ export default function Checkout() {
                   <button
                     onClick={handleCardSelectionSubmit}
                     disabled={loadingIntent || loadingMethods}
-                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loadingIntent ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Iniciando pago...</>
@@ -550,7 +550,7 @@ export default function Checkout() {
                           <button
                             onClick={handleConfirmSavedCard}
                             disabled={confirmingSaved}
-                            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {confirmingSaved ? (
                               <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
@@ -613,10 +613,10 @@ export default function Checkout() {
                         onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
                         placeholder="CÓDIGO"
-                        className="flex-1 bg-white border border-coffee-300 text-coffee-900 px-3 py-2 text-xs focus:border-gold-500 focus:outline-none uppercase"
+                        className="flex-1 bg-white border border-coffee-300 text-coffee-900 px-3 text-base min-h-[44px] focus:border-gold-500 focus:outline-none uppercase"
                       />
                       <button onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()}
-                        className="bg-coffee-100 border border-coffee-300 text-coffee-700 px-3 py-2 text-xs hover:bg-coffee-200 transition-colors disabled:opacity-50 flex items-center gap-1">
+                        className="bg-coffee-100 border border-coffee-300 text-coffee-700 px-3 text-sm min-h-[44px] hover:bg-coffee-200 transition-colors disabled:opacity-50 flex items-center gap-1">
                         {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aplicar'}
                       </button>
                     </div>

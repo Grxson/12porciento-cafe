@@ -67,9 +67,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           </div>
         )}
 
-        {/* Quick-add overlay — appears on hover */}
-        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-2 opacity-0
-                        group-hover:translate-y-0 group-hover:opacity-100
+        {/* Quick-add overlay — always visible on mobile, hover on desktop */}
+        <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-4 translate-y-0 opacity-100
+                        sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100
                         transition-all duration-300 ease-out">
           <button
             onClick={handleAdd}
@@ -90,22 +90,22 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       </Link>
 
       {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-3 sm:p-5 flex flex-col flex-1">
         {/* Origin / category label */}
         <p className="text-[10px] text-gold-500 uppercase tracking-[0.25em] mb-1.5 font-medium">
           {isCafe ? (product.region ?? product.origin ?? 'México') : (product.category === 'MERCH' ? 'Merch' : 'Accesorio')}
         </p>
 
         {/* Name + price row */}
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
           <Link to={`/tienda/${product.slug}`} className="flex-1 min-w-0">
-            <h3 className="font-serif text-xl text-coffee-900 leading-snug
+            <h3 className="font-serif text-base sm:text-xl text-coffee-900 leading-snug
                            group-hover:text-gold-600 transition-colors duration-200 line-clamp-2">
               {product.name}
             </h3>
           </Link>
           <div className="text-right shrink-0">
-            <p className="font-semibold text-coffee-900 text-lg leading-none">${product.price}</p>
+            <p className="font-semibold text-coffee-900 text-base sm:text-lg leading-none">${product.price}</p>
             {product.weight && (
               <p className="text-coffee-400 text-xs mt-1">{product.weight}g</p>
             )}
@@ -114,7 +114,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
 
         {/* Flavor tags */}
         {isCafe && product.flavors.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
+          <div className="flex flex-wrap gap-1 mb-3 sm:mb-4">
             {product.flavors.slice(0, 3).map((f) => (
               <span key={f} className="text-[11px] text-coffee-600 bg-coffee-100 px-2 py-0.5 leading-5">
                 {f}

@@ -7,6 +7,7 @@ const router = Router();
 const parseProduct = (p: any) => ({
   ...p,
   flavors: p.flavors ? JSON.parse(p.flavors) : [],
+  images: p.images ? JSON.parse(p.images) : [],
 });
 
 router.get('/', async (req: Request, res: Response) => {
@@ -76,11 +77,12 @@ router.get('/:slug', async (req: Request, res: Response) => {
 
 router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { flavors, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
+    const { flavors, images, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
     const product = await prisma.product.create({
       data: {
         ...data,
         flavors: flavors ? JSON.stringify(flavors) : null,
+        images: images && images.length ? JSON.stringify(images) : null,
         sku: sku?.trim() || null,
         costPrice: costPrice !== undefined && costPrice !== '' ? parseFloat(costPrice) : null,
         supplier: supplier?.trim() || null,
@@ -95,12 +97,13 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
 router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { flavors, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
+    const { flavors, images, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
     const product = await prisma.product.update({
       where: { id: req.params.id },
       data: {
         ...data,
         ...(flavors !== undefined && { flavors: JSON.stringify(flavors) }),
+        ...(images !== undefined && { images: images && images.length ? JSON.stringify(images) : null }),
         ...(sku !== undefined && { sku: sku?.trim() || null }),
         ...(costPrice !== undefined && { costPrice: costPrice !== '' ? parseFloat(costPrice) : null }),
         ...(supplier !== undefined && { supplier: supplier?.trim() || null }),

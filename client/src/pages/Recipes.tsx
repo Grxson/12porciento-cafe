@@ -125,6 +125,7 @@ export default function Recipes() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [methodFilter, setMethodFilter] = useState<string>('TODOS');
+  const [search, setSearch] = useState<string>('');
 
   useEffect(() => {
     recipesApi.list().then((r) => {
@@ -136,15 +137,22 @@ export default function Recipes() {
   const methods = ['TODOS', ...Array.from(new Set(recipes.map((r) => r.method))).sort()];
   const filtered = methodFilter === 'TODOS' ? recipes : recipes.filter((r) => r.method === methodFilter);
 
+  const searched = filtered.filter((r) =>
+    search === '' ||
+    r.title.toLowerCase().includes(search.toLowerCase()) ||
+    r.method.toLowerCase().includes(search.toLowerCase()) ||
+    r.description?.toLowerCase().includes(search.toLowerCase())
+  );
+
   const visible = hasSubscription
-    ? filtered
+    ? searched
     : (() => {
-        const free = filtered.filter((r) => !r.isPremium);
-        const premium = filtered.filter((r) => r.isPremium);
+        const free = searched.filter((r) => !r.isPremium);
+        const premium = searched.filter((r) => r.isPremium);
         return [...free.slice(0, 2), ...premium];
       })();
 
-  const freeLimit = !hasSubscription && filtered.filter((r) => !r.isPremium).length > 2;
+  const freeLimit = !hasSubscription && searched.filter((r) => !r.isPremium).length > 2;
 
   if (loading) {
     return (
@@ -163,6 +171,16 @@ export default function Recipes() {
           <p className="text-coffee-400 text-sm max-w-lg mx-auto">
             Desde espressos clásicos hasta métodos de filtrado de especialidad. Cada receta, paso a paso.
           </p>
+        </div>
+
+        <div className="mb-10">
+          <input
+            type="text"
+            placeholder="Buscar recetas por nombre, método..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-4 py-2 bg-coffee-900 border border-coffee-700 text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500 transition-colors text-sm"
+          />
         </div>
 
         <div className="flex gap-2 flex-wrap justify-center mb-10">

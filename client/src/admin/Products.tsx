@@ -4,13 +4,14 @@ import { Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'luci
 import { productsApi } from '../api';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ImageUploader from './components/ImageUploader';
+import GalleryUploader from './components/GalleryUploader';
 import { resolveImageUrl } from './utils/imageUrl';
 import type { Product } from '../types';
 
 const emptyForm = {
   name: '', slug: '', category: 'CAFÉ', origin: 'México', region: '', altitude: '' as string | number,
   variety: '', process: '', scaScore: '' as string | number, roastLevel: '', flavors: '',
-  price: 0, weight: '' as string | number, stock: 0, imageUrl: '', description: '', isLimited: false, isActive: true,
+  price: 0, weight: '' as string | number, stock: 0, imageUrl: '', images: [] as string[], description: '', isLimited: false, isActive: true,
 };
 
 const categoryLabels: Record<string, string> = { 'CAFÉ': 'Café', 'ACCESORIOS': 'Accesorios', 'MERCH': 'Merch' };
@@ -48,6 +49,7 @@ export default function AdminProducts() {
       altitude: p.altitude ?? '',
       scaScore: p.scaScore ?? '',
       weight: p.weight ?? '',
+      images: p.images ?? [],
     } as any);
     setEditId(p.id);
     setModal('edit');
@@ -323,6 +325,11 @@ export default function AdminProducts() {
                   label="Imagen del producto"
                   value={form.imageUrl}
                   onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
+                />
+
+                <GalleryUploader
+                  value={form.images}
+                  onChange={(images) => setForm((f) => ({ ...f, images }))}
                 />
 
                 {isCafe && (

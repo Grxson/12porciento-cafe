@@ -61,14 +61,14 @@ export default function Orders() {
       {orders.map((order, i) => (
         <motion.div key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }} className="bg-coffee-900 border border-coffee-800 p-5">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <p className="text-cream text-sm font-medium">Pedido #{order.id.slice(-8).toUpperCase()}</p>
+          <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+            <div className="min-w-0">
+              <p className="text-cream text-sm font-medium truncate">Pedido #{order.id.slice(-8).toUpperCase()}</p>
               <p className="text-coffee-400 text-xs mt-0.5">
                 {new Date(order.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right shrink-0">
               <p className="text-gold-500 font-semibold">${order.total.toLocaleString('es-MX')}</p>
               <p className={`text-xs mt-0.5 ${statusLabels[order.status]?.color ?? 'text-coffee-400'}`}>
                 {statusLabels[order.status]?.label ?? order.status}
@@ -77,7 +77,7 @@ export default function Orders() {
           </div>
           <div className="space-y-1">
             {order.items.map((item) => (
-              <p key={item.id} className="text-coffee-300 text-xs">{item.product.name} × {item.quantity}</p>
+              <p key={item.id} className="text-coffee-300 text-xs truncate">{item.product.name} × {item.quantity}</p>
             ))}
           </div>
         </motion.div>

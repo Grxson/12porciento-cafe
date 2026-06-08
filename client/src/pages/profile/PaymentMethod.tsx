@@ -77,7 +77,7 @@ function AddCardForm({ clientSecret, onSuccess, onCancel }: { clientSecret: stri
               {saving ? 'Guardando...' : 'Guardar método de pago'}
             </button>
             <button type="button" onClick={onCancel}
-              className="text-sm text-coffee-400 hover:text-cream border border-coffee-700 px-4 py-2 transition-colors">
+              className="text-sm text-coffee-400 hover:text-cream border border-coffee-700 px-4 py-2 min-h-[44px] transition-colors">
               Cancelar
             </button>
           </div>
@@ -182,22 +182,22 @@ export default function PaymentMethod() {
       {methods.length > 0 && (
         <div className="space-y-3 mb-6">
           {methods.map((pm) => (
-            <div key={pm.id} className={`flex items-center justify-between p-4 border transition-all ${
+            <div key={pm.id} className={`flex flex-wrap items-center justify-between gap-3 p-4 border transition-all ${
               defaultId === pm.id
                 ? 'border-gold-500/60 bg-gold-500/5 shadow-[0_0_20px_rgba(201,169,110,0.05)]'
                 : 'border-coffee-800 bg-coffee-900 hover:border-coffee-700'
             }`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 flex items-center justify-center ${BRAND_COLORS[pm.brand] ?? 'text-coffee-400'}`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-8 h-8 flex items-center justify-center shrink-0 ${BRAND_COLORS[pm.brand] ?? 'text-coffee-400'}`}>
                   <CreditCard className="w-5 h-5" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-cream text-sm font-medium">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-cream text-sm font-medium truncate">
                       {BRAND_LABELS[pm.brand] ?? pm.brand} •••• {pm.last4}
                     </p>
                     {defaultId === pm.id && (
-                      <span className="text-[9px] text-gold-500 border border-gold-500/40 px-1.5 py-0.5 uppercase tracking-wider">
+                      <span className="text-[9px] text-gold-500 border border-gold-500/40 px-1.5 py-0.5 uppercase tracking-wider shrink-0">
                         Predeterminada
                       </span>
                     )}
@@ -207,15 +207,15 @@ export default function PaymentMethod() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 {defaultId !== pm.id && (
                   <button onClick={() => handleSetDefault(pm.id)}
-                    className="text-xs text-coffee-400 hover:text-gold-500 transition-colors">
+                    className="text-xs text-coffee-400 hover:text-gold-500 min-h-[44px] transition-colors">
                     Usar como predeterminada
                   </button>
                 )}
                 <button onClick={() => handleDelete(pm.id)} disabled={deleting === pm.id}
-                  className="text-coffee-600 hover:text-red-400 transition-colors disabled:opacity-50 p-1">
+                  className="text-coffee-600 hover:text-red-400 transition-colors disabled:opacity-50 p-1 min-h-[44px]">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -246,7 +246,7 @@ export default function PaymentMethod() {
         </motion.div>
       ) : (
         <button onClick={() => setAdding(true)}
-          className="flex items-center gap-2 text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 hover:border-gold-500/60 px-5 py-3 transition-colors">
+          className="flex items-center gap-2 text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 hover:border-gold-500/60 px-5 py-3 min-h-[44px] transition-colors">
           <Plus className="w-4 h-4" />
           Agregar tarjeta
         </button>

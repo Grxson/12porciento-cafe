@@ -146,7 +146,7 @@ export default function ProfileSettings() {
             className="w-full bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
             placeholder="Calle, número, colonia" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Ciudad</label>
             <input name="city" value={form.city} onChange={handleChange}
@@ -171,7 +171,7 @@ export default function ProfileSettings() {
         {error && <p className="text-red-400 text-sm">{error}</p>}
 
         <button type="submit" disabled={loading}
-          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
           {loading ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>

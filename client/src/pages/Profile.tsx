@@ -19,7 +19,7 @@ export default function Profile() {
   const user = useUser((s) => s.user);
 
   return (
-    <div className="pt-20 min-h-screen bg-coffee-950">
+    <div className="pt-20 min-h-screen bg-coffee-950 pb-24 md:pb-0">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-full overflow-hidden bg-coffee-800 border border-coffee-800 shrink-0">
@@ -46,7 +46,7 @@ export default function Profile() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors ${
+                `flex items-center gap-2 px-4 py-3 text-sm whitespace-nowrap shrink-0 border-b-2 transition-colors ${
                   isActive
                     ? 'border-gold-500 text-gold-500'
                     : 'border-transparent text-coffee-400 hover:text-cream'

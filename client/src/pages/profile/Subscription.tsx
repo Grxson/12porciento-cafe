@@ -8,6 +8,7 @@ import SubscriptionBilling from './SubscriptionBilling';
 import CoffeePicker from '../../components/CoffeePicker';
 import type { Subscription as Sub, SubscriptionPlan } from '../../types';
 import { PLAN_SLOTS } from '../../types';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 const FULFILLMENT_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE:  { label: 'Pendiente de envío', color: 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30' },
@@ -88,7 +89,7 @@ export default function Subscription() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
       {/* Subscription card */}
       <div className="bg-coffee-900 border border-coffee-800 p-6 mb-6 max-w-2xl">
-        <div className="flex items-start justify-between mb-5">
+        <div className="flex flex-wrap items-start justify-between gap-2 mb-5">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h3 className="font-serif text-xl text-cream">{sub.plan}</h3>
@@ -141,11 +142,11 @@ export default function Subscription() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {sub.items?.map((item) => (
-              <div key={item.id} className="flex gap-2 bg-coffee-800/50 p-2">
-                <img src={item.product.imageUrl} alt={item.product.name} className="w-10 h-10 object-cover shrink-0" />
-                <p className="text-coffee-200 text-xs leading-tight self-center">{item.product.name}</p>
+              <div key={item.id} className="flex gap-2 bg-coffee-800/50 p-2 min-w-0">
+                <img src={resolveImageUrl(item.product.imageUrl)} alt={item.product.name} className="w-10 h-10 object-cover shrink-0" />
+                <p className="text-coffee-200 text-xs leading-tight self-center truncate min-w-0">{item.product.name}</p>
               </div>
             ))}
           </div>
@@ -203,7 +204,7 @@ export default function Subscription() {
 
       {/* Cancel */}
       {!showConfirm ? (
-        <button onClick={() => setShowConfirm(true)} className="text-xs text-coffee-500 hover:text-red-400 border border-coffee-800 hover:border-red-400/30 px-4 py-2 transition-colors">
+        <button onClick={() => setShowConfirm(true)} className="text-xs text-coffee-500 hover:text-red-400 border border-coffee-800 hover:border-red-400/30 px-4 py-2 min-h-[44px] transition-colors">
           Cancelar suscripción
         </button>
       ) : (
@@ -214,10 +215,10 @@ export default function Subscription() {
           </div>
           <div className="flex gap-3">
             <button onClick={handleCancel} disabled={cancelling}
-              className="text-xs text-red-400 border border-red-500/40 hover:border-red-400 px-4 py-2 transition-colors disabled:opacity-50">
+              className="text-xs text-red-400 border border-red-500/40 hover:border-red-400 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
               {cancelling ? 'Cancelando...' : 'Sí, cancelar'}
             </button>
-            <button onClick={() => setShowConfirm(false)} className="text-xs text-coffee-400 hover:text-cream px-4 py-2 transition-colors">
+            <button onClick={() => setShowConfirm(false)} className="text-xs text-coffee-400 hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
               Mantener
             </button>
           </div>

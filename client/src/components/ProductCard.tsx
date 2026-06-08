@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Star, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { resolveImageUrl } from '../utils/imageUrl';
 import type { Product } from '../types';
 
 interface ProductCardProps {
@@ -34,7 +35,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       {/* Image container */}
       <Link to={`/tienda/${product.slug}`} className="relative block overflow-hidden aspect-[3/4] shrink-0">
         <img
-          src={product.imageUrl}
+          src={resolveImageUrl(product.imageUrl)}
           alt={product.name}
           loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -73,7 +74,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           <button
             onClick={handleAdd}
             disabled={product.stock === 0}
-            className={`w-full flex items-center justify-center gap-2 py-2.5 text-xs font-semibold tracking-[0.15em] uppercase
+            className={`w-full flex items-center justify-center gap-2 py-2.5 min-h-[44px] text-xs font-semibold tracking-[0.15em] uppercase
                         transition-all duration-200 cursor-pointer
                         ${added
                           ? 'bg-green-600 text-white'

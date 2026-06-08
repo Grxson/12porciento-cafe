@@ -102,7 +102,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="font-serif italic text-2xl text-coffee-300 mb-3"
+            className="font-serif italic text-lg sm:text-2xl text-coffee-300 mb-3"
           >
             doce por ciento
           </motion.p>
@@ -122,8 +122,8 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 1.2 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to="/tienda" className="btn-primary">Explorar Tienda</Link>
-            <Link to="/suscripciones" className="btn-outline-dark">Ver Suscripciones</Link>
+            <Link to="/tienda" className="btn-primary w-full sm:w-auto min-h-[48px] flex items-center justify-center">Explorar Tienda</Link>
+            <Link to="/suscripciones" className="btn-outline-dark w-full sm:w-auto min-h-[48px] flex items-center justify-center">Ver Suscripciones</Link>
           </motion.div>
         </div>
 
@@ -165,7 +165,7 @@ export default function Home() {
       </section>
 
       {/* ── THE 12% STORY ── */}
-      <section className="py-24 bg-coffee-950">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">
@@ -174,6 +174,7 @@ export default function Home() {
                   src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=900&q=80"
                   alt="Café de especialidad"
                   className="w-full aspect-[4/5] object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute -bottom-6 -right-6 bg-gold-500 p-8 hidden sm:block">
                   <p className="font-serif text-5xl font-black text-coffee-950 leading-none">12</p>
@@ -207,7 +208,7 @@ export default function Home() {
       </section>
 
       {/* ── TRES PILARES ── */}
-      <section className="py-24 bg-coffee-900">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="text-center mb-16">
             <div className="gold-line mx-auto mb-6" />
@@ -268,7 +269,7 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIOS ── */}
-      <section className="py-24 bg-coffee-950">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="text-center mb-16">
             <div className="gold-line mx-auto mb-6" />
@@ -319,7 +320,7 @@ export default function Home() {
       </section>
 
       {/* ── PRODUCTOS DESTACADOS ── */}
-      <section className="py-24 bg-coffee-950">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-12">
             <ScrollReveal>
@@ -376,11 +377,12 @@ export default function Home() {
                 src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80"
                 alt="Café de especialidad"
                 className="w-full h-full object-cover opacity-60"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-coffee-950" />
             </div>
             {/* Text side */}
-            <div className="flex flex-col justify-center py-20 lg:pl-12">
+            <div className="flex flex-col justify-center py-14 sm:py-16 lg:py-20 lg:pl-12">
               <ScrollReveal direction="right">
                 <div className="gold-line mb-6" />
                 <h2 className="section-title mb-4">
@@ -392,8 +394,8 @@ export default function Home() {
                 </p>
                 <p className="text-gold-500 text-2xl font-serif mb-8">Desde $350 / mes</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Link to="/suscripciones" className="btn-primary">Ver suscripciones</Link>
-                  <Link to="/tienda" className="btn-outline-dark">Explorar tienda</Link>
+                  <Link to="/suscripciones" className="btn-primary w-full sm:w-auto min-h-[48px] flex items-center justify-center">Ver suscripciones</Link>
+                  <Link to="/tienda" className="btn-outline-dark w-full sm:w-auto min-h-[48px] flex items-center justify-center">Explorar tienda</Link>
                 </div>
               </ScrollReveal>
             </div>
@@ -408,7 +410,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-3">Transparencia total</p>
-            <h2 className="font-serif text-4xl text-cream">Calendario de Tueste</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl text-cream">Calendario de Tueste</h2>
             <p className="text-coffee-400 mt-3 max-w-md mx-auto">
               Tostamos por lotes pequeños, bajo pedido. Tu café llega máximo 7 días después del tueste.
             </p>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Recipe } from '../../types';
 
 interface RecipeLiveModeProps {
@@ -17,7 +17,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const hasPrev = currentStepIndex > 0;
 
   useEffect(() => {
-    if (timerActive === null || timerActive <= 0) return;
+    if (timerActive === null) return;
     const interval = setInterval(() => {
       setTimerActive((t) => {
         if (t && t <= 1) {
@@ -36,6 +36,10 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     return () => clearInterval(interval);
   }, [timerActive]);
 
+  useEffect(() => {
+    setTimerActive(null);
+  }, [currentStepIndex]);
+
   const goNext = () => {
     if (hasNext) setCurrentStepIndex((c) => c + 1);
   };
@@ -45,6 +49,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   };
 
   return (
+    <AnimatePresence>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -170,5 +175,6 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         </button>
       </div>
     </motion.div>
+    </AnimatePresence>
   );
 }

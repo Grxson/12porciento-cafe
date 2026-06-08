@@ -5,6 +5,7 @@ import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, 
 import { productsApi, reviewsApi, recipesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
+import { resolveImageUrl } from '../utils/imageUrl';
 import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -99,7 +100,7 @@ export default function ProductDetail() {
   ];
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className="pt-20 min-h-screen pb-28 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Breadcrumbs crumbs={[
           { label: 'Inicio', to: '/' },
@@ -115,7 +116,7 @@ export default function ProductDetail() {
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="relative">
             <div className="aspect-[3/4] overflow-hidden">
               <motion.img
-                src={product.imageUrl}
+                src={resolveImageUrl(product.imageUrl)}
                 alt={product.name}
                 className="w-full h-full object-cover"
                 whileHover={{ scale: 1.04 }}
@@ -201,9 +202,9 @@ export default function ProductDetail() {
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center border border-coffee-300">
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-10 flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors">−</button>
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors">−</button>
                   <span className="w-10 text-center text-coffee-900">{qty}</span>
-                  <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="w-10 h-10 flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors">+</button>
+                  <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors">+</button>
                 </div>
 
                 <button
@@ -557,6 +558,25 @@ export default function ProductDetail() {
         open={brewingOpen}
         onClose={() => setBrewingOpen(false)}
       />
+
+      {/* Sticky mobile add-to-cart bar — sits above BottomNav */}
+      <div
+        className="md:hidden fixed left-0 right-0 z-40 bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-800 p-3 flex items-center gap-3"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 3.75rem)' }}
+      >
+        <div className="shrink-0">
+          <p className="text-gold-500 font-semibold text-lg">${product.price}</p>
+        </div>
+        <button
+          onClick={handleAdd}
+          disabled={product.stock === 0}
+          className={`flex-1 font-semibold py-3 min-h-[48px] transition-all ${
+            added ? 'bg-green-600 text-white' : 'bg-gold-500 text-coffee-950 hover:bg-gold-400'
+          } disabled:bg-coffee-700 disabled:text-coffee-400`}
+        >
+          {product.stock === 0 ? 'Agotado' : added ? '¡Agregado!' : 'Agregar al carrito'}
+        </button>
+      </div>
     </div>
   );
 }

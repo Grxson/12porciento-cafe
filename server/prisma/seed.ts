@@ -8,7 +8,7 @@ const u = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&f
 
 // Reusable coffee gallery shots: roasted beans, pour-over, brewed cup, scoop, bag, latte.
 const BEANS_CLOSE = u('1559056199-641a0ac8b55e');
-const POUR_OVER   = u('1447933601403-0c6688fa566e');
+const POUR_OVER   = u('1463797221720-6b07e6426c24');
 const CUP_TOP     = u('1461023058943-07fcbe16d735');
 const BEANS_SCOOP = u('1514432324607-a09d9b4aefdd');
 const COFFEE_BAG  = u('1610889556528-9a770e32642f');
@@ -149,7 +149,7 @@ const products = [
     category: 'ACCESORIOS',
     price: 95,
     stock: 20,
-    imageUrl: 'https://images.unsplash.com/photo-1559547669-acf713ad3fb0?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1530968033775-2c92736b131e?auto=format&fit=crop&w=800&q=80',
     images: JSON.stringify([BEANS_SCOOP, BEANS_CLOSE]),
     description: 'Molino de mano manual con ajuste infinito. Diseño compacto, perfecto para viajes. Utilizado por campeones de cupping.',
     isLimited: false,
@@ -161,7 +161,7 @@ const products = [
     category: 'ACCESORIOS',
     price: 85,
     stock: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1599599810694-a5d5b2fc1f30?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?auto=format&fit=crop&w=800&q=80',
     images: JSON.stringify([POUR_OVER, CUP_TOP]),
     description: 'Kit completo con drippers V60 y Chemex 3-cup. Incluye filtros de papel. Inicio perfecto en métodos de filtro.',
     isLimited: false,
@@ -173,7 +173,7 @@ const products = [
     category: 'ACCESORIOS',
     price: 45,
     stock: 40,
-    imageUrl: 'https://images.unsplash.com/photo-1447933601403-0c6688fa566e?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1521302080334-4bebac2763a6?auto=format&fit=crop&w=800&q=80',
     images: JSON.stringify([POUR_OVER, LATTE_ART]),
     description: 'Paquete de 100 filtros de papel premium. Compatibles con V60, Kalita, Melitta. Mejora la claridad del café.',
     isLimited: false,
@@ -185,7 +185,7 @@ const products = [
     category: 'MERCH',
     price: 25,
     stock: 60,
-    imageUrl: 'https://images.unsplash.com/photo-1572365992253-3cb3e56dd362?auto=format&fit=crop&w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=800&q=80',
     images: JSON.stringify([CUP_TOP, ESPRESSO]),
     description: 'Taza de cerámica con diseño de Café 12%. 12oz, apta para lavar en lavavajillas. Edición limitada.',
     isLimited: false,
@@ -197,8 +197,8 @@ const products = [
     category: 'MERCH',
     price: 55,
     stock: 30,
-    imageUrl: 'https://images.unsplash.com/photo-1556821552-5f94d2fdf561?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([]),
+    imageUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([u('1620799140408-edc6dcb6d633')]),
     description: 'Sudadera con capucha 100% algodón. Logo minimalista de Café 12% impreso. Unisex, tallas S-XL.',
     isLimited: false,
     isActive: true,

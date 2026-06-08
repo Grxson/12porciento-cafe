@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { recipesApi } from '../api';
 import { useUser } from '../context/UserContext';
 import type { Recipe } from '../types';
+import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 
 function getVideoEmbed(url: string): { type: 'youtube' | 'vimeo' | 'native' | 'link'; src: string } {
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/);
@@ -127,6 +128,7 @@ export default function Recipes() {
   const [methodFilter, setMethodFilter] = useState<string>('TODOS');
   const [search, setSearch] = useState<string>('');
   const [timerState, setTimerState] = useState<{ recipeId: string; stepIndex: number; secondsLeft: number } | null>(null);
+  const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
 
   useEffect(() => {
     recipesApi.list().then((r) => {
@@ -260,6 +262,15 @@ export default function Recipes() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {!isLocked && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setLiveRecipeId(recipe.id); }}
+                        className="p-1.5 text-coffee-500 hover:text-gold-400 transition-colors"
+                        title="Modo en vivo"
+                      >
+                        <Play className="w-4 h-4" />
+                      </button>
+                    )}
                     {!isLocked && (
                       <button
                         onClick={(e) => { e.stopPropagation(); downloadRecipePDF(recipe); }}
@@ -399,6 +410,13 @@ export default function Recipes() {
               Ver planes de suscripción
             </Link>
           </div>
+        )}
+
+        {liveRecipeId && (
+          <RecipeLiveMode
+            recipe={recipes.find((r) => r.id === liveRecipeId)!}
+            onClose={() => setLiveRecipeId(null)}
+          />
         )}
       </div>
     </div>

@@ -5,7 +5,7 @@ import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, 
 import { productsApi, reviewsApi, recipesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
-import { resolveImageUrl } from '../utils/imageUrl';
+import ProductGallery from '../components/ProductGallery';
 import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -89,6 +89,10 @@ export default function ProductDetail() {
     );
   }
 
+  const galleryImages = [product.imageUrl, ...(product.images ?? [])]
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i) as string[];
+
   const isCafe = product.category === 'CAFÉ';
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
@@ -114,20 +118,14 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Image */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }} className="relative">
-            <div className="aspect-[3/4] overflow-hidden">
-              <motion.img
-                src={resolveImageUrl(product.imageUrl)}
-                alt={product.name}
-                className="w-full h-full object-cover"
-                whileHover={{ scale: 1.04 }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-              />
-            </div>
-            <div className="absolute top-4 left-4 flex gap-2">
-              {product.isLimited && <span className="limited-badge uppercase tracking-wider">Edición Limitada</span>}
-            </div>
+            <ProductGallery
+              images={galleryImages}
+              alt={product.name}
+              badge={product.isLimited ? <span className="limited-badge uppercase tracking-wider">Edición Limitada</span> : null}
+            />
             {reviews.length > 0 && (
-              <div className="absolute bottom-4 left-4 bg-coffee-950/85 px-3 py-2 flex items-center gap-2">
+              <div className="absolute left-4 bg-coffee-950/85 px-3 py-2 flex items-center gap-2 z-10 pointer-events-none"
+                style={{ bottom: galleryImages.length > 1 ? 'calc(4.5rem + 0.5rem)' : '1rem' }}>
                 <StarRating value={Math.round(avgRating)} size={14} readonly />
                 <span className="text-cream text-xs font-medium">{avgRating.toFixed(1)} ({reviews.length})</span>
               </div>

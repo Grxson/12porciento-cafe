@@ -3,6 +3,19 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Unsplash URL builder (consistent sizing/quality across the gallery).
+const u = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=80`;
+
+// Reusable coffee gallery shots: roasted beans, pour-over, brewed cup, scoop, bag, latte.
+const BEANS_CLOSE = u('1559056199-641a0ac8b55e');
+const POUR_OVER   = u('1447933601403-0c6688fa566e');
+const CUP_TOP     = u('1461023058943-07fcbe16d735');
+const BEANS_SCOOP = u('1514432324607-a09d9b4aefdd');
+const COFFEE_BAG  = u('1559056172-bbd2e9e0f574');
+const LATTE_ART   = u('1510707577719-ae7c14805e3a');
+const ESPRESSO    = u('1497935586351-b67a49e012bf');
+const BEANS_HAND  = u('1442512595331-e89e73853f31');
+
 const products = [
   {
     name: 'Coatepec Lavado',
@@ -20,6 +33,7 @@ const products = [
     weight: 250,
     stock: 50,
     imageUrl: 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([POUR_OVER, BEANS_CLOSE, CUP_TOP, BEANS_SCOOP]),
     description: 'Lote de origen único proveniente de las faldas del Cofre de Perote. Perfil dulce y balanceado ideal para consumo diario. Producido por la familia Méndez en su tercera generación cafetalera.',
     isLimited: false,
     isActive: true,
@@ -40,6 +54,7 @@ const products = [
     weight: 250,
     stock: 35,
     imageUrl: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([BEANS_CLOSE, COFFEE_BAG, LATTE_ART, POUR_OVER]),
     description: 'Proceso natural que resalta la dulzura frutal del grano. Notas intensas a frutos rojos con un finish a cacao oscuro. Perfecto para método de filtro.',
     isLimited: false,
     isActive: true,
@@ -60,6 +75,7 @@ const products = [
     weight: 250,
     stock: 25,
     imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([BEANS_HAND, CUP_TOP, BEANS_SCOOP, ESPRESSO]),
     description: 'Proceso honey que preserva la mucilago del grano, otorgando dulzura tropical y cuerpo cremoso. Uno de nuestros lotes más complejos del año.',
     isLimited: false,
     isActive: true,
@@ -80,6 +96,7 @@ const products = [
     weight: 100,
     stock: 10,
     imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([BEANS_CLOSE, POUR_OVER, LATTE_ART, CUP_TOP]),
     description: 'Microlote de variedad Geisha cultivada a 1800 metros. Perfil floral excepcional con acidez cítrica brillante. Edición limitada de temporada — solo 10 bolsas disponibles.',
     isLimited: true,
     isActive: true,
@@ -100,6 +117,7 @@ const products = [
     weight: 150,
     stock: 15,
     imageUrl: 'https://images.unsplash.com/photo-1580933073521-dc49ac0d4e6a?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([BEANS_HAND, BEANS_SCOOP, POUR_OVER, CUP_TOP]),
     description: 'Proceso experimental anaeróbico de 72 horas en tanques sellados. Perfil intensamente frutal con notas a fermentación controlada. Para el explorador de sabores.',
     isLimited: true,
     isActive: true,
@@ -120,6 +138,7 @@ const products = [
     weight: 250,
     stock: 80,
     imageUrl: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([BEANS_CLOSE, CUP_TOP, ESPRESSO, COFFEE_BAG]),
     description: 'Nuestro blend emblema. Selección curada de los mejores lotes del año para ofrecer un perfil balanceado, consistente y accesible. Perfecto para espresso y métodos de filtro.',
     isLimited: false,
     isActive: true,
@@ -131,6 +150,7 @@ const products = [
     price: 95,
     stock: 20,
     imageUrl: 'https://images.unsplash.com/photo-1559547669-acf713ad3fb0?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([BEANS_SCOOP, BEANS_CLOSE]),
     description: 'Molino de mano manual con ajuste infinito. Diseño compacto, perfecto para viajes. Utilizado por campeones de cupping.',
     isLimited: false,
     isActive: true,
@@ -142,6 +162,7 @@ const products = [
     price: 85,
     stock: 15,
     imageUrl: 'https://images.unsplash.com/photo-1599599810694-a5d5b2fc1f30?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([POUR_OVER, CUP_TOP]),
     description: 'Kit completo con drippers V60 y Chemex 3-cup. Incluye filtros de papel. Inicio perfecto en métodos de filtro.',
     isLimited: false,
     isActive: true,
@@ -153,6 +174,7 @@ const products = [
     price: 45,
     stock: 40,
     imageUrl: 'https://images.unsplash.com/photo-1447933601403-0c6688fa566e?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([POUR_OVER, LATTE_ART]),
     description: 'Paquete de 100 filtros de papel premium. Compatibles con V60, Kalita, Melitta. Mejora la claridad del café.',
     isLimited: false,
     isActive: true,
@@ -164,6 +186,7 @@ const products = [
     price: 25,
     stock: 60,
     imageUrl: 'https://images.unsplash.com/photo-1572365992253-3cb3e56dd362?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([CUP_TOP, ESPRESSO]),
     description: 'Taza de cerámica con diseño de Café 12%. 12oz, apta para lavar en lavavajillas. Edición limitada.',
     isLimited: false,
     isActive: true,
@@ -175,6 +198,7 @@ const products = [
     price: 55,
     stock: 30,
     imageUrl: 'https://images.unsplash.com/photo-1556821552-5f94d2fdf561?auto=format&fit=crop&w=800&q=80',
+    images: JSON.stringify([]),
     description: 'Sudadera con capucha 100% algodón. Logo minimalista de Café 12% impreso. Unisex, tallas S-XL.',
     isLimited: false,
     isActive: true,
@@ -187,7 +211,8 @@ async function main() {
   for (const product of products) {
     await prisma.product.upsert({
       where: { slug: product.slug },
-      update: {},
+      // Refresh the visual fields so existing rows pick up cover + gallery on re-seed.
+      update: { imageUrl: product.imageUrl, images: product.images },
       create: product,
     });
   }

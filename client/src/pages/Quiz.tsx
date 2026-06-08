@@ -224,7 +224,7 @@ export default function Quiz() {
                   <button
                     key={opt.value}
                     onClick={() => answer(opt.value)}
-                    className="flex flex-col items-center gap-2 p-5 border border-coffee-700 hover:border-gold-500 hover:bg-coffee-800/40 transition-all duration-200 text-center group"
+                    className="flex flex-col items-center gap-2 p-4 sm:p-5 min-h-[80px] border border-coffee-700 hover:border-gold-500 hover:bg-coffee-800/40 transition-all duration-200 text-center group"
                   >
                     <span className="text-2xl">{opt.emoji}</span>
                     <span className="text-coffee-200 text-sm group-hover:text-cream transition-colors">{opt.label}</span>

@@ -27,16 +27,17 @@ export default function About() {
             src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1920&q=80"
             alt="Café farm"
             className="w-full h-full object-cover opacity-25"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-coffee-950/40 via-coffee-950/20 to-coffee-950" />
         </div>
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
             <div className="w-12 h-[2px] bg-gold-500 mb-6" />
-            <h1 className="font-serif text-5xl md:text-7xl text-cream mb-6 leading-tight">
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl text-cream mb-6 leading-tight">
               Nosotros
             </h1>
-            <p className="text-coffee-200 text-xl leading-relaxed max-w-2xl">
+            <p className="text-coffee-200 text-lg sm:text-xl leading-relaxed max-w-2xl">
               Somos un proyecto nacido de la obsesión por el café de especialidad mexicano.
               Creemos que la mejor taza del mundo puede venir de nuestro propio país.
             </p>
@@ -45,12 +46,12 @@ export default function About() {
       </section>
 
       {/* Mission — light bg */}
-      <section className="py-24">
+      <section className="py-12 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal>
               <div className="gold-line mb-6" />
-              <h2 className="font-serif text-4xl md:text-5xl text-coffee-900 leading-tight mb-6">
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 leading-tight mb-6">
                 ¿Por qué <em className="text-gold-600">12%</em>?
               </h2>
               <p className="text-coffee-700 leading-relaxed mb-5">
@@ -74,11 +75,13 @@ export default function About() {
                   src="https://images.unsplash.com/photo-1580933073521-dc49ac0d4e6a?auto=format&fit=crop&w=600&q=80"
                   alt="Pour over"
                   className="w-full aspect-[3/4] object-cover"
+                  loading="lazy"
                 />
                 <img
                   src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80"
                   alt="Coffee cup"
                   className="w-full aspect-[3/4] object-cover mt-8"
+                  loading="lazy"
                 />
               </div>
             </ScrollReveal>
@@ -87,11 +90,11 @@ export default function About() {
       </section>
 
       {/* Values — dark accent section */}
-      <section className="py-24 bg-coffee-900">
+      <section className="py-12 sm:py-24 bg-coffee-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mb-14">
             <div className="gold-line mb-5" />
-            <h2 className="font-serif text-4xl md:text-5xl text-cream leading-tight">Nuestros valores</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-cream leading-tight">Nuestros valores</h2>
           </ScrollReveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {values.map(({ title, body }, i) => (
@@ -108,11 +111,11 @@ export default function About() {
       </section>
 
       {/* Origins — light bg */}
-      <section id="origenes" className="py-24">
+      <section id="origenes" className="py-12 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mb-14">
             <div className="gold-line mb-5" />
-            <h2 className="font-serif text-4xl md:text-5xl text-coffee-900 leading-tight">Nuestros orígenes</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 leading-tight">Nuestros orígenes</h2>
             <p className="text-coffee-600 mt-4 max-w-xl">
               Trabajamos con zonas cafetaleras de México con denominación de origen e identidad climática única.
             </p>

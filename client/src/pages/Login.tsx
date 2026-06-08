@@ -48,7 +48,7 @@ export default function Login() {
                 type="email" required value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                 placeholder="tu@email.com"
               />
             </div>
@@ -58,7 +58,7 @@ export default function Login() {
                 type="password" required value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-                className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                 placeholder="••••••••"
               />
             </div>

@@ -93,7 +93,7 @@ export default function Register() {
                         name={name} type={type} required
                         value={(form as any)[name]} onChange={handleChange}
                         autoComplete={autoComplete}
-                        className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                        className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                         placeholder={placeholder}
                       />
                     </div>
@@ -144,7 +144,7 @@ export default function Register() {
                   <div>
                     <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
                     <select name="state" required value={address.state} onChange={handleAddressChange}
-                      className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none">
+                      className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none">
                       <option value="">Seleccionar</option>
                       {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>

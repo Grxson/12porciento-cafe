@@ -150,7 +150,7 @@ export default function Subscriptions() {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <div className="gold-line mx-auto mb-4" />
-            <h1 className="font-serif text-5xl md:text-6xl text-cream mb-3">Suscripciones</h1>
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-cream mb-3">Suscripciones</h1>
             <p className="text-coffee-400 text-sm leading-relaxed max-w-lg mx-auto">
               Selecciona tus cafés favoritos. Tostamos a pedido, enviamos frescos cada mes.
             </p>
@@ -361,7 +361,7 @@ export default function Subscriptions() {
                       name={name} type={type} required={required} placeholder={placeholder}
                       value={(form as any)[name]}
                       onChange={(e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))}
-                      className="input-dark"
+                      className="input-dark !text-base min-h-[48px]"
                     />
                   </div>
                 ))}

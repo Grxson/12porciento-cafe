@@ -1,0 +1,22 @@
+# HTTPS tunnel for testing the PWA install on a phone.
+#
+# The PWA install prompt (beforeinstallprompt) and service worker only work in a
+# secure context (HTTPS or localhost). Accessing the app over http://<LAN-IP> from
+# a phone is NOT a secure context, so no install option appears. This Cloudflare
+# "quick tunnel" gives a temporary public https://<random>.trycloudflare.com URL
+# (no account, no domain) that proxies to the client container — install works there.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d --build
+#   docker compose logs -f cloudflared   # copy the https://*.trycloudflare.com URL
+# Open that URL on the phone → menu → "Instalar app" appears.
+#
+# Stop the tunnel only:
+#   docker compose -f docker-compose.yml -f docker-compose.tunnel.yml stop cloudflared
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://client:80
+    depends_on:
+      - client
+    restart: unless-stopped

@@ -154,7 +154,7 @@ export default function Subscriptions() {
             <p className="text-coffee-400 text-sm leading-relaxed max-w-lg mx-auto">
               Selecciona tus cafés favoritos. Tostamos a pedido, enviamos frescos cada mes.
             </p>
-            <div className="flex items-center justify-center gap-8 mt-6 text-coffee-500 text-xs">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6 text-coffee-500 text-xs">
               <div className="flex items-center gap-2"><Truck className="w-3.5 h-3.5 text-gold-500" />Envío incluido</div>
               <div className="flex items-center gap-2"><RefreshCw className="w-3.5 h-3.5 text-gold-500" />Cancela cuando quieras</div>
               <div className="flex items-center gap-2"><Star className="w-3.5 h-3.5 text-gold-500" />SCA ≥ 84 pts</div>
@@ -178,7 +178,8 @@ export default function Subscriptions() {
                   }`}>
                     {step > n ? <Check className="w-3.5 h-3.5" /> : n}
                   </div>
-                  <span className={`text-xs transition-colors ${step === n ? 'text-cream' : 'text-coffee-600'}`}>{label}</span>
+                  <span className={`hidden sm:inline text-xs transition-colors ${step === n ? 'text-cream' : 'text-coffee-600'}`}>{label}</span>
+                  <span className={`sm:hidden text-[10px] leading-tight transition-colors ${step === n ? 'text-cream' : 'text-coffee-600'}`}>{label.split(' ')[0]}</span>
                 </div>
                 {i < stepLabels.length - 1 && <div className="flex-1 h-px bg-coffee-800 mx-3" />}
               </div>

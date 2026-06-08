@@ -244,13 +244,13 @@ export default function Recipes() {
 
                 {isLocked && (
                   <div className="px-5 pb-5">
-                    <div className="flex items-center gap-3 bg-gold-500/5 border border-gold-500/20 p-4">
-                      <Star className="w-5 h-5 text-gold-500 shrink-0" />
-                      <div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-gold-500/5 border border-gold-500/20 p-4">
+                      <Star className="w-5 h-5 text-gold-500 shrink-0 hidden sm:block" />
+                      <div className="flex-1 min-w-0">
                         <p className="text-cream text-sm font-medium">Receta exclusiva para suscriptores</p>
                         <p className="text-coffee-400 text-xs mt-0.5">Suscríbete para acceder a todas las recetas premium y más.</p>
                       </div>
-                      <Link to="/suscripciones" className="ml-auto shrink-0 px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors">
+                      <Link to="/suscripciones" className="self-start sm:self-auto shrink-0 px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors">
                         Ver planes
                       </Link>
                     </div>
@@ -303,7 +303,7 @@ export default function Recipes() {
                                   </p>
                                 )}
                                 {step.imageUrl && (
-                                  <img src={step.imageUrl} alt={step.title} className="mt-3 rounded-lg max-h-64 object-cover" />
+                                  <img src={step.imageUrl} alt={step.title} className="mt-3 rounded-lg w-full max-h-64 object-cover" />
                                 )}
                                 {step.videoUrl && (
                                   <StepVideoPlayer url={step.videoUrl} />

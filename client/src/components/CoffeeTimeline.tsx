@@ -91,18 +91,18 @@ export default function CoffeeTimeline({ product }: { product: Product }) {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.35, delay: i * 0.07 }}
-            className="flex gap-4 pb-5"
+            className="flex gap-3 pb-5"
           >
             <div className="flex flex-col items-center shrink-0">
-              <div className="w-10 h-10 rounded-full bg-white border-2 border-gold-500/50 flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-white border-2 border-gold-500/50 flex items-center justify-center shadow-sm">
                 <node.icon className="w-4 h-4 text-gold-500" />
               </div>
               {i < nodes.length - 1 && <div className="w-px flex-1 bg-coffee-200 mt-1 min-h-[16px]" />}
             </div>
-            <div className="pt-1.5">
+            <div className="pt-1 min-w-0 flex-1">
               <p className="text-[9px] text-gold-600 uppercase tracking-widest">{node.stage}</p>
-              <p className="font-serif text-coffee-900 text-sm">{node.value}</p>
-              <p className="text-coffee-500 text-xs mt-0.5 leading-relaxed">{node.detail}</p>
+              <p className="font-serif text-coffee-900 text-sm break-words">{node.value}</p>
+              <p className="text-coffee-500 text-xs mt-0.5 leading-relaxed break-words">{node.detail}</p>
             </div>
           </motion.div>
         ))}

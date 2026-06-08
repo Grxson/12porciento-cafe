@@ -244,9 +244,11 @@ export default function Home() {
             </div>
           </ScrollReveal>
 
-          <div className="relative flex flex-col md:flex-row items-start md:items-center gap-0">
+          <div className="relative flex flex-col md:flex-row items-center md:items-start gap-0">
             {/* Connecting line — desktop only */}
             <div className="hidden md:block absolute top-10 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-gold-500/40 to-transparent" />
+            {/* Connecting line — mobile only (vertical, centered) */}
+            <div className="md:hidden absolute top-10 bottom-10 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-transparent via-gold-500/30 to-transparent" />
 
             {[
               { num: '01', icon: Sprout, title: 'Origen', desc: 'Fincas seleccionadas en alturas de 1,200–1,800 msnm en Veracruz y Chiapas' },
@@ -255,13 +257,13 @@ export default function Home() {
               { num: '04', icon: Flame, title: 'Tueste', desc: 'Perfil de tueste único por origen, ejecutado en lotes pequeños a pedido' },
               { num: '05', icon: Coffee, title: 'Tu Taza', desc: 'Envío dentro de los 7 días del tueste para máxima frescura garantizada' },
             ].map(({ num, icon: Icon, title, desc }, i) => (
-              <ScrollReveal key={num} delay={i * 0.12} direction="up" className="flex-1 flex flex-col items-center text-center px-4 py-6 relative z-10">
-                <div className="w-20 h-20 rounded-full bg-coffee-800 border-2 border-gold-500/50 flex items-center justify-center mb-4 group-hover:border-gold-500 transition-colors">
-                  <Icon className="w-8 h-8 text-gold-400" />
+              <ScrollReveal key={num} delay={i * 0.12} direction="up" className="flex-1 w-full flex flex-col items-center text-center px-4 py-4 md:py-6 relative z-10">
+                <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-coffee-800 border-2 border-gold-500/50 flex items-center justify-center mb-3 md:mb-4 transition-colors">
+                  <Icon className="w-6 h-6 md:w-8 md:h-8 text-gold-400" />
                 </div>
                 <span className="text-[10px] text-gold-600 tracking-[0.3em] uppercase mb-1">{num}</span>
-                <h3 className="font-serif text-xl text-cream mb-2">{title}</h3>
-                <p className="text-coffee-400 text-xs leading-relaxed max-w-[180px]">{desc}</p>
+                <h3 className="font-serif text-lg md:text-xl text-cream mb-1 md:mb-2">{title}</h3>
+                <p className="text-coffee-400 text-xs leading-relaxed max-w-[240px] md:max-w-[180px]">{desc}</p>
               </ScrollReveal>
             ))}
           </div>

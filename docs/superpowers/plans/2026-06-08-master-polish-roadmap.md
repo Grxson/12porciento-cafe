@@ -1,8 +1,14 @@
 # Master Polish Roadmap — 4 Initiatives Consolidated
 
-> **Status:** 4 detailed plans ready for execution. This document consolidates scope, dependencies, sequence, and timeline. Use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute task-by-task.
+> **STATUS (verified 2026-06-08): ALL 4 INITIATIVES ALREADY SHIPPED.** Gallery, Stripe hardening (S1–S4), Recipes CRUD refactor, and PWA overhaul are all implemented on `main`. Full client test suite green (45/45). This doc was authored from stale plan files whose `- [ ]` checkboxes were never ticked, but the code had already landed in prior sessions (Feature Sprint May 2026, Admin Overhaul Jun 2026, gallery commits Jun 7). Kept as a historical scope/architecture reference. **No execution remaining.**
 
-**Timeline:** 12–18 hours total. Execution order: Gallery → Stripe → Recipes → PWA.
+**Verification evidence:**
+- Gallery: `server/prisma/schema.prisma` (`images String?`), `client/src/admin/components/GalleryUploader.tsx`, `client/src/components/ProductGallery.tsx`, `ProductDetail.tsx` wired. GalleryUploader 4 tests pass.
+- Stripe: `payments.ts` idempotencyKey+metadata, `orders.ts` idempotent+`$transaction`+P2002, `webhook.ts` payment_failed, `client/src/services/paymentRetry.ts` (10 tests) + Idempotency-Key header.
+- Recipes: `RecipesContext.tsx`, `hooks/useRecipes.ts` (4 tests), `components/recipes/{RecipeList,RecipeEditor,StepEditor,StepList}.tsx`, admin `Recipes.tsx` refactored, integration test (4 tests).
+- PWA: `hooks/useInstallPrompt.ts` (3 tests), `components/InstallPrompt.tsx` (4 tests), `components/BottomNav.tsx`, `utils/imageUrl.ts`.
+
+**Timeline (original estimate, now moot):** 12–18 hours total. Execution order was: Gallery → Stripe → Recipes → PWA.
 
 ---
 

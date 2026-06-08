@@ -18,7 +18,7 @@ const roasts    = ['Todos', 'Ligero', 'Medio-Ligero', 'Medio', 'Oscuro'];
 
 function ShopSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="overflow-hidden border border-coffee-200">
           <div className="aspect-[3/4] shimmer" />
@@ -48,6 +48,7 @@ export default function Shop() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -145,14 +146,14 @@ export default function Shop() {
           ))}
         </div>
 
-        {/* Filter bar */}
+        {/* Filter bar — desktop only */}
         <AnimatePresence>
           {isCafe && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
+              className="overflow-hidden hidden md:block"
             >
               <div className="flex flex-wrap gap-x-6 gap-y-3 items-center pb-6 mb-6 border-b border-coffee-200">
                 <div className="flex items-center gap-1.5 text-coffee-500">
@@ -191,8 +192,8 @@ export default function Shop() {
           )}
         </AnimatePresence>
 
-        {/* Sort select */}
-        <div className="flex justify-end mb-8">
+        {/* Sort select — desktop only */}
+        <div className="hidden md:flex justify-end mb-8">
           <div className="relative">
             <select value={sort} onChange={(e) => handleSortChange(e.target.value)}
               className="appearance-none bg-white border border-coffee-300 text-coffee-700 text-xs pl-3 pr-8 py-2 outline-none hover:border-coffee-500 transition-colors cursor-pointer">
@@ -205,6 +206,141 @@ export default function Shop() {
           </div>
         </div>
 
+        {/* Mobile toolbar — Filtros button + sort select */}
+        <div className="flex items-center gap-3 mb-6 md:hidden">
+          <button
+            onClick={() => setFiltersOpen(true)}
+            className="flex items-center gap-2 border border-coffee-300 text-coffee-700 text-xs px-4 py-2.5 hover:border-coffee-500 transition-colors relative min-h-[40px]"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Filtros
+            {(process !== 'Todos' || roast !== 'Todos' || category !== 'TODOS') && (
+              <span className="absolute -top-1.5 -right-1.5 bg-gold-500 text-coffee-950 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                {[process !== 'Todos', roast !== 'Todos', category !== 'TODOS'].filter(Boolean).length}
+              </span>
+            )}
+          </button>
+          <div className="relative flex-1">
+            <select
+              value={sort}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="appearance-none w-full bg-white border border-coffee-300 text-coffee-700 text-xs pl-3 pr-8 py-2.5 outline-none hover:border-coffee-500 transition-colors cursor-pointer"
+            >
+              <option value="newest">Más recientes</option>
+              {isCafe && <option value="sca">Mayor puntaje SCA</option>}
+              <option value="price_asc">Precio: menor a mayor</option>
+              <option value="price_desc">Precio: mayor a menor</option>
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-coffee-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Mobile bottom sheet */}
+        <AnimatePresence>
+          {filtersOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-coffee-950/70 md:hidden"
+                onClick={() => setFiltersOpen(false)}
+              />
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+                className="fixed bottom-0 left-0 right-0 z-50 bg-coffee-900 border-t border-coffee-800 p-5 space-y-4 md:hidden max-h-[80vh] overflow-y-auto"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 1.25rem)' }}
+              >
+                {/* Sheet header */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-cream font-serif text-lg">Filtros</h3>
+                  <button
+                    onClick={() => setFiltersOpen(false)}
+                    aria-label="Cerrar"
+                    className="text-coffee-400 hover:text-cream"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Category */}
+                <div className="space-y-2">
+                  <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Categoría</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => handleCategoryChange(cat.id)}
+                        className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                          category === cat.id
+                            ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                            : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Process — only relevant for café */}
+                {isCafe && (
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Proceso</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {processes.map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => { setProcess(p); setPage(1); }}
+                          className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                            process === p
+                              ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                              : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Roast — only relevant for café */}
+                {isCafe && (
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Tueste</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {roasts.map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => { setRoast(r); setPage(1); }}
+                          className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                            roast === r
+                              ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                              : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                          }`}
+                        >
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setFiltersOpen(false)}
+                  className="w-full bg-gold-500 text-coffee-950 font-semibold py-3 mt-2 min-h-[48px]"
+                >
+                  Ver resultados
+                </button>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Grid */}
         {loading ? (
           <ShopSkeleton />
@@ -215,7 +351,7 @@ export default function Shop() {
             <button onClick={resetFilters} className="btn-outline">Ver todos</button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {products.map((product, i) => (
               <ProductCard key={product.id} product={product} index={i} />
             ))}

@@ -96,7 +96,9 @@
       "Read(//tmp/**)",
       "Bash(node -e \"console.log\\('INACTIVE'.toLowerCase\\(\\).includes\\('ACTIVE'.toLowerCase\\(\\)\\)\\)\")",
       "Bash(npx vitest *)",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(grep -n 'findUnique.*paymentIntentId\\\\|paymentIntentId.*findUnique\\\\|$transaction' server/src/routes/orders.ts)",
+      "Bash(echo \"Exit: $?\")"
     ]
   }
 }

@@ -126,6 +126,7 @@ export default function Recipes() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [methodFilter, setMethodFilter] = useState<string>('TODOS');
   const [search, setSearch] = useState<string>('');
+  const [timerState, setTimerState] = useState<{ recipeId: string; stepIndex: number; secondsLeft: number } | null>(null);
 
   useEffect(() => {
     recipesApi.list().then((r) => {
@@ -133,6 +134,22 @@ export default function Recipes() {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!timerState || timerState.secondsLeft <= 0) return;
+    const interval = setInterval(() => {
+      setTimerState((prev) => {
+        if (!prev || prev.secondsLeft <= 1) {
+          if (typeof Audio !== 'undefined') {
+            new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==').play().catch(() => {});
+          }
+          return null;
+        }
+        return { ...prev, secondsLeft: prev.secondsLeft - 1 };
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timerState]);
 
   const methods = ['TODOS', ...Array.from(new Set(recipes.map((r) => r.method))).sort()];
   const filtered = methodFilter === 'TODOS' ? recipes : recipes.filter((r) => r.method === methodFilter);
@@ -325,6 +342,30 @@ export default function Recipes() {
                                 )}
                                 {step.videoUrl && (
                                   <StepVideoPlayer url={step.videoUrl} />
+                                )}
+
+                                {step.duration && !timerState && (
+                                  <button
+                                    onClick={() => setTimerState({ recipeId: recipe.id, stepIndex: i, secondsLeft: step.duration! })}
+                                    className="mt-2 flex items-center gap-1 px-3 py-1 bg-gold-500/10 border border-gold-500/30 text-gold-400 text-xs hover:bg-gold-500/20 transition-colors"
+                                  >
+                                    <Clock className="w-3 h-3" /> Iniciar temporizador ({step.duration}s)
+                                  </button>
+                                )}
+
+                                {timerState?.recipeId === recipe.id && timerState?.stepIndex === i && (
+                                  <div className="mt-3 p-3 bg-gold-500/10 border border-gold-500/30 rounded">
+                                    <div className="text-center">
+                                      <p className="text-xs text-gold-400 uppercase tracking-wider mb-1">Temporizador activo</p>
+                                      <p className="text-3xl font-bold text-gold-400 font-mono">{timerState.secondsLeft}s</p>
+                                    </div>
+                                    <button
+                                      onClick={() => setTimerState(null)}
+                                      className="mt-2 w-full px-3 py-1 bg-red-600/30 border border-red-600/50 text-red-400 text-xs hover:bg-red-600/40 transition-colors"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             </div>

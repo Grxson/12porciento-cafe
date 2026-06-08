@@ -56,6 +56,7 @@ export interface Product {
   scaScore?: number;
   roastLevel?: string;
   flavors: string[];
+  images?: string[];
   price: number;
   weight?: number;
   stock: number;

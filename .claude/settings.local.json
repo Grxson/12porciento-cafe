@@ -98,7 +98,11 @@
       "Bash(npx vitest *)",
       "Bash(npm test *)",
       "Bash(grep -n 'findUnique.*paymentIntentId\\\\|paymentIntentId.*findUnique\\\\|$transaction' server/src/routes/orders.ts)",
-      "Bash(echo \"Exit: $?\")"
+      "Bash(echo \"Exit: $?\")",
+      "Bash(npx ts-node *)",
+      "Bash(node_modules/.bin/ts-node prisma/seed.ts)",
+      "Bash(node *)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" node *)"
     ]
   }
 }

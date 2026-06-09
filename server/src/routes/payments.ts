@@ -112,7 +112,7 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
       currency: 'mxn',
       ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
       ...(paymentMethodId
-        ? { payment_method: paymentMethodId, confirmation_method: 'manual' }
+        ? { payment_method: paymentMethodId }
         : { automatic_payment_methods: { enabled: true } }),
       metadata: {
         items: JSON.stringify(items.map((i) => ({ productId: i.productId, quantity: i.quantity }))),

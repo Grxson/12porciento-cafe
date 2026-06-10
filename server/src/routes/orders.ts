@@ -199,8 +199,10 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
       }
     }
 
-    const ps = pageSize ? Math.min(parseInt(pageSize as string), 200) : 50;
-    const pg = page ? Math.max(parseInt(page as string) - 1, 0) : 0;
+    const psRaw = parseInt(pageSize as string);
+    const ps = Number.isInteger(psRaw) ? Math.min(Math.max(psRaw, 1), 200) : 50;
+    const pgRaw = parseInt(page as string);
+    const pg = Number.isInteger(pgRaw) ? Math.max(pgRaw - 1, 0) : 0;
 
     const [orders, total] = await prisma.$transaction([
       prisma.order.findMany({

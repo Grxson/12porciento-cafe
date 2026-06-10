@@ -25,16 +25,36 @@ router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
 router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { code, discount, type, maxUses, expiresAt } = req.body;
-    if (!code || discount == null) {
-      res.status(400).json({ error: 'Código y descuento son requeridos' });
+    if (!code || typeof code !== 'string' || code.trim().length < 2 || code.length > 50) {
+      res.status(400).json({ error: 'Código debe tener entre 2 y 50 caracteres' });
+      return;
+    }
+    const discountNum = parseFloat(discount);
+    if (!Number.isFinite(discountNum) || discountNum <= 0) {
+      res.status(400).json({ error: 'Descuento debe ser mayor a 0' });
+      return;
+    }
+    const validTypes = ['FIXED', 'PERCENTAGE', 'PERCENT'];
+    const promoType = type ?? 'PERCENTAGE';
+    if (!validTypes.includes(promoType)) {
+      res.status(400).json({ error: 'Tipo inválido' });
+      return;
+    }
+    if (promoType !== 'FIXED' && discountNum > 100) {
+      res.status(400).json({ error: 'Descuento porcentual no puede superar 100%' });
+      return;
+    }
+    const maxUsesNum = maxUses != null ? parseInt(maxUses) : null;
+    if (maxUsesNum !== null && (!Number.isInteger(maxUsesNum) || maxUsesNum < 1)) {
+      res.status(400).json({ error: 'maxUses debe ser entero positivo' });
       return;
     }
     const promo = await prisma.promoCode.create({
       data: {
-        code: (code as string).toUpperCase(),
-        discount: parseFloat(discount),
-        type: type ?? 'PERCENTAGE',
-        maxUses: maxUses ? parseInt(maxUses) : null,
+        code: code.trim().toUpperCase(),
+        discount: discountNum,
+        type: promoType,
+        maxUses: maxUsesNum,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
     });

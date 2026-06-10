@@ -212,6 +212,7 @@ model Recipe {
   product     Product? @relation("productRecipes", fields: [productId], references: [id], onDelete: SetNull)
 
   steps       RecipeStep[]
+  brewLogs    BrewLog[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -294,4 +295,62 @@ model User {
   reviews                      Review[]
   subscriptions                Subscription[]
   reviewReplies                ReviewReply[] @relation("reviewReplies")
+  baristaProfile               BaristaProfile?
+}
+
+model BaristaProfile {
+  id             String              @id @default(cuid())
+  userId         String              @unique
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level          Int                 @default(1)
+  totalXp        Int                 @default(0)
+  totalBrews     Int                 @default(0)
+  favoriteMethod String?
+  brewLogs       BrewLog[]
+  achievements   AchievementUnlock[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([userId])
+}
+
+model BrewLog {
+  id             String         @id @default(cuid())
+  userId         String
+  baristaProfile BaristaProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  recipeId       String
+  recipe         Recipe         @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  rating         Int            @default(3)
+  notes          String?
+  photoUrl       String?
+  xpEarned       Int            @default(0)
+  createdAt      DateTime       @default(now())
+
+  @@index([userId])
+  @@index([recipeId])
+}
+
+model Achievement {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  name        String
+  description String
+  icon        String
+  rarity      String              @default("COMMON")
+  xpReward    Int                 @default(10)
+  unlocks     AchievementUnlock[]
+
+  @@index([slug])
+}
+
+model AchievementUnlock {
+  id             String         @id @default(cuid())
+  userId         String
+  baristaProfile BaristaProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  achievementId  String
+  achievement    Achievement    @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt     DateTime       @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
 }

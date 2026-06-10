@@ -142,7 +142,7 @@ export default function PaymentMethod() {
     setLoading(true);
     usersApi.listPaymentMethods()
       .then((r) => { setMethods(r.data.methods); setDefaultId(r.data.defaultId); })
-      .catch(() => {})
+      .catch(() => { add('Error al cargar métodos de pago', 'error'); })
       .finally(() => setLoading(false));
   };
 
@@ -160,10 +160,14 @@ export default function PaymentMethod() {
   };
 
   const handleSetDefault = async (pmId: string) => {
-    await usersApi.setDefaultPaymentMethod(pmId);
-    setDefaultId(pmId);
-    await refreshUser();
-    add('Tarjeta predeterminada actualizada', 'success');
+    try {
+      await usersApi.setDefaultPaymentMethod(pmId);
+      setDefaultId(pmId);
+      await refreshUser();
+      add('Tarjeta predeterminada actualizada', 'success');
+    } catch {
+      add('Error al actualizar tarjeta predeterminada', 'error');
+    }
   };
 
   if (loading) return (

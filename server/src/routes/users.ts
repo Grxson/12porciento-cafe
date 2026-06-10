@@ -111,6 +111,12 @@ router.get('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) =
 router.put('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const { name, phone, address, city, state, zipCode, avatarUrl } = req.body;
+    if (name !== undefined && (typeof name !== 'string' || name.trim().length < 1 || name.length > 100)) {
+      return res.status(400).json({ error: 'Nombre inválido (máx 100 caracteres)' });
+    }
+    if (avatarUrl !== undefined && avatarUrl !== null && (typeof avatarUrl !== 'string' || avatarUrl.length > 80_000)) {
+      return res.status(400).json({ error: 'Avatar demasiado grande' });
+    }
     const user = await prisma.user.update({
       where: { id: req.user!.id },
       data: { name, phone, address, city, state, zipCode, ...(avatarUrl !== undefined ? { avatarUrl } : {}) },

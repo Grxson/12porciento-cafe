@@ -29,18 +29,27 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Nombre, email y contraseña requeridos' });
       return;
     }
-    if (password.length < 6) {
-      res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+    if (typeof name !== 'string' || name.trim().length < 2 || name.length > 100) {
+      res.status(400).json({ error: 'Nombre debe tener entre 2 y 100 caracteres' });
       return;
     }
-    const existing = await prisma.user.findUnique({ where: { email } });
+    if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      res.status(400).json({ error: 'Email inválido' });
+      return;
+    }
+    if (password.length < 6 || password.length > 128) {
+      res.status(400).json({ error: 'La contraseña debe tener entre 6 y 128 caracteres' });
+      return;
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
       res.status(409).json({ error: 'Ya existe una cuenta con este email' });
       return;
     }
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name, email, password: hashed },
+      data: { name: name.trim(), email: normalizedEmail, password: hashed },
       select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
     });
     const token = jwt.sign(
@@ -62,7 +71,7 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Email y contraseña requeridos' });
       return;
     }
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
     if (!user) {
       res.status(401).json({ error: 'Credenciales inválidas' });
       return;

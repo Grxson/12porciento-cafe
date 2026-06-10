@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Star, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useBarista } from '../hooks/useBarista';
@@ -23,11 +23,22 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const objectUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPhotoPreview(URL.createObjectURL(file));
+    const objectUrl = URL.createObjectURL(file);
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    objectUrlRef.current = objectUrl;
+    setPhotoPreview(objectUrl);
     setUploading(true);
     try {
       const res = await uploadsApi.upload(file);
@@ -47,6 +58,8 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || uploading) return;
+    setSubmitting(true);
     try {
       const { newAchievements } = await submitBrewLog({
         recipeId: recipe.id,
@@ -62,6 +75,8 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
       onClose();
     } catch {
       // error shown from hook state
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -148,7 +163,11 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
               <img src={photoPreview} alt="Preview" className="w-full h-28 object-cover rounded" />
               <button
                 type="button"
-                onClick={() => { setPhotoPreview(null); setPhotoUrl(''); }}
+                onClick={() => {
+                  if (objectUrlRef.current) { URL.revokeObjectURL(objectUrlRef.current); objectUrlRef.current = null; }
+                  setPhotoPreview(null);
+                  setPhotoUrl('');
+                }}
                 className="absolute top-1 right-1 p-1 bg-red-600/80 text-white rounded"
               >
                 <X className="w-3.5 h-3.5" />
@@ -170,10 +189,10 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
         <button
           type="submit"
-          disabled={loading || uploading}
+          disabled={submitting || uploading}
           className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {uploading ? 'Subiendo foto...' : loading ? 'Registrando...' : `Registrar Brew (+${xpPreview} XP)`}
+          {uploading ? 'Subiendo foto...' : submitting ? 'Registrando...' : `Registrar Brew (+${xpPreview} XP)`}
         </button>
       </motion.form>
     </motion.div>

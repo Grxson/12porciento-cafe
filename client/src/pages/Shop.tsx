@@ -63,12 +63,14 @@ export default function Shop() {
     if (category !== 'TODOS') params.category = category;
     if (search) params.search = search;
 
-    productsApi.list(params).then((r) => {
-      setProducts(r.data.data);
-      setTotal(r.data.total);
-      setTotalPages(r.data.totalPages);
-      setLoading(false);
-    });
+    productsApi.list(params)
+      .then((r) => {
+        setProducts(r.data.data);
+        setTotal(r.data.total);
+        setTotalPages(r.data.totalPages);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [process, roast, sort, category, search, page]);
 
   const isCafe = category === 'CAFÉ' || category === 'TODOS';

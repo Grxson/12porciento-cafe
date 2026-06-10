@@ -30,14 +30,16 @@ export default function Subscription() {
   const setHasSubscription = useUser((s) => s.setHasSubscription);
 
   useEffect(() => {
-    usersApi.mySubscription().then((r) => {
-      setSub(r.data);
-      if (r.data) {
-        setEditCoffees(r.data.items?.map((i: any) => i.productId) ?? []);
-        setEditGrind((r.data.grindPreference as 'MOLIDO' | 'GRANO') ?? 'GRANO');
-      }
-      setLoading(false);
-    });
+    usersApi.mySubscription()
+      .then((r) => {
+        setSub(r.data);
+        if (r.data) {
+          setEditCoffees(r.data.items?.map((i: any) => i.productId) ?? []);
+          setEditGrind((r.data.grindPreference as 'MOLIDO' | 'GRANO') ?? 'GRANO');
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const handleCancel = async () => {

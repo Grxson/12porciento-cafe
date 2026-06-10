@@ -38,12 +38,14 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!slug) return;
-    productsApi.getBySlug(slug).then((r) => {
-      setProduct(r.data);
-      setLoading(false);
-      reviewsApi.listByProduct(r.data.id).then((rr) => setReviews(rr.data.data || []));
-      recipesApi.list({ productId: r.data.id }).then((rr) => setProductRecipes(rr.data.data)).catch(() => {});
-    });
+    productsApi.getBySlug(slug)
+      .then((r) => {
+        setProduct(r.data);
+        reviewsApi.listByProduct(r.data.id).then((rr) => setReviews(rr.data.data || [])).catch(() => {});
+        recipesApi.list({ productId: r.data.id }).then((rr) => setProductRecipes(rr.data.data)).catch(() => {});
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [slug]);
 
   const handleAdd = () => {

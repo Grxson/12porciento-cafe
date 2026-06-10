@@ -12,7 +12,10 @@ function calculateXp(recipeDifficulty: string, rating: number): number {
 async function checkAndUnlockAchievements(userId: string): Promise<{ id: string; name: string; icon: string; xpReward: number }[]> {
   const profile = await prisma.baristaProfile.findUnique({
     where: { userId },
-    include: { achievements: true, brewLogs: true },
+    include: {
+      achievements: { include: { achievement: true } },
+      brewLogs: true,
+    },
   });
   if (!profile) return [];
 
@@ -29,7 +32,7 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
 
   for (const c of candidates) {
     if (!c.met) continue;
-    const alreadyUnlocked = profile.achievements.some((a) => a.achievementId === c.slug);
+    const alreadyUnlocked = profile.achievements.some((a) => a.achievement.slug === c.slug);
     if (alreadyUnlocked) continue;
     const achievement = await prisma.achievement.findUnique({ where: { slug: c.slug } });
     if (!achievement) continue;
@@ -99,7 +102,7 @@ router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Res
         photoUrl: photoUrl?.trim() ?? null,
         xpEarned,
       },
-      include: { recipe: { select: { id: true, title: true } } },
+      include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
     });
 
     const newTotalXp = profile.totalXp + xpEarned;
@@ -140,7 +143,7 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
           orderBy: { unlockedAt: 'desc' },
         },
         brewLogs: {
-          include: { recipe: { select: { id: true, title: true, method: true } } },
+          include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
           orderBy: { createdAt: 'desc' },
           take: 10,
         },

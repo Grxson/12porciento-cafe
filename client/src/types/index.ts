@@ -216,7 +216,7 @@ export interface BrewLog {
   id: string;
   userId: string;
   recipeId: string;
-  recipe: { id: string; title: string; method: string };
+  recipe: { id: string; title: string; method: string; difficulty?: string };
   rating: number;
   notes?: string;
   photoUrl?: string;

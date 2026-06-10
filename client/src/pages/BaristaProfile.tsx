@@ -121,7 +121,7 @@ export default function BaristaProfile() {
                     <div className="flex-1 min-w-0">
                       <p className="text-cream font-medium truncate">{brew.recipe.title}</p>
                       <p className="text-xs text-coffee-500 mt-0.5">
-                        {brew.recipe.method} · {new Date(brew.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                        {brew.recipe.method}{brew.recipe.difficulty ? ` · ${brew.recipe.difficulty}` : ''} · {new Date(brew.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
                       </p>
                       {brew.notes && <p className="text-sm text-coffee-300 mt-2 line-clamp-2">{brew.notes}</p>}
                     </div>

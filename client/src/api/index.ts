@@ -26,7 +26,7 @@ api.interceptors.response.use(
       } else {
         localStorage.removeItem('user_token');
         if (window.location.pathname !== '/login') {
-          window.location.href = `/login?return=${encodeURIComponent(window.location.pathname)}`;
+          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
         }
       }
     }

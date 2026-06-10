@@ -28,11 +28,12 @@ function AchievementSkeleton() {
 export default function AchievementGallery() {
   const [achievements, setAchievements] = useState<AchievementWithUnlock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     baristaApi.getAchievements()
       .then((res) => setAchievements(res.data.achievements))
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,6 +54,16 @@ export default function AchievementGallery() {
 
         {loading ? (
           <AchievementSkeleton />
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-coffee-500 text-sm mb-3">No se pudieron cargar los logros.</p>
+            <button
+              onClick={() => { setError(false); setLoading(true); baristaApi.getAchievements().then((res) => setAchievements(res.data.achievements)).catch(() => setError(true)).finally(() => setLoading(false)); }}
+              className="text-xs text-gold-500 hover:text-gold-400 underline transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
         ) : achievements.length === 0 ? (
           <p className="text-center text-coffee-500 py-12">No hay logros disponibles aún.</p>
         ) : (

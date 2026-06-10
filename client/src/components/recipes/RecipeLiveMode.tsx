@@ -49,7 +49,6 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   };
 
   return (
-    <AnimatePresence>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -75,10 +74,12 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
       {/* Main content */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-6">
+        <AnimatePresence mode="wait">
         <motion.div
           key={step.id}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           className="max-w-2xl w-full text-center"
         >
           {/* Step number badge */}
@@ -139,6 +140,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
             </div>
           )}
         </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Navigation */}
@@ -175,6 +177,5 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         </button>
       </div>
     </motion.div>
-    </AnimatePresence>
   );
 }

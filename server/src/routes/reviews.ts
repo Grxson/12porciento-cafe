@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
@@ -36,7 +37,19 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
 
 router.post('/product/:productId', reviewLimiter, async (req: Request, res: Response) => {
   try {
-    const { name, email, rating, comment, userId } = req.body;
+    const { name, email, rating, comment } = req.body;
+    // Extract userId from token — ignore body to prevent IDOR
+    let userId: string | undefined;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const payload = jwt.verify(
+          authHeader.replace('Bearer ', ''),
+          process.env.JWT_SECRET!,
+        ) as { id: string; role?: string };
+        if (payload.role === 'USER') userId = payload.id;
+      } catch { /* anonymous review */ }
+    }
     if (!name || !email || !rating || !comment) {
       return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }

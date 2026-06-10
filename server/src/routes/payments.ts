@@ -66,6 +66,9 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items requeridos' });
   }
+  if (items.some((i) => !i.productId || !Number.isInteger(i.quantity) || i.quantity < 1 || i.quantity > 99)) {
+    return res.status(400).json({ error: 'Cantidad debe ser entre 1 y 99 por producto' });
+  }
 
   let amount: number;
 

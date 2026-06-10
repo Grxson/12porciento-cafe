@@ -16,8 +16,15 @@ export default function BaristaProfile() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-coffee-950 pt-24 flex items-center justify-center">
-        <p className="text-coffee-400">{error || 'Perfil de barista no encontrado'}</p>
+      <div className="min-h-screen bg-coffee-950 pt-24 flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <Coffee className="w-12 h-12 text-coffee-700 mx-auto mb-4" />
+          <h2 className="font-serif text-2xl text-cream mb-2">Sin brews aún</h2>
+          <p className="text-coffee-400 text-sm mb-6">
+            Prepara una receta en modo en vivo y regístrala para comenzar tu camino como barista.
+          </p>
+          <a href="/recetas" className="btn-primary">Ver recetas</a>
+        </div>
       </div>
     );
   }

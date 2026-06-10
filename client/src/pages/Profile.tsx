@@ -40,14 +40,20 @@ export default function Profile() {
             <h1 className="font-serif text-3xl text-cream">{user?.name}</h1>
             <p className="text-coffee-400 text-sm">{user?.email}</p>
           </div>
-          {baristaProfile && user && (
+          {user && (
             <Link
               to={`/perfil/barista/${user.id}`}
               className="flex flex-col items-center gap-1 px-4 py-2 bg-gold-500/10 border border-gold-500/30 hover:border-gold-500 transition-colors shrink-0"
             >
               <Trophy className="w-4 h-4 text-gold-500" />
-              <p className="text-gold-400 font-bold text-sm">Nv. {baristaProfile.level}</p>
-              <p className="text-[10px] text-coffee-500">{baristaProfile.totalXp} XP</p>
+              {baristaProfile ? (
+                <>
+                  <p className="text-gold-400 font-bold text-sm">Nv. {baristaProfile.level}</p>
+                  <p className="text-[10px] text-coffee-500">{baristaProfile.totalXp} XP</p>
+                </>
+              ) : (
+                <p className="text-[10px] text-coffee-500 text-center leading-tight">Barista<br/>Level</p>
+              )}
             </Link>
           )}
         </div>

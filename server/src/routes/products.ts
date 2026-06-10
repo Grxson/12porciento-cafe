@@ -31,14 +31,17 @@ router.get('/', async (req: Request, res: Response) => {
       sort === 'price_desc' ? { price: 'desc' } :
                               { createdAt: 'desc' };
 
-    const ps = pageSize ? Math.min(parseInt(pageSize as string), 100) : undefined;
-    const pg = page ? Math.max(parseInt(page as string) - 1, 0) : 0;
+    const psRaw = parseInt(pageSize as string);
+    const ps = Number.isInteger(psRaw) ? Math.min(psRaw, 100) : undefined;
+    const pgRaw = parseInt(page as string);
+    const pg = Number.isInteger(pgRaw) ? Math.max(pgRaw - 1, 0) : 0;
+    const limitRaw = parseInt(limit as string);
 
     const [products, total] = await prisma.$transaction([
       prisma.product.findMany({
         where,
         orderBy,
-        take: ps ?? (limit ? parseInt(limit as string) : undefined),
+        take: ps ?? (Number.isInteger(limitRaw) ? limitRaw : undefined),
         skip: ps ? pg * ps : undefined,
       }),
       prisma.product.count({ where }),

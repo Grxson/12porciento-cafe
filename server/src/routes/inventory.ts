@@ -58,8 +58,8 @@ router.get('/movements', requireAuth, async (req: AuthRequest, res: Response) =>
       if (dateTo) { const e = new Date(dateTo as string); e.setHours(23, 59, 59, 999); where.createdAt.lte = e; }
     }
 
-    const ps = pageSize ? Math.min(parseInt(pageSize as string), 200) : 50;
-    const pg = page ? Math.max(parseInt(page as string) - 1, 0) : 0;
+    const ps = Math.min(parseInt(pageSize as string) || 50, 200);
+    const pg = Math.max((parseInt(page as string) || 1) - 1, 0);
 
     const [movements, total] = await prisma.$transaction([
       prisma.stockMovement.findMany({
@@ -117,17 +117,22 @@ router.post('/adjust', requireAuth, async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    if (quantity === 0) {
-      res.status(400).json({ error: 'La cantidad debe ser distinta de 0' });
+    const qty = Number(quantity);
+    if (!Number.isInteger(qty) || qty === 0 || Math.abs(qty) > 100_000) {
+      res.status(400).json({ error: 'La cantidad debe ser un entero no cero (máx 100,000)' });
+      return;
+    }
+    if (notes && (typeof notes !== 'string' || notes.length > 500)) {
+      res.status(400).json({ error: 'Notas demasiado largas (máx 500 caracteres)' });
       return;
     }
 
     // Determine direction: RESTOCK and RETURN are always positive (in), LOSS always negative (out)
     // ADJUSTMENT can be either — use the sign of quantity
     const delta =
-      type === 'RESTOCK' || type === 'RETURN' ? Math.abs(quantity) :
-      type === 'LOSS' ? -Math.abs(quantity) :
-      quantity; // ADJUSTMENT: respect sign
+      type === 'RESTOCK' || type === 'RETURN' ? Math.abs(qty) :
+      type === 'LOSS' ? -Math.abs(qty) :
+      qty; // ADJUSTMENT: respect sign
 
     const product = await prisma.product.findUnique({ where: { id: productId }, select: { stock: true } });
     if (!product) { res.status(404).json({ error: 'Producto no encontrado' }); return; }

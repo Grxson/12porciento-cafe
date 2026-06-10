@@ -35,11 +35,12 @@ export function initSocket(server: HttpServer): SocketServer {
 
     if (token) {
       try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
-        if (payload.role === 'ADMIN') {
-          socket.join('admin');
-        } else {
+        const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role?: string };
+        if (payload.role === 'USER') {
           socket.join(`user:${payload.id}`);
+        } else {
+          // Admin tokens have no role field
+          socket.join('admin');
         }
       } catch {
         // invalid token — no room

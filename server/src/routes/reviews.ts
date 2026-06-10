@@ -23,7 +23,8 @@ router.post('/product/:productId', async (req: Request, res: Response) => {
     if (!name || !email || !rating || !comment) {
       return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
-    if (rating < 1 || rating > 5) {
+    const ratingNum = parseInt(rating);
+    if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
       return res.status(400).json({ error: 'Rating debe ser entre 1 y 5' });
     }
 
@@ -46,7 +47,7 @@ router.post('/product/:productId', async (req: Request, res: Response) => {
         productId: req.params.productId,
         name,
         email,
-        rating: parseInt(rating),
+        rating: ratingNum,
         comment,
         ...(userId ? { userId } : {}),
       },

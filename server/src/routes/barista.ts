@@ -9,12 +9,12 @@ function calculateXp(recipeDifficulty: string, rating: number): number {
   return (baseXp[recipeDifficulty] ?? 20) + (rating - 1) * 5;
 }
 
-async function checkAndUnlockAchievements(userId: string): Promise<void> {
+async function checkAndUnlockAchievements(userId: string): Promise<{ id: string; name: string; icon: string; xpReward: number }[]> {
   const profile = await prisma.baristaProfile.findUnique({
     where: { userId },
     include: { achievements: true, brewLogs: true },
   });
-  if (!profile) return;
+  if (!profile) return [];
 
   const candidates = [
     { slug: 'first_brew', met: profile.brewLogs.length >= 1 },
@@ -23,6 +23,8 @@ async function checkAndUnlockAchievements(userId: string): Promise<void> {
     { slug: 'perfect_brew', met: profile.brewLogs.some((b) => b.rating === 5) },
   ];
 
+  const unlocked: { id: string; name: string; icon: string; xpReward: number }[] = [];
+
   for (const c of candidates) {
     if (!c.met) continue;
     const alreadyUnlocked = profile.achievements.some((a) => a.achievementId === c.slug);
@@ -30,7 +32,10 @@ async function checkAndUnlockAchievements(userId: string): Promise<void> {
     const achievement = await prisma.achievement.findUnique({ where: { slug: c.slug } });
     if (!achievement) continue;
     await prisma.achievementUnlock.create({ data: { userId, achievementId: achievement.id } });
+    unlocked.push({ id: achievement.id, name: achievement.name, icon: achievement.icon, xpReward: achievement.xpReward });
   }
+
+  return unlocked;
 }
 
 // GET /barista/leaderboard — MUST be before /:userId/profile
@@ -96,9 +101,9 @@ router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Res
       },
     });
 
-    await checkAndUnlockAchievements(userId);
+    const newAchievements = await checkAndUnlockAchievements(userId);
 
-    res.status(201).json({ data: { brewLog, profile: updatedProfile } });
+    res.status(201).json({ data: { brewLog, profile: updatedProfile, newAchievements } });
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ error: 'Error al registrar brew' });

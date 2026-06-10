@@ -42,13 +42,16 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await submitBrewLog({
+      const { newAchievements } = await submitBrewLog({
         recipeId: recipe.id,
         rating,
         notes: notes.trim() || undefined,
         photoUrl: photoUrl || undefined,
       });
       addToast(`+${xpPreview} XP ganados ☕`, 'success');
+      for (const a of newAchievements) {
+        setTimeout(() => addToast(`🏆 Logro: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success'), 400);
+      }
       onSuccess?.();
       onClose();
     } catch {

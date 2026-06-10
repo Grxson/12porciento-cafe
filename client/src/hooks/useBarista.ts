@@ -12,7 +12,7 @@ interface UseBaristaResult {
     rating: number;
     notes?: string;
     photoUrl?: string;
-  }) => Promise<void>;
+  }) => Promise<{ newAchievements: { id: string; name: string; icon: string; xpReward: number }[] }>;
 }
 
 export function useBarista(userId?: string): UseBaristaResult {
@@ -39,11 +39,12 @@ export function useBarista(userId?: string): UseBaristaResult {
     rating: number;
     notes?: string;
     photoUrl?: string;
-  }) => {
+  }): Promise<{ newAchievements: { id: string; name: string; icon: string; xpReward: number }[] }> => {
     setError(null);
     try {
       const res = await baristaApi.submitBrewLog(data);
       setProfile(res.data.data.profile);
+      return { newAchievements: res.data.data.newAchievements ?? [] };
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al registrar brew');
       throw err;

@@ -9,7 +9,7 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 - Database: SQLite via Prisma ORM (`server/prisma/schema.prisma`)
 - Monorepo: pnpm workspaces (client/, server/)
 
-## Recent Work (2026-05-30 to 2026-06-09)
+## Recent Work (2026-05-30 to 2026-06-10)
 
 ### Feature Sprint (May 2026) - SHIPPED
 - Stripe integration with saved cards
@@ -41,6 +41,17 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 - Routes: `/perfil/barista/:userId`, `/leaderboard`
 - Nav: Ranking in desktop Navbar + mobile BottomNav (5-column grid)
 - Homepage: "Aprende con cada taza" section promotes recipes + barista system
+
+### Security & Bug-Fix Sprint (June 2026) - SHIPPED
+- **IDOR fixes:** `DELETE /users/me/payment-methods/:pmId` and `POST /users/me/payment-methods/default` now verify pm.customer === user.stripeCustomerId before acting
+- **Order field injection:** `POST /orders` whitelisted fields instead of `...req.body` spread (prevented status:DELIVERED injection)
+- **Input validation:** email format + length on register/login, review name/comment/email, subscription name/email, promo code, user update (name, avatarUrl cap 80KB)
+- **Email normalization:** toLowerCase on register, login, admin login, subscription create
+- **Payment quantity:** validated 1–99 integer before Stripe call
+- **Barista:** achievement alreadyUnlocked check compared UUID to slug (always false → duplicate unlock 500); fixed by including achievement relation. XP now uses atomic `increment`. Profile creation uses `upsert`. `checkAndUnlockAchievements` uses COUNT queries instead of full fetch.
+- **RecipeLiveMode:** guard against 0-step recipes. BrewLogForm: double-submit guard + revokeObjectURL.
+- **Rate limiting:** added to `POST /promo-codes/validate` (30/15min)
+- **Leaderboard:** NaN guard on limit param, error state with retry button
 
 ### Roadmap Status
 All 4 master initiatives already shipped:

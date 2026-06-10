@@ -218,6 +218,37 @@ export default function Recipes() {
           ))}
         </div>
 
+        {(methodFilter !== 'TODOS' || search !== '') && (
+          <div className="flex flex-wrap gap-2 items-center mb-4 -mt-6">
+            {methodFilter !== 'TODOS' && (
+              <button
+                onClick={() => setMethodFilter('TODOS')}
+                className="flex items-center gap-1.5 px-3 py-1 bg-coffee-800 border border-gold-500/30 text-cream text-xs hover:bg-coffee-700 transition-colors"
+              >
+                {methodFilter}
+                <span className="text-coffee-400 hover:text-cream">×</span>
+              </button>
+            )}
+            {search !== '' && (
+              <button
+                onClick={() => setSearch('')}
+                className="flex items-center gap-1.5 px-3 py-1 bg-coffee-800 border border-gold-500/30 text-cream text-xs hover:bg-coffee-700 transition-colors"
+              >
+                "{search}"
+                <span className="text-coffee-400 hover:text-cream">×</span>
+              </button>
+            )}
+            {methodFilter !== 'TODOS' && search !== '' && (
+              <button
+                onClick={() => { setMethodFilter('TODOS'); setSearch(''); }}
+                className="text-xs text-coffee-500 hover:text-coffee-300 underline transition-colors"
+              >
+                Limpiar todo
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="space-y-4">
           {visible.map((recipe) => {
             const isLocked = recipe.isPremium && !hasSubscription;

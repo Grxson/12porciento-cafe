@@ -117,7 +117,11 @@ router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Res
 
     const newAchievements = await checkAndUnlockAchievements(userId);
 
-    res.status(201).json({ data: { brewLog, profile: updatedProfile, newAchievements } });
+    const finalProfile = newAchievements.length > 0
+      ? await prisma.baristaProfile.findUnique({ where: { userId } })
+      : updatedProfile;
+
+    res.status(201).json({ data: { brewLog, profile: finalProfile, newAchievements } });
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ error: 'Error al registrar brew' });

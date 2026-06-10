@@ -1,6 +1,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 
@@ -46,7 +47,6 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
     state,
     zipCode,
     notes,
-    userId,
   } = req.body as {
     items: { productId: string; quantity: number }[];
     promoCode?: string;
@@ -60,8 +60,20 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
     state?: string;
     zipCode?: string;
     notes?: string;
-    userId?: string;
   };
+
+  // Derive userId from token — ignore body to prevent IDOR
+  let userId: string | undefined;
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const payload = jwt.verify(
+        authHeader.replace('Bearer ', ''),
+        process.env.JWT_SECRET!,
+      ) as { id: string; role?: string };
+      if (payload.role === 'USER') userId = payload.id;
+    } catch { /* guest checkout */ }
+  }
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items requeridos' });

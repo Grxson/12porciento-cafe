@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   TrendingUp, ShoppingBag, Users, Star, AlertTriangle, ArrowUpRight,
-  Package, Gift, Tag, Plus,
+  Package, Gift, Tag, Plus, Coffee,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { dashboardApi } from '../api';
+import { dashboardApi, baristaApi } from '../api';
 import type { DashboardStats } from '../types';
 
 const statusConfig: Record<string, { label: string; color: string; hex: string }> = {
@@ -39,12 +39,25 @@ function buildRevenueData(totalRevenue: number, revenueThisMonth: number) {
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [topBaristas, setTopBaristas] = useState<{
+    userId: string;
+    level: number;
+    totalXp: number;
+    totalBrews: number;
+    user: { id: string; name: string };
+  }[]>([]);
 
   useEffect(() => {
     dashboardApi.stats()
       .then((r) => { setStats(r.data); })
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    baristaApi.getLeaderboard(10)
+      .then((res) => setTopBaristas(res.data.data))
+      .catch(() => {});
   }, []);
 
   const revenueData = useMemo(() => {
@@ -108,6 +121,14 @@ export default function Dashboard() {
       trend: null,
       accent: (stats.pendingReviews ?? 0) > 0,
     },
+    {
+      label: 'Brews registrados',
+      value: stats.totalBrews ?? 0,
+      sub: 'En el sistema',
+      icon: Coffee,
+      trend: null,
+      accent: false,
+    },
   ];
 
   return (
@@ -134,7 +155,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         {cards.map((card, i) => (
           <motion.div
             key={card.label}
@@ -329,6 +350,39 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Barista leaderboard */}
+      <div className="bg-coffee-900 border border-coffee-800 p-6">
+        <h2 className="font-serif text-xl text-cream mb-5 flex items-center gap-2">
+          <Coffee className="w-4 h-4 text-gold-500/60" />
+          Top Baristas
+        </h2>
+        {topBaristas.length === 0 ? (
+          <p className="text-coffee-500 text-sm">Sin brews registrados aún.</p>
+        ) : (
+          <div className="space-y-2">
+            {topBaristas.map((b, i) => (
+              <Link
+                key={b.userId}
+                to={`/perfil/barista/${b.userId}`}
+                className="flex items-center justify-between py-2.5 border-b border-coffee-800 last:border-0 hover:bg-coffee-800/30 -mx-2 px-2 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-coffee-500 text-xs w-5 text-right">{i + 1}</span>
+                  <div>
+                    <p className="text-cream text-sm font-medium">{b.user.name}</p>
+                    <p className="text-coffee-500 text-xs">{b.totalBrews} brews</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-gold-500 text-xs font-semibold">Nv. {b.level}</span>
+                  <p className="text-coffee-500 text-xs">{b.totalXp} XP</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

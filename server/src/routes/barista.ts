@@ -1,8 +1,17 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 
 const router = Router();
+
+const brewLogLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  message: { error: 'Demasiados registros. Intenta en 1 hora.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 function calculateXp(recipeDifficulty: string, rating: number): number {
   const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
@@ -73,7 +82,7 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
 });
 
 // POST /barista/brew-logs
-router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const { recipeId, rating, notes, photoUrl } = req.body;
     const userId = req.user!.id;

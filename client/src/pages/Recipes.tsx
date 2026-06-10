@@ -300,7 +300,7 @@ export default function Recipes() {
                         Ver planes
                       </Link>
                     </div>
-                    {recipe.steps[0] && (
+                    {recipe.steps?.length > 0 && recipe.steps[0] && (
                       <div className="mt-3 px-2 opacity-50">
                         <p className="text-xs text-coffee-400 uppercase tracking-wider mb-1">Paso 1 (vista previa)</p>
                         <p className="text-coffee-300 text-sm">{recipe.steps[0].description}</p>

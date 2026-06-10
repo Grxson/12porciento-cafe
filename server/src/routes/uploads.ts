@@ -1,10 +1,19 @@
 import { Router, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth, requireAnyAuth, AnyAuthRequest, AuthRequest } from '../middleware/auth';
 import { uploadMiddleware, processImage, deleteImage } from '../lib/uploads';
 
 const router = Router();
 
-router.post('/', requireAnyAuth, (req: AnyAuthRequest, res: Response) => {
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 60,
+  message: { error: 'Demasiadas subidas. Intenta en 1 hora.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post('/', uploadLimiter, requireAnyAuth, (req: AnyAuthRequest, res: Response) => {
   uploadMiddleware(req, res, async (err: any) => {
     if (err) {
       res.status(400).json({ error: err.message || 'Error al subir imagen' });

@@ -15,7 +15,7 @@ async function hasRecipeAccess(authHeader: string | undefined): Promise<boolean>
       return !!sub;
     }
     // Admin tokens have no role field — verify against admin table
-    const admin = await prisma.admin.findUnique({ where: { id: payload.id } });
+    const admin = await prisma.adminUser.findUnique({ where: { id: payload.id } });
     return !!admin;
   } catch {
     return false;

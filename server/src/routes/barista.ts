@@ -59,7 +59,7 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
 // GET /barista/leaderboard — MUST be before /:userId/profile
 router.get('/leaderboard', async (req: Request, res: Response) => {
   try {
-    const limit = Math.min(parseInt((req.query.limit as string) || '50'), 100);
+    const limit = Math.min(Math.max(1, parseInt((req.query.limit as string) || '50') || 50), 100);
     const leaderboard = await prisma.baristaProfile.findMany({
       orderBy: [{ totalXp: 'desc' }, { createdAt: 'asc' }],
       take: limit,

@@ -43,14 +43,14 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
   }
 
   if (bonusXp > 0) {
-    const current = await prisma.baristaProfile.findUnique({ where: { userId } });
-    if (current) {
-      const newTotal = current.totalXp + bonusXp;
-      await prisma.baristaProfile.update({
-        where: { userId },
-        data: { totalXp: newTotal, level: Math.floor(newTotal / 100) + 1 },
-      });
-    }
+    const after = await prisma.baristaProfile.update({
+      where: { userId },
+      data: { totalXp: { increment: bonusXp } },
+    });
+    await prisma.baristaProfile.update({
+      where: { userId },
+      data: { level: Math.floor(after.totalXp / 100) + 1 },
+    });
   }
 
   return unlocked;
@@ -111,18 +111,21 @@ router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Res
       include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
     });
 
-    const newTotalXp = profile.totalXp + xpEarned;
-    const newLevel = Math.floor(newTotalXp / 100) + 1;
-
-    const updatedProfile = await prisma.baristaProfile.update({
+    let updatedProfile = await prisma.baristaProfile.update({
       where: { userId },
       data: {
-        totalXp: newTotalXp,
-        level: newLevel,
+        totalXp: { increment: xpEarned },
         totalBrews: { increment: 1 },
         ...(rating === 5 ? { favoriteMethod: recipe.method } : {}),
       },
     });
+    const correctLevel = Math.floor(updatedProfile.totalXp / 100) + 1;
+    if (updatedProfile.level !== correctLevel) {
+      updatedProfile = await prisma.baristaProfile.update({
+        where: { userId },
+        data: { level: correctLevel },
+      });
+    }
 
     const newAchievements = await checkAndUnlockAchievements(userId);
 

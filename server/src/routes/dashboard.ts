@@ -22,6 +22,7 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
       lowStockProducts,
       recentOrders,
       pendingReviews,
+      totalBrews,
     ] = await Promise.all([
       prisma.order.count(),
       prisma.order.count({ where: { createdAt: { gte: startOfMonth } } }),
@@ -37,6 +38,7 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
         include: { items: { include: { product: { select: { name: true } } } } },
       }),
       prisma.review.count({ where: { isApproved: false } }),
+      prisma.brewLog.count(),
     ]);
 
     const totalRevenue = revenueAggregate._sum.total ?? 0;
@@ -53,6 +55,7 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
       lowStockProducts,
       recentOrders,
       pendingReviews,
+      totalBrews,
     });
   } catch {
     res.status(500).json({ error: 'Error al obtener estadísticas' });

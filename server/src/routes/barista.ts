@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 
@@ -173,6 +174,41 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener perfil' });
+  }
+});
+
+router.get('/achievements', async (req: Request, res: Response) => {
+  try {
+    let userId: string | null = null;
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (token) {
+      try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
+        if (payload.role === 'USER') userId = payload.id;
+      } catch {}
+    }
+
+    const achievements = await prisma.achievement.findMany({
+      orderBy: { xpReward: 'asc' },
+    });
+
+    const unlockMap = new Map<string, string>();
+    if (userId) {
+      const unlocks = await prisma.achievementUnlock.findMany({
+        where: { userId },
+        select: { achievementId: true, unlockedAt: true },
+      });
+      unlocks.forEach((u) => unlockMap.set(u.achievementId, u.unlockedAt.toISOString()));
+    }
+
+    const result = achievements.map((a) => ({
+      ...a,
+      unlockedAt: unlockMap.get(a.id) ?? null,
+    }));
+
+    res.json({ achievements: result });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener logros' });
   }
 });
 

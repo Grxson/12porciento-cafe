@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { baristaApi } from '../api';
 import type { BaristaProfile } from '../types';
 
@@ -20,7 +20,7 @@ export function useBarista(userId?: string): UseBaristaResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = async () => {
+  const refetch = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     setError(null);
@@ -32,9 +32,9 @@ export function useBarista(userId?: string): UseBaristaResult {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
-  const submitBrewLog = async (data: {
+  const submitBrewLog = useCallback(async (data: {
     recipeId: string;
     rating: number;
     notes?: string;
@@ -49,11 +49,11 @@ export function useBarista(userId?: string): UseBaristaResult {
       setError(err.response?.data?.error || 'Error al registrar brew');
       throw err;
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (userId) refetch();
-  }, [userId]);
+    refetch();
+  }, [refetch]);
 
   return { profile, loading, error, refetch, submitBrewLog };
 }

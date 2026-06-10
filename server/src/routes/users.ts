@@ -114,6 +114,21 @@ router.put('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) =
     if (name !== undefined && (typeof name !== 'string' || name.trim().length < 1 || name.length > 100)) {
       return res.status(400).json({ error: 'Nombre inválido (máx 100 caracteres)' });
     }
+    if (phone !== undefined && phone !== null && (typeof phone !== 'string' || phone.length > 20)) {
+      return res.status(400).json({ error: 'Teléfono inválido (máx 20 caracteres)' });
+    }
+    if (address !== undefined && address !== null && (typeof address !== 'string' || address.length > 200)) {
+      return res.status(400).json({ error: 'Dirección demasiado larga (máx 200 caracteres)' });
+    }
+    if (city !== undefined && city !== null && (typeof city !== 'string' || city.length > 100)) {
+      return res.status(400).json({ error: 'Ciudad demasiado larga (máx 100 caracteres)' });
+    }
+    if (state !== undefined && state !== null && (typeof state !== 'string' || state.length > 100)) {
+      return res.status(400).json({ error: 'Estado demasiado largo (máx 100 caracteres)' });
+    }
+    if (zipCode !== undefined && zipCode !== null && (typeof zipCode !== 'string' || zipCode.length > 10)) {
+      return res.status(400).json({ error: 'Código postal inválido (máx 10 caracteres)' });
+    }
     if (avatarUrl !== undefined && avatarUrl !== null && (typeof avatarUrl !== 'string' || avatarUrl.length > 80_000)) {
       return res.status(400).json({ error: 'Avatar demasiado grande' });
     }

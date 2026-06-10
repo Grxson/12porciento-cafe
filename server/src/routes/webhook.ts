@@ -112,6 +112,14 @@ router.post('/', async (req: Request, res: Response) => {
             });
           }
         }
+
+        // Atomically increment promo usedCount if code was stored in metadata
+        if (intent.metadata?.promoCode) {
+          await tx.promoCode.updateMany({
+            where: { code: intent.metadata.promoCode.toUpperCase(), isActive: true },
+            data: { usedCount: { increment: 1 } },
+          });
+        }
       });
 
       console.log(`[webhook] Order created from PaymentIntent ${intent.id}`);

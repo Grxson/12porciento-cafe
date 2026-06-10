@@ -23,7 +23,7 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
       return;
     }
 
-    const admin = await prisma.adminUser.findUnique({ where: { email } });
+    const admin = await prisma.adminUser.findUnique({ where: { email: email.toLowerCase().trim() } });
     if (!admin) {
       res.status(401).json({ error: 'Credenciales inválidas' });
       return;

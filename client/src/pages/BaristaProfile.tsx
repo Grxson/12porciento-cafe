@@ -50,7 +50,10 @@ export default function BaristaProfile() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Perfil Barista</p>
-          <h1 className="font-serif text-4xl text-cream mb-2">Nivel {profile.level}</h1>
+          {profile.user && (
+            <p className="font-serif text-2xl text-cream mb-1">{profile.user.name}</p>
+          )}
+          <h1 className="font-serif text-4xl text-gold-400 mb-2">Nivel {profile.level}</h1>
           <p className="text-coffee-400 text-sm">{profile.totalBrews} brews registrados</p>
         </div>
 

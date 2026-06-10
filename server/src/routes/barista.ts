@@ -134,6 +134,7 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
     const profile = await prisma.baristaProfile.findUnique({
       where: { userId: req.params.userId },
       include: {
+        user: { select: { id: true, name: true } },
         achievements: {
           include: { achievement: true },
           orderBy: { unlockedAt: 'desc' },

@@ -201,6 +201,7 @@ export interface DashboardStats {
 export interface BaristaProfile {
   id: string;
   userId: string;
+  user?: { id: string; name: string };
   level: number;
   totalXp: number;
   totalBrews: number;

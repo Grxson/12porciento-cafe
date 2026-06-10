@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Store, BookOpen, ShoppingBag, User } from 'lucide-react';
+import { Store, BookOpen, ShoppingBag, User, Trophy } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
@@ -7,6 +7,7 @@ const tabs = [
   { to: '/tienda', label: 'Tienda', icon: Store },
   { to: '/recetas', label: 'Recetas', icon: BookOpen },
   { to: '/carrito', label: 'Carrito', icon: ShoppingBag, badge: true },
+  { to: '/leaderboard', label: 'Ranking', icon: Trophy },
   { to: '/perfil', label: 'Perfil', icon: User },
 ];
 
@@ -22,7 +23,7 @@ export default function BottomNav() {
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-800"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-5">
         {tabs.map(({ to, label, icon: Icon, badge }) => {
           const target = resolveTo(to);
           const active = pathname === to || pathname.startsWith(to + '/');

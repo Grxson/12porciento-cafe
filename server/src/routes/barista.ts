@@ -84,12 +84,11 @@ router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Res
     const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
     if (!recipe) return res.status(404).json({ error: 'Receta no encontrada' });
 
-    let profile = await prisma.baristaProfile.findUnique({ where: { userId } });
-    if (!profile) {
-      profile = await prisma.baristaProfile.create({
-        data: { userId, favoriteMethod: recipe.method },
-      });
-    }
+    let profile = await prisma.baristaProfile.upsert({
+      where: { userId },
+      create: { userId, favoriteMethod: recipe.method },
+      update: {},
+    });
 
     const xpEarned = calculateXp(recipe.difficulty || 'MEDIA', rating);
 

@@ -16,11 +16,12 @@ interface LeaderboardEntry {
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     baristaApi.getLeaderboard(50)
       .then((res) => setEntries(res.data.data))
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -41,7 +42,19 @@ export default function Leaderboard() {
           </div>
         )}
 
-        {!loading && entries.length === 0 && (
+        {!loading && error && (
+          <div className="text-center py-12">
+            <p className="text-coffee-500">No se pudo cargar el ranking.</p>
+            <button
+              onClick={() => { setError(false); setLoading(true); baristaApi.getLeaderboard(50).then((res) => setEntries(res.data.data)).catch(() => setError(true)).finally(() => setLoading(false)); }}
+              className="text-xs text-gold-500 hover:text-gold-400 mt-2 underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && entries.length === 0 && (
           <div className="text-center py-12">
             <Trophy className="w-12 h-12 text-coffee-700 mx-auto mb-3" />
             <p className="text-coffee-500">Aún no hay baristas registrados.</p>
@@ -49,7 +62,7 @@ export default function Leaderboard() {
           </div>
         )}
 
-        {!loading && entries.length > 0 && (
+        {!loading && !error && entries.length > 0 && (
           <div className="space-y-2">
             {entries.map((entry, idx) => (
               <Link

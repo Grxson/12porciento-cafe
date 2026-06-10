@@ -1,10 +1,19 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
 
 const router = Router();
+
+const createLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Demasiados intentos de suscripción. Intenta en 1 hora.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
   FUNDADOR:    { min: 2, max: 2 },
@@ -14,7 +23,7 @@ const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
 };
 
 // POST / — create subscription with selected coffees
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', createLimiter, async (req: Request, res: Response) => {
   try {
     const { name, email, phone, plan, frequency = 'monthly', grindPreference = 'GRANO', items = [], userId } = req.body;
 

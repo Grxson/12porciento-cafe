@@ -1,9 +1,26 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
 
 const router = Router();
+
+const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Demasiadas reseñas. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const replyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { error: 'Demasiadas respuestas. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.get('/product/:productId', async (req: Request, res: Response) => {
   try {
@@ -17,7 +34,7 @@ router.get('/product/:productId', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/product/:productId', async (req: Request, res: Response) => {
+router.post('/product/:productId', reviewLimiter, async (req: Request, res: Response) => {
   try {
     const { name, email, rating, comment, userId } = req.body;
     if (!name || !email || !rating || !comment) {
@@ -171,7 +188,7 @@ router.get('/:reviewId/replies', async (req: Request, res: Response) => {
 });
 
 // POST /:reviewId/reply
-router.post('/:reviewId/reply', async (req: Request, res: Response) => {
+router.post('/:reviewId/reply', replyLimiter, async (req: Request, res: Response) => {
   try {
     const { name, content } = req.body;
 

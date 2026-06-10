@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
+import rateLimit from 'express-rate-limit';
 import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
@@ -7,6 +8,14 @@ import { sendOrderConfirmation, sendOrderStatusUpdate } from '../email';
 import { emitEvent } from '../socket';
 
 const router = Router();
+
+const orderLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: { error: 'Demasiados pedidos. Intenta en 1 hora.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
@@ -25,7 +34,7 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<number>
   return Math.max(subtotal - discount, 0);
 }
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', orderLimiter, async (req: Request, res: Response) => {
   try {
     const {
       items, userId, paymentIntentId, promoCode,

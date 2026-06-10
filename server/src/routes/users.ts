@@ -265,13 +265,22 @@ router.post('/me/payment-methods/default', requireUserAuth, async (req: UserAuth
 // DELETE /api/users/me/payment-methods/:pmId — detach payment method
 router.delete('/me/payment-methods/:pmId', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
-    await stripe.paymentMethods.detach(req.params.pmId);
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-    if (user?.stripeDefaultPaymentMethodId === req.params.pmId) {
+    if (!user?.stripeCustomerId) {
+      return res.status(404).json({ error: 'No hay métodos de pago' });
+    }
+    // Verify ownership before detaching
+    const pm = await stripe.paymentMethods.retrieve(req.params.pmId);
+    if (pm.customer !== user.stripeCustomerId) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    await stripe.paymentMethods.detach(req.params.pmId);
+    if (user.stripeDefaultPaymentMethodId === req.params.pmId) {
       await prisma.user.update({ where: { id: user.id }, data: { stripeDefaultPaymentMethodId: null } });
     }
     res.json({ ok: true });
-  } catch {
+  } catch (err: any) {
+    if (err.statusCode === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
     res.status(500).json({ error: 'Error al eliminar método de pago' });
   }
 });

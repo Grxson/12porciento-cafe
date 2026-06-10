@@ -43,7 +43,7 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
 
   for (const c of candidates) {
     if (!c.met) continue;
-    const alreadyUnlocked = profile.achievements.some((a) => a.achievement.slug === c.slug);
+    const alreadyUnlocked = profile.achievements.some((a: { achievement: { slug: string } }) => a.achievement.slug === c.slug);
     if (alreadyUnlocked) continue;
     const achievement = await prisma.achievement.findUnique({ where: { slug: c.slug } });
     if (!achievement) continue;
@@ -172,10 +172,10 @@ router.get('/achievements', async (req: Request, res: Response) => {
         where: { userId },
         select: { achievementId: true, unlockedAt: true },
       });
-      unlocks.forEach((u) => unlockMap.set(u.achievementId, u.unlockedAt.toISOString()));
+      unlocks.forEach((u: { achievementId: string; unlockedAt: Date }) => unlockMap.set(u.achievementId, u.unlockedAt.toISOString()));
     }
 
-    const result = achievements.map((a) => ({
+    const result = achievements.map((a: { id: string; slug: string; name: string; description: string; icon: string; rarity: string; xpReward: number }) => ({
       ...a,
       unlockedAt: unlockMap.get(a.id) ?? null,
     }));

@@ -150,33 +150,7 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
   }
 });
 
-// GET /barista/:userId/profile
-router.get('/:userId/profile', async (req: Request, res: Response) => {
-  try {
-    const profile = await prisma.baristaProfile.findUnique({
-      where: { userId: req.params.userId },
-      include: {
-        user: { select: { id: true, name: true } },
-        achievements: {
-          include: { achievement: true },
-          orderBy: { unlockedAt: 'desc' },
-        },
-        brewLogs: {
-          include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-        },
-      },
-    });
-
-    if (!profile) return res.status(404).json({ error: 'Perfil no encontrado' });
-    res.json({ data: profile });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener perfil' });
-  }
-});
-
+// GET /barista/achievements — MUST be before /:userId/profile
 router.get('/achievements', async (req: Request, res: Response) => {
   try {
     let userId: string | null = null;
@@ -209,6 +183,33 @@ router.get('/achievements', async (req: Request, res: Response) => {
     res.json({ achievements: result });
   } catch {
     res.status(500).json({ error: 'Error al obtener logros' });
+  }
+});
+
+// GET /barista/:userId/profile
+router.get('/:userId/profile', async (req: Request, res: Response) => {
+  try {
+    const profile = await prisma.baristaProfile.findUnique({
+      where: { userId: req.params.userId },
+      include: {
+        user: { select: { id: true, name: true } },
+        achievements: {
+          include: { achievement: true },
+          orderBy: { unlockedAt: 'desc' },
+        },
+        brewLogs: {
+          include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
+      },
+    });
+
+    if (!profile) return res.status(404).json({ error: 'Perfil no encontrado' });
+    res.json({ data: profile });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener perfil' });
   }
 });
 

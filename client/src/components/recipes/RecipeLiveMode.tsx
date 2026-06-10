@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Recipe } from '../../types';
@@ -40,6 +40,22 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     setTimerActive(null);
   }, [currentStepIndex]);
 
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartRef.current.y);
+    if (Math.abs(deltaX) > 50 && deltaY < 50) {
+      if (deltaX > 0) goPrev(); else goNext();
+    }
+    touchStartRef.current = null;
+  };
+
   const goNext = () => {
     if (hasNext) setCurrentStepIndex((c) => c + 1);
   };
@@ -54,6 +70,8 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-coffee-950 flex flex-col"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-coffee-800">

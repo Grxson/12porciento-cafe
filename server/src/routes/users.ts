@@ -252,12 +252,18 @@ router.get('/me/payment-methods', requireUserAuth, async (req: UserAuthRequest, 
 router.post('/me/payment-methods/default', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const { paymentMethodId } = req.body;
+    if (!paymentMethodId) return res.status(400).json({ error: 'paymentMethodId requerido' });
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user?.stripeCustomerId) return res.status(404).json({ error: 'No hay métodos de pago' });
+    const pm = await stripe.paymentMethods.retrieve(paymentMethodId);
+    if (pm.customer !== user.stripeCustomerId) return res.status(403).json({ error: 'No autorizado' });
     await prisma.user.update({
       where: { id: req.user!.id },
       data: { stripeDefaultPaymentMethodId: paymentMethodId },
     });
     res.json({ ok: true });
-  } catch {
+  } catch (err: any) {
+    if (err.statusCode === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
     res.status(500).json({ error: 'Error al guardar método de pago' });
   }
 });

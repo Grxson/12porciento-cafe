@@ -285,7 +285,7 @@ export default function Checkout() {
         <h1 className="font-serif text-4xl text-coffee-900 mb-4">Checkout</h1>
 
         {/* Address save suggestion for logged-in users with no saved address */}
-        {user && !user.address && step === 1 && (
+        {user && !user.address && step === 1 && !form.address && (
           <div className="flex items-start gap-3 bg-gold-50 border border-gold-200 p-3 mb-6">
             <MapPin className="w-4 h-4 text-gold-600 shrink-0 mt-0.5" />
             <p className="text-coffee-700 text-xs leading-relaxed">

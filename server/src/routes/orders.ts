@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
@@ -37,10 +38,23 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<number>
 router.post('/', orderLimiter, async (req: Request, res: Response) => {
   try {
     const {
-      items, userId, paymentIntentId, promoCode,
+      items, paymentIntentId, promoCode,
       customerName, email, phone, address, city, state, zipCode, notes,
     } = req.body;
     const orderData = { customerName, email, phone, address, city, state, zipCode, notes };
+
+    // Derive userId from token — ignore body to prevent IDOR
+    let userId: string | undefined;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const payload = jwt.verify(
+          authHeader.replace('Bearer ', ''),
+          process.env.JWT_SECRET!,
+        ) as { id: string; role?: string };
+        if (payload.role === 'USER') userId = payload.id;
+      } catch { /* guest order */ }
+    }
 
     if (paymentIntentId) {
       try {

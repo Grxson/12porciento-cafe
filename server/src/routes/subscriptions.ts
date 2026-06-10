@@ -18,6 +18,16 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, email, phone, plan, frequency = 'monthly', grindPreference = 'GRANO', items = [], userId } = req.body;
 
+    if (!name || typeof name !== 'string' || name.trim().length < 2 || name.length > 100) {
+      res.status(400).json({ error: 'Nombre debe tener entre 2 y 100 caracteres' });
+      return;
+    }
+    if (!email || typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      res.status(400).json({ error: 'Email inválido' });
+      return;
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+
     const slots = PLAN_SLOTS[plan];
     if (!slots) {
       res.status(400).json({ error: 'Plan inválido' });
@@ -36,7 +46,7 @@ router.post('/', async (req: Request, res: Response) => {
     // email is globally @unique, so check for ANY existing subscription (not just
     // ACTIVE/PAUSED). A CANCELLED one must be reactivated, otherwise create() hits
     // a P2002 unique-constraint error and 500s.
-    const existing = await prisma.subscription.findUnique({ where: { email } });
+    const existing = await prisma.subscription.findUnique({ where: { email: normalizedEmail } });
     if (existing && (existing.status === 'ACTIVE' || existing.status === 'PAUSED')) {
       res.status(409).json({ error: 'Ya tienes una suscripción activa o pausada con este email' });
       return;
@@ -53,7 +63,7 @@ router.post('/', async (req: Request, res: Response) => {
         prisma.subscription.update({
           where: { id: existing.id },
           data: {
-            name, phone, plan, frequency, grindPreference, nextBilling,
+            name: name.trim(), phone, plan, frequency, grindPreference, nextBilling,
             status: 'ACTIVE', fulfillmentStatus: 'PENDIENTE',
             ...(userId ? { userId } : {}),
             items: { create: items.map((productId: string) => ({ productId })) },
@@ -65,7 +75,7 @@ router.post('/', async (req: Request, res: Response) => {
     } else {
       subscription = await prisma.subscription.create({
         data: {
-          name, email, phone, plan, frequency, grindPreference, nextBilling,
+          name: name.trim(), email: normalizedEmail, phone, plan, frequency, grindPreference, nextBilling,
           ...(userId ? { userId } : {}),
           items: { create: items.map((productId: string) => ({ productId })) },
         },

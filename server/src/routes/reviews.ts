@@ -191,11 +191,14 @@ router.post('/:reviewId/reply', async (req: Request, res: Response) => {
       }
     }
 
-    if (!content?.trim()) {
-      return res.status(400).json({ error: 'El contenido es requerido' });
+    if (!content?.trim() || content.length > 500) {
+      return res.status(400).json({ error: 'Contenido requerido (máx 500 caracteres)' });
     }
     if (!userId && !name?.trim()) {
       return res.status(400).json({ error: 'El nombre es requerido' });
+    }
+    if (!userId && name && name.length > 100) {
+      return res.status(400).json({ error: 'Nombre demasiado largo' });
     }
 
     const review = await prisma.review.findUnique({ where: { id: req.params.reviewId } });

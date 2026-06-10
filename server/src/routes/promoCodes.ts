@@ -1,8 +1,17 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 
 const router = Router();
+
+const validateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'Demasiados intentos. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
   try {
@@ -62,10 +71,14 @@ router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.post('/validate', async (req: Request, res: Response) => {
+router.post('/validate', validateLimiter, async (req: Request, res: Response) => {
   try {
     const { code } = req.body;
-    const promo = await prisma.promoCode.findUnique({ where: { code: (code as string)?.toUpperCase() } });
+    if (!code || typeof code !== 'string' || code.length > 50) {
+      res.status(400).json({ error: 'Código inválido' });
+      return;
+    }
+    const promo = await prisma.promoCode.findUnique({ where: { code: code.trim().toUpperCase() } });
 
     if (!promo || !promo.isActive) {
       res.status(404).json({ error: 'Código inválido o inactivo' });

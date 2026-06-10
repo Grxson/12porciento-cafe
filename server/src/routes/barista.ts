@@ -80,6 +80,12 @@ router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Res
     if (!recipeId || typeof rating !== 'number' || rating < 1 || rating > 5) {
       return res.status(400).json({ error: 'recipeId y rating (1-5) requeridos' });
     }
+    if (notes && (typeof notes !== 'string' || notes.length > 500)) {
+      return res.status(400).json({ error: 'Las notas no pueden superar 500 caracteres' });
+    }
+    if (photoUrl && (typeof photoUrl !== 'string' || !/^\/api\/uploads\/[a-f0-9]{24}\.webp$/.test(photoUrl))) {
+      return res.status(400).json({ error: 'URL de foto no válida' });
+    }
 
     const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
     if (!recipe) return res.status(404).json({ error: 'Receta no encontrada' });

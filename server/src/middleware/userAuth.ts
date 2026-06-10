@@ -23,7 +23,7 @@ export const requireUserAuth = (
       role: string;
     };
     if (payload.role !== "USER") {
-      res.status(403).json({ error: "Acceso denegao" });
+      res.status(403).json({ error: "Acceso denegado" });
       return;
     }
     req.user = payload;

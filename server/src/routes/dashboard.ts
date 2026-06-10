@@ -15,7 +15,8 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
       totalOrders,
       ordersThisMonth,
       ordersThisWeek,
-      allOrders,
+      revenueAggregate,
+      revenueMonthAggregate,
       activeSubscriptions,
       totalProducts,
       lowStockProducts,
@@ -25,7 +26,8 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
       prisma.order.count(),
       prisma.order.count({ where: { createdAt: { gte: startOfMonth } } }),
       prisma.order.count({ where: { createdAt: { gte: startOfWeek } } }),
-      prisma.order.findMany({ select: { total: true } }),
+      prisma.order.aggregate({ _sum: { total: true } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { createdAt: { gte: startOfMonth } } }),
       prisma.subscription.count({ where: { status: 'ACTIVE' } }),
       prisma.product.count({ where: { isActive: true } }),
       prisma.product.findMany({ where: { stock: { lte: 10 }, isActive: true }, select: { name: true, stock: true } }),
@@ -37,12 +39,8 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
       prisma.review.count({ where: { isApproved: false } }),
     ]);
 
-    const totalRevenue = allOrders.reduce((sum: number, o: { total: number }) => sum + o.total, 0);
-    const monthOrders = await prisma.order.findMany({
-      where: { createdAt: { gte: startOfMonth } },
-      select: { total: true },
-    });
-    const revenueThisMonth = monthOrders.reduce((sum: number, o: { total: number }) => sum + o.total, 0);
+    const totalRevenue = revenueAggregate._sum.total ?? 0;
+    const revenueThisMonth = revenueMonthAggregate._sum.total ?? 0;
 
     res.json({
       totalOrders,

@@ -41,7 +41,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    dashboardApi.stats().then((r) => { setStats(r.data); setLoading(false); });
+    dashboardApi.stats()
+      .then((r) => { setStats(r.data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const revenueData = useMemo(() => {

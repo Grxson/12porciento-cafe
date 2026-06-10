@@ -94,7 +94,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
       {/* Main content */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-6">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
         <motion.div
           key={step.id}
           initial={{ opacity: 0, y: 20 }}

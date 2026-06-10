@@ -219,6 +219,12 @@ router.post('/admin/:id/steps', requireAuth, async (req: AuthRequest, res: Respo
     if (!title?.trim() || !description?.trim()) {
       return res.status(400).json({ error: 'title y description son requeridos' });
     }
+    if (duration !== undefined && duration !== null) {
+      const durationNum = parseInt(duration);
+      if (isNaN(durationNum) || durationNum < 5 || durationNum > 3600) {
+        return res.status(400).json({ error: 'duration debe ser número entre 5 y 3600 segundos' });
+      }
+    }
 
     const last = await prisma.recipeStep.findFirst({
       where: { recipeId: req.params.id },
@@ -278,7 +284,17 @@ router.put('/admin/:id/steps/:stepId', requireAuth, async (req: AuthRequest, res
     if (description !== undefined) data.description = description.trim();
     if (imageUrl !== undefined) data.imageUrl = imageUrl?.trim() ?? null;
     if (videoUrl !== undefined) data.videoUrl = videoUrl?.trim() ?? null;
-    if (duration !== undefined) data.duration = duration ? parseInt(duration) : null;
+    if (duration !== undefined) {
+      if (duration === null) {
+        data.duration = null;
+      } else {
+        const durationNum = parseInt(duration);
+        if (isNaN(durationNum) || durationNum < 5 || durationNum > 3600) {
+          return res.status(400).json({ error: 'duration debe ser número entre 5 y 3600 segundos' });
+        }
+        data.duration = durationNum;
+      }
+    }
     if (order !== undefined) data.order = parseInt(order);
 
     const step = await prisma.recipeStep.update({ where: { id: req.params.stepId }, data });

@@ -13,6 +13,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [timerActive, setTimerActive] = useState<number | null>(null);
   const [showBrewLog, setShowBrewLog] = useState(false);
+  const [brewRegistered, setBrewRegistered] = useState(false);
 
   const step = recipe.steps[currentStepIndex];
   const hasNext = currentStepIndex < recipe.steps.length - 1;
@@ -166,13 +167,25 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       {/* Navigation */}
       <div className="border-t border-coffee-800 bg-coffee-900/50">
         {!hasNext && (
-          <div className="text-center pt-4 px-6">
-            <button
-              onClick={() => setShowBrewLog(true)}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors"
-            >
-              ☕ Registrar este Brew
-            </button>
+          <div className="text-center pt-4 px-6 flex items-center justify-center gap-3">
+            {brewRegistered ? (
+              <>
+                <span className="text-green-400 text-sm">✓ Brew registrado</span>
+                <button
+                  onClick={onClose}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors"
+                >
+                  Finalizar
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowBrewLog(true)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors"
+              >
+                ☕ Registrar este Brew
+              </button>
+            )}
           </div>
         )}
         <div className="flex items-center justify-between p-6">
@@ -213,6 +226,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
           <BrewLogForm
             recipe={recipe}
             onClose={() => setShowBrewLog(false)}
+            onSuccess={() => setBrewRegistered(true)}
           />
         )}
       </AnimatePresence>

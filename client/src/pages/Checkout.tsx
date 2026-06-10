@@ -97,6 +97,13 @@ export default function Checkout() {
     return () => { cancelled = true; };
   }, [user?.stripeCustomerId]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true' && !success) {
+      setSuccess(true);
+    }
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     if (fieldErrors[e.target.name as keyof FormData]) {
@@ -188,10 +195,16 @@ export default function Checkout() {
     try {
       const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
       if (!stripe) throw new Error('Stripe no disponible');
-      const result = await stripe.confirmCardPayment(clientSecret);
+      const result = await stripe.confirmPayment({
+        clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout?success=true`,
+        },
+        redirect: 'if_required',
+      });
       if (result.error) {
         setError(result.error.message || 'Error al procesar el pago.');
-      } else {
+      } else if (result.paymentIntent?.status === 'succeeded') {
         await handlePaymentSuccess();
       }
     } catch (err: any) {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { MapPin, Award, Leaf, ChevronDown, ArrowRight, Zap, Flame, Sprout, SunMedium, FlaskConical, Coffee } from 'lucide-react';
+import { MapPin, Award, Leaf, ChevronDown, ArrowRight, Zap, Flame, Sprout, SunMedium, FlaskConical, Coffee, BookOpen, Play, Trophy } from 'lucide-react';
 import TestimonialsSlider from '../components/TestimonialsSlider';
 import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
@@ -366,6 +366,33 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── RECETAS & BARISTA ── */}
+      <section className="py-16 sm:py-20 bg-coffee-900 border-t border-coffee-800/40">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Experiencia</p>
+          <h2 className="section-title mb-4">Aprende con cada taza</h2>
+          <p className="text-coffee-400 text-base max-w-xl mx-auto mb-12">
+            Guías paso a paso, modo en vivo y un sistema de niveles para convertirte en barista de especialidad.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            {[
+              { icon: <BookOpen className="w-7 h-7 text-gold-500" />, title: 'Recetas guiadas', desc: 'V60, AeroPress, Espresso y más. Cada método explicado en detalle.' },
+              { icon: <Play className="w-7 h-7 text-gold-500" />, title: 'Modo en vivo', desc: 'Sigue los pasos en pantalla completa con temporizadores integrados.' },
+              { icon: <Trophy className="w-7 h-7 text-gold-500" />, title: 'Niveles de Barista', desc: 'Gana XP con cada brew, desbloquea logros y sube en el ranking.' },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="bg-coffee-950/60 border border-coffee-800 p-6 text-left hover:border-gold-500/40 transition-colors">
+                <div className="mb-4">{icon}</div>
+                <h3 className="text-cream font-serif text-lg mb-2">{title}</h3>
+                <p className="text-coffee-400 text-sm leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+          <Link to="/recetas" className="btn-primary inline-flex items-center gap-2">
+            Ver recetas <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 

@@ -40,6 +40,7 @@ import BottomNav from './components/BottomNav';
 import InstallPrompt from './components/InstallPrompt';
 import Quiz from './pages/Quiz';
 import BaristaProfile from './pages/BaristaProfile';
+import Leaderboard from './pages/Leaderboard';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
@@ -87,6 +88,7 @@ export default function App() {
           }
         />
         <Route path="/perfil/barista/:userId" element={<PublicLayout><BaristaProfile /></PublicLayout>} />
+        <Route path="/leaderboard" element={<PublicLayout><Leaderboard /></PublicLayout>} />
 
         <Route path="/quiz" element={<Quiz />} />
 

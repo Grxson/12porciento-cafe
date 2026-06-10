@@ -1,10 +1,10 @@
 import { Router, Response } from 'express';
-import { requireAuth, AuthRequest } from '../middleware/auth';
+import { requireAuth, requireAnyAuth, AnyAuthRequest, AuthRequest } from '../middleware/auth';
 import { uploadMiddleware, processImage, deleteImage } from '../lib/uploads';
 
 const router = Router();
 
-router.post('/', requireAuth, (req: AuthRequest, res: Response) => {
+router.post('/', requireAnyAuth, (req: AnyAuthRequest, res: Response) => {
   uploadMiddleware(req, res, async (err: any) => {
     if (err) {
       res.status(400).json({ error: err.message || 'Error al subir imagen' });

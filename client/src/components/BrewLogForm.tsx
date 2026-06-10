@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useBarista } from '../hooks/useBarista';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
+import { uploadsApi } from '../api';
 import type { Recipe } from '../types';
 
 interface BrewLogFormProps {
@@ -21,17 +22,22 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
   const [notes, setNotes] = useState('');
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setPhotoPreview(dataUrl);
-      setPhotoUrl(dataUrl);
-    };
-    reader.readAsDataURL(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    setUploading(true);
+    try {
+      const res = await uploadsApi.upload(file);
+      setPhotoUrl(res.data.data.url);
+    } catch {
+      addToast('Error al subir foto', 'error');
+      setPhotoPreview(null);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const xpPreview = (() => {
@@ -164,10 +170,10 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || uploading}
           className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Registrando...' : `Registrar Brew (+${xpPreview} XP)`}
+          {uploading ? 'Subiendo foto...' : loading ? 'Registrando...' : `Registrar Brew (+${xpPreview} XP)`}
         </button>
       </motion.form>
     </motion.div>

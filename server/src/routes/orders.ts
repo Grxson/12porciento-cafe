@@ -22,17 +22,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
 });
 
-async function applyPromo(subtotal: number, promoCode?: string): Promise<number> {
-  if (!promoCode) return subtotal;
+async function applyPromo(subtotal: number, promoCode?: string): Promise<{ total: number; promoId: string | null }> {
+  if (!promoCode) return { total: subtotal, promoId: null };
   const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
-  if (!promo || !promo.isActive) return subtotal;
+  if (!promo || !promo.isActive) return { total: subtotal, promoId: null };
+  if (promo.expiresAt && new Date() > promo.expiresAt) return { total: subtotal, promoId: null };
+  if (promo.maxUses && promo.usedCount >= promo.maxUses) return { total: subtotal, promoId: null };
   // Treat anything that isn't an explicit FIXED amount as a percentage. Historic rows
   // and the admin form have used both 'PERCENT' and 'PERCENTAGE' for percentage promos.
   const isFixed = promo.type === 'FIXED';
   const discount = isFixed
     ? Math.min(promo.discount, subtotal)
     : subtotal * (promo.discount / 100);
-  return Math.max(subtotal - discount, 0);
+  return { total: Math.max(subtotal - discount, 0), promoId: promo.id };
 }
 
 router.post('/', orderLimiter, async (req: Request, res: Response) => {
@@ -74,7 +76,7 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
         sum + item.price * item.quantity,
       0,
     );
-    const total = await applyPromo(subtotal, promoCode);
+    const { total, promoId } = await applyPromo(subtotal, promoCode);
 
     // Idempotency check: if another path (webhook / client retry) already created
     // the order for this paymentIntentId, return it immediately — no duplicate, no error.
@@ -121,6 +123,13 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
               },
             });
           }
+        }
+
+        if (promoId) {
+          await tx.promoCode.update({
+            where: { id: promoId },
+            data: { usedCount: { increment: 1 } },
+          });
         }
 
         return created;

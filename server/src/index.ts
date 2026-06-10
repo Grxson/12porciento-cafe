@@ -35,9 +35,10 @@ app.use(cors({
   credentials: true,
 }));
 
-// Webhook must receive raw body — register before express.json()
+// Webhooks must receive raw body — register before express.json()
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRouter);
-app.use('/api/subscription-payments/webhook', express.raw({ type: 'application/json' }), subscriptionPaymentsRouter);
+// Apply raw body to the exact sub-payment webhook path only; the router is mounted normally below.
+app.use('/api/subscription-payments/webhook/invoice', express.raw({ type: 'application/json' }));
 
 app.use(express.json({ limit: '50kb' }));
 

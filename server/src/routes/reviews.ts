@@ -23,6 +23,15 @@ router.post('/product/:productId', async (req: Request, res: Response) => {
     if (!name || !email || !rating || !comment) {
       return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
+    if (typeof name !== 'string' || name.trim().length < 2 || name.length > 100) {
+      return res.status(400).json({ error: 'Nombre debe tener entre 2 y 100 caracteres' });
+    }
+    if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Email inválido' });
+    }
+    if (typeof comment !== 'string' || comment.trim().length < 10 || comment.length > 1000) {
+      return res.status(400).json({ error: 'Comentario debe tener entre 10 y 1000 caracteres' });
+    }
     const ratingNum = parseInt(rating);
     if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
       return res.status(400).json({ error: 'Rating debe ser entre 1 y 5' });

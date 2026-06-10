@@ -13,4 +13,7 @@ export const baristaApi = {
 
   getLeaderboard: (limit = 50) =>
     api.get('/barista/leaderboard', { params: { limit } }),
+
+  getAchievements: () =>
+    api.get('/barista/achievements'),
 };

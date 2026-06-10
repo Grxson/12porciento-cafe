@@ -193,6 +193,7 @@ export interface DashboardStats {
   revenueThisMonth: number;
   activeSubscriptions: number;
   totalProducts: number;
+  totalBrews: number;
   pendingReviews: number;
   lowStockProducts: { name: string; stock: number }[];
   recentOrders: Order[];
@@ -232,6 +233,10 @@ export interface Achievement {
   icon: string;
   rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
   xpReward: number;
+}
+
+export interface AchievementWithUnlock extends Achievement {
+  unlockedAt: string | null;
 }
 
 export interface AchievementUnlock {

@@ -25,6 +25,8 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
 
   const unlocked: { id: string; name: string; icon: string; xpReward: number }[] = [];
 
+  let bonusXp = 0;
+
   for (const c of candidates) {
     if (!c.met) continue;
     const alreadyUnlocked = profile.achievements.some((a) => a.achievementId === c.slug);
@@ -32,7 +34,19 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
     const achievement = await prisma.achievement.findUnique({ where: { slug: c.slug } });
     if (!achievement) continue;
     await prisma.achievementUnlock.create({ data: { userId, achievementId: achievement.id } });
+    bonusXp += achievement.xpReward;
     unlocked.push({ id: achievement.id, name: achievement.name, icon: achievement.icon, xpReward: achievement.xpReward });
+  }
+
+  if (bonusXp > 0) {
+    const current = await prisma.baristaProfile.findUnique({ where: { userId } });
+    if (current) {
+      const newTotal = current.totalXp + bonusXp;
+      await prisma.baristaProfile.update({
+        where: { userId },
+        data: { totalXp: newTotal, level: Math.floor(newTotal / 100) + 1 },
+      });
+    }
   }
 
   return unlocked;

@@ -10,7 +10,7 @@ export default function Reviews() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    usersApi.myReviews().then((r) => { setReviews(r.data); setLoading(false); });
+    usersApi.myReviews().then((r) => { setReviews(r.data); }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   if (loading) {

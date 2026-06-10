@@ -19,10 +19,10 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
   const slots = PLAN_SLOTS[plan];
 
   useEffect(() => {
-    productsApi.list({ category: 'CAFÉ' }).then((r) => {
-      setProducts(r.data.data.filter((p: Product) => p.isActive));
-      setLoading(false);
-    });
+    productsApi.list({ category: 'CAFÉ' })
+      .then((r) => { setProducts(r.data.data.filter((p: Product) => p.isActive)); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const toggle = (id: string) => {

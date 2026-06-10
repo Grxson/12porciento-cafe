@@ -18,10 +18,10 @@ export default function SearchableProductSelect({ value, onChange, initialLabel 
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    productsApi.list().then((r) => {
-      setProducts(r.data.data.filter((p: Product) => p.isActive));
-      setLoading(false);
-    });
+    productsApi.list()
+      .then((r) => { setProducts(r.data.data.filter((p: Product) => p.isActive)); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {

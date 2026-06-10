@@ -1,5 +1,9 @@
 import nodemailer from 'nodemailer';
 
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 const transport = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT || '587'),
@@ -21,7 +25,7 @@ interface OrderEmailData {
 function orderConfirmationHtml(data: OrderEmailData): string {
   const itemRows = data.items.map((item) => `
     <tr>
-      <td style="padding:8px 0;border-bottom:1px solid #2a1a0e;color:#d4b896;font-size:14px;">${item.name}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #2a1a0e;color:#d4b896;font-size:14px;">${esc(item.name)}</td>
       <td style="padding:8px 0;border-bottom:1px solid #2a1a0e;color:#8c6a4a;font-size:14px;text-align:center;">×${item.quantity}</td>
       <td style="padding:8px 0;border-bottom:1px solid #2a1a0e;color:#c9a227;font-size:14px;text-align:right;">$${(item.price * item.quantity).toLocaleString('es-MX')}</td>
     </tr>`).join('');
@@ -57,7 +61,7 @@ function orderConfirmationHtml(data: OrderEmailData): string {
         <!-- Greeting -->
         <tr>
           <td style="padding:0 40px 24px;">
-            <p style="margin:0;color:#d4b896;font-size:15px;line-height:1.7;">Hola ${data.customerName},</p>
+            <p style="margin:0;color:#d4b896;font-size:15px;line-height:1.7;">Hola ${esc(data.customerName)},</p>
             <p style="margin:12px 0 0;color:#8c6a4a;font-size:14px;line-height:1.7;">
               Recibimos tu pedido. Tostamos a pedido para garantizar frescura máxima —
               recibirás tu café dentro de los próximos <strong style="color:#d4b896;">3-5 días hábiles</strong>.
@@ -199,7 +203,7 @@ function statusUpdateHtml(data: StatusEmailData): string {
 
         <tr>
           <td style="padding:16px 40px 32px;">
-            <p style="margin:0 0 12px;color:#8c6a4a;font-size:14px;line-height:1.7;">Hola ${data.customerName},</p>
+            <p style="margin:0 0 12px;color:#8c6a4a;font-size:14px;line-height:1.7;">Hola ${esc(data.customerName)},</p>
             <p style="margin:0 0 24px;color:#d4b896;font-size:14px;line-height:1.7;">${copy.body}</p>
             <a href="${ctaUrl}"
                style="display:inline-block;background:#c9a227;color:#0d0704;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;padding:12px 28px;text-decoration:none;">

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Recipe } from '../../types';
+import BrewLogForm from '../BrewLogForm';
 
 interface RecipeLiveModeProps {
   recipe: Recipe;
@@ -11,6 +12,7 @@ interface RecipeLiveModeProps {
 export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [timerActive, setTimerActive] = useState<number | null>(null);
+  const [showBrewLog, setShowBrewLog] = useState(false);
 
   const step = recipe.steps[currentStepIndex];
   const hasNext = currentStepIndex < recipe.steps.length - 1;
@@ -162,7 +164,18 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between p-6 border-t border-coffee-800 bg-coffee-900/50">
+      <div className="border-t border-coffee-800 bg-coffee-900/50">
+        {!hasNext && (
+          <div className="text-center pt-4 px-6">
+            <button
+              onClick={() => setShowBrewLog(true)}
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors"
+            >
+              ☕ Registrar este Brew
+            </button>
+          </div>
+        )}
+        <div className="flex items-center justify-between p-6">
         <button
           onClick={goPrev}
           disabled={!hasPrev}
@@ -193,7 +206,16 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         >
           <ChevronRight className="w-8 h-8" />
         </button>
+        </div>
       </div>
+      <AnimatePresence>
+        {showBrewLog && (
+          <BrewLogForm
+            recipe={recipe}
+            onClose={() => setShowBrewLog(false)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

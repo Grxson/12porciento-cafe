@@ -617,6 +617,23 @@ async function main() {
   }
   console.log(`Seeded ${recipes.length} recipes.`);
 
+  // Achievements
+  const achievements = [
+    { slug: 'first_brew', name: 'Primer Brew', description: 'Registra tu primer café preparado', icon: '☕', rarity: 'COMMON', xpReward: 10 },
+    { slug: 'five_brews', name: 'Cinco Brews', description: 'Registra 5 cafés preparados', icon: '🎯', rarity: 'COMMON', xpReward: 25 },
+    { slug: 'ten_brews', name: 'Diez Brews', description: 'Registra 10 cafés preparados', icon: '⚡', rarity: 'RARE', xpReward: 50 },
+    { slug: 'perfect_brew', name: 'Brew Perfecto', description: 'Califica un brew con 5 estrellas', icon: '⭐', rarity: 'EPIC', xpReward: 100 },
+  ];
+
+  for (const a of achievements) {
+    await prisma.achievement.upsert({
+      where: { slug: a.slug },
+      update: {},
+      create: a,
+    });
+  }
+  console.log(`Seeded ${achievements.length} achievements.`);
+
   console.log('Seed complete. Admin: admin@12porciento.com / admin123');
 }
 

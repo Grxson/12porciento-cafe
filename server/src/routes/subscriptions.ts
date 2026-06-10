@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
@@ -25,7 +26,20 @@ const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
 // POST / — create subscription with selected coffees
 router.post('/', createLimiter, async (req: Request, res: Response) => {
   try {
-    const { name, email, phone, plan, frequency = 'monthly', grindPreference = 'GRANO', items = [], userId } = req.body;
+    const { name, email, phone, plan, frequency = 'monthly', grindPreference = 'GRANO', items = [] } = req.body;
+
+    // Derive userId from token — ignore body to prevent IDOR
+    let userId: string | undefined;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const payload = jwt.verify(
+          authHeader.replace('Bearer ', ''),
+          process.env.JWT_SECRET!,
+        ) as { id: string; role?: string };
+        if (payload.role === 'USER') userId = payload.id;
+      } catch { /* anonymous subscription */ }
+    }
 
     if (!name || typeof name !== 'string' || name.trim().length < 2 || name.length > 100) {
       res.status(400).json({ error: 'Nombre debe tener entre 2 y 100 caracteres' });

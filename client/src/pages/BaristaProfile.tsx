@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Trophy, Zap, Coffee } from 'lucide-react';
 import { useBarista } from '../hooks/useBarista';
 import { useUser } from '../context/UserContext';
@@ -28,7 +28,7 @@ export default function BaristaProfile() {
               <p className="text-coffee-400 text-sm mb-6">
                 Prepara una receta en modo en vivo y regístrala para comenzar tu camino como barista.
               </p>
-              <a href="/recetas" className="btn-primary">Ver recetas</a>
+              <Link to="/recetas" className="btn-primary">Ver recetas</Link>
             </>
           ) : (
             <>

@@ -64,9 +64,6 @@ export default function Checkout() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
 
-  // Stable idempotency key for the current checkout attempt — prevents duplicate PaymentIntents on retry/double-submit
-  const idempotencyKeyRef = useRef<string>(crypto.randomUUID());
-
   // Saved payment methods state
   const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
   const [defaultMethodId, setDefaultMethodId] = useState<string | null>(null);
@@ -155,6 +152,7 @@ export default function Checkout() {
     setLoadingIntent(true);
     setError('');
     try {
+      const freshIdempotencyKey = crypto.randomUUID();
       const useSavedCard = methodChoice !== 'new' && user?.stripeCustomerId;
       const payload = {
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
@@ -172,7 +170,7 @@ export default function Checkout() {
         ...(user ? { userId: user.id } : {}),
       };
       const res = await retryWithBackoff(() =>
-        paymentsApi.createIntent(payload, idempotencyKeyRef.current),
+        paymentsApi.createIntent(payload, freshIdempotencyKey),
       );
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');

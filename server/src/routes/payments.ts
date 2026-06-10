@@ -2,7 +2,6 @@ import express from 'express';
 import Stripe from 'stripe';
 import rateLimit from 'express-rate-limit';
 import { Prisma } from '@prisma/client';
-import { randomUUID } from 'crypto';
 import { prisma } from '../db';
 
 const router = express.Router();
@@ -105,7 +104,11 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
     }
 
     const s = (v?: string) => (v ? v.slice(0, 500) : undefined);
-    const idempotencyKey = (req.headers['idempotency-key'] as string) || randomUUID();
+    const rawIdempotencyKey = (req.headers['idempotency-key'] as string)?.trim();
+    if (!rawIdempotencyKey || !/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(rawIdempotencyKey)) {
+      return res.status(400).json({ error: 'idempotency-key header required and must be valid UUID' });
+    }
+    const idempotencyKey = rawIdempotencyKey;
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCentavos,

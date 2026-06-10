@@ -186,8 +186,33 @@ export default function Recipes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-coffee-950 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+      <div className="min-h-screen bg-coffee-950 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12 space-y-3">
+            <div className="shimmer-dark h-3 w-32 mx-auto" />
+            <div className="shimmer-dark h-9 w-48 mx-auto" />
+            <div className="shimmer-dark h-4 w-64 mx-auto" />
+          </div>
+          <div className="shimmer-dark h-10 w-full mb-10" />
+          <div className="flex gap-2 justify-center mb-10">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="shimmer-dark h-7 w-20" />
+            ))}
+          </div>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-coffee-900 border border-coffee-800 p-6 space-y-3">
+                <div className="flex gap-3">
+                  <div className="shimmer-dark h-5 w-16" />
+                  <div className="shimmer-dark h-5 w-12" />
+                </div>
+                <div className="shimmer-dark h-7 w-2/3" />
+                <div className="shimmer-dark h-4 w-full" />
+                <div className="shimmer-dark h-4 w-4/5" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

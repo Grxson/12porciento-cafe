@@ -11,8 +11,33 @@ export default function BaristaProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-coffee-950 pt-24 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+      <div className="min-h-screen bg-coffee-950 pt-20 pb-24">
+        <div className="max-w-2xl mx-auto px-4 space-y-6">
+          <div className="flex items-center gap-4 pt-6">
+            <div className="shimmer-dark w-16 h-16 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <div className="shimmer-dark h-6 w-40" />
+              <div className="shimmer-dark h-4 w-24" />
+            </div>
+          </div>
+          <div className="shimmer-dark h-3 w-full rounded-full" />
+          <div className="grid grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-coffee-900 border border-coffee-800 p-4 space-y-2">
+                <div className="shimmer-dark h-7 w-12" />
+                <div className="shimmer-dark h-3 w-full" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="bg-coffee-900 border border-coffee-800 p-4 space-y-2">
+                <div className="shimmer-dark h-4 w-3/4" />
+                <div className="shimmer-dark h-3 w-1/2" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

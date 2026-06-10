@@ -37,8 +37,23 @@ export default function Leaderboard() {
         </div>
 
         {loading && (
-          <div className="flex justify-center py-12">
-            <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-3 border-b border-coffee-800">
+                <div className="flex items-center gap-4">
+                  <div className="shimmer-dark w-6 h-4" />
+                  <div className="shimmer-dark w-8 h-8 rounded-full" />
+                  <div className="space-y-1">
+                    <div className="shimmer-dark h-4 w-32" />
+                    <div className="shimmer-dark h-3 w-20" />
+                  </div>
+                </div>
+                <div className="space-y-1 text-right">
+                  <div className="shimmer-dark h-4 w-16" />
+                  <div className="shimmer-dark h-3 w-12" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

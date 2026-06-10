@@ -13,6 +13,7 @@ const links = [
   { to: '/tienda', label: 'Tienda' },
   { to: '/recetas', label: 'Recetas' },
   { to: '/leaderboard', label: 'Ranking' },
+  { to: '/logros', label: 'Logros' },
   { to: '/suscripciones', label: 'Suscripciones' },
   { to: '/nosotros', label: 'Nosotros' },
   { to: '/quiz', label: 'Quiz' },

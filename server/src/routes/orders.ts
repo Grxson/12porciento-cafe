@@ -27,7 +27,11 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<number>
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { items, userId, paymentIntentId, promoCode, ...orderData } = req.body;
+    const {
+      items, userId, paymentIntentId, promoCode,
+      customerName, email, phone, address, city, state, zipCode, notes,
+    } = req.body;
+    const orderData = { customerName, email, phone, address, city, state, zipCode, notes };
 
     if (paymentIntentId) {
       try {

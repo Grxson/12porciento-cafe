@@ -110,15 +110,22 @@ export default function BaristaProfile() {
             <h2 className="font-serif text-xl text-cream mb-4">Brews Recientes</h2>
             <div className="space-y-3">
               {profile.brewLogs.map((brew) => (
-                <div key={brew.id} className="bg-coffee-900 border border-coffee-800 p-4 flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-cream font-medium truncate">{brew.recipe.title}</p>
-                    <p className="text-xs text-coffee-500 mt-0.5">{brew.recipe.method}</p>
-                    {brew.notes && <p className="text-sm text-coffee-300 mt-2 line-clamp-2">{brew.notes}</p>}
-                  </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <p className="text-gold-400">{'★'.repeat(brew.rating)}{'☆'.repeat(5 - brew.rating)}</p>
-                    <p className="text-xs text-gold-500 mt-1">+{brew.xpEarned} XP</p>
+                <div key={brew.id} className="bg-coffee-900 border border-coffee-800 overflow-hidden">
+                  {brew.photoUrl && (
+                    <img src={brew.photoUrl} alt="brew" className="w-full h-32 object-cover" />
+                  )}
+                  <div className="p-4 flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-cream font-medium truncate">{brew.recipe.title}</p>
+                      <p className="text-xs text-coffee-500 mt-0.5">
+                        {brew.recipe.method} · {new Date(brew.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                      </p>
+                      {brew.notes && <p className="text-sm text-coffee-300 mt-2 line-clamp-2">{brew.notes}</p>}
+                    </div>
+                    <div className="text-right ml-4 shrink-0">
+                      <p className="text-gold-400">{'★'.repeat(brew.rating)}{'☆'.repeat(5 - brew.rating)}</p>
+                      <p className="text-xs text-gold-500 mt-1">+{brew.xpEarned} XP</p>
+                    </div>
                   </div>
                 </div>
               ))}

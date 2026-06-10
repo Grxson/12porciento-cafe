@@ -3,6 +3,7 @@ import { X, Star, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useBarista } from '../hooks/useBarista';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 import type { Recipe } from '../types';
 
 interface BrewLogFormProps {
@@ -14,6 +15,7 @@ interface BrewLogFormProps {
 export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormProps) {
   const user = useUser((s) => s.user);
   const { submitBrewLog, loading, error } = useBarista(user?.id);
+  const addToast = useToast((s) => s.add);
 
   const [rating, setRating] = useState(3);
   const [notes, setNotes] = useState('');
@@ -46,6 +48,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
         notes: notes.trim() || undefined,
         photoUrl: photoUrl || undefined,
       });
+      addToast(`+${xpPreview} XP ganados ☕`, 'success');
       onSuccess?.();
       onClose();
     } catch {

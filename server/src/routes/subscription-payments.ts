@@ -63,7 +63,10 @@ router.post('/webhook/invoice', async (req: Request, res: Response) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event: any;
-  if (webhookSecret && sig) {
+  if (webhookSecret) {
+    if (!sig) {
+      return res.status(400).json({ error: 'Missing stripe-signature header' });
+    }
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err: any) {
@@ -71,6 +74,7 @@ router.post('/webhook/invoice', async (req: Request, res: Response) => {
       return res.status(400).json({ error: err.message });
     }
   } else {
+    // Dev/test: no secret configured, trust body
     event = req.body;
   }
 

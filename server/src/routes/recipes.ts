@@ -9,10 +9,14 @@ const router = Router();
 async function hasRecipeAccess(authHeader: string | undefined): Promise<boolean> {
   if (!authHeader?.startsWith('Bearer ')) return false;
   try {
-    const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as { id: string; role: string };
-    if (payload.role === 'ADMIN') return true;
-    const sub = await prisma.subscription.findFirst({ where: { userId: payload.id, status: 'ACTIVE' } });
-    return !!sub;
+    const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as { id: string; role?: string };
+    if (payload.role === 'USER') {
+      const sub = await prisma.subscription.findFirst({ where: { userId: payload.id, status: 'ACTIVE' } });
+      return !!sub;
+    }
+    // Admin tokens have no role field — verify against admin table
+    const admin = await prisma.admin.findUnique({ where: { id: payload.id } });
+    return !!admin;
   } catch {
     return false;
   }

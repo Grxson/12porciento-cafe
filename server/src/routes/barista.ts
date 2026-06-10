@@ -1,0 +1,134 @@
+import { Router, Request, Response } from 'express';
+import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
+import { prisma } from '../db';
+
+const router = Router();
+
+function calculateXp(recipeDifficulty: string, rating: number): number {
+  const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
+  return (baseXp[recipeDifficulty] ?? 20) + (rating - 1) * 5;
+}
+
+async function checkAndUnlockAchievements(userId: string): Promise<void> {
+  const profile = await prisma.baristaProfile.findUnique({
+    where: { userId },
+    include: { achievements: true, brewLogs: true },
+  });
+  if (!profile) return;
+
+  const candidates = [
+    { slug: 'first_brew', met: profile.brewLogs.length >= 1 },
+    { slug: 'five_brews', met: profile.brewLogs.length >= 5 },
+    { slug: 'ten_brews', met: profile.brewLogs.length >= 10 },
+    { slug: 'perfect_brew', met: profile.brewLogs.some((b) => b.rating === 5) },
+  ];
+
+  for (const c of candidates) {
+    if (!c.met) continue;
+    const alreadyUnlocked = profile.achievements.some((a) => a.achievementId === c.slug);
+    if (alreadyUnlocked) continue;
+    const achievement = await prisma.achievement.findUnique({ where: { slug: c.slug } });
+    if (!achievement) continue;
+    await prisma.achievementUnlock.create({ data: { userId, achievementId: achievement.id } });
+  }
+}
+
+// GET /barista/leaderboard — MUST be before /:userId/profile
+router.get('/leaderboard', async (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(parseInt((req.query.limit as string) || '50'), 100);
+    const leaderboard = await prisma.baristaProfile.findMany({
+      orderBy: [{ totalXp: 'desc' }, { createdAt: 'asc' }],
+      take: limit,
+      include: { user: { select: { id: true, name: true } } },
+    });
+    res.json({ data: leaderboard });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener leaderboard' });
+  }
+});
+
+// POST /barista/brew-logs
+router.post('/brew-logs', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const { recipeId, rating, notes, photoUrl } = req.body;
+    const userId = req.user!.id;
+
+    if (!recipeId || typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'recipeId y rating (1-5) requeridos' });
+    }
+
+    const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
+    if (!recipe) return res.status(404).json({ error: 'Receta no encontrada' });
+
+    let profile = await prisma.baristaProfile.findUnique({ where: { userId } });
+    if (!profile) {
+      profile = await prisma.baristaProfile.create({
+        data: { userId, favoriteMethod: recipe.method },
+      });
+    }
+
+    const xpEarned = calculateXp(recipe.difficulty || 'MEDIA', rating);
+
+    const brewLog = await prisma.brewLog.create({
+      data: {
+        userId,
+        recipeId,
+        rating,
+        notes: notes?.trim() ?? null,
+        photoUrl: photoUrl?.trim() ?? null,
+        xpEarned,
+      },
+      include: { recipe: { select: { id: true, title: true } } },
+    });
+
+    const newTotalXp = profile.totalXp + xpEarned;
+    const newLevel = Math.floor(newTotalXp / 100) + 1;
+
+    const updatedProfile = await prisma.baristaProfile.update({
+      where: { userId },
+      data: {
+        totalXp: newTotalXp,
+        level: newLevel,
+        totalBrews: { increment: 1 },
+        ...(rating === 5 ? { favoriteMethod: recipe.method } : {}),
+      },
+    });
+
+    await checkAndUnlockAchievements(userId);
+
+    res.status(201).json({ data: { brewLog, profile: updatedProfile } });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al registrar brew' });
+  }
+});
+
+// GET /barista/:userId/profile
+router.get('/:userId/profile', async (req: Request, res: Response) => {
+  try {
+    const profile = await prisma.baristaProfile.findUnique({
+      where: { userId: req.params.userId },
+      include: {
+        achievements: {
+          include: { achievement: true },
+          orderBy: { unlockedAt: 'desc' },
+        },
+        brewLogs: {
+          include: { recipe: { select: { id: true, title: true, method: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
+      },
+    });
+
+    if (!profile) return res.status(404).json({ error: 'Perfil no encontrado' });
+    res.json({ data: profile });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener perfil' });
+  }
+});
+
+export default router;

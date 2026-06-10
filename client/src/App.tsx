@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
 import { NotificationsProvider } from './context/NotificationsContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -64,6 +65,7 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => (
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <NotificationsProvider>
     <CartProvider>
       <ToastContainer />
@@ -111,5 +113,6 @@ export default function App() {
       </Routes>
     </CartProvider>
     </NotificationsProvider>
+    </ErrorBoundary>
   );
 }

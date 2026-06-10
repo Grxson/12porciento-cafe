@@ -1,10 +1,13 @@
 import { useParams } from 'react-router-dom';
 import { Trophy, Zap, Coffee } from 'lucide-react';
 import { useBarista } from '../hooks/useBarista';
+import { useUser } from '../context/UserContext';
 
 export default function BaristaProfile() {
   const { userId } = useParams<{ userId: string }>();
   const { profile, loading, error } = useBarista(userId);
+  const currentUser = useUser((s) => s.user);
+  const isOwnProfile = currentUser?.id === userId;
 
   if (loading) {
     return (
@@ -19,11 +22,20 @@ export default function BaristaProfile() {
       <div className="min-h-screen bg-coffee-950 pt-24 flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <Coffee className="w-12 h-12 text-coffee-700 mx-auto mb-4" />
-          <h2 className="font-serif text-2xl text-cream mb-2">Sin brews aún</h2>
-          <p className="text-coffee-400 text-sm mb-6">
-            Prepara una receta en modo en vivo y regístrala para comenzar tu camino como barista.
-          </p>
-          <a href="/recetas" className="btn-primary">Ver recetas</a>
+          {isOwnProfile ? (
+            <>
+              <h2 className="font-serif text-2xl text-cream mb-2">Sin brews aún</h2>
+              <p className="text-coffee-400 text-sm mb-6">
+                Prepara una receta en modo en vivo y regístrala para comenzar tu camino como barista.
+              </p>
+              <a href="/recetas" className="btn-primary">Ver recetas</a>
+            </>
+          ) : (
+            <>
+              <h2 className="font-serif text-2xl text-cream mb-2">Perfil no encontrado</h2>
+              <p className="text-coffee-400 text-sm">Este barista aún no ha registrado ningún brew.</p>
+            </>
+          )}
         </div>
       </div>
     );

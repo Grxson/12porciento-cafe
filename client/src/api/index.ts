@@ -236,3 +236,4 @@ export const uploadsApi = {
 };
 
 export default api;
+export { baristaApi } from './barista';

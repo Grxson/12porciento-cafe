@@ -197,3 +197,46 @@ export interface DashboardStats {
   lowStockProducts: { name: string; stock: number }[];
   recentOrders: Order[];
 }
+
+export interface BaristaProfile {
+  id: string;
+  userId: string;
+  level: number;
+  totalXp: number;
+  totalBrews: number;
+  favoriteMethod?: string;
+  brewLogs: BrewLog[];
+  achievements: AchievementUnlock[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BrewLog {
+  id: string;
+  userId: string;
+  recipeId: string;
+  recipe: { id: string; title: string; method: string };
+  rating: number;
+  notes?: string;
+  photoUrl?: string;
+  xpEarned: number;
+  createdAt: string;
+}
+
+export interface Achievement {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+  xpReward: number;
+}
+
+export interface AchievementUnlock {
+  id: string;
+  userId: string;
+  achievementId: string;
+  achievement: Achievement;
+  unlockedAt: string;
+}

@@ -10,20 +10,21 @@ function calculateXp(recipeDifficulty: string, rating: number): number {
 }
 
 async function checkAndUnlockAchievements(userId: string): Promise<{ id: string; name: string; icon: string; xpReward: number }[]> {
-  const profile = await prisma.baristaProfile.findUnique({
-    where: { userId },
-    include: {
-      achievements: { include: { achievement: true } },
-      brewLogs: true,
-    },
-  });
+  const [profile, brewCount, hasPerfect] = await Promise.all([
+    prisma.baristaProfile.findUnique({
+      where: { userId },
+      include: { achievements: { include: { achievement: true } } },
+    }),
+    prisma.brewLog.count({ where: { userId } }),
+    prisma.brewLog.findFirst({ where: { userId, rating: 5 }, select: { id: true } }),
+  ]);
   if (!profile) return [];
 
   const candidates = [
-    { slug: 'first_brew', met: profile.brewLogs.length >= 1 },
-    { slug: 'five_brews', met: profile.brewLogs.length >= 5 },
-    { slug: 'ten_brews', met: profile.brewLogs.length >= 10 },
-    { slug: 'perfect_brew', met: profile.brewLogs.some((b) => b.rating === 5) },
+    { slug: 'first_brew', met: brewCount >= 1 },
+    { slug: 'five_brews', met: brewCount >= 5 },
+    { slug: 'ten_brews', met: brewCount >= 10 },
+    { slug: 'perfect_brew', met: hasPerfect !== null },
   ];
 
   const unlocked: { id: string; name: string; icon: string; xpReward: number }[] = [];

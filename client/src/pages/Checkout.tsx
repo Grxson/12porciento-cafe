@@ -7,6 +7,7 @@ import { ordersApi, paymentsApi, promoCodesApi, usersApi } from '../api';
 import { retryWithBackoff } from '../services/paymentRetry';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 import StripePaymentForm from '../components/StripePaymentForm';
 import { mexicanStates } from '../constants/mexico';
 import type { PaymentMethod } from '../types';
@@ -39,6 +40,7 @@ const validateShipping = (form: FormData): Partial<Record<keyof FormData, string
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const user = useUser((s) => s.user);
+  const { add: addToast } = useToast();
   // step 1 = shipping, '2a' = card selection, 2 = payment UI
   const [step, setStep] = useState<1 | '2a' | 2>(1);
   const [form, setForm] = useState<FormData>({
@@ -177,7 +179,11 @@ export default function Checkout() {
       setIntentAmount(res.data.amount);
       setStep(2);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al iniciar el pago. Intenta de nuevo.');
+      const msg = err.response?.data?.error || 'Error al iniciar el pago. Intenta de nuevo.';
+      setError(msg);
+      if (err.response?.status === 400 && msg.toLowerCase().includes('stock')) {
+        addToast(msg, 'warning');
+      }
     } finally {
       setLoadingIntent(false);
     }

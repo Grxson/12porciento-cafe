@@ -31,6 +31,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const startedAtRef = useRef<string>(new Date().toISOString());
 
   const step = recipe.steps[currentStepIndex];
   const hasNext = currentStepIndex < recipe.steps.length - 1;
@@ -52,7 +53,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       id: `${user.id}:${recipe.id}`,
       recipeId: recipe.id,
       userId: user.id,
-      startedAt: new Date().toISOString(),
+      startedAt: startedAtRef.current,
       currentStepIndex: stepIndex,
       steps: newSteps,
       status: 'in_progress',
@@ -62,6 +63,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
   const handleResume = () => {
     if (!draft) return;
+    startedAtRef.current = draft.startedAt;
     setCurrentStepIndex(draft.currentStepIndex);
     setSteps(draft.steps);
     setDraft(null);
@@ -69,6 +71,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
   const handleStartOver = () => {
     if (user) clearDraft(user.id, recipe.id).catch(() => {});
+    startedAtRef.current = new Date().toISOString();
     setDraft(null);
     setSteps([]);
     setCurrentStepIndex(0);
@@ -114,6 +117,12 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   }, [timerActive]);
 
   useEffect(() => { setTimerActive(null); }, [currentStepIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (longPressRef.current) clearTimeout(longPressRef.current);
+    };
+  }, []);
 
   const goNext = () => {
     if (hasNext) {
@@ -393,7 +402,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-coffee-400 uppercase tracking-widest">Menú rápido</p>
-              <button onClick={() => setShowQuickPanel(false)} className="text-coffee-400 hover:text-cream">
+              <button onClick={() => setShowQuickPanel(false)} aria-label="Cerrar menú rápido" className="text-coffee-400 hover:text-cream">
                 <X className="w-4 h-4" />
               </button>
             </div>

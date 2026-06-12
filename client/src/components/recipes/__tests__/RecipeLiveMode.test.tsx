@@ -101,4 +101,23 @@ describe('RecipeLiveMode', () => {
     render(<RecipeLiveMode recipe={mockRecipe} onClose={() => {}} />);
     await waitFor(() => expect(screen.getByText(/continuar/i)).toBeInTheDocument());
   });
+
+  it('submits brew log and shows registered state on Registrar click', async () => {
+    const submitMock = vi.fn().mockResolvedValue({ newAchievements: [] });
+    const { useBarista } = await import('../../../hooks/useBarista');
+    vi.mocked(useBarista).mockReturnValue({
+      submitBrewLog: submitMock,
+      loading: false,
+      error: null,
+    } as any);
+
+    render(<RecipeLiveMode recipe={mockRecipe} onClose={() => {}} />);
+    fireEvent.click(screen.getByLabelText(/siguiente/i)); // go to last step
+    fireEvent.click(screen.getByText(/registrar/i));
+
+    await waitFor(() => expect(submitMock).toHaveBeenCalledWith(
+      expect.objectContaining({ recipeId: '1' })
+    ));
+    await waitFor(() => expect(screen.getByText(/brew registrado/i)).toBeInTheDocument());
+  });
 });

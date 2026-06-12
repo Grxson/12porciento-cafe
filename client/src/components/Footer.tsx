@@ -15,7 +15,7 @@ export default function Footer() {
               Solo el 12% del café producido en el mundo es de especialidad. Ese es nuestro universo.
               Origen único, trazabilidad total, directo del productor a tu taza.
             </p>
-            <p className="text-coffee-500 text-xs uppercase tracking-[0.25em] mt-4">
+            <p className="text-coffee-500 dark:text-coffee-400 text-xs uppercase tracking-[0.25em] mt-4">
               Tostado en México · Desde 2024
             </p>
             <div className="flex gap-4 mt-6">
@@ -69,10 +69,10 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-coffee-200 dark:border-coffee-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-coffee-500 dark:text-coffee-600 text-xs">
+          <p className="text-coffee-500 dark:text-coffee-400 text-xs">
             © {new Date().getFullYear()} Café 12% — Todos los derechos reservados.
           </p>
-          <p className="text-coffee-500 dark:text-coffee-600 text-xs">
+          <p className="text-coffee-500 dark:text-coffee-400 text-xs">
             Café de especialidad · México
           </p>
         </div>

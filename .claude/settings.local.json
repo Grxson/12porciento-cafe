@@ -118,7 +118,8 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(echo \"---exit:$?---\")",
       "Bash(echo \"exit:$?\")",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(xargs -I{} basename {} .tsx)"
     ]
   }
 }

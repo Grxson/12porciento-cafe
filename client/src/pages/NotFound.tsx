@@ -21,7 +21,7 @@ export default function NotFound() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/" className="btn-primary">Ir al inicio</Link>
-          <Link to="/tienda" className="btn-outline-dark">Ver la tienda</Link>
+          <Link to="/tienda" className="btn-outline">Ver la tienda</Link>
         </div>
       </motion.div>
     </div>

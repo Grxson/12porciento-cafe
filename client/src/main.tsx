@@ -16,4 +16,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 );
 
-initBrewSync().catch(console.error);
+setTimeout(() => initBrewSync().catch(console.error), 0);

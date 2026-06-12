@@ -316,6 +316,7 @@ model BaristaProfile {
 
 model BrewLog {
   id             String         @id @default(cuid())
+  clientBrewId   String?        @unique
   userId         String
   baristaProfile BaristaProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
   recipeId       String
@@ -328,6 +329,7 @@ model BrewLog {
 
   @@index([userId])
   @@index([recipeId])
+  @@index([clientBrewId])
 }
 
 model Achievement {

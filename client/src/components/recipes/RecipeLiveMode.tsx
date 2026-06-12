@@ -1,8 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Recipe } from '../../types';
-import BrewLogForm from '../BrewLogForm';
+import type { RecipeDraft, StepDraft } from '../../types';
+import { saveDraft, loadDraft, clearDraft } from '../../hooks/useRecipeDraft';
+import { useUser } from '../../context/UserContext';
+import { useToast } from '../../context/ToastContext';
+import { useBarista } from '../../hooks/useBarista';
+import RatingSlider from './RatingSlider';
+import NotesCapture from './NotesCapture';
+import GestureHints from './GestureHints';
 
 interface RecipeLiveModeProps {
   recipe: Recipe;
@@ -10,27 +17,75 @@ interface RecipeLiveModeProps {
 }
 
 export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps) {
+  const user = useUser((s) => s.user);
+  const { add: addToast } = useToast();
+  const { submitBrewLog } = useBarista(user?.id);
+
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [timerActive, setTimerActive] = useState<number | null>(null);
-  const [showBrewLog, setShowBrewLog] = useState(false);
+  const [steps, setSteps] = useState<StepDraft[]>([]);
+  const [showQuickPanel, setShowQuickPanel] = useState(false);
+  const [draft, setDraft] = useState<RecipeDraft | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [brewRegistered, setBrewRegistered] = useState(false);
+
+  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const step = recipe.steps[currentStepIndex];
   const hasNext = currentStepIndex < recipe.steps.length - 1;
   const hasPrev = currentStepIndex > 0;
+  const currentStepDraft = steps.find((s) => s.index === currentStepIndex) ?? { index: currentStepIndex };
 
-  if (!step) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-coffee-950 flex flex-col items-center justify-center gap-4"
-      >
-        <p className="text-coffee-400 text-sm">Esta receta no tiene pasos configurados.</p>
-        <button onClick={onClose} className="btn-primary">Cerrar</button>
-      </motion.div>
-    );
-  }
+  // Load draft on mount
+  useEffect(() => {
+    if (!user) return;
+    loadDraft(user.id, recipe.id).then((d) => {
+      if (d && d.status === 'in_progress') setDraft(d);
+    }).catch(() => {});
+  }, [user?.id, recipe.id]);
 
+  // Persist draft helper
+  const persistDraft = useCallback((newSteps: StepDraft[], stepIndex: number) => {
+    if (!user) return;
+    const d: RecipeDraft = {
+      id: `${user.id}:${recipe.id}`,
+      recipeId: recipe.id,
+      userId: user.id,
+      startedAt: new Date().toISOString(),
+      currentStepIndex: stepIndex,
+      steps: newSteps,
+      status: 'in_progress',
+    };
+    saveDraft(d).catch(() => {});
+  }, [user?.id, recipe.id]);
+
+  const handleResume = () => {
+    if (!draft) return;
+    setCurrentStepIndex(draft.currentStepIndex);
+    setSteps(draft.steps);
+    setDraft(null);
+  };
+
+  const handleStartOver = () => {
+    if (user) clearDraft(user.id, recipe.id).catch(() => {});
+    setDraft(null);
+    setSteps([]);
+    setCurrentStepIndex(0);
+  };
+
+  const updateStep = (patch: Partial<StepDraft>) => {
+    setSteps((prev) => {
+      const existing = prev.find((s) => s.index === currentStepIndex);
+      const updated = existing
+        ? prev.map((s) => s.index === currentStepIndex ? { ...s, ...patch } : s)
+        : [...prev, { index: currentStepIndex, ...patch }];
+      persistDraft(updated, currentStepIndex);
+      return updated;
+    });
+  };
+
+  // Timer
   useEffect(() => {
     if (timerActive === null) return;
     const interval = setInterval(() => {
@@ -58,18 +113,69 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     return () => clearInterval(interval);
   }, [timerActive]);
 
-  useEffect(() => {
-    setTimerActive(null);
-  }, [currentStepIndex]);
+  useEffect(() => { setTimerActive(null); }, [currentStepIndex]);
 
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const goNext = () => {
+    if (hasNext) {
+      const updated = steps.find((s) => s.index === currentStepIndex)
+        ? steps.map((s) => s.index === currentStepIndex ? { ...s, completedAt: new Date().toISOString() } : s)
+        : [...steps, { index: currentStepIndex, completedAt: new Date().toISOString() }];
+      setSteps(updated);
+      persistDraft(updated, currentStepIndex + 1);
+      setCurrentStepIndex((c) => c + 1);
+    }
+  };
+
+  const goPrev = () => {
+    if (hasPrev) {
+      persistDraft(steps, currentStepIndex - 1);
+      setCurrentStepIndex((c) => c - 1);
+    }
+  };
+
+  const handleRegisterBrew = async () => {
+    if (!user || submitting) return;
+    setSubmitting(true);
+    const ratings = steps.map((s) => s.rating).filter((r): r is number => r !== undefined);
+    const avgRating = ratings.length
+      ? Math.round(ratings.reduce((s, r) => s + r, 0) / ratings.length)
+      : 5;
+    const notes = steps.map((s) => s.notes).filter(Boolean).join(' | ');
+    try {
+      const { newAchievements } = await submitBrewLog({
+        recipeId: recipe.id,
+        rating: avgRating,
+        notes: notes || undefined,
+      });
+      const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
+      const xp = (baseXp[recipe.difficulty ?? 'MEDIA'] ?? 20) + (avgRating - 1) * 5;
+      addToast(`+${xp} XP ganados ☕`, 'success');
+      for (const a of newAchievements) {
+        setTimeout(() => addToast(`🏆 Logro: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success'), 400);
+      }
+      if (user) clearDraft(user.id, recipe.id).catch(() => {});
+      setBrewRegistered(true);
+    } catch {
+      addToast('Error al registrar brew. Intenta de nuevo.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    longPressRef.current = setTimeout(() => {
+      setShowQuickPanel(true);
+      longPressRef.current = null;
+    }, 600);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    if (!touchStartRef.current || showQuickPanel) { touchStartRef.current = null; return; }
     const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
     const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartRef.current.y);
     if (Math.abs(deltaX) > 50 && deltaY < 50) {
@@ -78,13 +184,17 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     touchStartRef.current = null;
   };
 
-  const goNext = () => {
-    if (hasNext) setCurrentStepIndex((c) => c + 1);
-  };
-
-  const goPrev = () => {
-    if (hasPrev) setCurrentStepIndex((c) => c - 1);
-  };
+  if (!step) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-coffee-950 flex flex-col items-center justify-center gap-4"
+      >
+        <p className="text-coffee-400 text-sm">Esta receta no tiene pasos configurados.</p>
+        <button onClick={onClose} className="btn-primary">Cerrar</button>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -95,6 +205,27 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Resume banner */}
+      {draft && (
+        <div className="bg-gold-500/10 border-b border-gold-500/30 px-4 py-2.5 flex items-center justify-between gap-4">
+          <p className="text-gold-400 text-xs">↻ Tienes un brew en progreso.</p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleResume}
+              className="text-xs px-3 py-1 bg-gold-500 text-coffee-950 font-semibold hover:bg-gold-400 transition-colors"
+            >
+              Continuar
+            </button>
+            <button
+              onClick={handleStartOver}
+              className="text-xs px-3 py-1 text-coffee-400 hover:text-cream transition-colors"
+            >
+              Empezar de nuevo
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-coffee-800">
         <div>
@@ -113,73 +244,85 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-6">
+      <div className="flex-1 overflow-y-auto flex flex-col p-6">
         <AnimatePresence>
-        <motion.div
-          key={step.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="max-w-2xl w-full text-center"
-        >
-          {/* Step number badge */}
-          <div className="inline-block px-4 py-2 bg-gold-500/10 border border-gold-500/30 rounded-full mb-6">
-            <p className="text-gold-400 text-sm font-semibold">{currentStepIndex + 1} / {recipe.steps.length}</p>
-          </div>
-
-          {/* Step title */}
-          <h3 className="text-4xl md:text-5xl font-serif text-cream mb-6">{step.title}</h3>
-
-          {/* Step description */}
-          <p className="text-lg text-coffee-300 leading-relaxed mb-8">{step.description}</p>
-
-          {/* Meta info */}
-          {(step.duration || recipe.temp || recipe.grind) && (
-            <div className="grid grid-cols-3 gap-4 mb-8 max-w-sm mx-auto">
-              {step.duration && (
-                <div className="bg-coffee-900/50 p-3 rounded">
-                  <p className="text-[10px] text-coffee-500 uppercase mb-1">Duración</p>
-                  <p className="text-gold-400 font-bold">{step.duration}s</p>
-                </div>
-              )}
-              {recipe.temp && (
-                <div className="bg-coffee-900/50 p-3 rounded">
-                  <p className="text-[10px] text-coffee-500 uppercase mb-1">Temp</p>
-                  <p className="text-gold-400 font-bold">{recipe.temp}</p>
-                </div>
-              )}
-              {recipe.grind && (
-                <div className="bg-coffee-900/50 p-3 rounded">
-                  <p className="text-[10px] text-coffee-500 uppercase mb-1">Molienda</p>
-                  <p className="text-gold-400 font-bold text-sm">{recipe.grind}</p>
-                </div>
-              )}
+          <motion.div
+            key={step.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="max-w-2xl w-full mx-auto"
+          >
+            <div className="flex justify-center mb-6">
+              <div className="px-4 py-2 bg-gold-500/10 border border-gold-500/30 rounded-full">
+                <p className="text-gold-400 text-sm font-semibold">{currentStepIndex + 1} / {recipe.steps.length}</p>
+              </div>
             </div>
-          )}
 
-          {/* Timer */}
-          {step.duration && timerActive === null && (
-            <button
-              onClick={() => setTimerActive(step.duration!)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gold-500 text-coffee-950 font-semibold hover:bg-gold-400 transition-colors"
-            >
-              <Clock className="w-5 h-5" /> Iniciar {step.duration}s
-            </button>
-          )}
+            <h3 className="text-3xl md:text-4xl font-serif text-cream mb-4 text-center">{step.title}</h3>
+            <p className="text-base text-coffee-300 leading-relaxed mb-6 text-center">{step.description}</p>
 
-          {timerActive !== null && (
-            <div className="inline-block px-8 py-6 bg-gold-500/10 border border-gold-500/30 rounded">
-              <p className="text-xs text-gold-400 uppercase mb-3">Temporizador</p>
-              <p className="text-6xl font-mono font-bold text-gold-400 mb-4">{timerActive}</p>
-              <button
-                onClick={() => setTimerActive(null)}
-                className="text-xs px-4 py-1 bg-red-600/30 text-red-400 hover:bg-red-600/40 transition-colors"
-              >
-                Cancelar
-              </button>
+            {(step.duration || recipe.temp || recipe.grind) && (
+              <div className="grid grid-cols-3 gap-4 mb-6 max-w-sm mx-auto">
+                {step.duration && (
+                  <div className="bg-coffee-900/50 p-3 rounded text-center">
+                    <p className="text-[10px] text-coffee-500 uppercase mb-1">Duración</p>
+                    <p className="text-gold-400 font-bold">{step.duration}s</p>
+                  </div>
+                )}
+                {recipe.temp && (
+                  <div className="bg-coffee-900/50 p-3 rounded text-center">
+                    <p className="text-[10px] text-coffee-500 uppercase mb-1">Temp</p>
+                    <p className="text-gold-400 font-bold">{recipe.temp}</p>
+                  </div>
+                )}
+                {recipe.grind && (
+                  <div className="bg-coffee-900/50 p-3 rounded text-center">
+                    <p className="text-[10px] text-coffee-500 uppercase mb-1">Molienda</p>
+                    <p className="text-gold-400 font-bold text-sm">{recipe.grind}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step.duration && timerActive === null && (
+              <div className="flex justify-center mb-6">
+                <button
+                  onClick={() => setTimerActive(step.duration!)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gold-500 text-coffee-950 font-semibold hover:bg-gold-400 transition-colors"
+                >
+                  <Clock className="w-5 h-5" /> Iniciar {step.duration}s
+                </button>
+              </div>
+            )}
+
+            {timerActive !== null && (
+              <div className="flex justify-center mb-6">
+                <div className="inline-block px-8 py-6 bg-gold-500/10 border border-gold-500/30 rounded text-center">
+                  <p className="text-xs text-gold-400 uppercase mb-3">Temporizador</p>
+                  <p className="text-6xl font-mono font-bold text-gold-400 mb-4">{timerActive}</p>
+                  <button
+                    onClick={() => setTimerActive(null)}
+                    className="text-xs px-4 py-1 bg-red-600/30 text-red-400 hover:bg-red-600/40 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Inline rating + notes */}
+            <div className="mt-4 border-t border-coffee-800/50 pt-4">
+              <RatingSlider
+                value={currentStepDraft.rating}
+                onChange={(r) => updateStep({ rating: r })}
+              />
+              <NotesCapture
+                value={currentStepDraft.notes ?? ''}
+                onChange={(n) => updateStep({ notes: n })}
+              />
             </div>
-          )}
-        </motion.div>
+          </motion.div>
         </AnimatePresence>
       </div>
 
@@ -199,54 +342,76 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
               </>
             ) : (
               <button
-                onClick={() => setShowBrewLog(true)}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors"
+                onClick={handleRegisterBrew}
+                disabled={submitting}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors disabled:opacity-50"
               >
-                ☕ Registrar este Brew
+                {submitting ? 'Registrando...' : '☕ Registrar este Brew'}
               </button>
             )}
           </div>
         )}
-        <div className="flex items-center justify-between p-6">
-        <button
-          onClick={goPrev}
-          disabled={!hasPrev}
-          aria-label="Anterior"
-          className="p-3 text-coffee-400 disabled:opacity-30 hover:text-cream transition-colors"
-        >
-          <ChevronLeft className="w-8 h-8" />
-        </button>
+        <div className="flex items-center justify-between p-4">
+          <button
+            onClick={goPrev}
+            disabled={!hasPrev}
+            aria-label="Anterior"
+            className="p-3 text-coffee-400 disabled:opacity-30 hover:text-cream transition-colors"
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
 
-        {/* Progress bar */}
-        <div className="flex-1 mx-6">
-          <div className="h-1 bg-coffee-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gold-500 transition-all"
-              style={{ width: `${((currentStepIndex + 1) / recipe.steps.length) * 100}%` }}
-            />
+          <div className="flex-1 mx-4">
+            <div className="h-1 bg-coffee-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gold-500 transition-all"
+                style={{ width: `${((currentStepIndex + 1) / recipe.steps.length) * 100}%` }}
+              />
+            </div>
           </div>
-          <p className="text-center text-xs text-coffee-500 mt-2">
-            {currentStepIndex + 1} / {recipe.steps.length}
-          </p>
-        </div>
 
-        <button
-          onClick={goNext}
-          disabled={!hasNext}
-          aria-label="Siguiente"
-          className="p-3 text-coffee-400 disabled:opacity-30 hover:text-cream transition-colors"
-        >
-          <ChevronRight className="w-8 h-8" />
-        </button>
+          <button
+            onClick={goNext}
+            disabled={!hasNext}
+            aria-label="Siguiente"
+            className="p-3 text-coffee-400 disabled:opacity-30 hover:text-cream transition-colors"
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
         </div>
+        <GestureHints />
       </div>
+
+      {/* Quick panel (long-press) */}
       <AnimatePresence>
-        {showBrewLog && (
-          <BrewLogForm
-            recipe={recipe}
-            onClose={() => setShowBrewLog(false)}
-            onSuccess={() => setBrewRegistered(true)}
-          />
+        {showQuickPanel && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            className="fixed bottom-0 left-0 right-0 z-[60] bg-coffee-900 border-t border-coffee-700 p-4"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-coffee-400 uppercase tracking-widest">Menú rápido</p>
+              <button onClick={() => setShowQuickPanel(false)} className="text-coffee-400 hover:text-cream">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <RatingSlider
+              value={currentStepDraft.rating}
+              onChange={(r) => { updateStep({ rating: r }); }}
+            />
+            <NotesCapture
+              value={currentStepDraft.notes ?? ''}
+              onChange={(n) => updateStep({ notes: n })}
+            />
+            <button
+              onClick={() => setShowQuickPanel(false)}
+              className="w-full mt-2 py-2 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors"
+            >
+              Listo
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>

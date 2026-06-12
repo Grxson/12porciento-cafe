@@ -49,7 +49,17 @@ export default function Shop() {
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
+  const [availableFlavors, setAvailableFlavors] = useState<string[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    productsApi.list({ category: 'CAFÉ', pageSize: '200' }).then((r) => {
+      const all = r.data.data.flatMap((p) => p.flavors ?? []);
+      const unique = Array.from(new Set(all)).sort();
+      setAvailableFlavors(unique);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -62,6 +72,7 @@ export default function Shop() {
     if (roast !== 'Todos') params.roast = roast;
     if (category !== 'TODOS') params.category = category;
     if (search) params.search = search;
+    if (selectedFlavors.length > 0) params.flavors = selectedFlavors.join(',');
 
     productsApi.list(params)
       .then((r) => {
@@ -71,14 +82,21 @@ export default function Shop() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [process, roast, sort, category, search, page]);
+  }, [process, roast, sort, category, search, page, selectedFlavors]);
 
   const isCafe = category === 'CAFÉ' || category === 'TODOS';
-  const hasFilters = process !== 'Todos' || roast !== 'Todos' || search;
+  const hasFilters = process !== 'Todos' || roast !== 'Todos' || search || selectedFlavors.length > 0;
 
   const resetFilters = () => {
     setProcess('Todos'); setRoast('Todos'); setCategory('TODOS');
-    setSearch(''); setSearchInput(''); setPage(1);
+    setSearch(''); setSearchInput(''); setSelectedFlavors([]); setPage(1);
+  };
+
+  const toggleFlavor = (flavor: string) => {
+    setSelectedFlavors((prev) =>
+      prev.includes(flavor) ? prev.filter((f) => f !== flavor) : [...prev, flavor],
+    );
+    setPage(1);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,6 +201,25 @@ export default function Shop() {
                   ))}
                 </div>
 
+                {availableFlavors.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest mr-1">Notas</span>
+                    {availableFlavors.map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => toggleFlavor(f)}
+                        className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
+                          selectedFlavors.includes(f)
+                            ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium'
+                            : 'border-coffee-300 text-coffee-600 hover:border-coffee-500 hover:text-coffee-900'
+                        }`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {hasFilters && (
                   <button onClick={resetFilters}
                     className="flex items-center gap-1 text-[11px] text-coffee-400 hover:text-red-500 transition-colors cursor-pointer ml-auto">
@@ -216,9 +253,9 @@ export default function Shop() {
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Filtros
-            {(process !== 'Todos' || roast !== 'Todos' || category !== 'TODOS') && (
+            {(process !== 'Todos' || roast !== 'Todos' || category !== 'TODOS' || selectedFlavors.length > 0) && (
               <span className="absolute -top-1.5 -right-1.5 bg-gold-500 text-coffee-950 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                {[process !== 'Todos', roast !== 'Todos', category !== 'TODOS'].filter(Boolean).length}
+                {[process !== 'Todos', roast !== 'Todos', category !== 'TODOS', selectedFlavors.length > 0].filter(Boolean).length}
               </span>
             )}
           </button>
@@ -326,6 +363,27 @@ export default function Shop() {
                           }`}
                         >
                           {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {availableFlavors.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Notas de Cata</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableFlavors.map((f) => (
+                        <button
+                          key={f}
+                          onClick={() => toggleFlavor(f)}
+                          className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                            selectedFlavors.includes(f)
+                              ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                              : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                          }`}
+                        >
+                          {f}
                         </button>
                       ))}
                     </div>

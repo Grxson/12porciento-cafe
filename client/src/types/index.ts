@@ -246,3 +246,5 @@ export interface AchievementUnlock {
   achievement: Achievement;
   unlockedAt: string;
 }
+
+export type { RecipeDraft, StepDraft } from './recipeDraft';

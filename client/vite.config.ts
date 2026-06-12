@@ -69,6 +69,16 @@ export default defineConfig({
         clientsClaim: true,
         runtimeCaching: [
           {
+            urlPattern: ({ url }: { url: URL }) =>
+              url.pathname.startsWith('/api/recipes'),
+            handler: 'StaleWhileRevalidate' as const,
+            options: {
+              cacheName: 'recipes-cache',
+              expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkFirst' as const,
             options: {

@@ -1,0 +1,63 @@
+<h2>Stock Validation — Handle Overstocking How?</h2>
+<p class="subtitle">User tries to add 10 units, but only 5 available. What should happen?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Silently Cap at Available Stock</h3>
+      <p style="margin-top: 0.8em; font-size: 0.9em;">
+        Disable + button when qty reaches max. Qty stepper shows "5 / 5".
+      </p>
+      <div style="margin-top: 0.8em; border: 1px solid #ddd; padding: 0.8em; background: #f9f9f9; font-size: 0.85em;">
+        <strong>Cantidad:</strong><br>
+        <span style="display: inline-block; margin-top: 0.4em;">
+          [−] 5 [+] &nbsp; <span style="color: #999;">5 disponibles (máximo)</span>
+        </span>
+      </div>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        UX: No error state. User discovers limit naturally. Silent failure mode.
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Toast Error + Auto-Correct</h3>
+      <p style="margin-top: 0.8em; font-size: 0.9em;">
+        User clicks +, gets toast: "⚠️ Stock insuficiente. Limitado a 5 unidades."
+        Qty auto-adjusts to 5.
+      </p>
+      <div style="margin-top: 0.8em; border: 1px solid #f5e5e0; background: #ffe5d9; padding: 0.8em; border-radius: 4px; font-size: 0.85em;">
+        <strong style="color: #c65911;">⚠️ Stock insuficiente</strong><br>
+        <span style="color: #8b4513;">Limitado a 5 unidades · Últimas disponibles</span>
+      </div>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        UX: Explicit feedback. User knows why limit exists. Educates about urgency.
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Reject Add, Show Modal</h3>
+      <p style="margin-top: 0.8em; font-size: 0.9em;">
+        When user tries to add 10 but only 5 exist, modal pops:
+        "¿Deseas proceder con 5 unidades disponibles?"
+      </p>
+      <div style="margin-top: 0.8em; border: 1px solid #ddd; padding: 0.8em; background: #f9f9f9; border-radius: 4px; font-size: 0.85em;">
+        <strong>Stock Limitado</strong><br>
+        <p style="margin-top: 0.4em; color: #666;">Solo quedan 5 unidades de este producto.</p>
+        <div style="margin-top: 0.6em; display: flex; gap: 0.5em;">
+          <button style="flex: 1; padding: 0.4em; background: #666; color: white; border: none; border-radius: 3px; font-size: 0.85em;">Cancelar</button>
+          <button style="flex: 1; padding: 0.4em; background: #d4a574; color: white; border: none; border-radius: 3px; font-size: 0.85em;">Agregar 5</button>
+        </div>
+      </div>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        UX: Explicit consent. Prevents accidental partial adds. More friction.
+      </p>
+    </div>
+  </div>
+</div>

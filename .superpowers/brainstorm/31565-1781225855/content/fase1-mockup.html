@@ -1,0 +1,99 @@
+<h2>Fase 1: RecipeLiveMode Mejorado</h2>
+<p class="subtitle">Rating slider + voice notes + full gesture suite</p>
+
+<div class="mockup">
+  <div class="mockup-header">RecipeLiveMode - Enhanced UI</div>
+  <div class="mockup-body" style="background: #0d0806; color: #f5f1ed; padding: 20px; font-family: system-ui; border-radius: 8px;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #3d2817;">
+      <div style="flex: 1;">
+        <p style="font-size: 12px; color: #a89968; text-transform: uppercase; margin: 0 0 4px 0;">Paso 2 de 5</p>
+        <h3 style="margin: 0; font-size: 20px;">Agregar agua a 90°C</h3>
+      </div>
+      <button style="background: none; border: none; color: #a89968; font-size: 18px; cursor: pointer;">✕</button>
+    </div>
+
+    <!-- Main content area -->
+    <div style="margin-bottom: 20px; padding: 15px; background: rgba(57, 28, 17, 0.6); border-radius: 6px;">
+      <p style="margin: 0 0 10px 0; color: #d4af5f; font-size: 14px; font-weight: bold;">Descripción del paso</p>
+      <p style="margin: 0; color: #a89968; font-size: 13px; line-height: 1.6;">Vierte el agua lentamente en círculos concéntricos. Tarda 30 segundos. Mantén la temperatura visible en tu hervidor.</p>
+    </div>
+
+    <!-- Timer section (if active) -->
+    <div style="margin-bottom: 20px; text-align: center; padding: 15px; background: rgba(212, 175, 95, 0.1); border-radius: 6px; border: 1px solid rgba(212, 175, 95, 0.3);">
+      <p style="margin: 0 0 8px 0; color: #a89968; font-size: 11px; text-transform: uppercase;">⏱ Timer activo</p>
+      <div style="font-size: 36px; font-weight: bold; color: #d4af5f; font-family: monospace; margin: 0;">00:25</div>
+      <button style="background: #d4af5f; color: #0d0806; border: none; padding: 8px 16px; border-radius: 4px; margin-top: 8px; cursor: pointer; font-weight: bold; font-size: 12px;">Pausar</button>
+    </div>
+
+    <!-- Rating Slider -->
+    <div style="margin-bottom: 20px; padding: 15px; background: rgba(57, 28, 17, 0.6); border-radius: 6px;">
+      <p style="margin: 0 0 12px 0; color: #a89968; font-size: 12px; text-transform: uppercase;">Calificar este paso</p>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="color: #a89968; font-size: 12px;">😐</span>
+        <input type="range" min="1" max="10" value="5" style="flex: 1; cursor: pointer;" />
+        <span style="color: #d4af5f; font-weight: bold; font-size: 14px;">5/10</span>
+        <span style="color: #d4af5f; font-size: 12px;">🔥</span>
+      </div>
+    </div>
+
+    <!-- Notes Capture -->
+    <div style="margin-bottom: 20px; padding: 15px; background: rgba(57, 28, 17, 0.6); border-radius: 6px;">
+      <p style="margin: 0 0 12px 0; color: #a89968; font-size: 12px; text-transform: uppercase;">📝 Notas (opcional)</p>
+
+      <!-- Quick templates -->
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+        <button style="background: rgba(212, 175, 95, 0.2); color: #d4af5f; border: 1px solid #d4af5f; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer;">Muy caliente</button>
+        <button style="background: rgba(212, 175, 95, 0.2); color: #d4af5f; border: 1px solid #d4af5f; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer;">Amargo</button>
+        <button style="background: rgba(212, 175, 95, 0.2); color: #d4af5f; border: 1px solid #d4af5f; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer;">Perfecto</button>
+        <button style="background: rgba(212, 175, 95, 0.2); color: #d4af5f; border: 1px solid #d4af5f; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer;">+</button>
+      </div>
+
+      <!-- Voice / Text input -->
+      <div style="display: flex; gap: 8px;">
+        <button style="background: #d4af5f; color: #0d0806; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; flex: 1;">🎤 Grabar nota</button>
+        <input type="text" placeholder="O escribe aquí..." style="flex: 1; padding: 10px; border: 1px solid #3d2817; background: #1a0f0a; color: #a89968; border-radius: 4px; font-size: 12px;" />
+      </div>
+    </div>
+
+    <!-- Navigation & Gesture hints -->
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+      <button style="background: rgba(212, 175, 95, 0.2); color: #d4af5f; border: 1px solid #d4af5f; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">← Anterior</button>
+
+      <div style="text-align: center;">
+        <p style="margin: 0 0 4px 0; font-size: 11px; color: #a89968; text-transform: uppercase;">Tap para confirmar</p>
+        <button style="background: #d4af5f; color: #0d0806; border: none; padding: 12px 32px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">✓ Completado</button>
+      </div>
+
+      <button style="background: rgba(212, 175, 95, 0.2); color: #d4af5f; border: 1px solid #d4af5f; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">Siguiente →</button>
+    </div>
+
+    <!-- Gesture hints footer -->
+    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #3d2817; display: flex; justify-content: center; gap: 24px; font-size: 11px; color: #6b5d52;">
+      <div style="text-align: center;">
+        <p style="margin: 0 0 4px 0;">👉 Swipe</p>
+        <p style="margin: 0;">navegar</p>
+      </div>
+      <div style="text-align: center;">
+        <p style="margin: 0 0 4px 0;">☝️ Long-press</p>
+        <p style="margin: 0;">menú rápido</p>
+      </div>
+      <div style="text-align: center;">
+        <p style="margin: 0 0 4px 0;">✋ Tap</p>
+        <p style="margin: 0;">confirmar</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px;">
+  <h3>Flow Changes</h3>
+  <ul style="color: #a89968; font-size: 13px; line-height: 1.8;">
+    <li><strong>Before:</strong> User finishes all steps → modal BrewLogForm appears → user rates + notes</li>
+    <li><strong>After (Fase 1):</strong> User can rate/note optionally during steps → at end, auto-create BrewLog with collected data → no modal interruption</li>
+    <li><strong>Gesture suite:</strong> Swipe (nav), Tap (confirm), Long-press (quick menu for rating/notes)</li>
+    <li><strong>Optional capture:</strong> Ratings/notes are entirely optional — user can skip and just complete steps</li>
+  </ul>
+</div>

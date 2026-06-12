@@ -1,0 +1,63 @@
+<h2>Flavor Filter — Where & How?</h2>
+<p class="subtitle">How should users filter products by notas de cata in Shop?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Expandable Filter Section (Like Process/Roast)</h3>
+      <p style="margin-top: 0.8em; font-size: 0.9em;">
+        Add "Notas de Cata" section below Roast level filter.
+      </p>
+      <div style="margin-top: 0.8em; border: 1px solid #ddd; padding: 0.6em; background: #f9f9f9; font-size: 0.85em;">
+        <strong>Notas de Cata</strong><br>
+        <label style="display: block; margin-top: 0.4em;"><input type="checkbox"> Frutal</label>
+        <label style="display: block; margin-top: 0.3em;"><input type="checkbox"> Chocolate</label>
+        <label style="display: block; margin-top: 0.3em;"><input type="checkbox"> Floral</label>
+        <label style="display: block; margin-top: 0.3em;"><input type="checkbox"> Nuez</label>
+      </div>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        Multi-select checkboxes. Consistent with existing filters. Can select multiple notes at once.
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Inline Chips Below Product Cards</h3>
+      <p style="margin-top: 0.8em; font-size: 0.9em;">
+        Display all available flavor notes as clickable chips in the header bar.
+      </p>
+      <div style="margin-top: 0.8em; display: flex; flex-wrap: wrap; gap: 0.5em;">
+        <span style="background: #f0f0f0; padding: 0.4em 0.8em; border-radius: 4px; font-size: 0.85em; cursor: pointer; border: 1px solid #ddd;">Frutal</span>
+        <span style="background: #d4a574; color: white; padding: 0.4em 0.8em; border-radius: 4px; font-size: 0.85em; cursor: pointer; border: 1px solid #d4a574;">Chocolate ✓</span>
+        <span style="background: #f0f0f0; padding: 0.4em 0.8em; border-radius: 4px; font-size: 0.85em; cursor: pointer; border: 1px solid #ddd;">Floral</span>
+        <span style="background: #f0f0f0; padding: 0.4em 0.8em; border-radius: 4px; font-size: 0.85em; cursor: pointer; border: 1px solid #ddd;">Nuez</span>
+      </div>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        Quick access. Visual, discoverable. Single-select or multi-select toggle. Shows active state.
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Modal/Drawer Filter (Open from Sliders Icon)</h3>
+      <p style="margin-top: 0.8em; font-size: 0.9em;">
+        Add flavor filter inside existing filters drawer/modal.
+      </p>
+      <div style="margin-top: 0.8em; border: 1px solid #ddd; padding: 0.8em; background: #f9f9f9; font-size: 0.85em;">
+        <strong>Filtrar por</strong><br><br>
+        <strong style="display: block; margin-top: 0.6em;">Notas de Cata</strong><br>
+        <label style="display: block; margin-top: 0.3em;"><input type="radio" name="flavor"> Todos</label>
+        <label style="display: block; margin-top: 0.3em;"><input type="radio" name="flavor"> Frutal</label>
+        <label style="display: block; margin-top: 0.3em;"><input type="radio" name="flavor"> Chocolate</label>
+      </div>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        Grouped with other filters. Keeps UI clean. Less discoverable. Mobile-friendly.
+      </p>
+    </div>
+  </div>
+</div>

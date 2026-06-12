@@ -112,7 +112,13 @@
       "Bash(PORT=3001 node dist/src/index.js)",
       "Bash(npm init *)",
       "Bash(pkill -f \"dist/src/index.js\")",
-      "Bash(pkill -f \"vite --port 5173\")"
+      "Bash(pkill -f \"vite --port 5173\")",
+      "Bash(npx playwright *)",
+      "Bash(/home/grxson/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/brainstorming/scripts/start-server.sh *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(echo \"---exit:$?---\")",
+      "Bash(echo \"exit:$?\")",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

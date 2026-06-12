@@ -1,0 +1,15 @@
+{"type":"server-started","port":49564,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:49564","screen_dir":"/home/grxson/github/12porciento-cafe/.superpowers/brainstorm/31565-1781225855/content","state_dir":"/home/grxson/github/12porciento-cafe/.superpowers/brainstorm/31565-1781225855/state"}
+{"type":"screen-added","file":"/home/grxson/github/12porciento-cafe/.superpowers/brainstorm/31565-1781225855/content/recipe-features.html"}
+{"source":"user-event","type":"click","text":"✓\n    \n      Sistema de Calificación en Vivo\n      Calificar la receta mientras se prepara (emoji reactions, estrellas animadas, etc.)","choice":"rating","id":null,"timestamp":1781225911164}
+{"source":"user-event","type":"click","text":"✓\n    \n      Sistema de Calificación en Vivo\n      Calificar la receta mientras se prepara (emoji reactions, estrellas animadas, etc.)","choice":"rating","id":null,"timestamp":1781225911495}
+{"source":"user-event","type":"click","text":"✓\n    \n      Notas y Comentarios Rápidos\n      Capturar notas durante cada paso (ajustes, observaciones, tips personales)","choice":"notes","id":null,"timestamp":1781225923785}
+{"source":"user-event","type":"click","text":"✓\n    \n      Foto del Resultado\n      Capturar foto del café final (con botón en la cámara del dispositivo)","choice":"photo","id":null,"timestamp":1781225928227}
+{"source":"user-event","type":"click","text":"✓\n    \n      Gestos y Animaciones Avanzadas\n      Swipe, tap-to-confirm en pasos, animaciones de progreso más fluidas","choice":"timer-gestures","id":null,"timestamp":1781225931259}
+{"source":"user-event","type":"click","text":"✓\n    \n      Funciona Offline Completo\n      Usar recetas sin internet (Service Worker, caché PWA, sincronizar después)","choice":"offline","id":null,"timestamp":1781225933841}
+{"source":"user-event","type":"click","text":"✓\n    \n      Comparador de Intentos\n      Ver historial de brews de esa receta: progreso, cambios, mejoras","choice":"comparison","id":null,"timestamp":1781225938641}
+{"source":"user-event","type":"click","text":"✓\n    \n      Micro-Logros en Tiempo Real\n      Desbloquear achievements mientras preparas (perfecta temperatura, timing, etc.)","choice":"achievements","id":null,"timestamp":1781225944515}
+{"source":"user-event","type":"click","text":"✓\n    \n      Sistema de Calificación en Vivo\n      Calificar la receta mientras se prepara (emoji reactions, estrellas animadas, etc.)","choice":"rating","id":null,"timestamp":1781225948719}
+{"type":"screen-added","file":"/home/grxson/github/12porciento-cafe/.superpowers/brainstorm/31565-1781225855/content/waiting.html"}
+{"type":"screen-added","file":"/home/grxson/github/12porciento-cafe/.superpowers/brainstorm/31565-1781225855/content/fase1-mockup.html"}
+{"type":"screen-added","file":"/home/grxson/github/12porciento-cafe/.superpowers/brainstorm/31565-1781225855/content/waiting-review.html"}
+{"type":"server-stopped","reason":"idle timeout"}

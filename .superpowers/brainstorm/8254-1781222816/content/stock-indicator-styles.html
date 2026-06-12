@@ -1,0 +1,49 @@
+<h2>Stock Indicator — Which Style?</h2>
+<p class="subtitle">How should we display product stock availability in ProductDetail?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Inline Badge Under Price</h3>
+      <p style="font-size: 0.9em; margin-top: 0.5em;">
+        <strong style="color: #2d5016">✓ En stock</strong><br>
+        <span style="font-size: 0.85em; color: #666;">5 unidades disponibles</span>
+      </p>
+      <p style="margin-top: 1em; font-size: 0.85em; color: #666;">
+        Compact. Shows availability + quantity. Sits near "X unidades disponibles" line.
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Stock Bar with Threshold</h3>
+      <p style="margin-top: 0.8em; font-size: 0.9em;">
+        <span style="font-weight: 600;">5 unidades disponibles</span><br>
+        <div style="width: 100%; height: 6px; background: #e5e5e0; margin: 0.5em 0; border-radius: 3px;">
+          <div style="width: 50%; height: 100%; background: #d4a574; border-radius: 3px;"></div>
+        </div>
+        <span style="font-size: 0.85em; color: #d4a574;">Stock bajo · Últimas unidades</span>
+      </p>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        Visual indicator. Shows quantity + urgency. Good for low-stock situations.
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Info Box Above CTA</h3>
+      <p style="margin-top: 0.8em; border: 1px solid #e5d4c1; padding: 0.75em; background: #faf7f3;">
+        <strong style="font-size: 0.9em;">Estado: En Stock</strong><br>
+        <span style="font-size: 0.85em; color: #666;">5 unidades · Tostado a pedido</span>
+      </p>
+      <p style="margin-top: 0.8em; font-size: 0.85em; color: #666;">
+        Prominent box. Groups stock info clearly. Easy to scan before purchase decision.
+      </p>
+    </div>
+  </div>
+</div>

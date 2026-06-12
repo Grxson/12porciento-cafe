@@ -12,7 +12,7 @@ const parseProduct = (p: any) => ({
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { process, roast, limited, limit, category, sort, search, page, pageSize } = req.query;
+    const { process, roast, limited, limit, category, sort, search, flavors, page, pageSize } = req.query;
     const where: any = { isActive: true };
     if (process) where.process = process;
     if (roast) where.roastLevel = roast;
@@ -23,6 +23,18 @@ router.get('/', async (req: Request, res: Response) => {
         { name: { contains: search as string } },
         { description: { contains: search as string } },
       ];
+    }
+    if (flavors) {
+      const flavorArray = (flavors as string).split(',').map((f) => f.trim()).filter(Boolean);
+      if (flavorArray.length > 0) {
+        const flavorConditions = flavorArray.map((f) => ({ flavors: { contains: f } }));
+        if (where.OR) {
+          where.AND = [{ OR: where.OR }, { OR: flavorConditions }];
+          delete where.OR;
+        } else {
+          where.OR = flavorConditions;
+        }
+      }
     }
 
     const orderBy: any =

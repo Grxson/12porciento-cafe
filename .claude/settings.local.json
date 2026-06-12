@@ -103,7 +103,16 @@
       "Bash(node_modules/.bin/ts-node prisma/seed.ts)",
       "Bash(node *)",
       "Bash(DATABASE_URL=\"file:./prisma/dev.db\" node *)",
-      "Skill(code-review)"
+      "Skill(code-review)",
+      "Bash(bash *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(echo \"Server PID: $!\")",
+      "Bash(node_modules/.bin/ts-node-dev --respawn --transpile-only src/index.ts)",
+      "Bash(PORT=4000 node dist/src/index.js)",
+      "Bash(PORT=3001 node dist/src/index.js)",
+      "Bash(npm init *)",
+      "Bash(pkill -f \"dist/src/index.js\")",
+      "Bash(pkill -f \"vite --port 5173\")"
     ]
   }
 }

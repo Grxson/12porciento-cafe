@@ -42,7 +42,7 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
 
   // Compute streak
   const uniqueDates = Array.from(
-    new Set(recentBrews.map((b) => b.createdAt.toISOString().split('T')[0]))
+    new Set(recentBrews.map((b: { createdAt: Date }) => b.createdAt.toISOString().split('T')[0]))
   ).sort().reverse();
 
   let streak = 0;

@@ -17,4 +17,7 @@ export const baristaApi = {
 
   getAchievements: () =>
     api.get('/barista/achievements'),
+
+  getUserBrews: (userId: string, params?: { recipeId?: string; limit?: string; page?: string }) =>
+    api.get(`/barista/${userId}/brews`, { params }),
 };

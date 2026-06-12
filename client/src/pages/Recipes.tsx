@@ -10,6 +10,7 @@ import { recipesApi } from '../api';
 import { useUser } from '../context/UserContext';
 import type { Recipe } from '../types';
 import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
+import AttemptsList from '../components/recipes/AttemptsList';
 
 function getVideoEmbed(url: string): { type: 'youtube' | 'vimeo' | 'native' | 'link'; src: string } {
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/);
@@ -122,6 +123,7 @@ function downloadRecipePDF(recipe: Recipe) {
 
 export default function Recipes() {
   const hasSubscription = useUser((s) => s.hasSubscription);
+  const user = useUser((s) => s.user);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -458,6 +460,10 @@ export default function Recipes() {
                               <span className="text-gold-400 text-sm">{recipe.product.name}</span>
                             </Link>
                           </div>
+                        )}
+
+                        {user && (
+                          <AttemptsList recipeId={recipe.id} userId={user.id} />
                         )}
                       </div>
                     </motion.div>

@@ -186,6 +186,39 @@ router.get('/achievements', async (req: Request, res: Response) => {
   }
 });
 
+// GET /barista/:userId/brews — MUST be before /:userId/profile
+router.get('/:userId/brews', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const limit = Math.min(Math.max(1, parseInt((req.query.limit as string) || '20') || 20), 100);
+    const page = Math.max(1, parseInt((req.query.page as string) || '1') || 1);
+    const recipeId = req.query.recipeId as string | undefined;
+
+    const where = {
+      userId,
+      ...(recipeId ? { recipeId } : {}),
+    };
+
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.brewLog.findMany({
+        where,
+        include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.brewLog.count({ where }),
+    ]);
+
+    res.json({ data, total, page, limit, totalPages: Math.ceil(total / limit) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener brews' });
+  }
+});
+
 // GET /barista/:userId/profile
 router.get('/:userId/profile', async (req: Request, res: Response) => {
   try {

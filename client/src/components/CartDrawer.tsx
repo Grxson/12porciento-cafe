@@ -66,6 +66,16 @@ export default function CartDrawer() {
                       <div className="flex-1 min-w-0">
                         <p className="text-coffee-900 text-sm font-medium leading-tight truncate">{product.name}</p>
                         {product.weight && <p className="text-coffee-400 text-xs mt-0.5">{product.weight}g</p>}
+                        {product.stock <= 5 && product.stock > 0 && (
+                          <p className="text-amber-500 text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                            Stock bajo
+                          </p>
+                        )}
+                        {product.stock === 0 && (
+                          <p className="text-red-400 text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                            Agotado
+                          </p>
+                        )}
                         <div className="flex items-center gap-2 mt-2">
                           <button
                             onClick={() => updateQuantity(product.id, quantity - 1)}

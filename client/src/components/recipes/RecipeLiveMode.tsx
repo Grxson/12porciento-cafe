@@ -149,7 +149,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     const avgRating = ratings.length
       ? Math.round(ratings.reduce((s, r) => s + r, 0) / ratings.length)
       : 5;
-    const notes = steps.map((s) => s.notes).filter(Boolean).join(' | ');
+    const notes = steps.map((s) => s.notes).filter(Boolean).join(' | ').slice(0, 500);
     try {
       const { newAchievements } = await submitBrewLog({
         recipeId: recipe.id,

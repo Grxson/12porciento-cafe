@@ -9,10 +9,6 @@ export default function GestureHints() {
         <p className="text-base">☝️</p>
         <p className="text-[9px] text-coffee-600 uppercase tracking-wider">Long-press</p>
       </div>
-      <div className="text-center">
-        <p className="text-base">✋</p>
-        <p className="text-[9px] text-coffee-600 uppercase tracking-wider">Tap</p>
-      </div>
     </div>
   );
 }

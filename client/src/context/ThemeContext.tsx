@@ -10,7 +10,7 @@ interface ThemeStore {
 export const useTheme = create<ThemeStore>()(
   persist(
     (set) => ({
-      dark: false,
+      dark: true,
       toggle: () => set((s) => ({ dark: !s.dark })),
     }),
     { name: 'cafe-12-theme' },

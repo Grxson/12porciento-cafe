@@ -26,7 +26,7 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
       include: { achievements: { include: { achievement: true } } },
     }),
     prisma.brewLog.count({ where: { userId } }),
-    prisma.brewLog.findFirst({ where: { userId, rating: 5 }, select: { id: true } }),
+    prisma.brewLog.findFirst({ where: { userId, rating: 10 }, select: { id: true } }),
   ]);
   if (!profile) return [];
 
@@ -88,8 +88,8 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
     const { recipeId, rating, notes, photoUrl } = req.body;
     const userId = req.user!.id;
 
-    if (!recipeId || !Number.isInteger(rating) || rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'recipeId y rating (1-5 entero) requeridos' });
+    if (!recipeId || !Number.isInteger(rating) || rating < 1 || rating > 10) {
+      return res.status(400).json({ error: 'recipeId y rating (1-10 entero) requeridos' });
     }
     if (notes && (typeof notes !== 'string' || notes.length > 500)) {
       return res.status(400).json({ error: 'Las notas no pueden superar 500 caracteres' });
@@ -126,7 +126,7 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
       data: {
         totalXp: { increment: xpEarned },
         totalBrews: { increment: 1 },
-        ...(rating === 5 ? { favoriteMethod: recipe.method } : {}),
+        ...(rating === 10 ? { favoriteMethod: recipe.method } : {}),
       },
     });
     const correctLevel = Math.floor(updatedProfile.totalXp / 100) + 1;

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import { ThemeProvider } from './context/ThemeContext';
+import { initBrewSync } from './services/brewSync';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -14,3 +15,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ThemeProvider>
   </React.StrictMode>,
 );
+
+initBrewSync().catch(console.error);

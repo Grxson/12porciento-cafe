@@ -20,19 +20,22 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-800"
+      aria-label="Navegación móvil"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-200 dark:border-coffee-800"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="grid grid-cols-5">
         {tabs.map(({ to, label, icon: Icon, badge }) => {
           const target = resolveTo(to);
           const active = pathname === to || pathname.startsWith(to + '/');
+          const isCart = badge;
           return (
             <NavLink
               key={to}
               to={target}
+              aria-label={isCart && count > 0 ? `Carrito, ${count} producto${count !== 1 ? 's' : ''}` : undefined}
               className={`relative flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] tracking-wide transition-colors ${
-                active ? 'text-gold-500' : 'text-coffee-400'
+                active ? 'text-gold-500' : 'text-coffee-500 dark:text-coffee-400'
               }`}
             >
               <span className="relative">

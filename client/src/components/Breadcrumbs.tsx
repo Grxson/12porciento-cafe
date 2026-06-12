@@ -11,13 +11,13 @@ export default function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-coffee-500 mb-6">
       {crumbs.map((crumb, i) => (
         <span key={i} className="flex items-center gap-1.5">
-          {i > 0 && <ChevronRight className="w-3 h-3 text-coffee-700" />}
+          {i > 0 && <ChevronRight className="w-3 h-3 text-coffee-400 dark:text-coffee-700" />}
           {crumb.to && i < crumbs.length - 1 ? (
-            <Link to={crumb.to} className="hover:text-gold-500 transition-colors tracking-wider uppercase">
+            <Link to={crumb.to} className="text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors tracking-wider uppercase">
               {crumb.label}
             </Link>
           ) : (
-            <span className="text-coffee-400 tracking-wider uppercase">{crumb.label}</span>
+            <span className="text-coffee-500 dark:text-coffee-400 tracking-wider uppercase">{crumb.label}</span>
           )}
         </span>
       ))}

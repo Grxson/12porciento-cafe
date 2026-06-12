@@ -55,13 +55,13 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-coffee-950/98 backdrop-blur-sm shadow-lg shadow-coffee-950/20 border-b border-coffee-800/60'
-          : 'bg-coffee-950/85 backdrop-blur-sm'
+          ? 'bg-coffee-50/98 dark:bg-coffee-950/98 backdrop-blur-sm shadow-lg shadow-coffee-950/20 border-b border-coffee-200/60 dark:border-coffee-800/60'
+          : 'bg-coffee-50/85 dark:bg-coffee-950/85 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
         <Link to="/" className="flex flex-col leading-none">
-          <span className="font-serif text-2xl font-bold text-cream tracking-tight">12%</span>
+          <span className="font-serif text-2xl font-bold text-coffee-900 dark:text-cream tracking-tight">12%</span>
           <span className="text-[9px] tracking-[0.3em] text-gold-500 uppercase">doce por ciento</span>
         </Link>
 
@@ -72,7 +72,7 @@ export default function Navbar() {
               to={to}
               className={({ isActive }) =>
                 `text-sm tracking-widest uppercase transition-colors duration-200 ${
-                  isActive ? 'text-gold-500' : 'text-coffee-200 hover:text-cream'
+                  isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
                 }`
               }
             >
@@ -84,7 +84,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           <button
             onClick={toggle}
-            className="text-coffee-200 hover:text-cream transition-colors"
+            className="text-coffee-600 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Cambiar tema"
           >
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -93,7 +93,7 @@ export default function Navbar() {
           {user && <NotificationBell />}
           <button
             onClick={openDrawer}
-            className="relative text-coffee-200 hover:text-cream transition-colors"
+            className="relative text-coffee-600 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Carrito"
           >
             <ShoppingBag className="w-5 h-5" />
@@ -111,7 +111,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden text-coffee-200 hover:text-cream transition-colors"
+            className="md:hidden text-coffee-600 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Menú"
           >
             <AnimatePresence mode="wait">
@@ -141,7 +141,7 @@ export default function Navbar() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-coffee-900 border-l border-coffee-800 flex flex-col pt-20 pb-8 md:hidden"
+            className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-20 pb-8 md:hidden"
           >
             <nav className="flex flex-col px-6 gap-1">
               {links.map(({ to, label }) => (
@@ -150,8 +150,8 @@ export default function Navbar() {
                   to={to}
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
-                    `py-3 text-sm tracking-widest uppercase border-b border-coffee-800/50 transition-colors ${
-                      isActive ? 'text-gold-500' : 'text-coffee-200 hover:text-cream'
+                    `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors ${
+                      isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
                     }`
                   }
                 >

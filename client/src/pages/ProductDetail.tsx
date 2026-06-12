@@ -5,6 +5,7 @@ import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, 
 import { productsApi, reviewsApi, recipesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 import ProductGallery from '../components/ProductGallery';
 import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
@@ -26,6 +27,7 @@ export default function ProductDetail() {
   const [productRecipes, setProductRecipes] = useState<Recipe[]>([]);
   const addItem = useCart((s) => s.addItem);
   const loggedUser = useUser((s) => s.user);
+  const { add: addToast } = useToast();
   const [reviewForm, setReviewForm] = useState({ name: loggedUser?.name ?? '', email: loggedUser?.email ?? '', rating: 0, comment: '' });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
@@ -53,6 +55,14 @@ export default function ProductDetail() {
     addItem(product, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleQtyIncrease = () => {
+    if (qty >= product!.stock) {
+      addToast(`Stock insuficiente. Máximo disponible: ${product!.stock} unidades.`, 'warning');
+    } else {
+      setQty(qty + 1);
+    }
   };
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
@@ -204,7 +214,11 @@ export default function ProductDetail() {
                 <div className="flex items-center border border-coffee-300">
                   <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors">−</button>
                   <span className="w-10 text-center text-coffee-900">{qty}</span>
-                  <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors">+</button>
+                  <button
+                    onClick={handleQtyIncrease}
+                    disabled={product.stock === 0}
+                    className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >+</button>
                 </div>
 
                 <button
@@ -219,9 +233,16 @@ export default function ProductDetail() {
                 </button>
               </div>
 
-              <p className="text-coffee-500 text-xs mt-3">
-                {product.stock} unidades disponibles{isCafe ? ' · Tostado a pedido' : ''}
-              </p>
+              <div className="flex items-center gap-2 mt-3">
+                {product.stock === 0 ? (
+                  <span className="text-xs font-semibold text-red-500">❌ Sin existencias</span>
+                ) : product.stock <= 5 ? (
+                  <span className="text-xs font-semibold text-amber-500">⚠️ Quedan {product.stock} unidades</span>
+                ) : (
+                  <span className="text-xs font-semibold text-green-600">✓ En stock</span>
+                )}
+                {isCafe && <span className="text-coffee-400 text-xs">· Tostado a pedido</span>}
+              </div>
 
               {isCafe && productRecipes.length > 0 && (
                 <button

@@ -151,7 +151,7 @@ export default function BaristaProfile() {
                       {brew.notes && <p className="text-sm text-coffee-300 mt-2 line-clamp-2">{brew.notes}</p>}
                     </div>
                     <div className="text-right ml-4 shrink-0">
-                      <p className="text-gold-400">{'★'.repeat(brew.rating)}{'☆'.repeat(5 - brew.rating)}</p>
+                      <p className="text-gold-400">{brew.rating}/10 <span className="text-coffee-500">★</span></p>
                       <p className="text-xs text-gold-500 mt-1">+{brew.xpEarned} XP</p>
                     </div>
                   </div>

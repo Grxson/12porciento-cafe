@@ -799,7 +799,7 @@ async function main() {
     { slug: 'first_brew', name: 'Primer Brew', description: 'Registra tu primer café preparado', icon: '☕', rarity: 'COMMON', xpReward: 10 },
     { slug: 'five_brews', name: 'Cinco Brews', description: 'Registra 5 cafés preparados', icon: '🎯', rarity: 'COMMON', xpReward: 25 },
     { slug: 'ten_brews', name: 'Diez Brews', description: 'Registra 10 cafés preparados', icon: '⚡', rarity: 'RARE', xpReward: 50 },
-    { slug: 'perfect_brew', name: 'Brew Perfecto', description: 'Califica un brew con 5 estrellas', icon: '⭐', rarity: 'EPIC', xpReward: 100 },
+    { slug: 'perfect_brew', name: 'Brew Perfecto', description: 'Califica un brew con 10 puntos', icon: '⭐', rarity: 'EPIC', xpReward: 100 },
   ];
 
   for (const a of achievements) {

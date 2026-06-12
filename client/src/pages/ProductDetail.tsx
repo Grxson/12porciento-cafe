@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe } from 'lucide-react';
 import { productsApi, reviewsApi, recipesApi } from '../api';
@@ -18,6 +18,7 @@ type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
@@ -173,7 +174,14 @@ export default function ProductDetail() {
                 <p className="text-xs text-gold-600 uppercase tracking-widest mb-3">Notas de cata</p>
                 <div className="flex flex-wrap gap-2">
                   {product.flavors.map((f) => (
-                    <span key={f} className="bg-coffee-100 border border-coffee-200 text-coffee-700 text-sm px-3 py-1.5">{f}</span>
+                    <button
+                      key={f}
+                      onClick={() => navigate(`/tienda?flavors=${encodeURIComponent(f)}`)}
+                      className="bg-coffee-100 border border-coffee-200 text-coffee-700 text-sm px-3 py-1.5 hover:border-gold-500 hover:text-gold-600 transition-all cursor-pointer"
+                      title={`Ver cafés con nota "${f}"`}
+                    >
+                      {f}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -408,7 +416,14 @@ export default function ProductDetail() {
                     <p className="text-xs text-gold-500 uppercase tracking-widest mb-4">Notas de Catación</p>
                     <div className="flex flex-wrap gap-2">
                       {product.flavors.map((f) => (
-                        <span key={f} className="bg-coffee-800 border border-coffee-700 text-coffee-200 px-3 py-1.5 text-sm">{f}</span>
+                        <button
+                          key={f}
+                          onClick={() => navigate(`/tienda?flavors=${encodeURIComponent(f)}`)}
+                          className="bg-coffee-800 border border-coffee-700 text-coffee-200 px-3 py-1.5 text-sm hover:border-gold-500 hover:text-gold-400 transition-all cursor-pointer"
+                          title={`Ver cafés con nota "${f}"`}
+                        >
+                          {f}
+                        </button>
                       ))}
                     </div>
                     <p className="text-coffee-400 text-xs mt-4">

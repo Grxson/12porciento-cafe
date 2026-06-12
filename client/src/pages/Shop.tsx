@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, X, ChevronDown, Search, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { productsApi } from '../api';
@@ -52,6 +53,16 @@ export default function Shop() {
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [availableFlavors, setAvailableFlavors] = useState<string[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const flavorParam = params.get('flavors');
+    if (flavorParam) {
+      setSelectedFlavors(flavorParam.split(',').map((f) => f.trim()).filter(Boolean));
+      setCategory('CAFÉ');
+    }
+  }, []); // intentionally runs once on mount to seed from URL
 
   useEffect(() => {
     productsApi.list({ category: 'CAFÉ', pageSize: '200' }).then((r) => {

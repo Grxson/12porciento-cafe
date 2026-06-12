@@ -106,6 +106,8 @@ export default function ProductDetail() {
     .filter(Boolean)
     .filter((v, i, arr) => arr.indexOf(v) === i) as string[];
 
+  const cartItems = useCart((s) => s.items);
+  const inCart = cartItems.some((i) => i.product.id === product.id);
   const isCafe = product.category === 'CAFÉ';
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
@@ -251,6 +253,11 @@ export default function ProductDetail() {
                 )}
                 {isCafe && <span className="text-coffee-400 text-xs">· Tostado a pedido</span>}
               </div>
+              {inCart && (
+                <div className="mt-2">
+                  <span className="text-xs font-semibold text-blue-600">✓ En carrito</span>
+                </div>
+              )}
 
               {isCafe && productRecipes.length > 0 && (
                 <button

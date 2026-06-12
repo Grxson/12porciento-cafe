@@ -12,9 +12,10 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
-  const addItem = useCart((s) => s.addItem);
+  const { addItem, items } = useCart((s) => ({ addItem: s.addItem, items: s.items }));
   const [added, setAdded] = useState(false);
   const isCafe = product.category === 'CAFÉ';
+  const inCart = items.some((i) => i.product.id === product.id);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -53,6 +54,11 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           {!isCafe && (
             <span className="bg-coffee-900/80 text-coffee-300 text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 backdrop-blur-sm">
               {product.category === 'ACCESORIOS' ? 'Accesorio' : product.category}
+            </span>
+          )}
+          {inCart && (
+            <span className="bg-blue-600/90 text-white text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 backdrop-blur-sm font-semibold">
+              En carrito
             </span>
           )}
         </div>

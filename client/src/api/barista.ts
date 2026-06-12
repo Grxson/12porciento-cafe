@@ -9,6 +9,7 @@ export const baristaApi = {
     rating: number;
     notes?: string;
     photoUrl?: string;
+    clientBrewId?: string;
   }) => api.post('/barista/brew-logs', data),
 
   getLeaderboard: (limit = 50) =>

@@ -28,6 +28,10 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const [draft, setDraft] = useState<RecipeDraft | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [brewRegistered, setBrewRegistered] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -124,6 +128,12 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
+
   const goNext = () => {
     if (hasNext) {
       const updated = steps.find((s) => s.index === currentStepIndex)
@@ -155,6 +165,9 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         recipeId: recipe.id,
         rating: avgRating,
         notes: notes || undefined,
+        photoUrl: photoUrl || undefined,
+        photoBlob: photoBlob || undefined,
+        clientBrewId: crypto.randomUUID(),
       });
       const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
       const xp = (baseXp[recipe.difficulty ?? 'MEDIA'] ?? 20) + (avgRating - 1) * 5;
@@ -169,6 +182,32 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const url = URL.createObjectURL(file);
+    objectUrlRef.current = url;
+    setPhotoPreview(url);
+    setPhotoBlob(file);
+    // Try to upload immediately; if offline, photoBlob will be used on sync
+    try {
+      const { uploadsApi } = await import('../../api');
+      const res = await uploadsApi.upload(file);
+      setPhotoUrl(res.data.data.url);
+    } catch {
+      // Offline or error — photoBlob queued by useBarista on submit
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    objectUrlRef.current = null;
+    setPhotoPreview(null);
+    setPhotoBlob(null);
+    setPhotoUrl(null);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -338,26 +377,65 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       {/* Navigation */}
       <div className="border-t border-coffee-800 bg-coffee-900/50">
         {!hasNext && (
-          <div className="text-center pt-4 px-6 flex items-center justify-center gap-3">
-            {brewRegistered ? (
-              <>
-                <span className="text-green-400 text-sm">✓ Brew registrado</span>
-                <button
-                  onClick={onClose}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors"
-                >
-                  Finalizar
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleRegisterBrew}
-                disabled={submitting}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors disabled:opacity-50"
-              >
-                {submitting ? 'Registrando...' : '☕ Registrar este Brew'}
-              </button>
+          <div className="pt-4 px-6">
+            {/* Photo capture — shown on final step */}
+            {currentStepIndex === recipe.steps.length - 1 && (
+              <div className="mb-4 border-t border-coffee-800/50 pt-4">
+                <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">
+                  Foto del resultado (opcional)
+                </p>
+                {photoPreview ? (
+                  <div className="relative mb-3">
+                    <img
+                      src={photoPreview}
+                      alt="Vista previa"
+                      className="w-full h-36 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoto}
+                      className="absolute top-1 right-1 p-1 bg-red-600/80 text-white rounded-full"
+                      aria-label="Eliminar foto"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-700 p-4 rounded cursor-pointer hover:border-gold-400 transition-colors mb-3">
+                    <span className="text-xs text-coffee-400">📷 Tomar o elegir foto</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                      aria-label="Foto del resultado"
+                    />
+                  </label>
+                )}
+              </div>
             )}
+            <div className="flex items-center justify-center gap-3">
+              {brewRegistered ? (
+                <>
+                  <span className="text-green-400 text-sm">✓ Brew registrado</span>
+                  <button
+                    onClick={onClose}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors"
+                  >
+                    Finalizar
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleRegisterBrew}
+                  disabled={submitting}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors disabled:opacity-50"
+                >
+                  {submitting ? 'Registrando...' : '☕ Registrar este Brew'}
+                </button>
+              )}
+            </div>
           </div>
         )}
         <div className="flex items-center justify-between p-4">

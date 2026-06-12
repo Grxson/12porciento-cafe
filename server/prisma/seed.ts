@@ -800,6 +800,11 @@ async function main() {
     { slug: 'five_brews', name: 'Cinco Brews', description: 'Registra 5 cafés preparados', icon: '🎯', rarity: 'COMMON', xpReward: 25 },
     { slug: 'ten_brews', name: 'Diez Brews', description: 'Registra 10 cafés preparados', icon: '⚡', rarity: 'RARE', xpReward: 50 },
     { slug: 'perfect_brew', name: 'Brew Perfecto', description: 'Califica un brew con 10 puntos', icon: '⭐', rarity: 'EPIC', xpReward: 100 },
+    { slug: 'v60_5',       name: 'Maestro del V60',  description: 'Registra 5 cafés con V60',        icon: '☕', rarity: 'RARE', xpReward: 40 },
+    { slug: 'aeropress_5', name: 'As del AeroPress',  description: 'Registra 5 cafés con AeroPress',  icon: '🔌', rarity: 'RARE', xpReward: 40 },
+    { slug: 'espresso_5',  name: 'Espresso Pro',      description: 'Registra 5 espressos',            icon: '⚡', rarity: 'RARE', xpReward: 40 },
+    { slug: 'streak_3',    name: 'Racha de 3 días',   description: 'Prepara café 3 días seguidos',    icon: '🔥', rarity: 'RARE', xpReward: 50 },
+    { slug: 'streak_7',    name: 'Racha de 7 días',   description: 'Prepara café 7 días seguidos',    icon: '🏆', rarity: 'EPIC', xpReward: 120 },
   ];
 
   for (const a of achievements) {

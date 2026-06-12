@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Trophy, Zap, Coffee } from 'lucide-react';
 import { useBarista } from '../hooks/useBarista';
 import { useUser } from '../context/UserContext';
+import BrewComparator from '../components/barista/BrewComparator';
 
 export default function BaristaProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -130,6 +131,11 @@ export default function BaristaProfile() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Brew Comparator */}
+        {profile.brewLogs.length > 0 && (
+          <BrewComparator brews={profile.brewLogs} />
         )}
 
         {/* Recent Brews */}

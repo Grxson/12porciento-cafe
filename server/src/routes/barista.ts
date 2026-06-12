@@ -20,25 +20,57 @@ function calculateXp(recipeDifficulty: string, rating: number): number {
 }
 
 async function checkAndUnlockAchievements(userId: string): Promise<{ id: string; name: string; icon: string; xpReward: number }[]> {
-  const [profile, brewCount, hasPerfect] = await Promise.all([
+  const today = new Date().toISOString().split('T')[0];
+
+  const [profile, brewCount, hasPerfect, v60Count, aeropressCount, espressoCount, recentBrews] = await Promise.all([
     prisma.baristaProfile.findUnique({
       where: { userId },
       include: { achievements: { include: { achievement: true } } },
     }),
     prisma.brewLog.count({ where: { userId } }),
     prisma.brewLog.findFirst({ where: { userId, rating: 10 }, select: { id: true } }),
+    prisma.brewLog.count({ where: { userId, recipe: { method: 'V60' } } }),
+    prisma.brewLog.count({ where: { userId, recipe: { method: 'AeroPress' } } }),
+    prisma.brewLog.count({ where: { userId, recipe: { method: 'Espresso' } } }),
+    prisma.brewLog.findMany({
+      where: { userId },
+      select: { createdAt: true },
+      orderBy: { createdAt: 'desc' },
+    }),
   ]);
   if (!profile) return [];
 
+  // Compute streak
+  const uniqueDates = Array.from(
+    new Set(recentBrews.map((b) => b.createdAt.toISOString().split('T')[0]))
+  ).sort().reverse();
+
+  let streak = 0;
+  if (uniqueDates.length > 0) {
+    const first = uniqueDates[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    if (first === today || first === yesterday) {
+      for (let i = 0; i < uniqueDates.length; i++) {
+        const expected = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
+        if (uniqueDates[i] === expected) streak++;
+        else break;
+      }
+    }
+  }
+
   const candidates = [
-    { slug: 'first_brew', met: brewCount >= 1 },
-    { slug: 'five_brews', met: brewCount >= 5 },
-    { slug: 'ten_brews', met: brewCount >= 10 },
-    { slug: 'perfect_brew', met: hasPerfect !== null },
+    { slug: 'first_brew',    met: brewCount >= 1 },
+    { slug: 'five_brews',    met: brewCount >= 5 },
+    { slug: 'ten_brews',     met: brewCount >= 10 },
+    { slug: 'perfect_brew',  met: hasPerfect !== null },
+    { slug: 'v60_5',         met: v60Count >= 5 },
+    { slug: 'aeropress_5',   met: aeropressCount >= 5 },
+    { slug: 'espresso_5',    met: espressoCount >= 5 },
+    { slug: 'streak_3',      met: streak >= 3 },
+    { slug: 'streak_7',      met: streak >= 7 },
   ];
 
   const unlocked: { id: string; name: string; icon: string; xpReward: number }[] = [];
-
   let bonusXp = 0;
 
   for (const c of candidates) {
@@ -85,7 +117,7 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
 // POST /barista/brew-logs
 router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
-    const { recipeId, rating, notes, photoUrl } = req.body;
+    const { recipeId, rating, notes, photoUrl, clientBrewId } = req.body;
     const userId = req.user!.id;
 
     if (!recipeId || !Number.isInteger(rating) || rating < 1 || rating > 10) {
@@ -96,6 +128,13 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
     }
     if (photoUrl && (typeof photoUrl !== 'string' || !/^\/api\/uploads\/[a-f0-9]{24}\.webp$/.test(photoUrl))) {
       return res.status(400).json({ error: 'URL de foto no válida' });
+    }
+
+    if (clientBrewId) {
+      const existing = await prisma.brewLog.findUnique({ where: { clientBrewId } });
+      if (existing) {
+        return res.status(409).json({ data: { brewLog: existing, profile: null, newAchievements: [] } });
+      }
     }
 
     const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
@@ -117,6 +156,7 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
         notes: notes?.trim() ?? null,
         photoUrl: photoUrl?.trim() ?? null,
         xpEarned,
+        clientBrewId: clientBrewId ?? null,
       },
       include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
     });

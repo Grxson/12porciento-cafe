@@ -1,5 +1,6 @@
 import { listQueue, removeBrew, updateBrewStatus } from '../hooks/useBrewQueue';
 import { uploadsApi, baristaApi } from '../api';
+import { useToast } from '../context/ToastContext';
 
 async function syncBrews(): Promise<void> {
   let queue;
@@ -22,7 +23,7 @@ async function syncBrews(): Promise<void> {
         photoUrl = uploadRes.data.data.url;
       }
 
-      await baristaApi.submitBrewLog({
+      const res = await baristaApi.submitBrewLog({
         recipeId: brew.recipeId,
         rating: brew.rating,
         notes: brew.notes,
@@ -31,6 +32,24 @@ async function syncBrews(): Promise<void> {
       } as any);
 
       await removeBrew(brew.id);
+
+      // Surface XP and achievement toasts
+      const { add } = useToast.getState();
+      const newAchievements: { id: string; name: string; icon: string; xpReward: number }[] =
+        res.data?.data?.newAchievements ?? [];
+      const profile = res.data?.data?.profile;
+
+      if (profile) {
+        const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
+        const xp = (baseXp['MEDIA'] ?? 20) + (brew.rating - 1) * 5; // approximate
+        add(`☕ Brew sincronizado — +${xp} XP`, 'success');
+      }
+
+      newAchievements.forEach((a, i) => {
+        setTimeout(() => {
+          add(`🏆 Logro desbloqueado: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success');
+        }, 400 * (i + 1));
+      });
 
       window.dispatchEvent(new CustomEvent('brew-synced', { detail: { id: brew.id } }));
     } catch {

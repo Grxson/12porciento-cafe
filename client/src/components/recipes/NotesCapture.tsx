@@ -17,6 +17,7 @@ function appendNote(existing: string, addition: string): string {
 
 export default function NotesCapture({ value, onChange }: NotesCaptureProps) {
   const [recording, setRecording] = useState(false);
+  const [micDenied, setMicDenied] = useState(false);
   const recognitionRef = useRef<any>(null);
 
   const startVoice = () => {
@@ -29,7 +30,12 @@ export default function NotesCapture({ value, onChange }: NotesCaptureProps) {
       if (transcript) onChange(appendNote(value, transcript));
     };
     recognition.onend = () => setRecording(false);
-    recognition.onerror = () => setRecording(false);
+    recognition.onerror = (event: any) => {
+      if (event.error === 'not-allowed') {
+        setMicDenied(true);
+      }
+      setRecording(false);
+    };
     recognitionRef.current = recognition;
     recognition.start();
     setRecording(true);
@@ -62,19 +68,32 @@ export default function NotesCapture({ value, onChange }: NotesCaptureProps) {
 
       {/* Voice button — only if SpeechRecognition available */}
       {SpeechRecognition && (
-        <button
-          type="button"
-          aria-label={recording ? 'Detener grabación' : 'Grabar nota de voz'}
-          onClick={recording ? stopVoice : startVoice}
-          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 mb-2 transition-colors ${
-            recording
-              ? 'bg-red-600/30 text-red-400 border border-red-600/50'
-              : 'bg-white dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 hover:text-gold-400 border border-coffee-200 dark:border-coffee-700'
-          }`}
-        >
-          {recording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-          {recording ? 'Detener' : 'Grabar nota'}
-        </button>
+        micDenied ? (
+          <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+            Permiso de micrófono denegado. Actívalo en la configuración del navegador.
+          </p>
+        ) : (
+          <>
+            {!recording && (
+              <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-1">
+                🎤 Dicta tus notas — el navegador pedirá permiso al micrófono.
+              </p>
+            )}
+            <button
+              type="button"
+              aria-label={recording ? 'Detener grabación' : 'Grabar nota de voz'}
+              onClick={recording ? stopVoice : startVoice}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 mb-2 transition-colors ${
+                recording
+                  ? 'bg-red-600/30 text-red-400 border border-red-600/50'
+                  : 'bg-white dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 hover:text-gold-400 border border-coffee-200 dark:border-coffee-700'
+              }`}
+            >
+              {recording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              {recording ? 'Detener' : 'Grabar nota'}
+            </button>
+          </>
+        )
       )}
 
       {/* Free text */}

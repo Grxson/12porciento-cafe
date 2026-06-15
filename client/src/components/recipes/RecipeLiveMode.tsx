@@ -404,11 +404,15 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
                 ) : (
                   <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-700 p-4 rounded cursor-pointer hover:border-gold-400 transition-colors mb-3">
                     <span className="text-xs text-coffee-400">📷 Tomar o elegir foto</span>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2">
+                      📷 Selecciona una foto de tu resultado. El navegador puede solicitar acceso a la cámara.
+                    </p>
                     <input
                       type="file"
                       accept="image/*"
                       capture="environment"
                       onChange={handlePhotoChange}
+                      onError={() => {}}
                       className="hidden"
                       aria-label="Foto del resultado"
                     />

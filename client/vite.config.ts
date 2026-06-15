@@ -44,6 +44,7 @@ export default defineConfig({
             purpose: 'maskable any',
           },
         ],
+        permissions: ['camera', 'microphone'],
         shortcuts: [
           {
             name: 'Tienda',

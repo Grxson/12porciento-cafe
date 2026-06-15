@@ -77,7 +77,7 @@ function AddCardForm({ clientSecret, onSuccess, onCancel }: { clientSecret: stri
               {saving ? 'Guardando...' : 'Guardar método de pago'}
             </button>
             <button type="button" onClick={onCancel}
-              className="text-sm text-coffee-400 hover:text-cream border border-coffee-700 px-4 py-2 min-h-[44px] transition-colors">
+              className="text-sm text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream border border-coffee-200 dark:border-coffee-700 px-4 py-2 min-h-[44px] transition-colors">
               Cancelar
             </button>
           </div>
@@ -178,7 +178,7 @@ export default function PaymentMethod() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-lg">
-      <h2 className="font-serif text-2xl text-cream mb-1">Método de pago</h2>
+      <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">Método de pago</h2>
       <p className="text-coffee-500 text-sm mb-6">
         Tu tarjeta guardada se usará en futuros pedidos. Puedes cambiarla o eliminarla en cualquier momento.
       </p>
@@ -189,7 +189,7 @@ export default function PaymentMethod() {
             <div key={pm.id} className={`flex flex-wrap items-center justify-between gap-3 p-4 border transition-all ${
               defaultId === pm.id
                 ? 'border-gold-500/60 bg-gold-500/5 shadow-[0_0_20px_rgba(201,169,110,0.05)]'
-                : 'border-coffee-800 bg-coffee-900 hover:border-coffee-700'
+                : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900 hover:border-coffee-300 dark:hover:border-coffee-700'
             }`}>
               <div className="flex items-center gap-3 min-w-0">
                 <div className={`w-8 h-8 flex items-center justify-center shrink-0 ${BRAND_COLORS[pm.brand] ?? 'text-coffee-400'}`}>
@@ -197,7 +197,7 @@ export default function PaymentMethod() {
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-cream text-sm font-medium truncate">
+                    <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">
                       {BRAND_LABELS[pm.brand] ?? pm.brand} •••• {pm.last4}
                     </p>
                     {defaultId === pm.id && (
@@ -214,7 +214,7 @@ export default function PaymentMethod() {
               <div className="flex items-center gap-3 shrink-0">
                 {defaultId !== pm.id && (
                   <button onClick={() => handleSetDefault(pm.id)}
-                    className="text-xs text-coffee-400 hover:text-gold-500 min-h-[44px] transition-colors">
+                    className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-gold-500 min-h-[44px] transition-colors">
                     Usar como predeterminada
                   </button>
                 )}
@@ -229,10 +229,10 @@ export default function PaymentMethod() {
       )}
 
       {methods.length === 0 && !adding && (
-        <div className="text-center py-10 bg-coffee-900 border border-coffee-800 mb-6">
-          <CreditCard className="w-10 h-10 text-coffee-700 mx-auto mb-3" />
-          <p className="text-coffee-400 text-sm mb-1">Sin tarjetas guardadas</p>
-          <p className="text-coffee-600 text-xs">Agrega una para pagar más rápido.</p>
+        <div className="text-center py-10 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 mb-6">
+          <CreditCard className="w-10 h-10 text-coffee-400 dark:text-coffee-700 mx-auto mb-3" />
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-1">Sin tarjetas guardadas</p>
+          <p className="text-coffee-500 dark:text-coffee-600 text-xs">Agrega una para pagar más rápido.</p>
         </div>
       )}
 
@@ -240,9 +240,9 @@ export default function PaymentMethod() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-coffee-900 border border-coffee-800 p-6"
+          className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6"
         >
-          <h3 className="font-serif text-lg text-cream mb-5">Agregar método de pago</h3>
+          <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-5">Agregar método de pago</h3>
           <AddCardWithSetup
             onSuccess={() => { setAdding(false); load(); refreshUser(); }}
             onCancel={() => setAdding(false)}

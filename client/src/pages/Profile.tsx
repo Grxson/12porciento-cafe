@@ -21,10 +21,10 @@ export default function Profile() {
   const { profile: baristaProfile } = useBarista(user?.id);
 
   return (
-    <div className="pt-20 min-h-screen bg-coffee-950 pb-24 md:pb-0">
+    <div className="pt-20 min-h-screen bg-coffee-50 dark:bg-coffee-950 pb-24 md:pb-0">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-coffee-800 border border-coffee-800 shrink-0">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-coffee-200 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-800 shrink-0">
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
             ) : (
@@ -37,8 +37,8 @@ export default function Profile() {
           </div>
           <div className="flex-1">
             <p className="text-gold-500 text-xs tracking-[0.3em] uppercase mb-0.5">Bienvenido</p>
-            <h1 className="font-serif text-3xl text-cream">{user?.name}</h1>
-            <p className="text-coffee-400 text-sm">{user?.email}</p>
+            <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">{user?.name}</h1>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm">{user?.email}</p>
           </div>
           {user && (
             <Link
@@ -58,7 +58,7 @@ export default function Profile() {
           )}
         </div>
 
-        <div className="flex gap-1 border-b border-coffee-800 mb-8 overflow-x-auto">
+        <div className="flex gap-1 border-b border-coffee-200 dark:border-coffee-800 mb-8 overflow-x-auto">
           {tabs.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -67,7 +67,7 @@ export default function Profile() {
                 `flex items-center gap-2 px-4 py-3 text-sm whitespace-nowrap shrink-0 border-b-2 transition-colors ${
                   isActive
                     ? 'border-gold-500 text-gold-500'
-                    : 'border-transparent text-coffee-400 hover:text-cream'
+                    : 'border-transparent text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
                 }`
               }
             >

@@ -50,8 +50,8 @@ export default function Orders() {
   if (orders.length === 0) {
     return (
       <div className="text-center py-16">
-        <Package className="w-12 h-12 text-coffee-600 mx-auto mb-4" />
-        <p className="text-coffee-400">Aún no tienes pedidos.</p>
+        <Package className="w-12 h-12 text-coffee-400 dark:text-coffee-600 mx-auto mb-4" />
+        <p className="text-coffee-600 dark:text-coffee-400">Aún no tienes pedidos.</p>
       </div>
     );
   }
@@ -60,11 +60,11 @@ export default function Orders() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
       {orders.map((order, i) => (
         <motion.div key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05 }} className="bg-coffee-900 border border-coffee-800 p-5">
+          transition={{ delay: i * 0.05 }} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">
           <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
             <div className="min-w-0">
-              <p className="text-cream text-sm font-medium truncate">Pedido #{order.id.slice(-8).toUpperCase()}</p>
-              <p className="text-coffee-400 text-xs mt-0.5">
+              <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">Pedido #{order.id.slice(-8).toUpperCase()}</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
                 {new Date(order.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
@@ -77,7 +77,7 @@ export default function Orders() {
           </div>
           <div className="space-y-1">
             {order.items.map((item) => (
-              <p key={item.id} className="text-coffee-300 text-xs truncate">{item.product.name} × {item.quantity}</p>
+              <p key={item.id} className="text-coffee-700 dark:text-coffee-300 text-xs truncate">{item.product.name} × {item.quantity}</p>
             ))}
           </div>
         </motion.div>

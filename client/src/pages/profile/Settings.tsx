@@ -78,17 +78,17 @@ export default function ProfileSettings() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <h2 className="font-serif text-2xl text-cream mb-6">Datos personales</h2>
+      <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Datos personales</h2>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
 
         {/* Avatar */}
         <div>
-          <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-3">Foto de perfil</label>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-3">Foto de perfil</label>
           <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="relative w-16 h-16 rounded-full overflow-hidden bg-coffee-800 border-2 border-coffee-700 hover:border-gold-500/60 transition-colors group shrink-0"
+              className="relative w-16 h-16 rounded-full overflow-hidden bg-coffee-200 dark:bg-coffee-800 border-2 border-coffee-200 dark:border-coffee-700 hover:border-gold-500/60 transition-colors group shrink-0"
             >
               {form.avatarUrl ? (
                 <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -114,7 +114,7 @@ export default function ProfileSettings() {
                   Quitar foto
                 </button>
               )}
-              <p className="text-coffee-600 text-[10px] mt-1">JPG, PNG, WebP · máx 5 MB</p>
+              <p className="text-coffee-500 dark:text-coffee-600 text-[10px] mt-1">JPG, PNG, WebP · máx 5 MB</p>
             </div>
           </div>
           <input
@@ -127,42 +127,42 @@ export default function ProfileSettings() {
         </div>
 
         <div>
-          <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Nombre *</label>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Nombre *</label>
           <input name="name" required value={form.name} onChange={handleChange}
-            className="w-full bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors" />
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors" />
         </div>
         <div>
-          <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
           <input name="phone" value={form.phone} onChange={handleChange} type="tel"
-            className="w-full bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
             placeholder="55 1234 5678" />
         </div>
 
-        <h3 className="font-serif text-lg text-cream pt-4 border-t border-coffee-800">Dirección de envío</h3>
+        <h3 className="font-serif text-lg text-coffee-900 dark:text-cream pt-4 border-t border-coffee-200 dark:border-coffee-800">Dirección de envío</h3>
 
         <div>
-          <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Calle y número</label>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Calle y número</label>
           <input name="address" value={form.address} onChange={handleChange}
-            className="w-full bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
             placeholder="Calle, número, colonia" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Ciudad</label>
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad</label>
             <input name="city" value={form.city} onChange={handleChange}
-              className="w-full bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors" />
+              className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors" />
           </div>
           <div>
-            <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">CP</label>
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP</label>
             <input name="zipCode" value={form.zipCode} onChange={handleChange}
-              className="w-full bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+              className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
               placeholder="12345" />
           </div>
         </div>
         <div>
-          <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Estado</label>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado</label>
           <select name="state" value={form.state} onChange={handleChange}
-            className="w-full bg-coffee-900 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors">
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors">
             <option value="">Seleccionar</option>
             {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>

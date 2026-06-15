@@ -77,8 +77,8 @@ export default function Subscription() {
   if (!sub) {
     return (
       <div className="text-center py-16">
-        <CreditCard className="w-12 h-12 text-coffee-600 mx-auto mb-4" />
-        <p className="text-coffee-400 mb-4">Sin suscripción activa.</p>
+        <CreditCard className="w-12 h-12 text-coffee-400 dark:text-coffee-600 mx-auto mb-4" />
+        <p className="text-coffee-600 dark:text-coffee-400 mb-4">Sin suscripción activa.</p>
         <Link to="/suscripciones" className="btn-primary">Ver planes</Link>
       </div>
     );
@@ -90,11 +90,11 @@ export default function Subscription() {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
       {/* Subscription card */}
-      <div className="bg-coffee-900 border border-coffee-800 p-6 mb-6 max-w-2xl">
+      <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-6 max-w-2xl">
         <div className="flex flex-wrap items-start justify-between gap-2 mb-5">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h3 className="font-serif text-xl text-cream">{sub.plan}</h3>
+              <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">{sub.plan}</h3>
               {(() => {
                 const statusStyles: Record<string, string> = {
                   ACTIVE:    'bg-green-900/30 text-green-400 border-green-500/20',
@@ -113,7 +113,7 @@ export default function Subscription() {
                 );
               })()}
             </div>
-            <p className="text-coffee-400 text-sm">
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm">
               {sub.frequency === 'bimonthly' ? 'Cada 2 meses' : 'Mensual'} · {sub.grindPreference === 'GRANO' ? 'Grano entero' : 'Molido'}
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function Subscription() {
 
         {/* Lock banner when not editable */}
         {!canEdit && (
-          <div className="flex items-start gap-2.5 bg-coffee-800/50 border border-coffee-700 p-3 mb-5 text-xs text-coffee-400">
+          <div className="flex items-start gap-2.5 bg-coffee-100 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700 p-3 mb-5 text-xs text-coffee-600 dark:text-coffee-400">
             <Lock className="w-3.5 h-3.5 text-coffee-500 shrink-0 mt-0.5" />
             {sub.fulfillmentStatus === 'PREPARANDO'
               ? 'Tu envío está en preparación — podrás cambiar tus cafés cuando llegue.'
@@ -137,7 +137,7 @@ export default function Subscription() {
         {/* Selected coffees */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-coffee-500 uppercase tracking-widest">Tus cafés este ciclo</p>
+            <p className="text-xs text-coffee-500 dark:text-coffee-500 uppercase tracking-widest">Tus cafés este ciclo</p>
             {canEdit && !editing && (
               <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-xs text-gold-500 hover:text-gold-400 transition-colors">
                 <Edit3 className="w-3 h-3" /> Cambiar selección
@@ -146,24 +146,24 @@ export default function Subscription() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {sub.items?.map((item) => (
-              <div key={item.id} className="flex gap-2 bg-coffee-800/50 p-2 min-w-0">
+              <div key={item.id} className="flex gap-2 bg-coffee-100 dark:bg-coffee-800/50 p-2 min-w-0">
                 <img src={resolveImageUrl(item.product.imageUrl)} alt={item.product.name} className="w-10 h-10 object-cover shrink-0" />
-                <p className="text-coffee-200 text-xs leading-tight self-center truncate min-w-0">{item.product.name}</p>
+                <p className="text-coffee-800 dark:text-coffee-200 text-xs leading-tight self-center truncate min-w-0">{item.product.name}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="border-t border-coffee-800 pt-4 text-xs text-coffee-400">
+        <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4 text-xs text-coffee-600 dark:text-coffee-400">
           Próximo envío:{' '}
-          <span className="text-cream">
+          <span className="text-coffee-900 dark:text-cream">
             {new Date(sub.nextBilling).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
         </div>
       </div>
 
       {/* Billing panel */}
-      <div className="mt-6 pt-6 border-t border-coffee-700 max-w-2xl">
+      <div className="mt-6 pt-6 border-t border-coffee-200 dark:border-coffee-700 max-w-2xl">
         <SubscriptionBilling subscriptionId={sub.id} />
       </div>
 
@@ -176,8 +176,8 @@ export default function Subscription() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden mb-6"
           >
-            <div className="bg-coffee-900 border border-gold-500/20 p-6 max-w-2xl">
-              <h4 className="font-serif text-lg text-cream mb-6">Cambia tu selección</h4>
+            <div className="bg-white dark:bg-coffee-900 border border-gold-500/20 p-6 max-w-2xl">
+              <h4 className="font-serif text-lg text-coffee-900 dark:text-cream mb-6">Cambia tu selección</h4>
               <CoffeePicker
                 plan={sub.plan as SubscriptionPlan}
                 selected={editCoffees}
@@ -206,21 +206,21 @@ export default function Subscription() {
 
       {/* Cancel */}
       {!showConfirm ? (
-        <button onClick={() => setShowConfirm(true)} className="text-xs text-coffee-500 hover:text-red-400 border border-coffee-800 hover:border-red-400/30 px-4 py-2 min-h-[44px] transition-colors">
+        <button onClick={() => setShowConfirm(true)} className="text-xs text-coffee-500 hover:text-red-400 border border-coffee-200 dark:border-coffee-800 hover:border-red-400/30 px-4 py-2 min-h-[44px] transition-colors">
           Cancelar suscripción
         </button>
       ) : (
-        <div className="bg-coffee-900 border border-red-500/30 p-5 max-w-md">
+        <div className="bg-white dark:bg-coffee-900 border border-red-500/30 p-5 max-w-md">
           <div className="flex items-start gap-3 mb-4">
             <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-            <p className="text-coffee-200 text-sm">¿Confirmas que quieres cancelar? Perderás el siguiente envío si cancelas antes de la fecha de facturación.</p>
+            <p className="text-coffee-800 dark:text-coffee-200 text-sm">¿Confirmas que quieres cancelar? Perderás el siguiente envío si cancelas antes de la fecha de facturación.</p>
           </div>
           <div className="flex gap-3">
             <button onClick={handleCancel} disabled={cancelling}
               className="text-xs text-red-400 border border-red-500/40 hover:border-red-400 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
               {cancelling ? 'Cancelando...' : 'Sí, cancelar'}
             </button>
-            <button onClick={() => setShowConfirm(false)} className="text-xs text-coffee-400 hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
+            <button onClick={() => setShowConfirm(false)} className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
               Mantener
             </button>
           </div>

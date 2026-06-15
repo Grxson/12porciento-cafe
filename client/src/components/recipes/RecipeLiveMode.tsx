@@ -284,7 +284,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         </div>
         <button
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label="Cerrar receta"
           className="p-2 text-coffee-400 hover:text-cream transition-colors"
         >
           <X className="w-6 h-6" />
@@ -351,6 +351,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
                   <p className="text-6xl font-mono font-bold text-gold-400 mb-4">{timerActive}</p>
                   <button
                     onClick={() => setTimerActive(null)}
+                    aria-label="Cancelar temporizador"
                     className="text-xs px-4 py-1 bg-red-600/30 text-red-400 hover:bg-red-600/40 transition-colors"
                   >
                     Cancelar
@@ -442,7 +443,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
           <button
             onClick={goPrev}
             disabled={!hasPrev}
-            aria-label="Anterior"
+            aria-label="Paso anterior"
             className="p-3 text-coffee-400 disabled:opacity-30 hover:text-cream transition-colors"
           >
             <ChevronLeft className="w-8 h-8" />
@@ -460,7 +461,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
           <button
             onClick={goNext}
             disabled={!hasNext}
-            aria-label="Siguiente"
+            aria-label="Siguiente paso"
             className="p-3 text-coffee-400 disabled:opacity-30 hover:text-cream transition-colors"
           >
             <ChevronRight className="w-8 h-8" />

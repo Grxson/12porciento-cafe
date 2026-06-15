@@ -23,14 +23,14 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
   if (!brew1 || !brew2) {
     return (
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-cream mb-3">Comparar Intentos</h3>
-        <div className="space-y-2 text-xs text-coffee-400">
+        <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">Comparar Intentos</h3>
+        <div className="space-y-2 text-xs text-coffee-600 dark:text-coffee-400">
           <div>
             <label className="block mb-1">Primer brew:</label>
             <select
               value={brew1Id ?? ''}
               onChange={(e) => setBrew1Id(e.target.value || null)}
-              className="w-full bg-coffee-900 border border-coffee-700 text-cream px-2 py-1 rounded"
+              className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-2 py-1 rounded"
             >
               <option value="">Selecciona un brew...</option>
               {brews.map((b) => (
@@ -45,7 +45,7 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
             <select
               value={brew2Id ?? ''}
               onChange={(e) => setBrew2Id(e.target.value || null)}
-              className="w-full bg-coffee-900 border border-coffee-700 text-cream px-2 py-1 rounded"
+              className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-2 py-1 rounded"
             >
               <option value="">Selecciona un brew...</option>
               {brews.map((b) => (
@@ -66,12 +66,12 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
   const ratingDiff = brew2.rating - brew1.rating;
 
   return (
-    <div className="mb-6 border border-coffee-700 p-4 rounded">
+    <div className="mb-6 border border-coffee-200 dark:border-coffee-700 p-4 rounded">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-cream">Comparación</h3>
+        <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream">Comparación</h3>
         <button
           onClick={() => { setBrew1Id(null); setBrew2Id(null); }}
-          className="text-xs text-coffee-400 hover:text-gold-400"
+          className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-gold-400"
         >
           ← Cambiar
         </button>
@@ -82,9 +82,9 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
           { brew: brew1, label: 'A' },
           { brew: brew2, label: 'B', diff: ratingDiff },
         ].map(({ brew, label, diff }) => (
-          <div key={brew.id} className="border border-coffee-700/50 p-3 rounded text-xs">
-            <p className="font-semibold text-cream mb-1">{brew.recipe?.title ?? 'Receta'}</p>
-            <div className="text-coffee-400 space-y-1">
+          <div key={brew.id} className="border border-coffee-200/50 dark:border-coffee-700/50 p-3 rounded text-xs">
+            <p className="font-semibold text-coffee-900 dark:text-cream mb-1">{brew.recipe?.title ?? 'Receta'}</p>
+            <div className="text-coffee-600 dark:text-coffee-400 space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-gold-400 font-bold">{brew.rating}/10</span>
                 {diff !== undefined && diff !== 0 && (

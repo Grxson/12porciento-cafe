@@ -83,9 +83,9 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
   if (!user) {
     return (
       <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
-        <div className="bg-coffee-900 border border-gold-500/30 p-6 max-w-sm w-full">
-          <h3 className="text-cream font-serif text-lg mb-3">Inicia sesión para registrar tu brew</h3>
-          <p className="text-coffee-400 text-sm mb-4">Necesitas una cuenta para guardar tus brews y ganar XP.</p>
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-6 max-w-sm w-full">
+          <h3 className="text-coffee-900 dark:text-cream font-serif text-lg mb-3">Inicia sesión para registrar tu brew</h3>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">Necesitas una cuenta para guardar tus brews y ganar XP.</p>
           <button onClick={onClose} className="btn-primary w-full">Cerrar</button>
         </div>
       </div>
@@ -105,16 +105,16 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
         animate={{ scale: 1, opacity: 1 }}
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
-        className="bg-coffee-900 border border-gold-500/30 p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-cream font-serif text-lg">Registrar Brew</h3>
-          <button type="button" onClick={onClose} className="p-1 text-coffee-400 hover:text-cream transition-colors">
+          <h3 className="text-coffee-900 dark:text-cream font-serif text-lg">Registrar Brew</h3>
+          <button type="button" onClick={onClose} aria-label="Cerrar formulario" className="p-1 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <p className="text-coffee-400 text-sm mb-5">
+        <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-5">
           {recipe.title}{recipe.method ? ` · ${recipe.method}` : ''}
         </p>
 
@@ -133,6 +133,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 key={r}
                 type="button"
                 onClick={() => setRating(r)}
+                aria-label={`${r} estrellas`}
                 className={`transition-colors ${r <= rating ? 'text-gold-400' : 'text-coffee-600 hover:text-gold-300'}`}
               >
                 <Star className="w-7 h-7 fill-current" />
@@ -150,7 +151,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
             maxLength={500}
             rows={3}
             placeholder="Describe tu experiencia..."
-            className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none resize-none"
+            className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none resize-none"
           />
           <p className="text-xs text-coffee-600 mt-1 text-right">{notes.length}/500</p>
         </div>
@@ -168,16 +169,17 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   setPhotoPreview(null);
                   setPhotoUrl('');
                 }}
+                aria-label="Eliminar foto"
                 className="absolute top-1 right-1 p-1 bg-red-600/80 text-white rounded"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
-            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-700 p-4 rounded cursor-pointer hover:border-gold-500 transition-colors">
+            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-200 dark:border-coffee-700 p-4 rounded cursor-pointer hover:border-gold-500 transition-colors">
               <Upload className="w-4 h-4 text-coffee-500" />
-              <span className="text-xs text-coffee-400">Subir foto</span>
-              <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+              <span className="text-xs text-coffee-600 dark:text-coffee-400">Subir foto</span>
+              <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" aria-label="Seleccionar foto del brew" />
             </label>
           )}
         </div>

@@ -27,15 +27,15 @@ export default function AttemptsList({ recipeId, userId }: AttemptsListProps) {
   }, [userId, recipeId]);
 
   if (loading) return (
-    <div className="text-xs text-coffee-400 mt-4">Cargando intentos...</div>
+    <div className="text-xs text-coffee-600 dark:text-coffee-400 mt-4">Cargando intentos...</div>
   );
   if (brews.length === 0) return (
     <div className="text-xs text-coffee-500 mt-4">Sin intentos aún. ¡Sé el primero en preparar esta receta!</div>
   );
 
   return (
-    <div className="mt-6 border-t border-coffee-800/50 pt-4">
-      <h3 className="text-sm font-semibold text-cream mb-3">Tus Intentos</h3>
+    <div className="mt-6 border-t border-coffee-200/50 dark:border-coffee-800/50 pt-4">
+      <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">Tus Intentos</h3>
       <div className="space-y-3">
         {brews.map((brew) => (
           <div key={brew.id} className="flex gap-3 items-start">
@@ -54,7 +54,7 @@ export default function AttemptsList({ recipeId, userId }: AttemptsListProps) {
                 </span>
               </div>
               {brew.notes && (
-                <p className="text-xs text-coffee-400 mt-1 line-clamp-2">{brew.notes}</p>
+                <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-1 line-clamp-2">{brew.notes}</p>
               )}
             </div>
           </div>

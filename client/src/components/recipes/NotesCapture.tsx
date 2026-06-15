@@ -53,7 +53,7 @@ export default function NotesCapture({ value, onChange }: NotesCaptureProps) {
             key={t}
             type="button"
             onClick={() => onChange(appendNote(value, t))}
-            className="text-[11px] px-2.5 py-1 border border-coffee-700 text-coffee-400 hover:border-gold-500 hover:text-gold-400 transition-colors"
+            className="text-[11px] px-2.5 py-1 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-gold-500 hover:text-gold-400 transition-colors"
           >
             {t}
           </button>
@@ -69,7 +69,7 @@ export default function NotesCapture({ value, onChange }: NotesCaptureProps) {
           className={`flex items-center gap-1.5 text-xs px-3 py-1.5 mb-2 transition-colors ${
             recording
               ? 'bg-red-600/30 text-red-400 border border-red-600/50'
-              : 'bg-coffee-800 text-coffee-400 hover:text-gold-400 border border-coffee-700'
+              : 'bg-white dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 hover:text-gold-400 border border-coffee-200 dark:border-coffee-700'
           }`}
         >
           {recording ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
@@ -84,7 +84,7 @@ export default function NotesCapture({ value, onChange }: NotesCaptureProps) {
         onChange={(e) => onChange(e.target.value)}
         placeholder="O escribe aquí..."
         maxLength={500}
-        className="w-full bg-coffee-900 border border-coffee-700 text-coffee-200 text-xs px-3 py-2 focus:border-gold-500 focus:outline-none resize-none"
+        className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 text-xs px-3 py-2 focus:border-gold-500 focus:outline-none resize-none"
       />
       <p className="text-[10px] text-coffee-600 text-right">{value.length}/500</p>
     </div>

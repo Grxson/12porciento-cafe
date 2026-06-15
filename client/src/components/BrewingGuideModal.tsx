@@ -45,14 +45,14 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
-            className="fixed inset-x-4 bottom-4 top-16 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-xl z-50 bg-coffee-900 border border-coffee-700 flex flex-col overflow-hidden"
+            className="fixed inset-x-4 bottom-4 top-16 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-xl z-50 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 flex flex-col overflow-hidden"
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-coffee-800">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-coffee-200 dark:border-coffee-800">
               <div>
                 <p className="text-gold-500 text-xs tracking-[0.3em] uppercase">Guía de Preparación</p>
-                <h3 className="text-cream font-serif text-xl mt-0.5">{recipe.title}</h3>
+                <h3 className="text-coffee-900 dark:text-cream font-serif text-xl mt-0.5">{recipe.title}</h3>
               </div>
-              <button onClick={onClose} className="text-coffee-400 hover:text-cream transition-colors">
+              <button onClick={onClose} aria-label="Cerrar guía" className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -66,7 +66,7 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
                     className={`px-3 py-1.5 text-xs tracking-widest uppercase transition-all ${
                       i === active
                         ? 'bg-gold-500 text-coffee-950'
-                        : 'border border-coffee-700 text-coffee-400 hover:text-cream'
+                        : 'border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
                     }`}
                   >
                     {methodIcons[r.method] ?? '☕'} {r.method}
@@ -77,38 +77,38 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
 
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-3 gap-3 mb-6">
-                <div className="bg-coffee-800/50 p-3 text-center">
+                <div className="bg-white dark:bg-coffee-800/50 p-3 text-center">
                   <Thermometer className="w-4 h-4 text-gold-500 mx-auto mb-1" />
-                  <p className="text-coffee-400 text-xs uppercase tracking-wider">Temp</p>
-                  <p className="text-cream text-sm font-medium mt-0.5">{recipe.temp}</p>
+                  <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-wider">Temp</p>
+                  <p className="text-coffee-900 dark:text-cream text-sm font-medium mt-0.5">{recipe.temp}</p>
                 </div>
-                <div className="bg-coffee-800/50 p-3 text-center">
+                <div className="bg-white dark:bg-coffee-800/50 p-3 text-center">
                   <Coffee className="w-4 h-4 text-gold-500 mx-auto mb-1" />
-                  <p className="text-coffee-400 text-xs uppercase tracking-wider">Ratio</p>
-                  <p className="text-cream text-sm font-medium mt-0.5">{recipe.ratio}</p>
+                  <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-wider">Ratio</p>
+                  <p className="text-coffee-900 dark:text-cream text-sm font-medium mt-0.5">{recipe.ratio}</p>
                 </div>
-                <div className="bg-coffee-800/50 p-3 text-center">
+                <div className="bg-white dark:bg-coffee-800/50 p-3 text-center">
                   <Droplets className="w-4 h-4 text-gold-500 mx-auto mb-1" />
-                  <p className="text-coffee-400 text-xs uppercase tracking-wider">Molido</p>
-                  <p className="text-cream text-sm font-medium mt-0.5">{recipe.grind}</p>
+                  <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-wider">Molido</p>
+                  <p className="text-coffee-900 dark:text-cream text-sm font-medium mt-0.5">{recipe.grind}</p>
                 </div>
               </div>
 
-              <h4 className="text-coffee-400 text-xs tracking-[0.3em] uppercase mb-3">Pasos</h4>
+              <h4 className="text-coffee-600 dark:text-coffee-400 text-xs tracking-[0.3em] uppercase mb-3">Pasos</h4>
               <ol className="space-y-3">
                 {recipe.steps.map((step, i) => (
                   <li key={step.id} className="flex gap-3">
                     <span className="w-6 h-6 rounded-full border border-gold-500/40 text-gold-500 text-xs flex items-center justify-center shrink-0 mt-0.5">
                       {i + 1}
                     </span>
-                    <div className="text-coffee-300 text-sm leading-relaxed">
-                      {step.title && <span className="text-cream font-medium">{step.title}: </span>}
+                    <div className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">
+                      {step.title && <span className="text-coffee-900 dark:text-cream font-medium">{step.title}: </span>}
                       {step.description}
                       {step.videoUrl && (() => {
                         const embed = getVideoEmbed(step.videoUrl!);
                         if (embed.type === 'youtube' || embed.type === 'vimeo') {
                           return (
-                            <div className="mt-2 aspect-video w-full rounded-lg overflow-hidden bg-coffee-900">
+                            <div className="mt-2 aspect-video w-full rounded-lg overflow-hidden bg-coffee-100 dark:bg-coffee-900">
                               <iframe
                                 src={embed.src}
                                 className="w-full h-full"
@@ -120,7 +120,7 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
                           );
                         }
                         if (embed.type === 'native') {
-                          return <video src={embed.src} controls className="mt-2 w-full rounded-lg bg-coffee-900" />;
+                          return <video src={embed.src} controls className="mt-2 w-full rounded-lg bg-coffee-100 dark:bg-coffee-900" />;
                         }
                         return (
                           <a href={step.videoUrl!} target="_blank" rel="noopener noreferrer"

@@ -195,8 +195,9 @@ export default function Recipes() {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-red-400 text-sm mb-4">{error}</p>
+          <p className="text-red-400 dark:text-red-300 text-sm mb-4">{error}</p>
           <button
+            aria-label="Reintentar carga de recetas"
             onClick={() => {
               setError(null);
               setLoading(true);

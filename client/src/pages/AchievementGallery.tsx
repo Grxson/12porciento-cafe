@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, Trophy } from 'lucide-react';
 import { baristaApi } from '../api';
 import type { AchievementWithUnlock } from '../types';
 
 const rarityConfig: Record<string, { label: string; color: string }> = {
-  COMMON:    { label: 'Común',     color: 'text-coffee-400 bg-coffee-800/60' },
-  RARE:      { label: 'Raro',      color: 'text-blue-400 bg-blue-900/30' },
-  EPIC:      { label: 'Épico',     color: 'text-purple-400 bg-purple-900/30' },
+  COMMON:    { label: 'Común',      color: 'text-coffee-600 dark:text-coffee-400 bg-coffee-100 dark:bg-coffee-800/60' },
+  RARE:      { label: 'Raro',       color: 'text-blue-400 bg-blue-900/30' },
+  EPIC:      { label: 'Épico',      color: 'text-purple-400 bg-purple-900/30' },
   LEGENDARY: { label: 'Legendario', color: 'text-gold-400 bg-gold-500/10' },
 };
 
@@ -14,11 +14,11 @@ function AchievementSkeleton() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-coffee-900 border border-coffee-800 p-5 space-y-3">
-          <div className="shimmer-dark w-10 h-10 rounded-full" />
-          <div className="shimmer-dark h-4 w-3/4" />
-          <div className="shimmer-dark h-3 w-full" />
-          <div className="shimmer-dark h-3 w-2/3" />
+        <div key={i} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 space-y-3">
+          <div className="shimmer dark:shimmer-dark w-10 h-10 rounded-full" />
+          <div className="shimmer dark:shimmer-dark h-4 w-3/4" />
+          <div className="shimmer dark:shimmer-dark h-3 w-full" />
+          <div className="shimmer dark:shimmer-dark h-3 w-2/3" />
         </div>
       ))}
     </div>
@@ -40,13 +40,13 @@ export default function AchievementGallery() {
   const unlocked = achievements.filter((a) => a.unlockedAt !== null).length;
 
   return (
-    <div className="min-h-screen bg-coffee-950 py-16 px-4">
+    <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Colección</p>
-          <h1 className="font-serif text-4xl text-cream mb-2">Mis Logros</h1>
+          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-2">Mis Logros</h1>
           {!loading && (
-            <p className="text-coffee-400 text-sm">
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm">
               {unlocked} / {achievements.length} desbloqueados
             </p>
           )}
@@ -60,12 +60,16 @@ export default function AchievementGallery() {
             <button
               onClick={() => { setError(false); setLoading(true); baristaApi.getAchievements().then((res) => setAchievements(res.data.achievements)).catch(() => setError(true)).finally(() => setLoading(false)); }}
               className="text-xs text-gold-500 hover:text-gold-400 underline transition-colors"
+              aria-label="Reintentar carga de logros"
             >
               Reintentar
             </button>
           </div>
         ) : achievements.length === 0 ? (
-          <p className="text-center text-coffee-500 py-12">No hay logros disponibles aún.</p>
+          <div className="text-center py-12">
+            <Trophy className="w-12 h-12 text-coffee-700 mx-auto mb-3" aria-hidden="true" />
+            <p className="text-coffee-500">No hay logros disponibles aún.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {achievements.map((a) => {
@@ -74,8 +78,8 @@ export default function AchievementGallery() {
               return (
                 <div
                   key={a.id}
-                  className={`bg-coffee-900 border p-5 transition-colors ${
-                    isUnlocked ? 'border-gold-500/30' : 'border-coffee-800'
+                  className={`bg-white dark:bg-coffee-900 border p-5 transition-colors ${
+                    isUnlocked ? 'border-gold-500/30' : 'border-coffee-200 dark:border-coffee-800'
                   }`}
                 >
                   <div className="relative w-12 h-12 flex items-center justify-center mb-3">
@@ -85,7 +89,7 @@ export default function AchievementGallery() {
                       {a.icon}
                     </span>
                     {!isUnlocked && (
-                      <Lock className="absolute -bottom-1 -right-1 w-4 h-4 text-coffee-600" />
+                      <Lock aria-hidden="true" className="absolute -bottom-1 -right-1 w-4 h-4 text-coffee-600" />
                     )}
                   </div>
 
@@ -93,7 +97,7 @@ export default function AchievementGallery() {
                     {rarity.label}
                   </span>
 
-                  <h3 className={`font-serif text-base mt-2 mb-1 ${isUnlocked ? 'text-cream' : 'text-coffee-600'}`}>
+                  <h3 className={`font-serif text-base mt-2 mb-1 ${isUnlocked ? 'text-coffee-900 dark:text-cream' : 'text-coffee-600'}`}>
                     {a.name}
                   </h3>
                   <p className="text-coffee-500 text-xs leading-relaxed mb-3">{a.description}</p>

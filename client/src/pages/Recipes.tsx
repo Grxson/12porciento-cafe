@@ -25,7 +25,7 @@ function StepVideoPlayer({ url }: { url: string }) {
   const embed = getVideoEmbed(url);
   if (embed.type === 'youtube' || embed.type === 'vimeo') {
     return (
-      <div className="mt-3 aspect-video w-full rounded-lg overflow-hidden bg-coffee-900">
+      <div className="mt-3 aspect-video w-full rounded-lg overflow-hidden bg-coffee-100 dark:bg-coffee-900">
         <iframe
           src={embed.src}
           className="w-full h-full"
@@ -41,7 +41,7 @@ function StepVideoPlayer({ url }: { url: string }) {
       <video
         src={embed.src}
         controls
-        className="mt-3 w-full rounded-lg bg-coffee-900"
+        className="mt-3 w-full rounded-lg bg-coffee-100 dark:bg-coffee-900"
       />
     );
   }
@@ -193,7 +193,7 @@ export default function Recipes() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-coffee-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-red-400 text-sm mb-4">{error}</p>
           <button
@@ -219,29 +219,29 @@ export default function Recipes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-coffee-950 py-16 px-4">
+      <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 space-y-3">
-            <div className="shimmer-dark h-3 w-32 mx-auto" />
-            <div className="shimmer-dark h-9 w-48 mx-auto" />
-            <div className="shimmer-dark h-4 w-64 mx-auto" />
+            <div className="shimmer dark:shimmer-dark h-3 w-32 mx-auto" />
+            <div className="shimmer dark:shimmer-dark h-9 w-48 mx-auto" />
+            <div className="shimmer dark:shimmer-dark h-4 w-64 mx-auto" />
           </div>
-          <div className="shimmer-dark h-10 w-full mb-10" />
+          <div className="shimmer dark:shimmer-dark h-10 w-full mb-10" />
           <div className="flex gap-2 justify-center mb-10">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="shimmer-dark h-7 w-20" />
+              <div key={i} className="shimmer dark:shimmer-dark h-7 w-20" />
             ))}
           </div>
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-coffee-900 border border-coffee-800 p-6 space-y-3">
+              <div key={i} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 space-y-3">
                 <div className="flex gap-3">
-                  <div className="shimmer-dark h-5 w-16" />
-                  <div className="shimmer-dark h-5 w-12" />
+                  <div className="shimmer dark:shimmer-dark h-5 w-16" />
+                  <div className="shimmer dark:shimmer-dark h-5 w-12" />
                 </div>
-                <div className="shimmer-dark h-7 w-2/3" />
-                <div className="shimmer-dark h-4 w-full" />
-                <div className="shimmer-dark h-4 w-4/5" />
+                <div className="shimmer dark:shimmer-dark h-7 w-2/3" />
+                <div className="shimmer dark:shimmer-dark h-4 w-full" />
+                <div className="shimmer dark:shimmer-dark h-4 w-4/5" />
               </div>
             ))}
           </div>
@@ -251,12 +251,12 @@ export default function Recipes() {
   }
 
   return (
-    <div className="min-h-screen bg-coffee-950 py-16 px-4">
+    <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Guías de preparación</p>
-          <h1 className="font-serif text-4xl text-cream mb-4">Recetas</h1>
-          <p className="text-coffee-400 text-sm max-w-lg mx-auto">
+          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-4">Recetas</h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm max-w-lg mx-auto">
             Desde espressos clásicos hasta métodos de filtrado de especialidad. Cada receta, paso a paso.
           </p>
         </div>
@@ -267,7 +267,7 @@ export default function Recipes() {
             placeholder="Buscar recetas por nombre, método..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2 bg-coffee-900 border border-coffee-700 text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500 transition-colors text-sm"
+            className="w-full px-4 py-2 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500 transition-colors text-sm"
           />
         </div>
 
@@ -279,7 +279,7 @@ export default function Recipes() {
               className={`px-4 py-1.5 text-xs uppercase tracking-wider border transition-colors ${
                 methodFilter === m
                   ? 'border-gold-500 text-gold-500 bg-gold-500/10'
-                  : 'border-coffee-700 text-coffee-400 hover:border-coffee-600'
+                  : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-600'
               }`}
             >
               {m}
@@ -292,25 +292,25 @@ export default function Recipes() {
             {methodFilter !== 'TODOS' && (
               <button
                 onClick={() => setMethodFilter('TODOS')}
-                className="flex items-center gap-1.5 px-3 py-1 bg-coffee-800 border border-gold-500/30 text-cream text-xs hover:bg-coffee-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1 bg-coffee-100 dark:bg-coffee-800 border border-gold-500/30 text-coffee-900 dark:text-cream text-xs hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
               >
                 {methodFilter}
-                <span className="text-coffee-400 hover:text-cream">×</span>
+                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
               </button>
             )}
             {search !== '' && (
               <button
                 onClick={() => setSearch('')}
-                className="flex items-center gap-1.5 px-3 py-1 bg-coffee-800 border border-gold-500/30 text-cream text-xs hover:bg-coffee-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1 bg-coffee-100 dark:bg-coffee-800 border border-gold-500/30 text-coffee-900 dark:text-cream text-xs hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
               >
                 "{search}"
-                <span className="text-coffee-400 hover:text-cream">×</span>
+                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
               </button>
             )}
             {methodFilter !== 'TODOS' && search !== '' && (
               <button
                 onClick={() => { setMethodFilter('TODOS'); setSearch(''); }}
-                className="text-xs text-coffee-500 hover:text-coffee-300 underline transition-colors"
+                className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
               >
                 Limpiar todo
               </button>
@@ -328,7 +328,7 @@ export default function Recipes() {
                 key={recipe.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`border ${isLocked ? 'border-gold-500/20 bg-coffee-900/40' : 'border-coffee-800 bg-coffee-900'}`}
+                className={`border ${isLocked ? 'border-gold-500/20 bg-coffee-100/50 dark:bg-coffee-900/40' : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900'}`}
               >
                 <div
                   className="flex items-center justify-between p-5 cursor-pointer"
@@ -338,7 +338,7 @@ export default function Recipes() {
                     <span className="text-gold-400"><MethodIcon method={recipe.method} /></span>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-cream font-medium">{recipe.title}</h3>
+                        <h3 className="text-coffee-900 dark:text-cream font-medium">{recipe.title}</h3>
                         {recipe.isPremium && (
                           <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400 uppercase tracking-wider">
                             Premium
@@ -383,7 +383,7 @@ export default function Recipes() {
                     {isLocked ? (
                       <Lock className="w-4 h-4 text-gold-500/50" />
                     ) : (
-                      isExpanded ? <ChevronUp className="w-4 h-4 text-coffee-400" /> : <ChevronDown className="w-4 h-4 text-coffee-400" />
+                      isExpanded ? <ChevronUp className="w-4 h-4 text-coffee-600 dark:text-coffee-400" /> : <ChevronDown className="w-4 h-4 text-coffee-600 dark:text-coffee-400" />
                     )}
                   </div>
                 </div>
@@ -393,8 +393,8 @@ export default function Recipes() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-gold-500/5 border border-gold-500/20 p-4">
                       <Star className="w-5 h-5 text-gold-500 shrink-0 hidden sm:block" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-cream text-sm font-medium">Receta exclusiva para suscriptores</p>
-                        <p className="text-coffee-400 text-xs mt-0.5">Suscríbete para acceder a todas las recetas premium y más.</p>
+                        <p className="text-coffee-900 dark:text-cream text-sm font-medium">Receta exclusiva para suscriptores</p>
+                        <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Suscríbete para acceder a todas las recetas premium y más.</p>
                       </div>
                       <Link to="/suscripciones" className="self-start sm:self-auto shrink-0 px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors">
                         Ver planes
@@ -402,8 +402,8 @@ export default function Recipes() {
                     </div>
                     {recipe.steps?.length > 0 && recipe.steps[0] && (
                       <div className="mt-3 px-2 opacity-50">
-                        <p className="text-xs text-coffee-400 uppercase tracking-wider mb-1">Paso 1 (vista previa)</p>
-                        <p className="text-coffee-300 text-sm">{recipe.steps[0].description}</p>
+                        <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Paso 1 (vista previa)</p>
+                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">{recipe.steps[0].description}</p>
                       </div>
                     )}
                   </div>
@@ -415,7 +415,7 @@ export default function Recipes() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden border-t border-coffee-800"
+                      className="overflow-hidden border-t border-coffee-200 dark:border-coffee-800"
                     >
                       <div className="p-5 space-y-6">
                         {(recipe.temp || recipe.grind || recipe.ratio || recipe.yield) && (
@@ -426,9 +426,9 @@ export default function Recipes() {
                               { label: 'Ratio', value: recipe.ratio },
                               { label: 'Rendimiento', value: recipe.yield },
                             ].filter((x) => x.value).map((x) => (
-                              <div key={x.label} className="bg-coffee-800/50 p-3 text-center">
+                              <div key={x.label} className="bg-coffee-100 dark:bg-coffee-800/50 p-3 text-center">
                                 <p className="text-[10px] text-coffee-500 uppercase tracking-wider mb-1">{x.label}</p>
-                                <p className="text-cream text-sm font-medium">{x.value}</p>
+                                <p className="text-coffee-900 dark:text-cream text-sm font-medium">{x.value}</p>
                               </div>
                             ))}
                           </div>
@@ -441,8 +441,8 @@ export default function Recipes() {
                                 <span className="text-gold-400 text-xs font-bold">{i + 1}</span>
                               </div>
                               <div className="flex-1">
-                                <p className="text-cream font-medium mb-1">{step.title}</p>
-                                <p className="text-coffee-300 text-sm leading-relaxed">{step.description}</p>
+                                <p className="text-coffee-900 dark:text-cream font-medium mb-1">{step.title}</p>
+                                <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">{step.description}</p>
                                 {step.duration && (
                                   <p className="text-xs text-coffee-500 mt-1 flex items-center gap-1">
                                     <Clock className="w-3 h-3" /> {step.duration}s
@@ -484,7 +484,7 @@ export default function Recipes() {
                         </div>
 
                         {recipe.product && (
-                          <div className="border-t border-coffee-800 pt-4">
+                          <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
                             <p className="text-xs text-coffee-500 mb-2">Recomendado con:</p>
                             <Link to={`/tienda/${recipe.product.slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                               <img src={recipe.product.imageUrl} alt={recipe.product.name} className="w-10 h-10 object-cover" />
@@ -508,8 +508,8 @@ export default function Recipes() {
         {freeLimit && (
           <div className="mt-8 text-center border border-gold-500/20 bg-gold-500/5 p-6">
             <Lock className="w-8 h-8 text-gold-500 mx-auto mb-3" />
-            <p className="text-cream font-medium mb-1">Estás viendo 2 de {filtered.filter((r) => !r.isPremium).length} recetas gratuitas</p>
-            <p className="text-coffee-400 text-sm mb-4">Suscríbete para ver todas las recetas + acceso a recetas premium exclusivas</p>
+            <p className="text-coffee-900 dark:text-cream font-medium mb-1">Estás viendo 2 de {filtered.filter((r) => !r.isPremium).length} recetas gratuitas</p>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">Suscríbete para ver todas las recetas + acceso a recetas premium exclusivas</p>
             <Link to="/suscripciones" className="inline-block px-6 py-3 bg-gold-500 text-coffee-950 text-xs font-bold uppercase tracking-wider hover:bg-gold-400 transition-colors">
               Ver planes de suscripción
             </Link>

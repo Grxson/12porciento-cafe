@@ -64,7 +64,7 @@ export default function NotificationBell() {
 
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-coffee-500 text-sm text-center py-8">Sin notificaciones</p>
+              <p className="text-coffee-500 dark:text-coffee-400 text-sm text-center py-8">Sin notificaciones</p>
             ) : (
               notifications.map((n) => (
                 <div
@@ -78,7 +78,7 @@ export default function NotificationBell() {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-coffee-900 dark:text-cream">{n.title}</p>
                       <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-0.5 break-words">{n.message}</p>
-                      <p className="text-xs text-coffee-500 mt-1">
+                      <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-1">
                         {n.timestamp.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>

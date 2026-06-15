@@ -3,6 +3,7 @@ export interface QueuedBrew {
   recipeId: string;
   rating: number;
   notes?: string;
+  difficulty?: string;
   photoBlob?: Blob;
   photoUrl?: string;
   createdAt: string;    // ISO timestamp

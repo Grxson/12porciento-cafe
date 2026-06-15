@@ -165,6 +165,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         recipeId: recipe.id,
         rating: avgRating,
         notes: notes || undefined,
+        difficulty: recipe.difficulty,
         photoUrl: photoUrl || undefined,
         photoBlob: photoBlob || undefined,
         clientBrewId: crypto.randomUUID(),

@@ -39,6 +39,7 @@ import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
 import BottomNav from './components/BottomNav';
 import InstallPrompt from './components/InstallPrompt';
+import OfflineBanner from './components/OfflineBanner';
 import Quiz from './pages/Quiz';
 import BaristaProfile from './pages/BaristaProfile';
 import Leaderboard from './pages/Leaderboard';
@@ -60,6 +61,7 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => (
     <main className="flex-1 pb-20 md:pb-0">{children}</main>
     <Footer />
     <BottomNav />
+    <OfflineBanner />
     <InstallPrompt />
   </div>
 );

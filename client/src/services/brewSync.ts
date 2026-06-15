@@ -41,7 +41,7 @@ async function syncBrews(): Promise<void> {
 
       if (profile) {
         const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
-        const xp = (baseXp['MEDIA'] ?? 20) + (brew.rating - 1) * 5; // approximate
+        const xp = (baseXp[brew.difficulty ?? 'MEDIA'] ?? 20) + (brew.rating - 1) * 5;
         add(`☕ Brew sincronizado — +${xp} XP`, 'success');
       }
 
@@ -51,7 +51,6 @@ async function syncBrews(): Promise<void> {
         }, 400 * (i + 1));
       });
 
-      window.dispatchEvent(new CustomEvent('brew-synced', { detail: { id: brew.id } }));
     } catch {
       await updateBrewStatus(brew.id, 'failed').catch(() => {});
     }

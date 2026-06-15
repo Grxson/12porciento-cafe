@@ -11,6 +11,7 @@ interface UseBaristaResult {
     recipeId: string;
     rating: number;
     notes?: string;
+    difficulty?: string;
     photoUrl?: string;
     photoBlob?: Blob;
     clientBrewId?: string;
@@ -40,6 +41,7 @@ export function useBarista(userId?: string): UseBaristaResult {
     recipeId: string;
     rating: number;
     notes?: string;
+    difficulty?: string;
     photoUrl?: string;
     photoBlob?: Blob;
     clientBrewId?: string;
@@ -50,16 +52,20 @@ export function useBarista(userId?: string): UseBaristaResult {
 
     if (!navigator.onLine) {
       const { enqueueBrew } = await import('../hooks/useBrewQueue');
+      const { useToast } = await import('../context/ToastContext');
+      const addToast = useToast.getState().add;
       await enqueueBrew({
         id: clientBrewId,
         recipeId: data.recipeId,
         rating: data.rating,
         notes: data.notes,
+        difficulty: data.difficulty,
         photoBlob: data.photoBlob,
         photoUrl: data.photoUrl,
         createdAt: new Date().toISOString(),
         status: 'pending',
       });
+      addToast('☕ Brew guardado — se sincronizará al reconectar', 'info');
       return { newAchievements: [] };
     }
 

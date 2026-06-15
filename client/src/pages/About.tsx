@@ -19,7 +19,7 @@ const values = [
 
 export default function About() {
   return (
-    <div className="pt-20 min-h-screen">
+    <div className="pt-20 min-h-screen bg-coffee-50 dark:bg-coffee-950">
       {/* Hero — stays dark with imagery */}
       <section className="bg-coffee-950 relative min-h-[65vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
@@ -46,24 +46,24 @@ export default function About() {
       </section>
 
       {/* Mission — light bg */}
-      <section className="py-12 sm:py-24">
+      <section className="py-12 sm:py-24 bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal>
               <div className="gold-line mb-6" />
-              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 leading-tight mb-6">
-                ¿Por qué <em className="text-gold-600">12%</em>?
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 dark:text-cream leading-tight mb-6">
+                ¿Por qué <em className="text-gold-600 dark:text-gold-500">12%</em>?
               </h2>
-              <p className="text-coffee-700 leading-relaxed mb-5">
+              <p className="text-coffee-700 dark:text-coffee-200 leading-relaxed mb-5">
                 El 12% no es un número arbitrario. Es la fracción del café producido en el mundo que
                 alcanza los estándares de especialidad definidos por la Specialty Coffee Association.
               </p>
-              <p className="text-coffee-600 leading-relaxed mb-5">
+              <p className="text-coffee-600 dark:text-coffee-300 leading-relaxed mb-5">
                 En ese 12% existe una riqueza sensorial extraordinaria: geishas florales de Chiapas,
                 naturales frutales de Veracruz, honey procesados con notas tropicales. Cafés que
                 cuentan una historia, una geografía, el trabajo de una familia.
               </p>
-              <p className="text-coffee-600 leading-relaxed">
+              <p className="text-coffee-600 dark:text-coffee-300 leading-relaxed">
                 Nuestra misión es hacer ese 12% accesible, educando al consumidor y construyendo
                 relaciones directas y justas con los productores mexicanos que hacen posible esa magia.
               </p>
@@ -90,19 +90,19 @@ export default function About() {
       </section>
 
       {/* Values — dark accent section */}
-      <section className="py-12 sm:py-24 bg-coffee-900">
+      <section className="py-12 sm:py-24 bg-coffee-100 dark:bg-coffee-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mb-14">
             <div className="gold-line mb-5" />
-            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-cream leading-tight">Nuestros valores</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 dark:text-cream leading-tight">Nuestros valores</h2>
           </ScrollReveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {values.map(({ title, body }, i) => (
               <ScrollReveal key={title} delay={i * 0.1}>
-                <div className="bg-coffee-800 border border-coffee-700 hover:border-gold-500/40 transition-all duration-300 p-8 cursor-default">
+                <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 hover:border-gold-500/40 transition-all duration-300 p-8 cursor-default">
                   <div className="gold-line mb-5" />
-                  <h3 className="font-serif text-xl text-cream mb-3">{title}</h3>
-                  <p className="text-coffee-300 text-sm leading-relaxed">{body}</p>
+                  <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-3">{title}</h3>
+                  <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">{body}</p>
                 </div>
               </ScrollReveal>
             ))}
@@ -111,12 +111,12 @@ export default function About() {
       </section>
 
       {/* Origins — light bg */}
-      <section id="origenes" className="py-12 sm:py-24">
+      <section id="origenes" className="py-12 sm:py-24 bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mb-14">
             <div className="gold-line mb-5" />
-            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 leading-tight">Nuestros orígenes</h2>
-            <p className="text-coffee-600 mt-4 max-w-xl">
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 dark:text-cream leading-tight">Nuestros orígenes</h2>
+            <p className="text-coffee-600 dark:text-coffee-400 mt-4 max-w-xl">
               Trabajamos con zonas cafetaleras de México con denominación de origen e identidad climática única.
             </p>
           </ScrollReveal>
@@ -129,9 +129,9 @@ export default function About() {
                     <MapPin className="w-4 h-4 text-gold-500" />
                   </div>
                   <div>
-                    <h4 className="font-serif text-lg text-coffee-900 mb-1">{region}</h4>
-                    <p className="text-gold-600 text-xs uppercase tracking-widest mb-2">{altitude}</p>
-                    <p className="text-coffee-600 text-sm">{notes}</p>
+                    <h4 className="font-serif text-lg text-coffee-900 dark:text-cream mb-1">{region}</h4>
+                    <p className="text-gold-600 dark:text-gold-500 text-xs uppercase tracking-widest mb-2">{altitude}</p>
+                    <p className="text-coffee-600 dark:text-coffee-400 text-sm">{notes}</p>
                   </div>
                 </div>
               </ScrollReveal>
@@ -141,11 +141,11 @@ export default function About() {
       </section>
 
       {/* CTA — dark section */}
-      <section className="py-20 bg-coffee-900 border-t border-coffee-800">
+      <section className="py-20 bg-coffee-100 dark:bg-coffee-900 border-t border-coffee-200 dark:border-coffee-800">
         <div className="max-w-xl mx-auto px-4 text-center">
           <ScrollReveal>
-            <h2 className="font-serif text-3xl text-cream mb-4">¿Listo para probar el 12%?</h2>
-            <p className="text-coffee-300 mb-8">Explora nuestros lotes actuales o suscríbete para recibirlos cada mes.</p>
+            <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-4">¿Listo para probar el 12%?</h2>
+            <p className="text-coffee-700 dark:text-coffee-300 mb-8">Explora nuestros lotes actuales o suscríbete para recibirlos cada mes.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/tienda" className="btn-primary">Visitar tienda</Link>
               <Link to="/suscripciones" className="btn-outline-dark">Ver suscripciones</Link>

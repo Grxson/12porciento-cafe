@@ -186,12 +186,12 @@ export default function Quiz() {
   };
 
   return (
-    <div className="min-h-screen bg-coffee-950 flex flex-col items-center px-4 pt-20 pb-20">
+    <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex flex-col items-center px-4 pt-20 pb-20">
       <div className="w-full max-w-lg">
         <div className="text-center mb-10">
           <Coffee className="w-10 h-10 text-gold-500/60 mx-auto mb-4" />
           <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-2">Coffee Quiz</p>
-          <h1 className="font-serif text-4xl text-cream">¿Cuál es tu roast perfecto?</h1>
+          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream">¿Cuál es tu roast perfecto?</h1>
         </div>
 
         <AnimatePresence mode="wait">
@@ -204,30 +204,30 @@ export default function Quiz() {
               transition={{ duration: 0.3 }}
             >
               <div className="flex justify-between items-center mb-6">
-                <span className="text-coffee-500 text-xs tracking-widest uppercase">
+                <span className="text-coffee-600 dark:text-coffee-500 text-xs tracking-widest uppercase">
                   {step + 1} / {questions.length}
                 </span>
                 <div className="flex gap-1">
                   {questions.map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1 w-8 transition-all duration-300 ${i <= step ? 'bg-gold-500' : 'bg-coffee-800'}`}
+                      className={`h-1 w-8 transition-all duration-300 ${i <= step ? 'bg-gold-500' : 'bg-coffee-200 dark:bg-coffee-800'}`}
                     />
                   ))}
                 </div>
               </div>
 
-              <h2 className="text-cream text-xl mb-6">{q.question}</h2>
+              <h2 className="text-coffee-900 dark:text-cream text-xl mb-6">{q.question}</h2>
 
               <div className="grid grid-cols-2 gap-3">
                 {q.options.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => answer(opt.value)}
-                    className="flex flex-col items-center gap-2 p-4 sm:p-5 min-h-[80px] border border-coffee-700 hover:border-gold-500 hover:bg-coffee-800/40 transition-all duration-200 text-center group"
+                    className="flex flex-col items-center gap-2 p-4 sm:p-5 min-h-[80px] border border-coffee-200 dark:border-coffee-700 hover:border-gold-500 hover:bg-coffee-100 dark:hover:bg-coffee-800/40 transition-all duration-200 text-center group bg-white dark:bg-transparent"
                   >
                     <span className="text-2xl">{opt.emoji}</span>
-                    <span className="text-coffee-200 text-sm group-hover:text-cream transition-colors">{opt.label}</span>
+                    <span className="text-coffee-800 dark:text-coffee-200 text-sm group-hover:text-coffee-900 dark:group-hover:text-cream transition-colors">{opt.label}</span>
                   </button>
                 ))}
               </div>
@@ -235,7 +235,7 @@ export default function Quiz() {
               {step > 0 && (
                 <button
                   onClick={() => setStep(step - 1)}
-                  className="flex items-center gap-2 text-coffee-500 hover:text-coffee-300 text-sm mt-6 transition-colors"
+                  className="flex items-center gap-2 text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 text-sm mt-6 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" /> Anterior
                 </button>
@@ -248,13 +248,13 @@ export default function Quiz() {
               animate={{ opacity: 1, scale: 1 }}
             >
               {/* Profile card */}
-              <div className="border border-gold-500/30 bg-coffee-900/60 p-8 mb-6 text-center">
+              <div className="border border-gold-500/30 bg-white dark:bg-coffee-900/60 p-8 mb-6 text-center">
                 <p className="text-gold-500 text-xs tracking-[0.3em] uppercase mb-3">Tu perfil</p>
-                <h2 className="font-serif text-3xl text-cream mb-2">{result!.label}</h2>
-                <p className="text-coffee-300 mb-4">{result!.desc}</p>
+                <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">{result!.label}</h2>
+                <p className="text-coffee-700 dark:text-coffee-300 mb-4">{result!.desc}</p>
                 <div className="flex justify-center gap-4 text-sm">
-                  <span className="px-3 py-1 bg-coffee-800 text-coffee-200">Tueste: {result!.roast}</span>
-                  <span className="px-3 py-1 bg-coffee-800 text-coffee-200">Proceso: {result!.process}</span>
+                  <span className="px-3 py-1 bg-coffee-100 dark:bg-coffee-800 text-coffee-800 dark:text-coffee-200">Tueste: {result!.roast}</span>
+                  <span className="px-3 py-1 bg-coffee-100 dark:bg-coffee-800 text-coffee-800 dark:text-coffee-200">Proceso: {result!.process}</span>
                 </div>
               </div>
 
@@ -275,7 +275,7 @@ export default function Quiz() {
               <div className="mt-2">
                 <div className="mb-6 text-center">
                   <p className="text-gold-500 text-xs tracking-[0.3em] uppercase mb-1">Para ti</p>
-                  <h3 className="font-serif text-2xl text-cream">Tus cafés recomendados</h3>
+                  <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream">Tus cafés recomendados</h3>
                 </div>
 
                 {recsLoading && (
@@ -286,13 +286,13 @@ export default function Quiz() {
                 )}
 
                 {!recsLoading && recsError && (
-                  <div className="border border-coffee-700 bg-coffee-900/40 p-6 text-center text-coffee-400 text-sm">
+                  <div className="border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-900/40 p-6 text-center text-coffee-600 dark:text-coffee-400 text-sm">
                     No pudimos cargar las recomendaciones. Usa el botón de arriba para explorar la tienda.
                   </div>
                 )}
 
                 {!recsLoading && !recsError && recommendations.length === 0 && (
-                  <div className="border border-coffee-700 bg-coffee-900/40 p-6 text-center text-coffee-400 text-sm">
+                  <div className="border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-900/40 p-6 text-center text-coffee-600 dark:text-coffee-400 text-sm">
                     No encontramos cafés disponibles en este momento.{' '}
                     <button
                       onClick={() => navigate(`/tienda${result!.filter}`)}

@@ -123,35 +123,35 @@ export default function Subscriptions() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-coffee-950 pt-20 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-coffee-900 border border-gold-500/30 p-12 text-center"
+          className="max-w-md w-full bg-white dark:bg-coffee-900 border border-gold-500/30 p-12 text-center"
         >
           <div className="w-16 h-16 border-2 border-gold-500 flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-gold-500" />
           </div>
-          <h2 className="font-serif text-3xl text-cream mb-3">¡Suscripción confirmada!</h2>
-          <p className="text-coffee-300 text-sm leading-relaxed mb-4">
+          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">¡Suscripción confirmada!</h2>
+          <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed mb-4">
             Bienvenido al plan <span className="text-gold-400 font-medium">{selectedPlan?.name}</span>.
             Tu primer envío incluirá {selectedCoffees.length} lote{selectedCoffees.length !== 1 ? 's' : ''} tostados a pedido.
           </p>
-          <p className="text-coffee-500 text-xs">Nos pondremos en contacto para coordinar el pago del primer ciclo.</p>
+          <p className="text-coffee-500 dark:text-coffee-500 text-xs">Nos pondremos en contacto para coordinar el pago del primer ciclo.</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="bg-coffee-950 pt-20 min-h-screen">
+    <div className="bg-coffee-50 dark:bg-coffee-950 pt-20 min-h-screen">
       {/* Hero */}
-      <div className="bg-coffee-900 border-b border-coffee-800 py-12">
+      <div className="bg-coffee-100 dark:bg-coffee-900 border-b border-coffee-200 dark:border-coffee-800 py-12">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <div className="gold-line mx-auto mb-4" />
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-cream mb-3">Suscripciones</h1>
-            <p className="text-coffee-400 text-sm leading-relaxed max-w-lg mx-auto">
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-coffee-900 dark:text-cream mb-3">Suscripciones</h1>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm leading-relaxed max-w-lg mx-auto">
               Selecciona tus cafés favoritos. Tostamos a pedido, enviamos frescos cada mes.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6 text-coffee-500 text-xs">
@@ -174,14 +174,14 @@ export default function Subscriptions() {
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                     step > n ? 'bg-gold-500 text-coffee-950' :
                     step === n ? 'bg-gold-500/20 border border-gold-500 text-gold-400' :
-                    'bg-coffee-800 text-coffee-600'
+                    'bg-coffee-200 dark:bg-coffee-800 text-coffee-500 dark:text-coffee-600'
                   }`}>
                     {step > n ? <Check className="w-3.5 h-3.5" /> : n}
                   </div>
-                  <span className={`hidden sm:inline text-xs transition-colors ${step === n ? 'text-cream' : 'text-coffee-600'}`}>{label}</span>
-                  <span className={`sm:hidden text-[10px] leading-tight transition-colors ${step === n ? 'text-cream' : 'text-coffee-600'}`}>{label.split(' ')[0]}</span>
+                  <span className={`hidden sm:inline text-xs transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{label}</span>
+                  <span className={`sm:hidden text-[10px] leading-tight transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{label.split(' ')[0]}</span>
                 </div>
-                {i < stepLabels.length - 1 && <div className="flex-1 h-px bg-coffee-800 mx-3" />}
+                {i < stepLabels.length - 1 && <div className="flex-1 h-px bg-coffee-200 dark:bg-coffee-800 mx-3" />}
               </div>
             );
           })}
@@ -217,8 +217,8 @@ export default function Subscriptions() {
                     onClick={() => handleSelectPlan(plan)}
                     className={`relative flex flex-col border cursor-pointer transition-all duration-300 group
                       ${plan.featured
-                        ? 'border-gold-500 bg-coffee-900 shadow-[0_0_40px_rgba(201,169,110,0.1)]'
-                        : 'border-coffee-800 bg-coffee-900/60 hover:border-coffee-700'
+                        ? 'border-gold-500 bg-white dark:bg-coffee-900 shadow-[0_0_40px_rgba(201,169,110,0.1)]'
+                        : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900/60 hover:border-coffee-300 dark:hover:border-coffee-700'
                       }`}
                   >
                     {plan.featured && (
@@ -227,27 +227,27 @@ export default function Subscriptions() {
                       </div>
                     )}
                     <div className="p-6 flex-1">
-                      <h3 className="font-serif text-xl text-cream mb-1">{plan.name}</h3>
+                      <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">{plan.name}</h3>
                       <p className="text-coffee-500 text-[10px] tracking-widest uppercase mb-4">{plan.subtitle}</p>
                       {plan.price ? (
                         <div className="flex items-baseline gap-1 mb-4">
-                          <span className="font-serif text-3xl text-cream">${plan.price}</span>
+                          <span className="font-serif text-3xl text-coffee-900 dark:text-cream">${plan.price}</span>
                           <span className="text-coffee-500 text-xs">/ mes</span>
                         </div>
                       ) : (
                         <p className="font-serif text-lg text-gold-500 mb-4">A precio de lote</p>
                       )}
-                      <p className="text-coffee-400 text-xs leading-relaxed mb-5">{plan.description}</p>
-                      <div className="border-t border-coffee-800 mb-5" />
+                      <p className="text-coffee-600 dark:text-coffee-400 text-xs leading-relaxed mb-5">{plan.description}</p>
+                      <div className="border-t border-coffee-200 dark:border-coffee-800 mb-5" />
                       <ul className="space-y-2">
                         {plan.features.map((f) => (
-                          <li key={f} className="flex items-start gap-2 text-xs text-coffee-300">
+                          <li key={f} className="flex items-start gap-2 text-xs text-coffee-700 dark:text-coffee-300">
                             <Check className="w-3.5 h-3.5 text-gold-500 shrink-0 mt-0.5" />{f}
                           </li>
                         ))}
                         {plan.excluded.map((f) => (
-                          <li key={f} className="flex items-start gap-2 text-xs text-coffee-600">
-                            <X className="w-3.5 h-3.5 text-coffee-700 shrink-0 mt-0.5" />{f}
+                          <li key={f} className="flex items-start gap-2 text-xs text-coffee-400 dark:text-coffee-600">
+                            <X className="w-3.5 h-3.5 text-coffee-400 dark:text-coffee-700 shrink-0 mt-0.5" />{f}
                           </li>
                         ))}
                       </ul>
@@ -258,7 +258,7 @@ export default function Subscriptions() {
                         className={`w-full py-3 text-xs font-semibold tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-2
                           ${plan.featured
                             ? 'bg-gold-500 text-coffee-950 group-hover:bg-gold-400'
-                            : 'bg-coffee-800 text-coffee-300 border border-coffee-700 group-hover:border-gold-500/40 group-hover:text-cream'
+                            : 'bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 border border-coffee-200 dark:border-coffee-700 group-hover:border-gold-500/40 group-hover:text-coffee-900 dark:group-hover:text-cream'
                           }`}
                       >
                         {hasSubscription ? `Cambiar a ${plan.name}` : `Elegir ${plan.name}`} <ChevronRight className="w-3.5 h-3.5" />
@@ -310,17 +310,17 @@ export default function Subscriptions() {
               <button onClick={() => goToStep(2)} className="flex items-center gap-1 text-coffee-500 hover:text-cream text-xs mb-8 transition-colors">
                 <ChevronLeft className="w-3.5 h-3.5" /> Cambiar cafés
               </button>
-              <div className="bg-coffee-900 border border-coffee-800 p-5 mb-8">
+              <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs text-coffee-500 uppercase tracking-widest">Tu suscripción</span>
                   <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-coffee-400 mb-3">
+                <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-3">
                   <Coffee className="w-3.5 h-3.5 text-gold-500" />
                   {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''} seleccionados · {grindPreference === 'GRANO' ? 'Grano entero' : 'Molido'}
                 </div>
                 {selectedPlan.price && (
-                  <p className="font-serif text-2xl text-cream">${selectedPlan.price} <span className="text-coffee-500 text-sm font-sans">/ mes</span></p>
+                  <p className="font-serif text-2xl text-coffee-900 dark:text-cream">${selectedPlan.price} <span className="text-coffee-500 text-sm font-sans">/ mes</span></p>
                 )}
               </div>
               {/* Address validation banner */}
@@ -339,9 +339,9 @@ export default function Subscriptions() {
                 </div>
               )}
               {!user && (
-                <div className="flex items-start gap-3 bg-coffee-800/60 border border-coffee-700 p-4 mb-6">
+                <div className="flex items-start gap-3 bg-coffee-100 dark:bg-coffee-800/60 border border-coffee-200 dark:border-coffee-700 p-4 mb-6">
                   <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-                  <p className="text-coffee-300 text-xs leading-relaxed">
+                  <p className="text-coffee-700 dark:text-coffee-300 text-xs leading-relaxed">
                     Para recibir tus envíos necesitamos tu dirección. <Link to="/registro" className="text-gold-400 hover:text-gold-300 underline">Crea tu cuenta</Link> y agrégala en tu perfil antes de confirmar.
                   </p>
                 </div>
@@ -349,14 +349,14 @@ export default function Subscriptions() {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="gold-line mb-5" />
-                <h3 className="font-serif text-2xl text-cream mb-6">Tus datos</h3>
+                <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Tus datos</h3>
                 {[
                   { name: 'name',  label: 'Nombre completo *', type: 'text',  required: true,  placeholder: 'Tu nombre' },
                   { name: 'email', label: 'Email *',           type: 'email', required: true,  placeholder: 'tu@email.com' },
                   { name: 'phone', label: 'Teléfono',          type: 'tel',   required: false, placeholder: '55 1234 5678' },
                 ].map(({ name, label, type, required, placeholder }) => (
                   <div key={name}>
-                    <label className="block text-[10px] text-coffee-500 uppercase tracking-[0.2em] mb-2">{label}</label>
+                    <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">{label}</label>
                     <input
                       name={name} type={type} required={required} placeholder={placeholder}
                       value={(form as any)[name]}
@@ -366,7 +366,7 @@ export default function Subscriptions() {
                   </div>
                 ))}
                 <div>
-                  <label className="block text-[10px] text-coffee-500 uppercase tracking-[0.2em] mb-3">Frecuencia de envío</label>
+                  <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-3">Frecuencia de envío</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[{ value: 'monthly', label: 'Mensual' }, { value: 'bimonthly', label: 'Bimestral' }].map(({ value, label }) => (
                       <button key={value} type="button"
@@ -374,7 +374,7 @@ export default function Subscriptions() {
                         className={`py-3 text-xs font-medium tracking-widest uppercase border transition-all ${
                           form.frequency === value
                             ? 'border-gold-500 text-gold-400 bg-gold-500/10'
-                            : 'border-coffee-700 text-coffee-400 hover:border-coffee-600 hover:text-cream'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 dark:hover:border-coffee-600 hover:text-coffee-900 dark:hover:text-cream'
                         }`}>
                         {label}
                       </button>
@@ -394,7 +394,7 @@ export default function Subscriptions() {
                 <button type="submit" disabled={loading || (!!user && !hasAddress)} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
                   {loading ? 'Procesando…' : 'Confirmar suscripción'}
                 </button>
-                <p className="text-coffee-600 text-xs text-center">
+                <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
                   El pago se coordina por transferencia. Te enviamos los datos al correo proporcionado.
                 </p>
               </form>

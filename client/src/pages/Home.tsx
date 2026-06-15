@@ -141,9 +141,9 @@ export default function Home() {
       </section>
 
       {/* ── TRUST STRIP ── */}
-      <section className="bg-coffee-900/80 border-y border-coffee-800/40 backdrop-blur-sm">
+      <section className="bg-coffee-100 dark:bg-coffee-900/80 border-y border-coffee-200/40 dark:border-coffee-800/40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-coffee-800/40">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-coffee-200/40 dark:divide-coffee-800/40">
             {[
               { Icon: Zap,     label: 'Envío 24–48h',   sub: 'Express a todo México' },
               { Icon: Flame,   label: 'Tueste a pedido', sub: 'Máx. 7 días del tueste' },
@@ -155,8 +155,8 @@ export default function Home() {
                   <Icon className="w-4 h-4 text-gold-500" />
                 </div>
                 <div>
-                  <p className="text-cream text-xs font-semibold tracking-wide">{label}</p>
-                  <p className="text-coffee-400 text-[10px] tracking-wide mt-0.5">{sub}</p>
+                  <p className="text-coffee-900 dark:text-cream text-xs font-semibold tracking-wide">{label}</p>
+                  <p className="text-coffee-600 dark:text-coffee-400 text-[10px] tracking-wide mt-0.5">{sub}</p>
                 </div>
               </div>
             ))}
@@ -165,7 +165,7 @@ export default function Home() {
       </section>
 
       {/* ── THE 12% STORY ── */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-950">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal direction="left">
@@ -189,12 +189,12 @@ export default function Home() {
                 El café más excepcional<br />
                 <em className="text-gold-500">del mundo</em>
               </h2>
-              <p className="text-coffee-200 leading-relaxed mb-6">
+              <p className="text-coffee-800 dark:text-coffee-200 leading-relaxed mb-6">
                 De toda la producción cafetalera global, únicamente el 12% alcanza los estándares
                 de la Specialty Coffee Association con puntajes superiores a 80 puntos. Nosotros
                 trabajamos exclusivamente dentro de ese universo.
               </p>
-              <p className="text-coffee-300 leading-relaxed mb-8">
+              <p className="text-coffee-700 dark:text-coffee-300 leading-relaxed mb-8">
                 Cada lote que ofrecemos es seleccionado directamente en origen, catado bajo
                 protocolos SCA estrictos y tostado en pequeños lotes para garantizar que llegue
                 a tu taza en su punto máximo de expresión sensorial.
@@ -208,7 +208,7 @@ export default function Home() {
       </section>
 
       {/* ── TRES PILARES ── */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-900">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-100 dark:bg-coffee-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="text-center mb-16">
             <div className="gold-line mx-auto mb-6" />
@@ -218,12 +218,12 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {pillars.map(({ icon: Icon, title, desc }, i) => (
               <ScrollReveal key={title} delay={i * 0.15}>
-                <div className="bg-coffee-900 border border-coffee-700 hover:border-gold-500/30 transition-all duration-300 p-8 group">
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 hover:border-gold-500/30 transition-all duration-300 p-8 group">
                   <div className="w-12 h-12 border border-gold-500/30 flex items-center justify-center mb-6 group-hover:border-gold-500 transition-colors">
                     <Icon className="w-5 h-5 text-gold-500" />
                   </div>
-                  <h3 className="font-serif text-xl text-cream mb-3">{title}</h3>
-                  <p className="text-coffee-300 text-sm leading-relaxed">{desc}</p>
+                  <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-3">{title}</h3>
+                  <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">{desc}</p>
                 </div>
               </ScrollReveal>
             ))}
@@ -232,13 +232,13 @@ export default function Home() {
       </section>
 
       {/* ── PROCESO DE ESPECIALIDAD ── */}
-      <section className="py-20 bg-coffee-900">
+      <section className="py-20 bg-coffee-100 dark:bg-coffee-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">
               <div className="gold-line mx-auto mb-4" />
               <h2 className="section-title mb-3">Del origen a tu taza</h2>
-              <p className="text-coffee-400 max-w-xl mx-auto text-sm leading-relaxed">
+              <p className="text-coffee-600 dark:text-coffee-400 max-w-xl mx-auto text-sm leading-relaxed">
                 Cada lote recorre un camino de precisión y cuidado antes de llegar a tus manos.
               </p>
             </div>
@@ -258,12 +258,12 @@ export default function Home() {
               { num: '05', icon: Coffee, title: 'Tu Taza', desc: 'Envío dentro de los 7 días del tueste para máxima frescura garantizada' },
             ].map(({ num, icon: Icon, title, desc }, i) => (
               <ScrollReveal key={num} delay={i * 0.12} direction="up" className="flex-1 w-full flex flex-col items-center text-center px-4 py-4 md:py-6 relative z-10">
-                <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-coffee-800 border-2 border-gold-500/50 flex items-center justify-center mb-3 md:mb-4 transition-colors">
+                <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-white dark:bg-coffee-800 border-2 border-gold-500/50 flex items-center justify-center mb-3 md:mb-4 transition-colors">
                   <Icon className="w-6 h-6 md:w-8 md:h-8 text-gold-400" />
                 </div>
                 <span className="text-[10px] text-gold-600 tracking-[0.3em] uppercase mb-1">{num}</span>
-                <h3 className="font-serif text-lg md:text-xl text-cream mb-1 md:mb-2">{title}</h3>
-                <p className="text-coffee-400 text-xs leading-relaxed max-w-[240px] md:max-w-[180px]">{desc}</p>
+                <h3 className="font-serif text-lg md:text-xl text-coffee-900 dark:text-cream mb-1 md:mb-2">{title}</h3>
+                <p className="text-coffee-600 dark:text-coffee-400 text-xs leading-relaxed max-w-[240px] md:max-w-[180px]">{desc}</p>
               </ScrollReveal>
             ))}
           </div>
@@ -271,12 +271,12 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIOS ── */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-950">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="text-center mb-16">
             <div className="gold-line mx-auto mb-6" />
             <h2 className="section-title">Lo que dicen nuestros clientes</h2>
-            <p className="text-coffee-300 mt-4 max-w-xl mx-auto">Más de 400 suscriptores en México. Esto es lo que nos comparten.</p>
+            <p className="text-coffee-700 dark:text-coffee-300 mt-4 max-w-xl mx-auto">Más de 400 suscriptores en México. Esto es lo que nos comparten.</p>
           </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -301,7 +301,7 @@ export default function Home() {
               },
             ].map(({ name, location, stars, quote }, i) => (
               <ScrollReveal key={name} delay={i * 0.12}>
-                <div className="bg-coffee-900 border border-coffee-800 hover:border-gold-500/30 transition-all duration-300 p-8 flex flex-col gap-6 h-full">
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/30 transition-all duration-300 p-8 flex flex-col gap-6 h-full">
                   <div className="flex gap-1">
                     {Array.from({ length: stars }).map((_, j) => (
                       <svg key={j} className="w-4 h-4 fill-gold-500 text-gold-500" viewBox="0 0 20 20" aria-hidden="true">
@@ -309,10 +309,10 @@ export default function Home() {
                       </svg>
                     ))}
                   </div>
-                  <p className="text-coffee-200 text-sm leading-relaxed italic flex-1">"{quote}"</p>
-                  <div className="border-t border-coffee-800 pt-4">
-                    <p className="text-cream text-sm font-semibold">{name}</p>
-                    <p className="text-coffee-400 text-xs mt-0.5">{location}</p>
+                  <p className="text-coffee-800 dark:text-coffee-200 text-sm leading-relaxed italic flex-1">"{quote}"</p>
+                  <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
+                    <p className="text-coffee-900 dark:text-cream text-sm font-semibold">{name}</p>
+                    <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{location}</p>
                   </div>
                 </div>
               </ScrollReveal>
@@ -322,7 +322,7 @@ export default function Home() {
       </section>
 
       {/* ── PRODUCTOS DESTACADOS ── */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-950">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-12">
             <ScrollReveal>
@@ -370,11 +370,11 @@ export default function Home() {
       </section>
 
       {/* ── RECETAS & BARISTA ── */}
-      <section className="py-16 sm:py-20 bg-coffee-900 border-t border-coffee-800/40">
+      <section className="py-16 sm:py-20 bg-coffee-100 dark:bg-coffee-900 border-t border-coffee-200/40 dark:border-coffee-800/40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Experiencia</p>
           <h2 className="section-title mb-4">Aprende con cada taza</h2>
-          <p className="text-coffee-400 text-base max-w-xl mx-auto mb-12">
+          <p className="text-coffee-600 dark:text-coffee-400 text-base max-w-xl mx-auto mb-12">
             Guías paso a paso, modo en vivo y un sistema de niveles para convertirte en barista de especialidad.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
@@ -383,10 +383,10 @@ export default function Home() {
               { icon: <Play className="w-7 h-7 text-gold-500" />, title: 'Modo en vivo', desc: 'Sigue los pasos en pantalla completa con temporizadores integrados.' },
               { icon: <Trophy className="w-7 h-7 text-gold-500" />, title: 'Niveles de Barista', desc: 'Gana XP con cada brew, desbloquea logros y sube en el ranking.' },
             ].map(({ icon, title, desc }) => (
-              <div key={title} className="bg-coffee-950/60 border border-coffee-800 p-6 text-left hover:border-gold-500/40 transition-colors">
+              <div key={title} className="bg-coffee-50 dark:bg-coffee-950/60 border border-coffee-200 dark:border-coffee-800 p-6 text-left hover:border-gold-500/40 transition-colors">
                 <div className="mb-4">{icon}</div>
-                <h3 className="text-cream font-serif text-lg mb-2">{title}</h3>
-                <p className="text-coffee-400 text-sm leading-relaxed">{desc}</p>
+                <h3 className="text-coffee-900 dark:text-cream font-serif text-lg mb-2">{title}</h3>
+                <p className="text-coffee-600 dark:text-coffee-400 text-sm leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -397,7 +397,7 @@ export default function Home() {
       </section>
 
       {/* ── SUSCRIPCION CTA ── */}
-      <section className="relative overflow-hidden bg-coffee-950">
+      <section className="relative overflow-hidden bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[500px]">
             {/* Image side */}
@@ -408,7 +408,7 @@ export default function Home() {
                 className="w-full h-full object-cover opacity-60"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-coffee-950" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-coffee-50 dark:to-coffee-950" />
             </div>
             {/* Text side */}
             <div className="flex flex-col justify-center py-14 sm:py-16 lg:py-20 lg:pl-12">
@@ -417,7 +417,7 @@ export default function Home() {
                 <h2 className="section-title mb-4">
                   Café fresco,<br />cada mes
                 </h2>
-                <p className="text-coffee-300 leading-relaxed mb-6 max-w-md">
+                <p className="text-coffee-700 dark:text-coffee-300 leading-relaxed mb-6 max-w-md">
                   Suscríbete y recibe lotes seleccionados de origen único directamente en tu puerta.
                   Tostados a pedido, enviados frescos.
                 </p>
@@ -435,12 +435,12 @@ export default function Home() {
       <TestimonialsSlider />
 
       {/* ── ROASTING SCHEDULE ── */}
-      <section className="py-16 px-4 bg-coffee-950 border-t border-coffee-800/40">
+      <section className="py-16 px-4 bg-coffee-50 dark:bg-coffee-950 border-t border-coffee-200/40 dark:border-coffee-800/40">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-3">Transparencia total</p>
-            <h2 className="font-serif text-3xl sm:text-4xl text-cream">Calendario de Tueste</h2>
-            <p className="text-coffee-400 mt-3 max-w-md mx-auto">
+            <h2 className="font-serif text-3xl sm:text-4xl text-coffee-900 dark:text-cream">Calendario de Tueste</h2>
+            <p className="text-coffee-600 dark:text-coffee-400 mt-3 max-w-md mx-auto">
               Tostamos por lotes pequeños, bajo pedido. Tu café llega máximo 7 días después del tueste.
             </p>
           </div>
@@ -454,7 +454,7 @@ export default function Home() {
                   className={`p-5 border text-center transition-all ${
                     isToday
                       ? 'border-gold-500/60 bg-gold-500/10'
-                      : 'border-coffee-800 bg-coffee-900/40'
+                      : 'border-coffee-200 dark:border-coffee-800 bg-coffee-100/40 dark:bg-coffee-900/40'
                   }`}
                 >
                   {isToday && (
@@ -463,13 +463,13 @@ export default function Home() {
                       <span className="text-gold-500 text-xs tracking-widest uppercase">Hoy</span>
                     </div>
                   )}
-                  <p className={`font-medium ${isToday ? 'text-cream' : 'text-coffee-300'}`}>{day}</p>
+                  <p className={`font-medium ${isToday ? 'text-coffee-900 dark:text-cream' : 'text-coffee-700 dark:text-coffee-300'}`}>{day}</p>
                   <p className="text-coffee-500 text-xs mt-1">8:00 – 14:00</p>
                 </div>
               );
             })}
           </div>
-          <p className="text-center text-coffee-600 text-xs tracking-wider mt-6">
+          <p className="text-center text-coffee-500 dark:text-coffee-600 text-xs tracking-wider mt-6">
             Pedidos antes de las 12pm se tuestan en el próximo día programado.
           </p>
         </div>

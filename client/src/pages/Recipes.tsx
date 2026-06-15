@@ -126,6 +126,7 @@ export default function Recipes() {
   const user = useUser((s) => s.user);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [methodFilter, setMethodFilter] = useState<string>('TODOS');
   const [search, setSearch] = useState<string>('');
@@ -133,10 +134,14 @@ export default function Recipes() {
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
 
   useEffect(() => {
+    setError(null);
     recipesApi.list().then((r) => {
       setRecipes(r.data.data);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => {
+      setError('No se pudieron cargar las recetas.');
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -185,6 +190,32 @@ export default function Recipes() {
       })();
 
   const freeLimit = !hasSubscription && searched.filter((r) => !r.isPremium).length > 2;
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-coffee-950 flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-red-400 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              recipesApi.list().then((r) => {
+                setRecipes(r.data.data);
+                setLoading(false);
+              }).catch(() => {
+                setError('No se pudieron cargar las recetas.');
+                setLoading(false);
+              });
+            }}
+            className="px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

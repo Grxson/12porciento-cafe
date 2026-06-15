@@ -21,7 +21,7 @@ function ShopSkeleton() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="overflow-hidden border border-coffee-200">
+        <div key={i} className="overflow-hidden border border-coffee-200 dark:border-coffee-800">
           <div className="aspect-[3/4] shimmer" />
           <div className="p-5 space-y-3">
             <div className="shimmer h-3 w-1/3" />
@@ -126,14 +126,14 @@ export default function Shop() {
   const handleSortChange = (s: string) => { setSort(s); setPage(1); };
 
   return (
-    <div className="min-h-screen pt-24 pb-24 bg-coffee-50">
+    <div className="min-h-screen pt-24 pb-24 bg-coffee-50 dark:bg-coffee-950">
       {/* Page header */}
       <div className="page-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="gold-line mb-4" />
-            <h1 className="font-serif text-5xl md:text-6xl text-cream mb-2">Tienda</h1>
-            <p className="text-coffee-400 text-sm tracking-wide">
+            <h1 className="font-serif text-5xl md:text-6xl text-coffee-900 dark:text-cream mb-2">Tienda</h1>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm tracking-wide">
               {loading ? 'Cargando…' : `${total} producto${total !== 1 ? 's' : ''} · Origen México`}
             </p>
           </motion.div>
@@ -148,7 +148,7 @@ export default function Shop() {
             value={searchInput}
             onChange={handleSearchChange}
             placeholder="Buscar productos…"
-            className="w-full bg-white border border-coffee-300 text-coffee-900 pl-9 pr-4 py-2.5 text-sm focus:border-gold-500 focus:outline-none"
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream pl-9 pr-4 py-2.5 text-sm focus:border-gold-500 focus:outline-none placeholder:text-coffee-400"
           />
           {searchInput && (
             <button
@@ -161,15 +161,15 @@ export default function Shop() {
         </div>
 
         {/* Category tabs */}
-        <div className="flex gap-1 mb-8 border-b border-coffee-200 overflow-x-auto pb-px">
+        <div className="flex gap-1 mb-8 border-b border-coffee-200 dark:border-coffee-800 overflow-x-auto pb-px">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}
               className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.15em] whitespace-nowrap transition-all duration-200 border-b-2 -mb-px ${
                 category === cat.id
-                  ? 'border-gold-500 text-coffee-900 bg-white'
-                  : 'border-transparent text-coffee-500 hover:text-coffee-800 hover:bg-coffee-100'
+                  ? 'border-gold-500 text-coffee-900 dark:text-cream bg-white dark:bg-coffee-800'
+                  : 'border-transparent text-coffee-500 hover:text-coffee-800 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-800/50'
               }`}
             >
               {cat.label}
@@ -186,35 +186,35 @@ export default function Shop() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden hidden md:block"
             >
-              <div className="flex flex-wrap gap-x-6 gap-y-3 items-center pb-6 mb-6 border-b border-coffee-200">
+              <div className="flex flex-wrap gap-x-6 gap-y-3 items-center pb-6 mb-6 border-b border-coffee-200 dark:border-coffee-800">
                 <div className="flex items-center gap-1.5 text-coffee-500">
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                   <span className="text-[10px] uppercase tracking-[0.2em] font-semibold">Filtros</span>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <span className="text-[10px] text-coffee-400 uppercase tracking-widest mr-1">Proceso</span>
+                  <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Proceso</span>
                   {processes.map((p) => (
                     <button key={p} onClick={() => { setProcess(p); setPage(1); }}
                       className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
-                        process === p ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 text-coffee-600 hover:border-coffee-500 hover:text-coffee-900'
+                        process === p ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                       }`}>{p}</button>
                   ))}
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <span className="text-[10px] text-coffee-400 uppercase tracking-widest mr-1">Tueste</span>
+                  <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Tueste</span>
                   {roasts.map((r) => (
                     <button key={r} onClick={() => { setRoast(r); setPage(1); }}
                       className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
-                        roast === r ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 text-coffee-600 hover:border-coffee-500 hover:text-coffee-900'
+                        roast === r ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                       }`}>{r}</button>
                   ))}
                 </div>
 
                 {availableFlavors.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest mr-1">Notas</span>
+                    <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Notas</span>
                     {availableFlavors.map((f) => (
                       <button
                         key={f}
@@ -222,7 +222,7 @@ export default function Shop() {
                         className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
                           selectedFlavors.includes(f)
                             ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium'
-                            : 'border-coffee-300 text-coffee-600 hover:border-coffee-500 hover:text-coffee-900'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                         }`}
                       >
                         {f}
@@ -246,7 +246,7 @@ export default function Shop() {
         <div className="hidden md:flex justify-end mb-8">
           <div className="relative">
             <select value={sort} onChange={(e) => handleSortChange(e.target.value)}
-              className="appearance-none bg-white border border-coffee-300 text-coffee-700 text-xs pl-3 pr-8 py-2 outline-none hover:border-coffee-500 transition-colors cursor-pointer">
+              className="appearance-none bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-xs pl-3 pr-8 py-2 outline-none hover:border-coffee-500 dark:hover:border-coffee-500 transition-colors cursor-pointer">
               <option value="newest">Más recientes</option>
               {isCafe && <option value="sca">Mayor puntaje SCA</option>}
               <option value="price_asc">Precio: menor a mayor</option>
@@ -260,7 +260,7 @@ export default function Shop() {
         <div className="flex items-center gap-3 mb-6 md:hidden">
           <button
             onClick={() => setFiltersOpen(true)}
-            className="flex items-center gap-2 border border-coffee-300 text-coffee-700 text-xs px-4 py-2.5 hover:border-coffee-500 transition-colors relative min-h-[40px]"
+            className="flex items-center gap-2 border border-coffee-300 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-xs px-4 py-2.5 hover:border-coffee-500 transition-colors relative min-h-[40px]"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Filtros
@@ -274,7 +274,7 @@ export default function Shop() {
             <select
               value={sort}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="appearance-none w-full bg-white border border-coffee-300 text-coffee-700 text-xs pl-3 pr-8 py-2.5 outline-none hover:border-coffee-500 transition-colors cursor-pointer"
+              className="appearance-none w-full bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-xs pl-3 pr-8 py-2.5 outline-none hover:border-coffee-500 transition-colors cursor-pointer"
             >
               <option value="newest">Más recientes</option>
               {isCafe && <option value="sca">Mayor puntaje SCA</option>}
@@ -435,7 +435,7 @@ export default function Shop() {
             <button
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={page === 1}
-              className="p-2 border border-coffee-300 text-coffee-600 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-2 border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -449,7 +449,7 @@ export default function Shop() {
               }, [])
               .map((p, i) =>
                 p === '…' ? (
-                  <span key={`e${i}`} className="px-2 text-coffee-400 text-sm">…</span>
+                  <span key={`e${i}`} className="px-2 text-coffee-500 dark:text-coffee-400 text-sm">…</span>
                 ) : (
                   <button
                     key={p}
@@ -457,7 +457,7 @@ export default function Shop() {
                     className={`w-9 h-9 text-sm border transition-colors ${
                       page === p
                         ? 'border-gold-500 bg-gold-500/10 text-gold-600 font-semibold'
-                        : 'border-coffee-300 text-coffee-600 hover:border-coffee-500'
+                        : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500'
                     }`}
                   >
                     {p}
@@ -469,7 +469,7 @@ export default function Shop() {
             <button
               onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
               disabled={page === totalPages}
-              className="p-2 border border-coffee-300 text-coffee-600 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-2 border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRightIcon className="w-4 h-4" />
             </button>

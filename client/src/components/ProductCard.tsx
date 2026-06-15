@@ -52,7 +52,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             <span className="limited-badge">Edición limitada</span>
           )}
           {!isCafe && (
-            <span className="bg-coffee-900/80 text-coffee-300 text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 backdrop-blur-sm">
+            <span className="bg-coffee-100/80 dark:bg-coffee-900/80 text-coffee-700 dark:text-coffee-300 text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 backdrop-blur-sm">
               {product.category === 'ACCESORIOS' ? 'Accesorio' : product.category}
             </span>
           )}
@@ -105,15 +105,15 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         {/* Name + price row */}
         <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
           <Link to={`/tienda/${product.slug}`} className="flex-1 min-w-0">
-            <h3 className="font-serif text-base sm:text-xl text-coffee-900 leading-snug
+            <h3 className="font-serif text-base sm:text-xl text-coffee-900 dark:text-cream leading-snug
                            group-hover:text-gold-600 transition-colors duration-200 line-clamp-2">
               {product.name}
             </h3>
           </Link>
           <div className="text-right shrink-0">
-            <p className="font-semibold text-coffee-900 text-base sm:text-lg leading-none">${product.price}</p>
+            <p className="font-semibold text-coffee-900 dark:text-cream text-base sm:text-lg leading-none">${product.price}</p>
             {product.weight && (
-              <p className="text-coffee-400 text-xs mt-1">{product.weight}g</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-1">{product.weight}g</p>
             )}
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         {isCafe && product.flavors.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3 sm:mb-4">
             {product.flavors.slice(0, 3).map((f) => (
-              <span key={f} className="text-[11px] text-coffee-600 bg-coffee-100 px-2 py-0.5 leading-5">
+              <span key={f} className="text-[11px] text-coffee-600 dark:text-coffee-300 bg-coffee-100 dark:bg-coffee-800 px-2 py-0.5 leading-5">
                 {f}
               </span>
             ))}
@@ -130,8 +130,8 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         )}
 
         {/* Footer row */}
-        <div className="mt-auto pt-3 border-t border-coffee-100 flex items-center justify-between">
-          <span className="text-[10px] text-coffee-400 uppercase tracking-[0.2em]">
+        <div className="mt-auto pt-3 border-t border-coffee-100 dark:border-coffee-800 flex items-center justify-between">
+          <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-[0.2em]">
             {isCafe ? (product.process ?? '') : ''}
           </span>
           <Link

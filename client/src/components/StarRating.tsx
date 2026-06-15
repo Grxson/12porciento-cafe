@@ -27,7 +27,7 @@ export default function StarRating({ value, onChange, size = 20, readonly = fals
           >
             <Star
               size={size}
-              className={filled ? 'text-gold-500 fill-gold-500' : 'text-coffee-300'}
+              className={filled ? 'text-gold-500 fill-gold-500' : 'text-coffee-700 dark:text-coffee-300'}
             />
           </button>
         );

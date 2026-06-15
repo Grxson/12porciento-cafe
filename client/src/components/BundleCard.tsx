@@ -35,9 +35,9 @@ export default function BundleCard({
   const savings = basePrice - finalPrice;
 
   return (
-    <div className="bg-coffee-900 border border-coffee-800 hover:border-gold-500/50 transition-all duration-300 overflow-hidden group">
+    <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/50 transition-all duration-300 overflow-hidden group">
       {imageUrl && (
-        <div className="h-44 bg-coffee-950 overflow-hidden">
+        <div className="h-44 bg-coffee-200 dark:bg-coffee-950 overflow-hidden">
           <img
             src={imageUrl}
             alt={name}
@@ -48,7 +48,7 @@ export default function BundleCard({
 
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="font-serif text-lg text-cream">{name}</h3>
+          <h3 className="font-serif text-lg text-coffee-900 dark:text-cream">{name}</h3>
           {discountPct > 0 && (
             <span className="flex items-center gap-1 bg-gold-500/20 text-gold-400 text-xs font-bold px-2 py-1">
               <Zap size={12} />
@@ -57,13 +57,13 @@ export default function BundleCard({
           )}
         </div>
 
-        <p className="text-coffee-400 text-sm mb-4 line-clamp-2">{description}</p>
+        <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4 line-clamp-2">{description}</p>
 
         <div className="space-y-2 mb-4">
           <div className="text-xs text-coffee-500 uppercase tracking-widest font-medium">Incluye:</div>
           <ul className="space-y-1">
             {items.map((item) => (
-              <li key={item.product.id} className="text-xs text-coffee-300 flex items-center gap-2">
+              <li key={item.product.id} className="text-xs text-coffee-700 dark:text-coffee-300 flex items-center gap-2">
                 <span className="text-gold-500">•</span>
                 {item.quantity > 1 ? `${item.quantity}x ` : ''}{item.product.name}
               </li>
@@ -71,10 +71,10 @@ export default function BundleCard({
           </ul>
         </div>
 
-        <div className="flex items-end justify-between mb-4 pb-4 border-t border-coffee-800">
+        <div className="flex items-end justify-between mb-4 pb-4 border-t border-coffee-200 dark:border-coffee-800">
           <div className="mt-3">
             <div className="text-xs text-coffee-500 mb-1">Valor original:</div>
-            <div className="text-sm text-coffee-400 line-through">${basePrice.toLocaleString()}</div>
+            <div className="text-sm text-coffee-600 dark:text-coffee-400 line-through">${basePrice.toLocaleString()}</div>
             {discountPct > 0 && (
               <div className="text-xs text-green-400 mt-1">Ahorras ${savings.toLocaleString()}</div>
             )}

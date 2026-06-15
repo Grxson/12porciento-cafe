@@ -47,7 +47,7 @@ function PaymentFormInner({ amount, onSuccess, onError }: Omit<Props, 'clientSec
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white border border-coffee-200 p-4 rounded-sm">
+      <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-4 rounded-sm">
         <PaymentElement
           options={{
             layout: 'tabs',
@@ -55,7 +55,7 @@ function PaymentFormInner({ amount, onSuccess, onError }: Omit<Props, 'clientSec
         />
       </div>
 
-      <div className="flex items-center gap-2 text-coffee-400 text-xs">
+      <div className="flex items-center gap-2 text-coffee-600 dark:text-coffee-400 text-xs">
         <Lock className="w-3.5 h-3.5 text-gold-500 shrink-0" />
         Pago seguro procesado por Stripe. No almacenamos datos de tarjeta.
       </div>

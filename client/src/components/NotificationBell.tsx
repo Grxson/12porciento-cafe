@@ -37,7 +37,7 @@ export default function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={handleOpen}
-        className="relative p-2 text-coffee-400 hover:text-cream transition-colors"
+        className="relative p-2 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
         aria-label="Notificaciones"
       >
         <Bell className="w-5 h-5" />
@@ -49,13 +49,13 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 w-80 bg-coffee-900 border border-coffee-700 shadow-xl z-50 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-coffee-800 flex items-center justify-between">
-            <p className="text-xs font-semibold text-cream uppercase tracking-wider">Notificaciones</p>
+        <div className="absolute right-0 top-10 w-80 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 shadow-xl z-50 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-coffee-200 dark:border-coffee-800 flex items-center justify-between">
+            <p className="text-xs font-semibold text-coffee-900 dark:text-cream uppercase tracking-wider">Notificaciones</p>
             {notifications.length > 0 && (
               <button
                 onClick={() => setOpen(false)}
-                className="text-xs text-coffee-500 hover:text-coffee-300 transition-colors"
+                className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
               >
                 Cerrar
               </button>
@@ -69,16 +69,16 @@ export default function NotificationBell() {
               notifications.map((n) => (
                 <div
                   key={n.id}
-                  className={`px-4 py-3 border-b border-coffee-800/60 ${!n.read ? 'bg-coffee-800/30' : ''}`}
+                  className={`px-4 py-3 border-b border-coffee-200/60 dark:border-coffee-800/60 ${!n.read ? 'bg-coffee-50 dark:bg-coffee-800/30' : ''}`}
                 >
                   <div className="flex items-start gap-2.5">
                     <span className="text-base leading-none mt-0.5">
                       {EVENT_ICONS[n.event] ?? '🔔'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-cream">{n.title}</p>
-                      <p className="text-xs text-coffee-400 mt-0.5 break-words">{n.message}</p>
-                      <p className="text-xs text-coffee-600 mt-1">
+                      <p className="text-xs font-semibold text-coffee-900 dark:text-cream">{n.title}</p>
+                      <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-0.5 break-words">{n.message}</p>
+                      <p className="text-xs text-coffee-500 mt-1">
                         {n.timestamp.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>

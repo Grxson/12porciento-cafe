@@ -79,19 +79,19 @@ export default function ReviewThread({ reviewId }: Props) {
   };
 
   return (
-    <div className="mt-4 ml-4 pl-4 border-l-2 border-coffee-700/50 space-y-3">
+    <div className="mt-4 ml-4 pl-4 border-l-2 border-coffee-300/50 dark:border-coffee-700/50 space-y-3">
       {replies.map((reply) => (
         <div key={reply.id} className="flex items-start gap-2.5">
-          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-coffee-700 flex items-center justify-center overflow-hidden">
+          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-coffee-200 dark:bg-coffee-700 flex items-center justify-center overflow-hidden">
             {reply.user?.avatarUrl ? (
               <img src={reply.user.avatarUrl} alt={reply.name} className="w-full h-full object-cover" />
             ) : (
-              <User className="w-3.5 h-3.5 text-coffee-400" />
+              <User className="w-3.5 h-3.5 text-coffee-500 dark:text-coffee-400" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-coffee-200">{reply.name}</p>
-            <p className="text-sm text-coffee-300 mt-0.5 break-words">{reply.content}</p>
+            <p className="text-xs font-semibold text-coffee-800 dark:text-coffee-200">{reply.name}</p>
+            <p className="text-sm text-coffee-700 dark:text-coffee-300 mt-0.5 break-words">{reply.content}</p>
             <p className="text-xs text-coffee-500 mt-1">
               {new Date(reply.createdAt).toLocaleDateString('es-MX', {
                 day: 'numeric',
@@ -123,7 +123,7 @@ export default function ReviewThread({ reviewId }: Props) {
               placeholder="Tu nombre"
               value={guestName}
               onChange={(e) => setGuestName(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-coffee-800 border border-coffee-600 rounded-lg text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500"
+              className="w-full px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 rounded-lg text-coffee-900 dark:text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500"
             />
           )}
           <div className="flex gap-2">
@@ -132,7 +132,7 @@ export default function ReviewThread({ reviewId }: Props) {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={2}
-              className="flex-1 px-3 py-2 text-sm bg-coffee-800 border border-coffee-600 rounded-lg text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500 resize-none"
+              className="flex-1 px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 rounded-lg text-coffee-900 dark:text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500 resize-none"
             />
             <button
               type="submit"
@@ -146,7 +146,7 @@ export default function ReviewThread({ reviewId }: Props) {
           <button
             type="button"
             onClick={() => { setShowForm(false); setError(null); setContent(''); setGuestName(''); }}
-            className="text-xs text-coffee-500 hover:text-coffee-300 transition-colors"
+            className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
           >
             Cancelar
           </button>

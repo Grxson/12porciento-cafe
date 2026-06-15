@@ -22,7 +22,7 @@ export default function UserMenu() {
   if (!user) {
     return (
       <Link to="/login" aria-label="Iniciar sesión"
-        className="text-coffee-200 hover:text-cream transition-colors">
+        className="text-coffee-600 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors">
         <User className="w-5 h-5" />
       </Link>
     );
@@ -42,11 +42,11 @@ export default function UserMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-52 bg-coffee-900 border border-coffee-800 shadow-xl z-50"
+            className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 shadow-xl z-50"
           >
-            <div className="px-4 py-3 border-b border-coffee-800">
-              <p className="text-cream text-sm font-medium truncate">{user.name}</p>
-              <p className="text-coffee-400 text-xs truncate">{user.email}</p>
+            <div className="px-4 py-3 border-b border-coffee-200 dark:border-coffee-800">
+              <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">{user.name}</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs truncate">{user.email}</p>
             </div>
             <nav className="py-1">
               {[
@@ -54,15 +54,15 @@ export default function UserMenu() {
                 { to: '/perfil/configuracion', label: 'Mi perfil', icon: Settings },
               ].map(({ to, label, icon: Icon }) => (
                 <Link key={to} to={to} onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-coffee-300 hover:text-cream hover:bg-coffee-800/50 transition-colors">
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-coffee-700 dark:text-coffee-300 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-800/50 transition-colors">
                   <Icon className="w-4 h-4" />
                   {label}
                 </Link>
               ))}
             </nav>
-            <div className="border-t border-coffee-800 py-1">
+            <div className="border-t border-coffee-200 dark:border-coffee-800 py-1">
               <button onClick={() => { logout(); setOpen(false); navigate('/'); }}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-coffee-400 hover:text-red-400 w-full transition-colors">
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-coffee-600 dark:text-coffee-400 hover:text-red-400 w-full transition-colors">
                 <LogOut className="w-4 h-4" />
                 Cerrar sesión
               </button>

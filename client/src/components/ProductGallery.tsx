@@ -20,7 +20,7 @@ export default function ProductGallery({ images, alt, badge }: ProductGalleryPro
 
   return (
     <div>
-      <div className="relative aspect-[3/4] overflow-hidden bg-coffee-100">
+      <div className="relative aspect-[3/4] overflow-hidden bg-coffee-100 dark:bg-coffee-900">
         <AnimatePresence mode="wait">
           <motion.img
             key={current}
@@ -40,14 +40,14 @@ export default function ProductGallery({ images, alt, badge }: ProductGalleryPro
         {safeImages.length > 1 && (
           <>
             <button onClick={() => go(-1)} aria-label="Anterior"
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-coffee-950/60 text-cream p-2 hover:bg-coffee-950/80 transition-colors">
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-coffee-950/60 text-white p-2 hover:bg-coffee-950/80 transition-colors">
               <ChevronLeft size={18} />
             </button>
             <button onClick={() => go(1)} aria-label="Siguiente"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-coffee-950/60 text-cream p-2 hover:bg-coffee-950/80 transition-colors">
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-coffee-950/60 text-white p-2 hover:bg-coffee-950/80 transition-colors">
               <ChevronRight size={18} />
             </button>
-            <div className="absolute bottom-2 right-2 bg-coffee-950/70 text-cream text-xs px-2 py-0.5">
+            <div className="absolute bottom-2 right-2 bg-coffee-950/70 text-white text-xs px-2 py-0.5">
               {active + 1}/{safeImages.length}
             </div>
           </>
@@ -78,16 +78,16 @@ export default function ProductGallery({ images, alt, badge }: ProductGalleryPro
             className="fixed inset-0 z-[70] bg-coffee-950/95 flex items-center justify-center p-4"
             onClick={() => setZoom(false)}
           >
-            <button aria-label="Cerrar" className="absolute top-4 right-4 text-cream p-2" onClick={() => setZoom(false)}>
+            <button aria-label="Cerrar" className="absolute top-4 right-4 text-white p-2" onClick={() => setZoom(false)}>
               <X size={24} />
             </button>
             <img src={resolveImageUrl(current)} alt={alt} className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
             {safeImages.length > 1 && (
               <>
                 <button onClick={(e) => { e.stopPropagation(); go(-1); }} aria-label="Anterior"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-cream p-2"><ChevronLeft size={28} /></button>
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white p-2"><ChevronLeft size={28} /></button>
                 <button onClick={(e) => { e.stopPropagation(); go(1); }} aria-label="Siguiente"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cream p-2"><ChevronRight size={28} /></button>
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white p-2"><ChevronRight size={28} /></button>
               </>
             )}
           </motion.div>

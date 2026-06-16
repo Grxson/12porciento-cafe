@@ -33,7 +33,7 @@ export default function BottomNav() {
             <NavLink
               key={to}
               to={target}
-              aria-label={isCart && count > 0 ? `Carrito, ${count} producto${count !== 1 ? 's' : ''}` : undefined}
+              aria-label={isCart ? (count > 0 ? `Carrito, ${count} producto${count !== 1 ? 's' : ''}` : 'Carrito') : undefined}
               className={`relative flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] tracking-wide transition-colors ${
                 active ? 'text-gold-500' : 'text-coffee-500 dark:text-coffee-400'
               }`}

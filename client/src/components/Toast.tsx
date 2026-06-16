@@ -13,7 +13,7 @@ const colors = {
   success: 'border-green-500/40 bg-green-900/20 text-green-300',
   error: 'border-red-500/40 bg-red-900/20 text-red-300',
   info: 'border-gold-500/40 bg-gold-500/15 dark:bg-coffee-900 text-coffee-900 dark:text-cream',
-  warning: 'border-yellow-500/40 bg-yellow-900/20 text-yellow-300',
+  warning: 'border-yellow-500/40 bg-yellow-500/15 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300',
 };
 
 export default function ToastContainer() {

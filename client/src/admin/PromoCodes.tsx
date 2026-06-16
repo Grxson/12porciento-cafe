@@ -115,20 +115,20 @@ export default function AdminPromoCodes() {
       <div className="flex items-center gap-3 mb-8">
         <Tag className="w-6 h-6 text-gold-500" />
         <div>
-          <h1 className="font-serif text-3xl text-cream">Códigos de Descuento</h1>
-          <p className="text-coffee-400 text-sm mt-1">{codes.length} códigos</p>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Códigos de Descuento</h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{codes.length} códigos</p>
         </div>
       </div>
 
-      <form onSubmit={submit} className="bg-coffee-900 border border-coffee-800 p-6 mb-8">
-        <h2 className="text-cream font-medium mb-4">Nuevo código</h2>
+      <form onSubmit={submit} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-8">
+        <h2 className="text-coffee-900 dark:text-cream font-medium mb-4">Nuevo código</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <input
             required
             placeholder="CAFE20"
             value={form.code}
             onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-            className="bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500/50 uppercase"
+            className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500/50 uppercase"
           />
           <input
             required
@@ -137,12 +137,12 @@ export default function AdminPromoCodes() {
             placeholder="Descuento"
             value={form.discount}
             onChange={(e) => setForm({ ...form, discount: e.target.value })}
-            className="bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none"
+            className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
           />
           <select
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
-            className="bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none"
+            className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
           >
             <option value="PERCENTAGE">% Porcentaje</option>
             <option value="FIXED">$ Fijo MXN</option>
@@ -152,13 +152,13 @@ export default function AdminPromoCodes() {
             placeholder="Usos máx (opcional)"
             value={form.maxUses}
             onChange={(e) => setForm({ ...form, maxUses: e.target.value })}
-            className="bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none"
+            className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
           />
           <input
             type="date"
             value={form.expiresAt}
             onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
-            className="bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none"
+            className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
           />
         </div>
         {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
@@ -183,15 +183,15 @@ export default function AdminPromoCodes() {
               <div
                 key={c.id}
                 className={`flex items-center justify-between px-5 py-4 border ${
-                  c.isActive && !expired ? 'bg-coffee-900 border-coffee-800' : 'bg-coffee-900/50 border-coffee-800/50 opacity-60'
+                  c.isActive && !expired ? 'bg-coffee-100 dark:bg-coffee-900 border-coffee-200 dark:border-coffee-800' : 'bg-coffee-50/50 dark:bg-coffee-900/50 border-coffee-200/50 dark:border-coffee-800/50 opacity-60'
                 }`}
               >
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                   <span className="font-mono text-gold-500 font-bold tracking-widest">{c.code}</span>
-                  <span className="text-cream text-sm">
+                  <span className="text-coffee-900 dark:text-cream text-sm">
                     {isFixed(c.type) ? `$${c.discount} MXN OFF` : `${c.discount}% OFF`}
                   </span>
-                  <span className="text-coffee-400 text-xs">
+                  <span className="text-coffee-600 dark:text-coffee-400 text-xs">
                     {c.usedCount}{c.maxUses ? `/${c.maxUses}` : ''} usos
                   </span>
                   {c.expiresAt && (
@@ -201,7 +201,7 @@ export default function AdminPromoCodes() {
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => toggle(c.id)} className="text-coffee-400 hover:text-cream transition-colors" aria-label="Activar/desactivar">
+                  <button onClick={() => toggle(c.id)} className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors" aria-label="Activar/desactivar">
                     {c.isActive ? <ToggleRight className="w-5 h-5 text-gold-500" /> : <ToggleLeft className="w-5 h-5" />}
                   </button>
                   <button onClick={() => setConfirmDelete(c.id)} className="text-coffee-600 hover:text-red-400 transition-colors" aria-label="Eliminar">

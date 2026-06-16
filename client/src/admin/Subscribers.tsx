@@ -41,7 +41,7 @@ const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
   EMPRESARIAL: { min: 10, max: 99 },
 };
 
-const SELECT_CLASS = 'bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
+const SELECT_CLASS = 'bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
 
 interface EditModalProps {
   sub: Subscription;
@@ -131,16 +131,16 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
       className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-coffee-900 border border-coffee-700 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-serif text-xl text-cream">Editar suscripción</h2>
-            <p className="text-coffee-400 text-xs mt-0.5">{sub.name} · {sub.email}</p>
+            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Editar suscripción</h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{sub.name} · {sub.email}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-coffee-500 hover:text-cream transition-colors text-xl leading-none"
+            className="text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors text-xl leading-none"
           >
             ×
           </button>
@@ -149,7 +149,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
         <div className="space-y-4">
           {/* Plan */}
           <div>
-            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
             <select value={plan} onChange={(e) => setPlan(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
               {Object.entries(planLabels).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -159,7 +159,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
           {/* Frequency */}
           <div>
-            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
             <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
               <option value="monthly">Mensual</option>
               <option value="bimonthly">Bimestral</option>
@@ -168,7 +168,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
           {/* Grind */}
           <div>
-            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
             <select value={grindPreference} onChange={(e) => setGrindPreference(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
               <option value="GRANO">Grano</option>
               <option value="MOLIDO">Molido</option>
@@ -177,10 +177,10 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
           {/* Coffee items */}
           <div>
-            <label className="block text-xs text-coffee-400 uppercase tracking-wider mb-1">Cafés seleccionados</label>
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Cafés seleccionados</label>
 
             {/* Slot hint */}
-            <p className={`text-xs mb-2 ${countValid ? 'text-coffee-400' : 'text-red-400'}`}>
+            <p className={`text-xs mb-2 ${countValid ? 'text-coffee-600 dark:text-coffee-400' : 'text-red-400'}`}>
               El plan {planLabels[plan] ?? plan} requiere entre {slots.min} y {slots.max} cafés
               {' '}— actualmente {selectedItemIds.length}
             </p>
@@ -189,7 +189,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
             {selectedItemIds.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {selectedItemIds.map((pid) => (
-                  <span key={pid} className="flex items-center gap-1 bg-coffee-800 border border-coffee-700 px-2 py-0.5 text-xs text-cream">
+                  <span key={pid} className="flex items-center gap-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-2 py-0.5 text-xs text-coffee-900 dark:text-cream">
                     {getProductName(pid)}
                     <button
                       onClick={() => removeProduct(pid)}
@@ -221,7 +221,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
                 <button
                   onClick={addProduct}
                   disabled={!productToAdd || products.filter((p: any) => !selectedItemIds.includes(p.id)).length === 0}
-                  className="px-3 py-2 text-xs bg-coffee-800 border border-coffee-700 text-gold-500 hover:border-gold-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-2 text-xs bg-coffee-200 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-gold-500 hover:border-gold-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Agregar
                 </button>
@@ -231,10 +231,10 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
         </div>
 
         {/* Footer actions */}
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-coffee-800">
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-coffee-200 dark:border-coffee-800">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-coffee-400 hover:text-cream border border-coffee-700 hover:border-coffee-600 transition-colors"
+            className="px-4 py-2 text-sm text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream border border-coffee-200 dark:border-coffee-700 hover:border-coffee-400 dark:hover:border-coffee-600 transition-colors"
           >
             Cancelar
           </button>
@@ -317,8 +317,8 @@ export default function AdminSubscribers() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-serif text-3xl text-cream">Suscriptores</h1>
-          <p className="text-coffee-400 text-sm mt-1">
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Suscriptores</h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
             {active} activas · {paused} pausadas
           </p>
         </div>
@@ -326,7 +326,7 @@ export default function AdminSubscribers() {
         <select
           value={filter}
           onChange={(e) => { setFilter(e.target.value); setLoading(true); }}
-          className="bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none"
+          className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
         >
           <option value="">Todas</option>
           <option value="ACTIVE">Activas</option>
@@ -349,47 +349,47 @@ export default function AdminSubscribers() {
       ) : subs.length === 0 ? (
         <div className="text-center py-20 text-coffee-500">No hay suscriptores con ese filtro.</div>
       ) : (
-        <div className="bg-coffee-900 border border-coffee-800 overflow-hidden">
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-sm">
               <thead>
-                <tr className="border-b border-coffee-800">
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Nombre</th>
-                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Email</th>
-                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Plan</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Molienda</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Frecuencia</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Próximo cobro</th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Estado</th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Entrega</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Cafés</th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">Acciones</th>
+                <tr className="border-b border-coffee-200 dark:border-coffee-800">
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Nombre</th>
+                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Email</th>
+                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Plan</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Molienda</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Frecuencia</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Próximo cobro</th>
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Estado</th>
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Entrega</th>
+                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Cafés</th>
+                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {subs.map((sub) => {
                   const cfg = statusConfig[sub.status as SubscriptionStatus] ?? statusConfig.ACTIVE;
                   return (
-                    <tr key={sub.id} className="border-b border-coffee-800/50 hover:bg-coffee-800/20 transition-colors">
+                    <tr key={sub.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors">
                       <td className="px-4 py-3">
-                        <p className="text-cream font-medium">{sub.name}</p>
+                        <p className="text-coffee-900 dark:text-cream font-medium">{sub.name}</p>
                         {sub.phone && <p className="text-coffee-500 text-xs">{sub.phone}</p>}
                       </td>
-                      <td className="hidden sm:table-cell px-4 py-3 text-coffee-300">{sub.email}</td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">{sub.email}</td>
                       <td className="hidden sm:table-cell px-4 py-3">
                         <span className="text-gold-500 text-xs font-medium uppercase tracking-wider">
                           {planLabels[sub.plan] ?? sub.plan}
                         </span>
                       </td>
                       <td className="hidden lg:table-cell px-4 py-3">
-                        <span className="text-[10px] px-2 py-0.5 border border-coffee-700 bg-coffee-800/40 text-coffee-300 rounded-sm uppercase tracking-wider">
+                        <span className="text-[10px] px-2 py-0.5 border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-800/40 text-coffee-700 dark:text-coffee-300 rounded-sm uppercase tracking-wider">
                           {sub.grindPreference || 'GRANO'}
                         </span>
                       </td>
-                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-300 capitalize">
+                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300 capitalize">
                         {sub.frequency === 'monthly' ? 'Mensual' : 'Bimestral'}
                       </td>
-                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-300">
+                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">
                         {new Date(sub.nextBilling).toLocaleDateString('es-MX')}
                       </td>
                       <td className="px-4 py-3">
@@ -403,7 +403,7 @@ export default function AdminSubscribers() {
                             onChange={async (e) => {
                               await updateFulfillment(sub.id, e.target.value);
                             }}
-                            className="text-xs bg-coffee-800 border border-coffee-700 text-cream px-2 py-1 focus:outline-none focus:border-gold-500"
+                            className="text-xs bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-2 py-1 focus:outline-none focus:border-gold-500"
                           >
                             {['PENDIENTE','PREPARANDO','ENVIADO','ENTREGADO'].map((s) => (
                               <option key={s} value={s}>{s}</option>
@@ -415,9 +415,9 @@ export default function AdminSubscribers() {
                         {sub.items && sub.items.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {sub.items.map((item: any) => (
-                              <div key={item.id} className="flex items-center gap-1 bg-coffee-800 px-2 py-0.5">
+                              <div key={item.id} className="flex items-center gap-1 bg-coffee-200 dark:bg-coffee-800 px-2 py-0.5">
                                 <img src={item.product?.imageUrl} className="w-4 h-4 object-cover" alt="" />
-                                <span className="text-[10px] text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
+                                <span className="text-[10px] text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
                               </div>
                             ))}
                           </div>

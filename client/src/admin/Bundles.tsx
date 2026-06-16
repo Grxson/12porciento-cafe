@@ -230,8 +230,8 @@ export default function AdminBundles() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-serif text-3xl text-cream">Bundles</h1>
-          <p className="text-coffee-400 text-sm mt-1">{bundles.length} paquetes configurados</p>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Bundles</h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{bundles.length} paquetes configurados</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2 text-sm">
           <Plus size={16} /> Nuevo bundle
@@ -253,11 +253,11 @@ export default function AdminBundles() {
           {bundles.map((bundle) => (
             <div
               key={bundle.id}
-              className={`bg-coffee-900 border ${bundle.isActive ? 'border-coffee-800' : 'border-coffee-800 opacity-60'} p-5`}
+              className={`bg-coffee-100 dark:bg-coffee-900 border ${bundle.isActive ? 'border-coffee-200 dark:border-coffee-800' : 'border-coffee-200 dark:border-coffee-800 opacity-60'} p-5`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-serif text-lg text-cream">{bundle.name}</h3>
+                  <h3 className="font-serif text-lg text-coffee-900 dark:text-cream">{bundle.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     {bundle.discountPct > 0 && (
                       <span className="bg-gold-500/20 text-gold-400 text-xs px-2 py-0.5">
@@ -265,7 +265,7 @@ export default function AdminBundles() {
                       </span>
                     )}
                     {!bundle.isActive && (
-                      <span className="bg-coffee-800 text-coffee-400 text-xs px-2 py-0.5">
+                      <span className="bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 text-xs px-2 py-0.5">
                         Inactivo
                       </span>
                     )}
@@ -274,13 +274,13 @@ export default function AdminBundles() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => toggleActive(bundle)}
-                    className="text-xs text-coffee-400 hover:text-cream border border-coffee-700 px-2 py-1 transition-colors"
+                    className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream border border-coffee-200 dark:border-coffee-700 px-2 py-1 transition-colors"
                   >
                     {bundle.isActive ? 'Desactivar' : 'Activar'}
                   </button>
                   <button
                     onClick={() => openEdit(bundle)}
-                    className="text-coffee-400 hover:text-cream p-1 transition-colors"
+                    className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream p-1 transition-colors"
                     title="Editar"
                   >
                     <Pencil size={16} />
@@ -295,11 +295,11 @@ export default function AdminBundles() {
                 </div>
               </div>
 
-              <p className="text-coffee-400 text-sm mb-4">{bundle.description}</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">{bundle.description}</p>
 
               <div className="space-y-1 mb-4">
                 {bundle.items.map((item) => (
-                  <div key={item.id} className="text-xs text-coffee-300 flex justify-between">
+                  <div key={item.id} className="text-xs text-coffee-700 dark:text-coffee-300 flex justify-between">
                     <span>
                       • {item.quantity > 1 ? `${item.quantity}x ` : ''}
                       {item.product.name}
@@ -309,7 +309,7 @@ export default function AdminBundles() {
                 ))}
               </div>
 
-              <div className="border-t border-coffee-800 pt-3 flex items-end justify-between">
+              <div className="border-t border-coffee-200 dark:border-coffee-800 pt-3 flex items-end justify-between">
                 <div>
                   <p className="text-coffee-500 text-xs line-through">
                     ${bundle.basePrice.toLocaleString()}
@@ -337,7 +337,7 @@ export default function AdminBundles() {
             <button
               onClick={closeModal}
               disabled={saving}
-              className="flex-1 px-4 py-2 border border-coffee-700 text-coffee-400 text-sm hover:text-cream transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>

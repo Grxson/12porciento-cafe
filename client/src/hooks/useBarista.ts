@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { baristaApi } from '../api';
+import { useToast } from '../context/ToastContext';
 import type { BaristaProfile } from '../types';
 
 interface UseBaristaResult {
@@ -52,8 +53,6 @@ export function useBarista(userId?: string): UseBaristaResult {
 
     if (!navigator.onLine) {
       const { enqueueBrew } = await import('../hooks/useBrewQueue');
-      const { useToast } = await import('../context/ToastContext');
-      const addToast = useToast.getState().add;
       await enqueueBrew({
         id: clientBrewId,
         recipeId: data.recipeId,
@@ -65,7 +64,7 @@ export function useBarista(userId?: string): UseBaristaResult {
         createdAt: new Date().toISOString(),
         status: 'pending',
       });
-      addToast('☕ Brew guardado — se sincronizará al reconectar', 'info');
+      useToast.getState().add('☕ Brew guardado — se sincronizará al reconectar', 'info');
       return { newAchievements: [] };
     }
 

@@ -17,3 +17,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 );
 
 setTimeout(() => initBrewSync().catch(console.error), 0);
+
+// When a new service worker takes over (e.g. after Docker rebuild), reload to get fresh assets.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}

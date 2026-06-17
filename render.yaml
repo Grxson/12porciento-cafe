@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: cafe-server
+    runtime: node
+    plan: starter
+    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter server build && pnpm --filter server exec prisma generate && pnpm --filter server exec prisma db push --skip-generate
+    startCommand: node server/dist/src/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cafe-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        value: https://12porciento-cafe.onrender.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: UPLOAD_DIR
+        value: /tmp/uploads
+
+  - type: static
+    name: cafe-client
+    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter client build
+    staticPublishPath: ./client/dist
+    routes:
+      - path: /api/*
+        destination: https://cafe-server.onrender.com/api/:path
+      - path: /
+        destination: /index.html
+
+databases:
+  - name: cafe-db
+    databaseName: cafe_db
+    user: cafe_user
+    region: ohio

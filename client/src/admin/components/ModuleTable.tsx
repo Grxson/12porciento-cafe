@@ -63,7 +63,7 @@ export default function ModuleTable<T extends { id: string }>({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-coffee-800">
+            <tr className="border-b border-coffee-200 dark:border-coffee-800 bg-coffee-100 dark:bg-coffee-900">
               {selectable && (
                 <th className="px-4 py-2 text-left w-12">
                   <input
@@ -77,20 +77,20 @@ export default function ModuleTable<T extends { id: string }>({
               {columns.map((col) => (
                 <th
                   key={String(col.key)}
-                  className="px-4 py-2 text-left text-coffee-400 font-medium"
+                  className="px-4 py-2 text-left text-coffee-600 dark:text-coffee-400 font-medium"
                   style={{ width: col.width }}
                 >
                   {col.label}
                 </th>
               ))}
               {(onEdit || onDelete) && (
-                <th className="px-4 py-2 text-left text-coffee-400 font-medium">Acciones</th>
+                <th className="px-4 py-2 text-left text-coffee-600 dark:text-coffee-400 font-medium">Acciones</th>
               )}
             </tr>
           </thead>
           <tbody>
             {pagination.pageItems.map((item) => (
-              <tr key={item.id} className="border-b border-coffee-900 hover:bg-coffee-800/30">
+              <tr key={item.id} className="border-b border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors">
                 {selectable && (
                   <td className="px-4 py-3">
                     <input
@@ -102,7 +102,7 @@ export default function ModuleTable<T extends { id: string }>({
                   </td>
                 )}
                 {columns.map((col) => (
-                  <td key={String(col.key)} className="px-4 py-3 text-cream">
+                  <td key={String(col.key)} className="px-4 py-3 text-coffee-900 dark:text-cream">
                     {col.render ? col.render((item as any)[col.key], item) : (item as any)[col.key]}
                   </td>
                 ))}
@@ -112,7 +112,7 @@ export default function ModuleTable<T extends { id: string }>({
                       {onEdit && (
                         <button
                           onClick={() => onEdit(item)}
-                          className="text-gold-400 hover:text-gold-300 text-xs px-2 py-1 border border-coffee-700 transition-colors"
+                          className="text-gold-400 hover:text-gold-300 text-xs px-2 py-1 border border-coffee-200 dark:border-coffee-700 transition-colors"
                         >
                           Editar
                         </button>
@@ -136,15 +136,15 @@ export default function ModuleTable<T extends { id: string }>({
       </div>
 
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-coffee-900 border border-coffee-800">
-          <span className="text-xs text-coffee-400">
+        <div className="flex items-center justify-between px-4 py-3 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800">
+          <span className="text-xs text-coffee-600 dark:text-coffee-400">
             Página {pagination.page} de {pagination.totalPages} ({items.length} total)
           </span>
           <div className="flex gap-2">
             <button
               disabled={pagination.page === 1}
               onClick={pagination.prevPage}
-              className="p-1 text-coffee-400 hover:text-cream disabled:opacity-50 transition-colors"
+              className="p-1 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream disabled:opacity-50 transition-colors"
               aria-label="Página anterior"
             >
               <ChevronLeft size={16} />
@@ -152,7 +152,7 @@ export default function ModuleTable<T extends { id: string }>({
             <button
               disabled={pagination.page === pagination.totalPages}
               onClick={pagination.nextPage}
-              className="p-1 text-coffee-400 hover:text-cream disabled:opacity-50 transition-colors"
+              className="p-1 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream disabled:opacity-50 transition-colors"
               aria-label="Página siguiente"
             >
               <ChevronRight size={16} />

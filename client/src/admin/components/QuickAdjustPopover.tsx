@@ -46,8 +46,8 @@ export default function QuickAdjustPopover({
   };
 
   return (
-    <div className="absolute right-0 top-full mt-1 z-30 w-64 bg-coffee-900 border border-coffee-700 shadow-xl p-3 space-y-3 text-left" onClick={(e) => e.stopPropagation()}>
-      <p className="text-xs text-coffee-400">Ajuste rápido — stock actual: <span className="text-cream">{currentStock}</span></p>
+    <div className="absolute right-0 top-full mt-1 z-30 w-64 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 shadow-xl p-3 space-y-3 text-left" onClick={(e) => e.stopPropagation()}>
+      <p className="text-xs text-coffee-600 dark:text-coffee-400">Ajuste rápido — stock actual: <span className="text-coffee-900 dark:text-cream">{currentStock}</span></p>
 
       <div className="grid grid-cols-3 gap-1">
         {([['RESTOCK', 'Ingreso'], ['LOSS', 'Merma'], ['ADJUSTMENT', 'Ajuste']] as [AdjType, string][]).map(([v, l]) => (
@@ -56,7 +56,7 @@ export default function QuickAdjustPopover({
             type="button"
             onClick={() => setType(v)}
             className={`text-[11px] py-1.5 border transition-colors ${
-              type === v ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-700 text-coffee-400 hover:text-cream'
+              type === v ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
             }`}
           >
             {l}
@@ -66,7 +66,7 @@ export default function QuickAdjustPopover({
 
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => setQty((q) => String(Math.max(1, (parseInt(q, 10) || 1) - 1)))}
-          className="p-1.5 border border-coffee-700 text-coffee-400 hover:text-cream">
+          className="p-1.5 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">
           <Minus size={14} />
         </button>
         <input
@@ -74,10 +74,10 @@ export default function QuickAdjustPopover({
           min={1}
           value={qty}
           onChange={(e) => setQty(e.target.value)}
-          className="flex-1 bg-coffee-800 border border-coffee-700 text-cream text-sm px-2 py-1.5 text-center focus:outline-none focus:border-gold-500"
+          className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-2 py-1.5 text-center focus:outline-none focus:border-gold-500"
         />
         <button type="button" onClick={() => setQty((q) => String((parseInt(q, 10) || 0) + 1))}
-          className="p-1.5 border border-coffee-700 text-coffee-400 hover:text-cream">
+          className="p-1.5 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">
           <Plus size={14} />
         </button>
       </div>
@@ -86,11 +86,11 @@ export default function QuickAdjustPopover({
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Nota (opcional)"
-        className="w-full bg-coffee-800 border border-coffee-700 text-cream text-xs px-2 py-1.5 focus:outline-none focus:border-gold-500"
+        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-xs px-2 py-1.5 focus:outline-none focus:border-gold-500"
       />
 
       <div className="flex gap-2">
-        <button type="button" onClick={onClose} className="flex-1 text-xs py-1.5 border border-coffee-700 text-coffee-400 hover:text-cream">
+        <button type="button" onClick={onClose} className="flex-1 text-xs py-1.5 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">
           Cancelar
         </button>
         <button type="button" onClick={submit} disabled={saving} className="flex-1 text-xs py-1.5 bg-gold-500 text-coffee-950 font-semibold hover:bg-gold-600 disabled:opacity-50 flex items-center justify-center gap-1">

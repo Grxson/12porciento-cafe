@@ -27,7 +27,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-coffee-950">
+    <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -35,30 +35,30 @@ export default function Login() {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-10">
-          <div className="font-serif text-5xl font-black text-cream">12%</div>
+          <div className="font-serif text-5xl font-black text-coffee-900 dark:text-cream">12%</div>
           <div className="text-[9px] tracking-[0.3em] text-gold-500 uppercase mt-1">mi cuenta</div>
         </div>
 
-        <div className="bg-coffee-900 border border-coffee-800 p-8">
-          <h1 className="font-serif text-2xl text-cream mb-6">Iniciar sesión</h1>
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">
+          <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Iniciar sesión</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Email</label>
+              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email</label>
               <input
                 type="email" required value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
+                className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                 placeholder="tu@email.com"
               />
             </div>
             <div>
-              <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Contraseña</label>
+              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Contraseña</label>
               <input
                 type="password" required value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-                className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
+                className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                 placeholder="••••••••"
               />
             </div>

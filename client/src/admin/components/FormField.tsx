@@ -23,7 +23,7 @@ export default function FormField({
 }: FormFieldProps) {
   return (
     <div>
-      <label className="block text-xs text-coffee-400 mb-1">
+      <label className="block text-xs text-coffee-600 dark:text-coffee-400 mb-1">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       {type === 'textarea' ? (
@@ -32,13 +32,13 @@ export default function FormField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500 resize-none"
+          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500 resize-none"
         />
       ) : type === 'select' ? (
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
+          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
         >
           <option value="">-- Seleccionar --</option>
           {options?.map((opt) => (
@@ -53,7 +53,7 @@ export default function FormField({
           value={value}
           onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
+          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
         />
       )}
       {error && <p className="text-red-400 text-xs mt-1">{error}</p>}

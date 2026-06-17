@@ -48,7 +48,7 @@ export default function Register() {
   const handleSkip = () => navigate(params.get('redirect') ?? '/', { replace: true });
 
   return (
-    <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-coffee-950">
+    <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -56,7 +56,7 @@ export default function Register() {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-10">
-          <div className="font-serif text-5xl font-black text-cream">12%</div>
+          <div className="font-serif text-5xl font-black text-coffee-900 dark:text-cream">12%</div>
           <div className="text-[9px] tracking-[0.3em] text-gold-500 uppercase mt-1">
             {step === 1 ? 'nueva cuenta' : 'dirección de envío'}
           </div>
@@ -67,11 +67,11 @@ export default function Register() {
           {[1, 2].map((n) => (
             <div key={n} className="flex items-center gap-2">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                step > n ? 'bg-gold-500 text-coffee-950' : step === n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-800 text-coffee-500'
+                step > n ? 'bg-gold-500 text-coffee-950' : step === n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-500'
               }`}>
                 {step > n ? <Check className="w-3 h-3" /> : n}
               </div>
-              {n < 2 && <ChevronRight className="w-3 h-3 text-coffee-700" />}
+              {n < 2 && <ChevronRight className="w-3 h-3 text-coffee-400 dark:text-coffee-700" />}
             </div>
           ))}
         </div>
@@ -79,8 +79,8 @@ export default function Register() {
         <AnimatePresence mode="wait">
           {step === 1 ? (
             <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <div className="bg-coffee-900 border border-coffee-800 p-8">
-                <h1 className="font-serif text-2xl text-cream mb-6">Crear cuenta</h1>
+              <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">
+                <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Crear cuenta</h1>
                 <form onSubmit={handleStep1} className="space-y-4">
                   {[
                     { name: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', autoComplete: 'name' },
@@ -88,12 +88,12 @@ export default function Register() {
                     { name: 'password', label: 'Contraseña', type: 'password', placeholder: 'Mínimo 6 caracteres', autoComplete: 'new-password' },
                   ].map(({ name, label, type, placeholder, autoComplete }) => (
                     <div key={name}>
-                      <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
                       <input
                         name={name} type={type} required
                         value={(form as any)[name]} onChange={handleChange}
                         autoComplete={autoComplete}
-                        className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                         placeholder={placeholder}
                       />
                     </div>
@@ -112,39 +112,39 @@ export default function Register() {
             </motion.div>
           ) : (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <div className="bg-coffee-900 border border-coffee-800 p-8">
-                <h2 className="font-serif text-2xl text-cream mb-2">Dirección de envío</h2>
+              <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">
+                <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">Dirección de envío</h2>
                 <p className="text-coffee-500 text-xs mb-6">Para recibir tus pedidos y suscripciones.</p>
                 <form onSubmit={handleStep2} className="space-y-4">
                   <div>
-                    <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
                     <input name="phone" type="tel" value={address.phone} onChange={handleAddressChange}
-                      className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
+                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
                       placeholder="55 1234 5678" />
                   </div>
                   <div>
-                    <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Calle y número *</label>
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Calle y número *</label>
                     <input name="address" required value={address.address} onChange={handleAddressChange}
-                      className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
+                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
                       placeholder="Calle, número, colonia" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
                       <input name="city" required value={address.city} onChange={handleAddressChange}
-                        className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none" />
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none" />
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
                       <input name="zipCode" required value={address.zipCode} onChange={handleAddressChange}
-                        className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
                         placeholder="12345" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
                     <select name="state" required value={address.state} onChange={handleAddressChange}
-                      className="w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none">
+                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none">
                       <option value="">Seleccionar</option>
                       {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>

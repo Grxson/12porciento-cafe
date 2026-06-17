@@ -31,7 +31,7 @@ function buildRevenueData(totalRevenue: number, revenueThisMonth: number) {
     const monthIdx = (currentMonth - 5 + i + 12) % 12;
     return {
       mes: MONTHS[monthIdx],
-      ingresos: Math.round(base * variance[i] * (0.85 + Math.random() * 0.3)),
+      ingresos: Math.round(base * variance[i]),
     };
   });
 }
@@ -39,6 +39,7 @@ function buildRevenueData(totalRevenue: number, revenueThisMonth: number) {
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const [topBaristas, setTopBaristas] = useState<{
     userId: string;
     level: number;
@@ -50,7 +51,7 @@ export default function Dashboard() {
   useEffect(() => {
     dashboardApi.stats()
       .then((r) => { setStats(r.data); })
-      .catch(() => {})
+      .catch((e) => { console.error(e); setStatsError('Error al cargar estadísticas.'); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -82,6 +83,20 @@ export default function Dashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (statsError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-red-400">{statsError}</p>
+        <button
+          onClick={() => { setStatsError(null); setLoading(true); dashboardApi.stats().then((r) => setStats(r.data)).catch((e) => { console.error(e); setStatsError('Error al cargar estadísticas.'); }).finally(() => setLoading(false)); }}
+          className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -134,8 +149,8 @@ export default function Dashboard() {
   return (
     <div className="p-6 lg:p-8 space-y-8">
       <div>
-        <h1 className="font-serif text-3xl text-cream">Dashboard</h1>
-        <p className="text-coffee-400 text-sm mt-1">Resumen general de la operación</p>
+        <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Dashboard</h1>
+        <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">Resumen general de la operación</p>
       </div>
 
       {/* Quick actions */}
@@ -143,13 +158,13 @@ export default function Dashboard() {
         <Link to="/admin/productos" className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors">
           <Package size={16} /> Nuevo producto
         </Link>
-        <Link to="/admin/bundles" className="flex items-center gap-2 px-4 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors">
+        <Link to="/admin/bundles" className="flex items-center gap-2 px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-400 dark:hover:border-coffee-500 transition-colors">
           <Gift size={16} /> Nuevo bundle
         </Link>
-        <Link to="/admin/descuentos" className="flex items-center gap-2 px-4 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors">
+        <Link to="/admin/descuentos" className="flex items-center gap-2 px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-400 dark:hover:border-coffee-500 transition-colors">
           <Tag size={16} /> Nuevo código
         </Link>
-        <Link to="/admin/inventario" className="flex items-center gap-2 px-4 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors">
+        <Link to="/admin/inventario" className="flex items-center gap-2 px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-400 dark:hover:border-coffee-500 transition-colors">
           <Plus size={16} /> Ajustar inventario
         </Link>
       </div>
@@ -162,15 +177,15 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
-            className={`bg-coffee-900 border p-5 transition-colors hover:border-gold-500/30 ${
-              card.accent ? 'border-yellow-500/40' : 'border-coffee-800'
+            className={`bg-coffee-100 dark:bg-coffee-900 border p-5 transition-colors hover:border-gold-500/30 ${
+              card.accent ? 'border-yellow-500/40' : 'border-coffee-200 dark:border-coffee-800'
             }`}
           >
             <div className="flex items-start justify-between mb-3">
-              <p className="text-coffee-400 text-xs uppercase tracking-widest">{card.label}</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest">{card.label}</p>
               <card.icon className={`w-4 h-4 ${card.accent ? 'text-yellow-500/80' : 'text-gold-500/60'}`} />
             </div>
-            <p className={`font-serif text-3xl font-semibold ${card.accent ? 'text-yellow-400' : 'text-cream'}`}>
+            <p className={`font-serif text-3xl font-semibold ${card.accent ? 'text-yellow-400' : 'text-coffee-900 dark:text-cream'}`}>
               {card.value}
             </p>
             <div className="flex items-center justify-between mt-2">
@@ -193,12 +208,12 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="xl:col-span-2 bg-coffee-900 border border-coffee-800 p-6"
+          className="xl:col-span-2 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="font-serif text-xl text-cream">Tendencia de ingresos</h2>
-              <p className="text-coffee-400 text-xs mt-0.5">Últimos 6 meses</p>
+              <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Tendencia de ingresos</h2>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Últimos 6 meses</p>
             </div>
             <span className="text-gold-500 text-xs tracking-widest uppercase">MXN</span>
           </div>
@@ -247,11 +262,11 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.42 }}
-          className="bg-coffee-900 border border-coffee-800 p-6"
+          className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6"
         >
           <div className="mb-6">
-            <h2 className="font-serif text-xl text-cream">Estado de pedidos</h2>
-            <p className="text-coffee-400 text-xs mt-0.5">Pedidos recientes</p>
+            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Estado de pedidos</h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Pedidos recientes</p>
           </div>
           {statusData.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-coffee-500 text-sm">
@@ -291,8 +306,8 @@ export default function Dashboard() {
       {/* Bottom row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Recent orders */}
-        <div className="xl:col-span-2 bg-coffee-900 border border-coffee-800 p-6">
-          <h2 className="font-serif text-xl text-cream mb-5">Pedidos recientes</h2>
+        <div className="xl:col-span-2 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+          <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5">Pedidos recientes</h2>
           {stats.recentOrders.length === 0 ? (
             <p className="text-coffee-500 text-sm py-4">No hay pedidos aún.</p>
           ) : (
@@ -300,11 +315,11 @@ export default function Dashboard() {
               {stats.recentOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="flex items-center justify-between py-3 border-b border-coffee-800 last:border-0"
+                  className="flex items-center justify-between py-3 border-b border-coffee-200 dark:border-coffee-800 last:border-0"
                 >
                   <div>
-                    <p className="text-cream text-sm font-medium">{order.customerName}</p>
-                    <p className="text-coffee-400 text-xs mt-0.5">
+                    <p className="text-coffee-900 dark:text-cream text-sm font-medium">{order.customerName}</p>
+                    <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
                       {order.items.map((i) => i.product.name).join(', ')}
                     </p>
                   </div>
@@ -323,8 +338,8 @@ export default function Dashboard() {
         </div>
 
         {/* Low stock */}
-        <div className="bg-coffee-900 border border-coffee-800 p-6">
-          <h2 className="font-serif text-xl text-cream mb-5 flex items-center gap-2">
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+          <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-yellow-500" />
             Bajo stock
           </h2>
@@ -335,9 +350,9 @@ export default function Dashboard() {
               {stats.lowStockProducts.map(({ name, stock }) => (
                 <div
                   key={name}
-                  className="flex items-center justify-between py-2 border-b border-coffee-800 last:border-0"
+                  className="flex items-center justify-between py-2 border-b border-coffee-200 dark:border-coffee-800 last:border-0"
                 >
-                  <p className="text-coffee-200 text-sm">{name}</p>
+                  <p className="text-coffee-800 dark:text-coffee-200 text-sm">{name}</p>
                   <span
                     className={`text-xs font-medium px-2 py-0.5 ${
                       stock <= 5 ? 'bg-red-900/30 text-red-400' : 'bg-yellow-900/30 text-yellow-400'
@@ -353,8 +368,8 @@ export default function Dashboard() {
       </div>
 
       {/* Barista leaderboard */}
-      <div className="bg-coffee-900 border border-coffee-800 p-6">
-        <h2 className="font-serif text-xl text-cream mb-5 flex items-center gap-2">
+      <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+        <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5 flex items-center gap-2">
           <Coffee className="w-4 h-4 text-gold-500/60" />
           Top Baristas
         </h2>
@@ -366,12 +381,12 @@ export default function Dashboard() {
               <Link
                 key={b.userId}
                 to={`/perfil/barista/${b.userId}`}
-                className="flex items-center justify-between py-2.5 border-b border-coffee-800 last:border-0 hover:bg-coffee-800/30 -mx-2 px-2 transition-colors"
+                className="flex items-center justify-between py-2.5 border-b border-coffee-200 dark:border-coffee-800 last:border-0 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30 -mx-2 px-2 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-coffee-500 text-xs w-5 text-right">{i + 1}</span>
                   <div>
-                    <p className="text-cream text-sm font-medium">{b.user.name}</p>
+                    <p className="text-coffee-900 dark:text-cream text-sm font-medium">{b.user.name}</p>
                     <p className="text-coffee-500 text-xs">{b.totalBrews} brews</p>
                   </div>
                 </div>

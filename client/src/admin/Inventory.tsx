@@ -190,8 +190,8 @@ export default function Inventory() {
     <div className="p-6 sm:p-8">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="font-serif text-3xl text-cream">Inventario</h1>
-          <p className="text-coffee-400 text-sm mt-1">Control de stock, existencias y movimientos</p>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Inventario</h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">Control de stock, existencias y movimientos</p>
         </div>
         <button onClick={loadOverview} className="flex items-center gap-2 text-xs text-coffee-400 hover:text-cream border border-coffee-700 px-3 py-2 transition-colors">
           <RefreshCw className="w-3.5 h-3.5" /> Actualizar

@@ -22,7 +22,7 @@ export default function BulkActionBar({
         <button
           onClick={onClearSelect}
           disabled={loading}
-          className="px-3 py-1 text-xs border border-coffee-700 text-coffee-400 hover:text-cream transition-colors disabled:opacity-50"
+          className="px-3 py-1 text-xs border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-50"
         >
           Limpiar
         </button>

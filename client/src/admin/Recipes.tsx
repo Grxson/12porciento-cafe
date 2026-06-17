@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import RecipeList from '../components/recipes/RecipeList';
 import RecipeEditor from '../components/recipes/RecipeEditor';
 import StepEditor from '../components/recipes/StepEditor';
+import ConfirmDialog from './components/ConfirmDialog';
 import type { Recipe, RecipeStep } from '../types';
 import type { RecipeFormData } from '../hooks/useRecipeForm';
 
@@ -26,6 +27,10 @@ function RecipesContent() {
   // Step editor modal state
   const [stepModal, setStepModal] = useState<StepModalState | null>(null);
   const [savingStep, setSavingStep] = useState(false);
+
+  // Delete confirm state
+  const [confirmRecipe, setConfirmRecipe] = useState<Recipe | null>(null);
+  const [confirmStep, setConfirmStep] = useState<{ recipeId: string; step: RecipeStep } | null>(null);
 
   // ── Recipe handlers ─────────────────────────────────────────────────────────
 
@@ -59,13 +64,19 @@ function RecipesContent() {
     }
   };
 
-  const handleDelete = async (recipe: Recipe) => {
-    if (!confirm(`¿Eliminar "${recipe.title}" y todos sus pasos?`)) return;
+  const handleDelete = (recipe: Recipe) => {
+    setConfirmRecipe(recipe);
+  };
+
+  const doDeleteRecipe = async () => {
+    if (!confirmRecipe) return;
     try {
-      await deleteRecipe(recipe.id);
+      await deleteRecipe(confirmRecipe.id);
       add('Receta eliminada', 'success');
     } catch (err: any) {
       add(err?.response?.data?.error || 'Error al eliminar', 'error');
+    } finally {
+      setConfirmRecipe(null);
     }
   };
 
@@ -79,14 +90,20 @@ function RecipesContent() {
     setStepModal({ recipeId, stepId: step.id });
   };
 
-  const handleDeleteStep = async (recipeId: string, step: RecipeStep) => {
-    if (!confirm(`¿Eliminar el paso "${step.title}"?`)) return;
+  const handleDeleteStep = (recipeId: string, step: RecipeStep) => {
+    setConfirmStep({ recipeId, step });
+  };
+
+  const doDeleteStep = async () => {
+    if (!confirmStep) return;
     try {
-      await recipesApi.deleteStep(recipeId, step.id);
+      await recipesApi.deleteStep(confirmStep.recipeId, confirmStep.step.id);
       add('Paso eliminado', 'success');
       await refresh();
     } catch (err: any) {
       add(err?.response?.data?.error || 'Error al eliminar paso', 'error');
+    } finally {
+      setConfirmStep(null);
     }
   };
 
@@ -133,8 +150,8 @@ function RecipesContent() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl text-cream">Recetas</h1>
-        <p className="text-coffee-400 text-sm">
+        <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream">Recetas</h1>
+        <p className="text-coffee-600 dark:text-coffee-400 text-sm">
           {recipes.length} total · {published} publicadas · {premium} premium
         </p>
       </div>
@@ -176,6 +193,26 @@ function RecipesContent() {
           loading={savingStep}
         />
       )}
+
+      <ConfirmDialog
+        open={!!confirmRecipe}
+        title="¿Eliminar receta?"
+        message={`¿Eliminar "${confirmRecipe?.title}" y todos sus pasos? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        isDangerous
+        onConfirm={doDeleteRecipe}
+        onCancel={() => setConfirmRecipe(null)}
+      />
+
+      <ConfirmDialog
+        open={!!confirmStep}
+        title="¿Eliminar paso?"
+        message={`¿Eliminar el paso "${confirmStep?.step.title}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        isDangerous
+        onConfirm={doDeleteStep}
+        onCancel={() => setConfirmStep(null)}
+      />
     </div>
   );
 }

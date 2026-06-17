@@ -66,12 +66,27 @@ export default function Checkout() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
 
+  // Offline detection
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
   // Saved payment methods state
   const [savedMethods, setSavedMethods] = useState<PaymentMethod[]>([]);
   const [defaultMethodId, setDefaultMethodId] = useState<string | null>(null);
   const [selectedMethodId, setSelectedMethodId] = useState<string | 'new'>('new');
   const [loadingMethods, setLoadingMethods] = useState(false);
   const [confirmingSaved, setConfirmingSaved] = useState(false);
+
+  // Offline event listeners
+  useEffect(() => {
+    const onOnline = () => setIsOffline(false);
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
 
   // Fetch saved payment methods when user has a Stripe customer ID
   useEffect(() => {
@@ -241,8 +256,8 @@ export default function Checkout() {
 
   if (items.length === 0 && !success) {
     return (
-      <div className="min-h-screen pt-20 flex flex-col items-center justify-center gap-4">
-        <p className="text-coffee-600">No hay productos en el carrito.</p>
+      <div className="min-h-screen pt-20 flex flex-col items-center justify-center gap-4 bg-coffee-50 dark:bg-coffee-950">
+        <p className="text-coffee-600 dark:text-coffee-400">No hay productos en el carrito.</p>
         <Link to="/tienda" className="btn-primary">Ir a la tienda</Link>
       </div>
     );
@@ -250,24 +265,24 @@ export default function Checkout() {
 
   if (success) {
     return (
-      <div className="min-h-screen pt-20 flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen pt-20 flex flex-col items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-coffee-900 border border-gold-500/30 p-12 text-center"
+          className="max-w-md w-full bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-12 text-center"
         >
           <div className="w-16 h-16 border-2 border-gold-500 flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-gold-500" />
           </div>
-          <h2 className="font-serif text-3xl text-cream mb-3">¡Pedido confirmado!</h2>
-          <p className="text-coffee-300 leading-relaxed mb-8">
+          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">¡Pedido confirmado!</h2>
+          <p className="text-coffee-700 dark:text-coffee-300 leading-relaxed mb-8">
             Tu pago fue procesado exitosamente. Tostamos a pedido para garantizar frescura máxima — recibirás
             tu café dentro de los próximos 3-5 días hábiles.
           </p>
           {!user && (
-            <div className="bg-coffee-800 border border-coffee-700 p-5 mb-6 text-left">
-              <p className="text-cream text-sm font-medium mb-1">¿Quieres rastrear este pedido?</p>
-              <p className="text-coffee-400 text-xs mb-3">
+            <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-5 mb-6 text-left">
+              <p className="text-coffee-900 dark:text-cream text-sm font-medium mb-1">¿Quieres rastrear este pedido?</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs mb-3">
                 Crea tu cuenta con el mismo email y podrás ver tu historial de pedidos.
               </p>
               <Link
@@ -285,10 +300,17 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-24 md:pb-0">
+    <div className="min-h-screen pt-20 pb-24 md:pb-0 bg-coffee-50 dark:bg-coffee-950">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="gold-line mb-4" />
-        <h1 className="font-serif text-4xl text-coffee-900 mb-4">Checkout</h1>
+        <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-4">Checkout</h1>
+
+        {/* Offline banner */}
+        {isOffline && (
+          <div className="bg-yellow-900/20 border border-yellow-500/30 text-yellow-400 dark:text-yellow-300 px-4 py-3 text-sm mb-4 rounded">
+            Sin conexión — no puedes completar el pago sin internet.
+          </div>
+        )}
 
         {/* Address save suggestion for logged-in users with no saved address */}
         {user && !user.address && step === 1 && !form.address && (
@@ -314,14 +336,14 @@ export default function Checkout() {
             return (
               <div key={n} className="flex items-center gap-2">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                  stepNum >= n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-100 text-coffee-400'
+                  stepNum >= n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400'
                 }`}>
                   {isPast ? <Check className="w-3.5 h-3.5" /> : n}
                 </div>
-                <span className={`text-sm transition-colors ${isActive ? 'text-coffee-900 font-medium' : 'text-coffee-400'}`}>
+                <span className={`text-sm transition-colors ${isActive ? 'text-coffee-900 dark:text-cream font-medium' : 'text-coffee-600 dark:text-coffee-400'}`}>
                   {label}
                 </span>
-                {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-coffee-300 ml-1" />}
+                {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-coffee-400 dark:text-coffee-700 ml-1" />}
               </div>
             );
           })}
@@ -340,79 +362,79 @@ export default function Checkout() {
                   onSubmit={handleShippingSubmit}
                   className="space-y-4"
                 >
-                  <h2 className="font-serif text-xl text-coffee-900 mb-4">Datos de envío</h2>
+                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Datos de envío</h2>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Nombre completo *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Nombre completo *</label>
                       <input
                         name="customerName" type="text" required
                         value={form.customerName} onChange={handleChange}
-                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.customerName ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.customerName ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                         placeholder="Tu nombre"
                       />
                       {fieldErrors.customerName && <p className="text-red-400 text-xs mt-1">{fieldErrors.customerName}</p>}
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Email *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email *</label>
                       <input
                         name="email" type="email" required
                         value={form.email} onChange={handleChange}
-                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                         placeholder="tu@email.com"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Teléfono</label>
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
                     <input name="phone" value={form.phone} onChange={handleChange}
-                      className={`w-full bg-white border text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
+                      className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                       placeholder="55 1234 5678" />
                     {fieldErrors.phone && <p className="text-red-400 text-xs mt-1">{fieldErrors.phone}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Dirección *</label>
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Dirección *</label>
                     <input name="address" required value={form.address} onChange={handleChange}
-                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                       placeholder="Calle, número, colonia" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Ciudad *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
                       <input name="city" required value={form.city} onChange={handleChange}
-                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                         placeholder="Ciudad" />
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Estado *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
                       <select name="state" required value={form.state} onChange={handleChange}
-                        className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none">
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none">
                         <option value="">Seleccionar</option>
                         {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">CP *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
                       <input name="zipCode" required value={form.zipCode} onChange={handleChange}
-                        className={`w-full bg-white border text-coffee-900 px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-coffee-300 focus:border-gold-500'}`}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                         placeholder="12345" />
                       {fieldErrors.zipCode && <p className="text-red-400 text-xs mt-1">{fieldErrors.zipCode}</p>}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-2">Notas adicionales</label>
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Notas adicionales</label>
                     <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
-                      className="w-full bg-white border border-coffee-300 text-coffee-900 px-4 py-3 text-base focus:border-gold-500 focus:outline-none resize-none"
+                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base focus:border-gold-500 focus:outline-none resize-none"
                       placeholder="Instrucciones especiales..." />
                   </div>
 
                   {error && <p className="text-red-400 text-sm">{error}</p>}
 
-                  <button type="submit" disabled={loadingIntent}
+                  <button type="submit" disabled={loadingIntent || isOffline}
                     className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     {loadingIntent ? 'Iniciando pago...' : (
                       <><span>Continuar al pago</span><ChevronRight className="w-4 h-4" /></>
@@ -432,18 +454,18 @@ export default function Checkout() {
                   <div className="flex items-center gap-3 mb-6">
                     <button
                       onClick={() => { setStep(1); setError(''); }}
-                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 transition-colors text-sm"
+                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors text-sm"
                     >
                       <ChevronLeft className="w-4 h-4" /> Volver a envío
                     </button>
                   </div>
-                  <h2 className="font-serif text-xl text-coffee-900 mb-6">Método de pago</h2>
+                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-6">Método de pago</h2>
 
                   {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
                   <div className="space-y-3 mb-6">
                     {loadingMethods ? (
-                      <div className="flex items-center gap-2 text-coffee-400 text-sm py-4">
+                      <div className="flex items-center gap-2 text-coffee-600 dark:text-coffee-400 text-sm py-4">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Cargando métodos de pago...
                       </div>
@@ -454,8 +476,8 @@ export default function Checkout() {
                             key={m.id}
                             className={`flex items-center gap-4 p-4 border cursor-pointer transition-colors ${
                               selectedMethodId === m.id
-                                ? 'border-gold-500 bg-gold-50'
-                                : 'border-coffee-200 bg-white hover:border-coffee-400'
+                                ? 'border-gold-500 bg-gold-50 dark:bg-gold-500/10'
+                                : 'border-coffee-200 dark:border-coffee-700 bg-white dark:bg-coffee-800 hover:border-coffee-400 dark:hover:border-coffee-600'
                             }`}
                           >
                             <input
@@ -467,10 +489,10 @@ export default function Checkout() {
                               className="accent-gold-500"
                             />
                             <CreditCard
-                              className={`w-5 h-5 shrink-0 ${selectedMethodId === m.id ? 'text-gold-600' : 'text-coffee-400'}`}
+                              className={`w-5 h-5 shrink-0 ${selectedMethodId === m.id ? 'text-gold-600' : 'text-coffee-600 dark:text-coffee-400'}`}
                             />
                             <div className="flex-1 min-w-0">
-                              <p className="text-coffee-900 text-sm font-medium capitalize">
+                              <p className="text-coffee-900 dark:text-cream text-sm font-medium capitalize">
                                 {m.brand} •••• {m.last4}
                                 {m.id === defaultMethodId && (
                                   <span className="ml-2 text-[10px] text-gold-600 uppercase tracking-widest border border-gold-400 px-1.5 py-0.5">
@@ -488,8 +510,8 @@ export default function Checkout() {
                         <label
                           className={`flex items-center gap-4 p-4 border cursor-pointer transition-colors ${
                             selectedMethodId === 'new'
-                              ? 'border-gold-500 bg-gold-50'
-                              : 'border-coffee-200 bg-white hover:border-coffee-400'
+                              ? 'border-gold-500 bg-gold-50 dark:bg-gold-500/10'
+                              : 'border-coffee-200 dark:border-coffee-700 bg-white dark:bg-coffee-800 hover:border-coffee-400 dark:hover:border-coffee-600'
                           }`}
                         >
                           <input
@@ -501,9 +523,9 @@ export default function Checkout() {
                             className="accent-gold-500"
                           />
                           <CreditCard
-                            className={`w-5 h-5 shrink-0 ${selectedMethodId === 'new' ? 'text-gold-600' : 'text-coffee-400'}`}
+                            className={`w-5 h-5 shrink-0 ${selectedMethodId === 'new' ? 'text-gold-600' : 'text-coffee-600 dark:text-coffee-400'}`}
                           />
-                          <p className="text-coffee-900 text-sm font-medium">Usar tarjeta nueva</p>
+                          <p className="text-coffee-900 dark:text-cream text-sm font-medium">Usar tarjeta nueva</p>
                         </label>
                       </>
                     )}
@@ -511,7 +533,7 @@ export default function Checkout() {
 
                   <button
                     onClick={handleCardSelectionSubmit}
-                    disabled={loadingIntent || loadingMethods}
+                    disabled={loadingIntent || loadingMethods || isOffline}
                     className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loadingIntent ? (
@@ -539,12 +561,12 @@ export default function Checkout() {
                         setError('');
                         setStep(savedMethods.length > 0 && !!user?.stripeCustomerId ? '2a' : 1);
                       }}
-                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 transition-colors text-sm"
+                      className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors text-sm"
                     >
                       <ChevronLeft className="w-4 h-4" /> Volver
                     </button>
                   </div>
-                  <h2 className="font-serif text-xl text-coffee-900 mb-6">Pago seguro</h2>
+                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-6">Pago seguro</h2>
 
                   {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
@@ -553,10 +575,10 @@ export default function Checkout() {
                       const savedCard = savedMethods.find((m) => m.id === selectedMethodId)!;
                       return (
                         <div className="space-y-6">
-                          <div className="flex items-center gap-4 p-4 border border-gold-400 bg-gold-50">
+                          <div className="flex items-center gap-4 p-4 border border-gold-400 bg-gold-50 dark:bg-gold-500/10">
                             <CreditCard className="w-6 h-6 text-gold-600 shrink-0" />
                             <div>
-                              <p className="text-coffee-900 text-sm font-medium capitalize">
+                              <p className="text-coffee-900 dark:text-cream text-sm font-medium capitalize">
                                 {savedCard.brand} •••• {savedCard.last4}
                               </p>
                               <p className="text-coffee-500 text-xs">
@@ -566,7 +588,7 @@ export default function Checkout() {
                           </div>
                           <button
                             onClick={handleConfirmSavedCard}
-                            disabled={confirmingSaved}
+                            disabled={confirmingSaved || isOffline}
                             className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {confirmingSaved ? (
@@ -593,33 +615,33 @@ export default function Checkout() {
 
           {/* Order summary */}
           <div>
-            <div className="bg-white border border-coffee-200 p-6 sticky top-24">
-              <h3 className="font-serif text-xl text-coffee-900 mb-5">Tu pedido</h3>
+            <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-6 sticky top-24">
+              <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5">Tu pedido</h3>
               <div className="space-y-3 mb-5">
                 {items.map(({ product, quantity }) => (
                   <div key={product.id} className="flex gap-3">
                     <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-coffee-900 text-sm leading-tight truncate">{product.name}</p>
+                      <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{product.name}</p>
                       <p className="text-coffee-500 text-xs">{product.weight}g · x{quantity}</p>
                     </div>
-                    <p className="text-coffee-700 text-sm shrink-0">${(product.price * quantity).toLocaleString('es-MX')}</p>
+                    <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">${(product.price * quantity).toLocaleString('es-MX')}</p>
                   </div>
                 ))}
               </div>
               {/* Promo code */}
               {step === 1 && (
-                <div className="border-t border-coffee-200 pt-4 mb-4">
+                <div className="border-t border-coffee-200 dark:border-coffee-700 pt-4 mb-4">
                   <p className="text-[10px] text-coffee-500 uppercase tracking-widest mb-2">Código de descuento</p>
                   {promoCode ? (
-                    <div className="flex items-center justify-between bg-green-50 border border-green-200 px-3 py-2">
+                    <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 px-3 py-2">
                       <div className="flex items-center gap-2">
                         <Tag className="w-3.5 h-3.5 text-green-600" />
-                        <span className="text-green-700 text-xs font-medium">{promoCode}</span>
-                        <span className="text-green-600 text-xs">− ${promoDiscount.toLocaleString('es-MX')}</span>
+                        <span className="text-green-700 dark:text-green-400 text-xs font-medium">{promoCode}</span>
+                        <span className="text-green-600 dark:text-green-400 text-xs">− ${promoDiscount.toLocaleString('es-MX')}</span>
                       </div>
                       <button onClick={() => { setPromoCode(''); setPromoDiscount(0); setPromoInput(''); }}
-                        className="text-coffee-400 hover:text-red-500 transition-colors">
+                        className="text-coffee-600 dark:text-coffee-400 hover:text-red-500 transition-colors">
                         <Check className="w-3 h-3 rotate-45" />
                       </button>
                     </div>
@@ -630,10 +652,10 @@ export default function Checkout() {
                         onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
                         placeholder="CÓDIGO"
-                        className="flex-1 bg-white border border-coffee-300 text-coffee-900 px-3 text-base min-h-[44px] focus:border-gold-500 focus:outline-none uppercase"
+                        className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 text-base min-h-[44px] focus:border-gold-500 focus:outline-none uppercase"
                       />
                       <button onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()}
-                        className="bg-coffee-100 border border-coffee-300 text-coffee-700 px-3 text-sm min-h-[44px] hover:bg-coffee-200 transition-colors disabled:opacity-50 flex items-center gap-1">
+                        className="bg-coffee-100 dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-600 text-coffee-800 dark:text-coffee-200 px-3 text-sm min-h-[44px] hover:bg-coffee-200 dark:hover:bg-coffee-600 transition-colors disabled:opacity-50 flex items-center gap-1">
                         {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aplicar'}
                       </button>
                     </div>
@@ -642,11 +664,11 @@ export default function Checkout() {
                 </div>
               )}
 
-              <div className="border-t border-coffee-200 pt-4">
+              <div className="border-t border-coffee-200 dark:border-coffee-700 pt-4">
                 {promoDiscount > 0 && (
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-coffee-600">Subtotal</span>
-                    <span className="text-coffee-700">${total().toLocaleString('es-MX')}</span>
+                    <span className="text-coffee-600 dark:text-coffee-400">Subtotal</span>
+                    <span className="text-coffee-800 dark:text-coffee-200">${total().toLocaleString('es-MX')}</span>
                   </div>
                 )}
                 {promoDiscount > 0 && (
@@ -656,7 +678,7 @@ export default function Checkout() {
                   </div>
                 )}
                 <div className="flex justify-between font-semibold">
-                  <span className="text-coffee-900">Total</span>
+                  <span className="text-coffee-900 dark:text-cream">Total</span>
                   <span className="text-gold-600 text-lg">${Math.max(total() - promoDiscount, 0).toLocaleString('es-MX')}</span>
                 </div>
                 <p className="text-coffee-500 text-xs mt-1">+ envío según destino</p>

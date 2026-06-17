@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -12,6 +12,12 @@ interface AdminModalProps {
 }
 
 export default function AdminModal({ open, title, onClose, children, footer, maxWidth = 'max-w-lg' }: AdminModalProps) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -26,19 +32,20 @@ export default function AdminModal({ open, title, onClose, children, footer, max
             initial={{ scale: 0.97, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.97, opacity: 0 }}
-            className={`bg-coffee-900 border border-coffee-700 w-full ${maxWidth} max-h-[90vh] flex flex-col`}
+            className={`bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 w-full ${maxWidth} max-h-[90vh] flex flex-col`}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
+            aria-labelledby="admin-modal-title"
           >
-            <div className="flex items-center justify-between p-5 border-b border-coffee-800">
-              <h2 className="font-serif text-xl text-cream">{title}</h2>
-              <button onClick={onClose} className="text-coffee-400 hover:text-cream transition-colors" aria-label="Cerrar">
+            <div className="flex items-center justify-between p-5 border-b border-coffee-200 dark:border-coffee-800">
+              <h2 id="admin-modal-title" className="font-serif text-xl text-coffee-900 dark:text-cream">{title}</h2>
+              <button onClick={onClose} className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors" aria-label="Cerrar">
                 <X size={20} />
               </button>
             </div>
             <div className="p-5 overflow-y-auto space-y-4">{children}</div>
-            {footer && <div className="p-5 border-t border-coffee-800 flex gap-3">{footer}</div>}
+            {footer && <div className="p-5 border-t border-coffee-200 dark:border-coffee-800 flex gap-3">{footer}</div>}
           </motion.div>
         </motion.div>
       )}

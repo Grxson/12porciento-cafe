@@ -28,6 +28,7 @@ export default function AdminProducts() {
   const [deleting, setDeleting] = useState(false);
 
   const [loadError, setLoadError] = useState('');
+  const [formError, setFormError] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -57,6 +58,10 @@ export default function AdminProducts() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
+    if (!form.name || form.name.trim().length < 2) { setFormError('El nombre debe tener al menos 2 caracteres.'); return; }
+    if (!form.price || form.price <= 0) { setFormError('El precio debe ser mayor a 0.'); return; }
+    if (form.stock === undefined || form.stock < 0) { setFormError('El stock no puede ser negativo.'); return; }
     setSaving(true);
     const data: any = {
       ...form,
@@ -70,6 +75,8 @@ export default function AdminProducts() {
       else if (editId) await productsApi.update(editId, data);
       setModal(null);
       load();
+    } catch (err: any) {
+      setFormError(err?.response?.data?.error || 'Error al guardar el producto.');
     } finally {
       setSaving(false);
     }
@@ -103,8 +110,8 @@ export default function AdminProducts() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-serif text-3xl text-cream">Productos</h1>
-          <p className="text-coffee-400 text-sm mt-1">{products.length} en catálogo</p>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Productos</h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{products.length} en catálogo</p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" /> Agregar
@@ -118,7 +125,7 @@ export default function AdminProducts() {
             key={cat}
             onClick={() => setCatFilter(cat)}
             className={`text-xs px-3 py-1.5 border transition-all ${
-              catFilter === cat ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-700 text-coffee-400 hover:border-coffee-500'
+              catFilter === cat ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
             }`}
           >
             {cat === 'TODOS' ? 'Todos' : categoryLabels[cat]}
@@ -138,11 +145,11 @@ export default function AdminProducts() {
           </button>
         </div>
       ) : (
-        <div className="bg-coffee-900 border border-coffee-800 overflow-hidden">
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-coffee-800">
+                <tr className="border-b border-coffee-200 dark:border-coffee-800">
                   {['Producto', 'Categoría', 'Info', 'Precio', 'Stock', 'Estado', ''].map((h) => (
                     <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
                   ))}
@@ -150,22 +157,22 @@ export default function AdminProducts() {
               </thead>
               <tbody>
                 {filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-coffee-800/50 hover:bg-coffee-800/30 transition-colors">
+                  <tr key={p.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <img src={resolveImageUrl(p.imageUrl)} alt={p.name} className="w-10 h-10 object-cover shrink-0" />
                         <div>
-                          <p className="text-cream font-medium">{p.name}</p>
+                          <p className="text-coffee-900 dark:text-cream font-medium">{p.name}</p>
                           {p.isLimited && <span className="text-xs text-red-400">Limitado</span>}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs border border-coffee-700 text-coffee-400 px-2 py-0.5">
+                      <span className="text-xs border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 px-2 py-0.5">
                         {categoryLabels[p.category] ?? p.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-coffee-300 text-xs">
+                    <td className="px-4 py-3 text-coffee-700 dark:text-coffee-300 text-xs">
                       {p.category === 'CAFÉ' && p.scaScore ? (
                         <span className="sca-badge"><Star className="w-3 h-3 fill-gold-500 text-gold-500" /> {p.scaScore}</span>
                       ) : (
@@ -221,10 +228,10 @@ export default function AdminProducts() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-coffee-900 border border-coffee-800 w-full max-w-2xl my-8"
+              className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 w-full max-w-2xl my-8"
             >
-              <div className="flex items-center justify-between p-6 border-b border-coffee-800">
-                <h2 className="font-serif text-2xl text-cream">
+              <div className="flex items-center justify-between p-6 border-b border-coffee-200 dark:border-coffee-800">
+                <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream">
                   {modal === 'add' ? 'Agregar producto' : 'Editar producto'}
                 </h2>
                 <button onClick={() => setModal(null)} className="text-coffee-400 hover:text-cream transition-colors">
@@ -232,10 +239,10 @@ export default function AdminProducts() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="p-6 space-y-4" onReset={() => setFormError('')}>
                 {/* Category */}
                 <div>
-                  <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">Categoría *</label>
+                  <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Categoría *</label>
                   <div className="flex gap-2">
                     {['CAFÉ', 'ACCESORIOS', 'MERCH'].map((cat) => (
                       <button
@@ -243,7 +250,7 @@ export default function AdminProducts() {
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, category: cat }))}
                         className={`text-xs px-4 py-2 border flex items-center gap-1.5 transition-all ${
-                          form.category === cat ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-700 text-coffee-400'
+                          form.category === cat ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400'
                         }`}
                       >
                         <Tag size={11} /> {categoryLabels[cat]}
@@ -263,12 +270,12 @@ export default function AdminProducts() {
                     ] : []),
                   ].map(({ name, label, required }) => (
                     <div key={name}>
-                      <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
                       <input
                         required={required}
                         value={(form as any)[name] ?? ''}
                         onChange={(e) => setForm((f) => ({ ...f, [name]: e.target.value }))}
-                        className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                       />
                     </div>
                   ))}
@@ -276,21 +283,21 @@ export default function AdminProducts() {
                   {isCafe && (
                     <>
                       <div>
-                        <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">Proceso</label>
+                        <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Proceso</label>
                         <select
                           value={form.process}
                           onChange={(e) => setForm((f) => ({ ...f, process: e.target.value }))}
-                          className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                         >
                           {['', 'Lavado', 'Natural', 'Honey', 'Anaeróbico Natural'].map((o) => <option key={o} value={o}>{o || 'Seleccionar'}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">Tueste</label>
+                        <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Tueste</label>
                         <select
                           value={form.roastLevel}
                           onChange={(e) => setForm((f) => ({ ...f, roastLevel: e.target.value }))}
-                          className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                         >
                           {['', 'Ligero', 'Medio-Ligero', 'Medio', 'Oscuro'].map((o) => <option key={o} value={o}>{o || 'Seleccionar'}</option>)}
                         </select>
@@ -308,14 +315,14 @@ export default function AdminProducts() {
                     { name: 'stock', label: 'Stock', type: 'number', required: true },
                   ].map(({ name, label, type, step, required }: any) => (
                     <div key={name}>
-                      <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
                       <input
                         type={type}
                         step={step}
                         required={required}
                         value={(form as any)[name] ?? ''}
                         onChange={(e) => setForm((f) => ({ ...f, [name]: e.target.value }))}
-                        className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                       />
                     </div>
                   ))}
@@ -334,36 +341,38 @@ export default function AdminProducts() {
 
                 {isCafe && (
                   <div>
-                    <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">Notas de cata (separadas por coma)</label>
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Notas de cata (separadas por coma)</label>
                     <input
                       value={form.flavors}
                       onChange={(e) => setForm((f) => ({ ...f, flavors: e.target.value }))}
-                      className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                       placeholder="Chocolate, Frambuesa, Miel"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">Descripción</label>
+                  <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Descripción</label>
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     rows={3}
-                    className="w-full bg-coffee-800 border border-coffee-700 text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none resize-none"
+                    className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none resize-none"
                   />
                 </div>
 
                 <div className="flex gap-6">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={form.isLimited} onChange={(e) => setForm((f) => ({ ...f, isLimited: e.target.checked }))} className="accent-gold-500" />
-                    <span className="text-sm text-coffee-300">Edición limitada</span>
+                    <span className="text-sm text-coffee-700 dark:text-coffee-300">Edición limitada</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))} className="accent-gold-500" />
-                    <span className="text-sm text-coffee-300">Activo</span>
+                    <span className="text-sm text-coffee-700 dark:text-coffee-300">Activo</span>
                   </label>
                 </div>
+
+                {formError && <p className="text-red-400 text-sm">{formError}</p>}
 
                 <div className="flex gap-3 pt-2">
                   <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">

@@ -1,12 +1,28 @@
-FROM node:20-alpine
-RUN apk add --no-cache openssl && npm install -g pnpm
+FROM node:24-alpine
+
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy root package files
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+
+# Copy workspace files
 COPY server ./server
 COPY client ./client
+
+# Install deps
 RUN pnpm install --frozen-lockfile
-WORKDIR /app/server
-RUN pnpm run build
-RUN mkdir -p /app/data
-EXPOSE 3001
-CMD ["sh", "-c", "pnpm exec prisma db push --accept-data-loss && pnpm exec ts-node prisma/seed.ts 2>&1 || true && node dist/src/index.js"]
+
+# Build server + client
+RUN pnpm --filter server build && pnpm --filter server exec prisma generate
+
+# Prisma migration at startup
+ENV DATABASE_URL=$DATABASE_URL
+ENV NODE_ENV=production
+ENV PORT=10000
+
+EXPOSE 10000
+
+CMD ["node", "server/dist/src/index.js"]

@@ -1,10 +1,9 @@
 services:
   - type: web
     name: cafe-server
-    runtime: node
+    runtime: docker
     plan: starter
-    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter server build && pnpm --filter server exec prisma generate && pnpm --filter server exec prisma db push --skip-generate
-    startCommand: node server/dist/src/index.js
+    dockerfilePath: ./server/Dockerfile
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -18,7 +17,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_URL
-        value: https://12porciento-cafe.onrender.com
+        value: https://cafe-client.onrender.com
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
@@ -26,15 +25,15 @@ services:
       - key: UPLOAD_DIR
         value: /tmp/uploads
 
-  - type: static
+  - type: web
     name: cafe-client
-    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter client build
-    staticPublishPath: ./client/dist
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./client/Dockerfile
+    envVars: []
     routes:
       - path: /api/*
         destination: https://cafe-server.onrender.com/api/:path
-      - path: /
-        destination: /index.html
 
 databases:
   - name: cafe-db

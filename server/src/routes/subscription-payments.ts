@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
+import { emitEvent } from '../socket';
 
 const router = Router();
 
@@ -74,6 +75,11 @@ router.post('/webhook/invoice', async (req: Request, res: Response) => {
       return res.status(400).json({ error: err.message });
     }
   } else {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[sub-webhook] STRIPE_WEBHOOK_SECRET not set in production');
+      res.status(500).json({ error: 'Webhook secret not configured' });
+      return;
+    }
     // Dev/test: no secret configured, trust body
     event = req.body;
   }
@@ -156,6 +162,44 @@ router.post('/webhook/invoice', async (req: Request, res: Response) => {
 
     console.log(`[sub-webhook] Payment failed for subscription ${sub.id}`);
     res.json({ received: true, status: 'failure_processed' });
+
+  } else if (event.type === 'customer.subscription.deleted') {
+    const stripeSub = event.data.object as { id: string };
+    if (!stripeSub.id) { res.json({ received: true }); return; }
+
+    const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSub.id } });
+    if (!sub) { res.json({ received: true }); return; }
+
+    await prisma.subscription.update({
+      where: { id: sub.id },
+      data: { status: 'CANCELLED' },
+    });
+    console.log(`[sub-webhook] Subscription cancelled: ${sub.id}`);
+    emitEvent({
+      event: 'subscription_cancelled',
+      title: 'Suscripción cancelada',
+      message: `Suscripción cancelada desde Stripe: ${sub.email}`,
+      targetUserId: sub.userId ?? undefined,
+      data: { subscriptionId: sub.id, email: sub.email },
+    });
+    res.json({ received: true, status: 'cancelled' });
+
+  } else if (event.type === 'customer.subscription.updated') {
+    const stripeSub = event.data.object as { id: string; status?: string; items?: { data: { price?: { unit_amount?: number } }[] } };
+    if (!stripeSub.id) { res.json({ received: true }); return; }
+
+    const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSub.id } });
+    if (!sub) { res.json({ received: true }); return; }
+
+    const updateData: { status?: string } = {};
+    if (stripeSub.status === 'active') updateData.status = 'ACTIVE';
+    else if (stripeSub.status === 'past_due') updateData.status = 'PAUSED';
+    else if (stripeSub.status === 'canceled') updateData.status = 'CANCELLED';
+
+    if (Object.keys(updateData).length > 0) {
+      await prisma.subscription.update({ where: { id: sub.id }, data: updateData });
+    }
+    res.json({ received: true, status: 'updated' });
 
   } else {
     res.json({ received: true });

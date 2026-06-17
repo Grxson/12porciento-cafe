@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { search } = req.query;
+    const { search, page, pageSize } = req.query;
     const where: any = {};
     if (search) {
       where.OR = [
@@ -14,17 +14,27 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
         { email: { contains: search as string } },
       ];
     }
-    const users = await prisma.user.findMany({
-      where,
-      select: {
-        id: true, name: true, email: true, phone: true,
-        city: true, state: true, createdAt: true,
-        _count: { select: { orders: true, subscriptions: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
-    res.json({ data: users });
+
+    const psRaw = parseInt(pageSize as string);
+    const ps = Number.isInteger(psRaw) ? Math.min(Math.max(psRaw, 1), 100) : 20;
+    const pgRaw = parseInt(page as string);
+    const pg = Number.isInteger(pgRaw) ? Math.max(pgRaw - 1, 0) : 0;
+
+    const [users, total] = await prisma.$transaction([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true, name: true, email: true, phone: true,
+          city: true, state: true, createdAt: true,
+          _count: { select: { orders: true, subscriptions: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: ps,
+        skip: pg * ps,
+      }),
+      prisma.user.count({ where }),
+    ]);
+    res.json({ data: users, total, page: pg + 1, pageSize: ps, totalPages: Math.ceil(total / ps) });
   } catch {
     res.status(500).json({ error: 'Error al obtener clientes' });
   }

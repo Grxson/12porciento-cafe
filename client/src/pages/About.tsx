@@ -99,7 +99,7 @@ export default function About() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {values.map(({ title, body }, i) => (
               <ScrollReveal key={title} delay={i * 0.1}>
-                <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 hover:border-gold-500/40 transition-all duration-300 p-8 cursor-default">
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 hover:border-gold-500/40 transition-all duration-300 p-8 cursor-default">
                   <div className="gold-line mb-5" />
                   <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-3">{title}</h3>
                   <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">{body}</p>

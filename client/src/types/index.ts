@@ -73,9 +73,19 @@ export interface Product {
 }
 
 export interface CartItem {
+  itemType: 'product';
   product: Product;
   quantity: number;
 }
+
+export interface BundleCartItem {
+  itemType: 'bundle';
+  bundleId: string;
+  bundle: Bundle;
+  quantity: number;
+}
+
+export type CartItemFull = CartItem | BundleCartItem;
 
 export interface Order {
   id: string;

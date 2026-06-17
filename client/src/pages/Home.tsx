@@ -349,7 +349,7 @@ export default function Home() {
       </section>
 
       {/* ── ESTADÍSTICAS ── */}
-      <section className="py-20 bg-gold-500">
+      <section className="py-20 bg-gold-500 dark:bg-gold-600/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
@@ -359,10 +359,10 @@ export default function Home() {
               { value: 100, suffix: '%', label: 'Comercio directo' },
             ].map(({ value, suffix, label }) => (
               <div key={label}>
-                <p className="font-serif text-5xl font-black text-coffee-950 leading-none">
+                <p className="font-serif text-5xl font-black text-coffee-950 dark:text-gold-500 leading-none">
                   <AnimatedCounter end={value} suffix={suffix} />
                 </p>
-                <p className="text-coffee-700 text-sm mt-2 uppercase tracking-widest">{label}</p>
+                <p className="text-coffee-700 dark:text-gold-500/70 text-sm mt-2 uppercase tracking-widest">{label}</p>
               </div>
             ))}
           </div>

@@ -262,8 +262,10 @@ router.get('/:userId/brews', async (req: Request, res: Response) => {
 // GET /barista/:userId/profile
 router.get('/:userId/profile', async (req: Request, res: Response) => {
   try {
-    const profile = await prisma.baristaProfile.findUnique({
-      where: { userId: req.params.userId },
+    const { userId } = req.params;
+
+    let profile = await prisma.baristaProfile.findUnique({
+      where: { userId },
       include: {
         user: { select: { id: true, name: true } },
         achievements: {
@@ -278,7 +280,29 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
       },
     });
 
-    if (!profile) return res.status(404).json({ error: 'Perfil no encontrado' });
+    if (!profile) {
+      // Users exist before they brew; return an empty profile instead of 404
+      // so the UI can render level 1 / 0 XP without a console error.
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true },
+      });
+      if (!user) return res.status(404).json({ error: 'Perfil no encontrado' });
+      profile = {
+        id: user.id,
+        userId: user.id,
+        user,
+        level: 1,
+        totalXp: 0,
+        totalBrews: 0,
+        favoriteMethod: null,
+        achievements: [],
+        brewLogs: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as any;
+    }
+
     res.json({ data: profile });
   } catch (err) {
     console.error(err);

@@ -1,12 +1,17 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
+import Stripe from 'stripe';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
 
 const router = Router();
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2026-05-27.dahlia',
+});
 
 const createLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -23,12 +28,24 @@ const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
   EMPRESARIAL: { min: 10, max: 99 },
 };
 
+async function ensureStripeCustomer(email: string, name: string, phone?: string): Promise<string> {
+  const existing = await stripe.customers.list({ email: email.toLowerCase(), limit: 1 });
+  if (existing.data.length > 0) return existing.data[0].id;
+
+  const customer = await stripe.customers.create({
+    email: email.toLowerCase(),
+    name,
+    ...(phone ? { phone } : {}),
+    metadata: { source: '12porciento-subscription' },
+  });
+  return customer.id;
+}
+
 // POST / — create subscription with selected coffees
 router.post('/', createLimiter, async (req: Request, res: Response) => {
   try {
     const { name, email, phone, plan, frequency = 'monthly', grindPreference = 'GRANO', items = [] } = req.body;
 
-    // Derive userId from token — ignore body to prevent IDOR
     let userId: string | undefined;
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
@@ -62,13 +79,29 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
       return;
     }
 
+    const productRecords = await prisma.product.findMany({
+      where: { id: { in: items as string[] } },
+      select: { id: true, name: true, price: true, isActive: true, stock: true },
+    });
+    if (productRecords.length !== items.length) {
+      res.status(400).json({ error: 'Uno o más productos no existen' });
+      return;
+    }
+    for (const p of productRecords) {
+      if (!p.isActive) {
+        res.status(400).json({ error: `El producto "${p.name}" no está disponible` });
+        return;
+      }
+      if (p.stock < 1) {
+        res.status(400).json({ error: `El producto "${p.name}" está agotado` });
+        return;
+      }
+    }
+
     const subItemsInclude = {
       items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true } } } },
     };
 
-    // email is globally @unique, so check for ANY existing subscription (not just
-    // ACTIVE/PAUSED). A CANCELLED one must be reactivated, otherwise create() hits
-    // a P2002 unique-constraint error and 500s.
     const existing = await prisma.subscription.findUnique({ where: { email: normalizedEmail } });
     if (existing && (existing.status === 'ACTIVE' || existing.status === 'PAUSED')) {
       res.status(409).json({ error: 'Ya tienes una suscripción activa o pausada con este email' });
@@ -78,9 +111,47 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
     const nextBilling = new Date();
     nextBilling.setMonth(nextBilling.getMonth() + (frequency === 'bimonthly' ? 2 : 1));
 
+    let stripeCustomerId: string | undefined;
+    try {
+      stripeCustomerId = await ensureStripeCustomer(normalizedEmail, name.trim(), phone);
+    } catch (stripeErr) {
+      console.warn('[subscription] Could not create Stripe customer:', stripeErr);
+    }
+
+    let stripeSubscriptionId: string | undefined;
+    if (stripeCustomerId) {
+      try {
+        const priceInCents = Math.round(
+          productRecords.reduce((sum: number, p: { price: number }) => sum + Number(p.price), 0) * 100,
+        );
+        if (priceInCents < 100) {
+          throw new Error('El total de la suscripción debe ser al menos $10 MXN');
+        }
+
+        const stripeSub = await stripe.subscriptions.create({
+          customer: stripeCustomerId,
+          items: [
+            {
+              price_data: {
+                currency: 'mxn',
+                product_data: {
+                  name: `Suscripción 12% — ${plan}`,
+                  description: productRecords.map((p: { name: string }) => p.name).join(', '),
+                },
+                unit_amount: priceInCents,
+              },
+            },
+          ],
+        } as any);
+
+        stripeSubscriptionId = stripeSub.id;
+      } catch (stripeErr) {
+        console.warn('[subscription] Could not create Stripe subscription:', stripeErr);
+      }
+    }
+
     let subscription;
     if (existing) {
-      // Reactivate the cancelled subscription: replace its coffees and reset state.
       const [, updated] = await prisma.$transaction([
         prisma.subscriptionItem.deleteMany({ where: { subscriptionId: existing.id } }),
         prisma.subscription.update({
@@ -89,6 +160,7 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
             name: name.trim(), phone, plan, frequency, grindPreference, nextBilling,
             status: 'ACTIVE', fulfillmentStatus: 'PENDIENTE',
             ...(userId ? { userId } : {}),
+            ...(stripeSubscriptionId ? { stripeSubscriptionId } : {}),
             items: { create: items.map((productId: string) => ({ productId })) },
           },
           include: subItemsInclude,
@@ -100,6 +172,7 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
         data: {
           name: name.trim(), email: normalizedEmail, phone, plan, frequency, grindPreference, nextBilling,
           ...(userId ? { userId } : {}),
+          ...(stripeSubscriptionId ? { stripeSubscriptionId } : {}),
           items: { create: items.map((productId: string) => ({ productId })) },
         },
         include: subItemsInclude,

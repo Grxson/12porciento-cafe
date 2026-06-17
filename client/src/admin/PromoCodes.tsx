@@ -3,6 +3,8 @@ import { Plus, Trash2, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
 import { promoCodesApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
 
 interface PromoCode {
   id: string;
@@ -28,13 +30,19 @@ export default function AdminPromoCodes() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [listError, setListError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const load = () => {
+    setLoading(true);
+    setListError('');
     promoCodesApi.list()
       .then((r) => { setCodes(r.data.data); })
-      .catch(() => addToast('Error al cargar códigos', 'error'))
+      .catch(() => {
+        setListError('Error al cargar códigos');
+        addToast('Error al cargar códigos', 'error');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -169,9 +177,9 @@ export default function AdminPromoCodes() {
       </form>
 
       {loading ? (
-        <div className="flex justify-center py-10">
-          <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-        </div>
+        <AdminSkeleton rows={4} />
+      ) : listError ? (
+        <AdminErrorState error={listError} onRetry={load} />
       ) : codes.length === 0 ? (
         <p className="text-center text-coffee-500 py-10">No hay códigos creados.</p>
       ) : (

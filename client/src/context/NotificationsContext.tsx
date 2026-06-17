@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useReducer, useRef, ReactNode } from 'react';
 import { getSocket, disconnectSocket } from '../lib/socket';
+import { useToast } from './ToastContext';
 
 export interface Notification {
   id: string;
@@ -62,16 +63,28 @@ const SOCKET_EVENTS = [
   'new_reply',
   'subscription_created',
   'subscription_cancelled',
+  'low_stock',
 ] as const;
+
+const EVENT_TOAST_TYPE: Record<string, 'success' | 'error' | 'info' | 'warning'> = {
+  low_stock: 'warning',
+  new_order: 'warning',
+  order_status_changed: 'info',
+  new_review: 'success',
+  review_approved: 'success',
+  new_reply: 'info',
+  subscription_created: 'success',
+  subscription_cancelled: 'warning',
+};
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { notifications: [], unreadCount: 0 });
   const connectedRef = useRef(false);
+  const { add: addToast } = useToast();
 
   useEffect(() => {
     if (connectedRef.current) return;
 
-    // Don't connect if no auth token (unauthenticated visitors)
     const isAdmin = window.location.pathname.startsWith('/admin');
     const token = isAdmin
       ? localStorage.getItem('admin_token')
@@ -83,6 +96,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     const socket = getSocket();
 
     const handleEvent = (payload: { event: string; title: string; message: string; data?: Record<string, unknown> }) => {
+      const toastType = EVENT_TOAST_TYPE[payload.event] ?? 'info';
+      addToast(payload.title, toastType);
       dispatch({
         type: 'ADD',
         notification: {

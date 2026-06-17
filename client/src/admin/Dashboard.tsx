@@ -12,6 +12,46 @@ import {
 import { dashboardApi, baristaApi } from '../api';
 import type { DashboardStats } from '../types';
 
+interface ChartColors {
+  grid: string;
+  text: string;
+  gold: string;
+  tooltipBg: string;
+  tooltipBorder: string;
+  tooltipText: string;
+}
+
+function useChartColors(): ChartColors {
+  const [colors, setColors] = useState<ChartColors>({
+    grid: '#2c1810',
+    text: '#a05a2c',
+    gold: '#c9a96e',
+    tooltipBg: '#1a0f0a',
+    tooltipBorder: '#2c1810',
+    tooltipText: '#e8d5b7',
+  });
+  useEffect(() => {
+    const root = document.documentElement;
+    const computed = getComputedStyle(root);
+    const update = () => {
+      const isDark = root.classList.contains('dark');
+      setColors({
+        grid: isDark ? '#2c1810' : computed.getPropertyValue('--chart-grid').trim() || '#e8d5c4',
+        text: isDark ? '#a05a2c' : computed.getPropertyValue('--chart-text').trim() || '#8b5a2b',
+        gold: '#c9a96e',
+        tooltipBg: isDark ? '#1a0f0a' : computed.getPropertyValue('--chart-tooltip-bg').trim() || '#ffffff',
+        tooltipBorder: isDark ? '#2c1810' : computed.getPropertyValue('--chart-tooltip-border').trim() || '#e8d5c4',
+        tooltipText: isDark ? '#e8d5b7' : computed.getPropertyValue('--chart-tooltip-text').trim() || '#4a3728',
+      });
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+  return colors;
+}
+
 const statusConfig: Record<string, { label: string; color: string; hex: string }> = {
   PENDING:    { label: 'Pendiente',  color: 'text-yellow-400', hex: '#eab308' },
   PROCESSING: { label: 'Procesando', color: 'text-blue-400',   hex: '#3b82f6' },
@@ -47,6 +87,7 @@ export default function Dashboard() {
     totalBrews: number;
     user: { id: string; name: string };
   }[]>([]);
+  const chartColors = useChartColors();
 
   useEffect(() => {
     dashboardApi.stats()
@@ -225,33 +266,33 @@ export default function Dashboard() {
                   <stop offset="95%" stopColor="#c9a96e" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2c1810" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
               <XAxis
                 dataKey="mes"
-                tick={{ fill: '#8b4513', fontSize: 11 }}
+                tick={{ fill: chartColors.text, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: '#8b4513', fontSize: 11 }}
+                tick={{ fill: chartColors.text, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
               />
               <Tooltip
-                contentStyle={{ background: '#1a0f0a', border: '1px solid #2c1810', borderRadius: 0 }}
-                labelStyle={{ color: '#c9a96e', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em' }}
-                itemStyle={{ color: '#e8d5b7', fontSize: 12 }}
+                contentStyle={{ background: chartColors.tooltipBg, border: `1px solid ${chartColors.tooltipBorder}`, borderRadius: 0 }}
+                labelStyle={{ color: chartColors.gold, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
                 formatter={(v) => [`$${Number(v).toLocaleString('es-MX')}`, 'Ingresos']}
               />
               <Area
                 type="monotone"
                 dataKey="ingresos"
-                stroke="#c9a96e"
+                stroke={chartColors.gold}
                 strokeWidth={2}
                 fill="url(#goldGrad)"
                 dot={false}
-                activeDot={{ r: 4, fill: '#c9a96e', strokeWidth: 0 }}
+                activeDot={{ r: 4, fill: chartColors.gold, strokeWidth: 0 }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -289,13 +330,13 @@ export default function Dashboard() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ background: '#1a0f0a', border: '1px solid #2c1810', borderRadius: 0 }}
-                  itemStyle={{ color: '#e8d5b7', fontSize: 12 }}
+                  contentStyle={{ background: chartColors.tooltipBg, border: `1px solid ${chartColors.tooltipBorder}`, borderRadius: 0 }}
+                  itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
                 />
                 <Legend
                   iconType="circle"
                   iconSize={8}
-                  formatter={(v) => <span style={{ color: '#a05a2c', fontSize: 11 }}>{v}</span>}
+                  formatter={(v) => <span style={{ color: chartColors.text, fontSize: 11 }}>{v}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -320,7 +361,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-coffee-900 dark:text-cream text-sm font-medium">{order.customerName}</p>
                     <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
-                      {order.items.map((i) => i.product.name).join(', ')}
+                      {order.items.map((i) => i.product?.name ?? 'Producto').join(', ')}
                     </p>
                   </div>
                   <div className="text-right">

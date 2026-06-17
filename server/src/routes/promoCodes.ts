@@ -44,7 +44,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       res.status(400).json({ error: 'Descuento porcentual no puede superar 100%' });
       return;
     }
-    const maxUsesNum = maxUses != null ? parseInt(maxUses) : null;
+    const maxUsesNum = maxUses != null ? Number(maxUses) : null;
     if (maxUsesNum !== null && (!Number.isInteger(maxUsesNum) || maxUsesNum < 1)) {
       res.status(400).json({ error: 'maxUses debe ser entero positivo' });
       return;

@@ -22,6 +22,34 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
 });
 
+function validateOrderFields(data: any): string | null {
+  if (!data.customerName || typeof data.customerName !== 'string' || data.customerName.trim().length < 2 || data.customerName.length > 100) {
+    return 'Nombre debe tener entre 2 y 100 caracteres';
+  }
+  if (!data.email || typeof data.email !== 'string' || data.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    return 'Email inválido';
+  }
+  if (data.phone && !/^\d{10}$/.test(String(data.phone).replace(/[\s\-()]/g, ''))) {
+    return 'Teléfono debe tener 10 dígitos';
+  }
+  if (!data.address || typeof data.address !== 'string' || data.address.trim().length < 5 || data.address.length > 200) {
+    return 'Dirección debe tener entre 5 y 200 caracteres';
+  }
+  if (!data.city || typeof data.city !== 'string' || data.city.trim().length < 2 || data.city.length > 100) {
+    return 'Ciudad inválida';
+  }
+  if (!data.state || typeof data.state !== 'string' || data.state.trim().length < 2 || data.state.length > 100) {
+    return 'Estado inválido';
+  }
+  if (!data.zipCode || !/^\d{5}$/.test(String(data.zipCode))) {
+    return 'CP debe tener 5 dígitos';
+  }
+  if (data.notes && typeof data.notes === 'string' && data.notes.length > 500) {
+    return 'Notas no pueden superar 500 caracteres';
+  }
+  return null;
+}
+
 async function applyPromo(subtotal: number, promoCode?: string): Promise<{ total: number; promoId: string | null }> {
   if (!promoCode) return { total: subtotal, promoId: null };
   const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
@@ -40,12 +68,21 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<{ total
 router.post('/', orderLimiter, async (req: Request, res: Response) => {
   try {
     const {
-      items, paymentIntentId, promoCode,
+      items: clientItems, paymentIntentId, promoCode,
       customerName, email, phone, address, city, state, zipCode, notes,
     } = req.body;
+
+    if (!paymentIntentId) {
+      return res.status(400).json({ error: 'Payment intent requerido' });
+    }
+
     const orderData = { customerName, email, phone, address, city, state, zipCode, notes };
 
-    // Derive userId from token — ignore body to prevent IDOR
+    const validationError = validateOrderFields(orderData);
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+    }
+
     let userId: string | undefined;
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
@@ -55,61 +92,110 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
           process.env.JWT_SECRET!,
         ) as { id: string; role?: string };
         if (payload.role === 'USER') userId = payload.id;
-      } catch { /* guest order */ }
+      } catch { /* invalid token */ }
     }
 
-    if (paymentIntentId) {
-      try {
-        const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
-        if (intent.status !== 'succeeded') {
-          return res.status(400).json({ error: 'El pago no ha sido confirmado.' });
-        }
-      } catch {
-        return res.status(400).json({ error: 'No se pudo verificar el pago.' });
+    let intent: Awaited<ReturnType<typeof stripe.paymentIntents.retrieve>>;
+    try {
+      intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      if (intent.status !== 'succeeded') {
+        return res.status(400).json({ error: 'El pago no ha sido confirmado.' });
       }
-    } else {
-      console.warn('[orders] Order created without paymentIntentId — guest/legacy order');
+    } catch {
+      return res.status(400).json({ error: 'No se pudo verificar el pago.' });
     }
 
-    const subtotal = items.reduce(
-      (sum: number, item: { price: number; quantity: number }) =>
-        sum + item.price * item.quantity,
-      0,
-    );
-    const { total, promoId } = await applyPromo(subtotal, promoCode);
+    let intentItems: { productId: string; quantity: number }[];
+    try {
+      intentItems = JSON.parse(intent.metadata?.items || '[]');
+    } catch {
+      return res.status(500).json({ error: 'Error al leer metadata del pago.' });
+    }
+    if (!intentItems?.length) {
+      return res.status(500).json({ error: 'Metadata de pago corrupta.' });
+    }
 
-    // Idempotency check: if another path (webhook / client retry) already created
-    // the order for this paymentIntentId, return it immediately — no duplicate, no error.
-    if (paymentIntentId) {
-      const existing = await prisma.order.findUnique({
-        where: { paymentIntentId },
-        include: { items: { include: { product: true } } },
+    const MAX_QTY_PER_PRODUCT = 10;
+    if (clientItems?.some((item: { productId: string; quantity: number }) =>
+      !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QTY_PER_PRODUCT
+    )) {
+      return res.status(400).json({ error: `Cantidad máxima por producto: ${MAX_QTY_PER_PRODUCT}` });
+    }
+
+    const existing = await prisma.order.findUnique({
+      where: { paymentIntentId },
+      include: { items: { include: { product: true } } },
+    });
+    if (existing) return res.json(existing);
+
+    const subtotal = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      let total = 0;
+      for (const item of intentItems) {
+        const prod = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { price: true, stock: true, isActive: true, name: true },
+        });
+        if (!prod || !prod.isActive) {
+          throw new Error(`VALIDATION:Producto no disponible`);
+        }
+        if (prod.stock < item.quantity) {
+          throw new Error(`VALIDATION:Stock insuficiente para "${prod.name}" (disponible: ${prod.stock})`);
+        }
+        total += Number(prod.price) * item.quantity;
+      }
+      return total;
+    });
+
+    const intentAmountMatch = Math.abs(Math.round(subtotal * 100) - intent.amount) < 100;
+    if (!intentAmountMatch) {
+      return res.status(400).json({
+        error: 'El monto del pago no coincide con los productos ordenados.',
+        detail: `Total calculado: $${(subtotal / 100).toFixed(2)}, Cargo: $${(intent.amount / 100).toFixed(2)}`,
       });
-      if (existing) return res.json(existing);
+    }
+
+    const { total, promoId } = await applyPromo(subtotal, promoCode);
+    const expectedAmount = Math.round(total * 100);
+    if (Math.abs(expectedAmount - intent.amount) >= 50) {
+      return res.status(400).json({
+        error: 'El descuento no se aplicó correctamente.',
+        detail: `Total con descuento: $${(total / 100).toFixed(2)}, Cargo: $${(intent.amount / 100).toFixed(2)}`,
+      });
     }
 
     try {
       const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        for (const item of intentItems) {
+          const prod = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true, name: true, isActive: true, price: true },
+          });
+          if (!prod || !prod.isActive) throw new Error(`VALIDATION:Producto no disponible`);
+          if (prod.stock < item.quantity) throw new Error(`VALIDATION:Stock insuficiente para "${prod.name}" (disponible: ${prod.stock})`);
+        }
+
         const created = await tx.order.create({
           data: {
             ...orderData,
             total,
             ...(userId ? { userId } : {}),
-            ...(paymentIntentId ? { paymentIntentId } : {}),
+            paymentIntentId,
             items: {
-              create: items.map((item: { productId: string; quantity: number; price: number }) => ({
+              create: intentItems.map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
-                price: item.price,
+                price: 0,
               })),
             },
           },
           include: { items: { include: { product: true } } },
         });
 
-        for (const item of items) {
-          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
+        for (const item of intentItems) {
+          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true, price: true, name: true, lowStockThreshold: true } });
           if (prod) {
+            const newStock = prod.stock - item.quantity;
+            await tx.orderItem.update({ where: { id: created.items.find((i: { productId: string }) => i.productId === item.productId)?.id }, data: { price: prod.price } });
             await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
             await tx.stockMovement.create({
               data: {
@@ -117,26 +203,27 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
                 type: 'SALE',
                 quantity: -item.quantity,
                 previousStock: prod.stock,
-                newStock: prod.stock - item.quantity,
+                newStock,
                 orderId: created.id,
                 notes: `Pedido #${created.id.slice(-8).toUpperCase()}`,
               },
             });
+            if (newStock <= prod.lowStockThreshold) {
+              emitEvent({
+                event: 'low_stock',
+                title: 'Stock bajo',
+                message: `${prod.name}: ${newStock} unidades (umbral: ${prod.lowStockThreshold})`,
+                data: { productId: item.productId, productName: prod.name, stock: newStock, threshold: prod.lowStockThreshold },
+              });
+            }
           }
         }
 
-        if (promoId) {
-          await tx.promoCode.update({
-            where: { id: promoId },
-            data: { usedCount: { increment: 1 } },
-          });
-        }
+        if (promoId) await tx.promoCode.update({ where: { id: promoId }, data: { usedCount: { increment: 1 } } });
 
         return created;
       });
 
-      // Email send is intentionally outside the transaction so a mail failure cannot
-      // roll back a committed order.
       sendOrderConfirmation({
         to: order.email,
         customerName: order.customerName,
@@ -158,9 +245,6 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
 
       res.status(201).json(order);
     } catch (err: any) {
-      // P2002 = unique constraint violation: another path created the order between
-      // our findUnique check and the create (TOCTOU race). Resolve by returning the
-      // existing order rather than surfacing a 500 to the user.
       if (err?.code === 'P2002' && paymentIntentId) {
         const existing = await prisma.order.findUnique({
           where: { paymentIntentId },
@@ -168,10 +252,13 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
         });
         if (existing) return res.json(existing);
       }
+      if (err?.message?.startsWith('VALIDATION:')) {
+        return res.status(400).json({ error: err.message.replace('VALIDATION:', '') });
+      }
       throw err;
     }
-  } catch {
-    res.status(500).json({ error: 'Error al crear pedido' });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Error al crear pedido' });
   }
 });
 
@@ -242,19 +329,56 @@ router.put('/:id/status', requireAuth, async (req: AuthRequest, res: Response) =
       res.status(400).json({ error: 'Estado inválido' });
       return;
     }
-    const order = await prisma.order.update({
-      where: { id: req.params.id },
-      data: { status },
-    });
 
-    // Notify customer on relevant status changes — fire and forget
-    if (['PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].includes(status)) {
+    if (status === 'CANCELLED') {
+      const orderWithItems = await prisma.order.findUnique({
+        where: { id: req.params.id },
+        include: { items: { include: { product: true } } },
+      });
+      if (!orderWithItems) { res.status(404).json({ error: 'Pedido no encontrado' }); return; }
+      if (orderWithItems.status === 'CANCELLED') { res.status(400).json({ error: 'El pedido ya está cancelado' }); return; }
+
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        for (const item of orderWithItems.items) {
+          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
+          if (prod) {
+            await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
+            await tx.stockMovement.create({
+              data: {
+                productId: item.productId,
+                type: 'RETURN',
+                quantity: item.quantity,
+                previousStock: prod.stock,
+                newStock: prod.stock + item.quantity,
+                orderId: orderWithItems.id,
+                notes: `Cancelación pedido #${orderWithItems.id.slice(-8).toUpperCase()}`,
+              },
+            });
+          }
+        }
+        await tx.order.update({ where: { id: req.params.id }, data: { status } });
+      });
+    } else {
+      await prisma.order.update({ where: { id: req.params.id }, data: { status } });
+    }
+
+    const order = await prisma.order.findUnique({ where: { id: req.params.id } });
+
+    if (order && ['PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].includes(status)) {
       sendOrderStatusUpdate({
         to: order.email,
         customerName: order.customerName,
         orderId: order.id,
         status,
       }).catch(() => {});
+
+      emitEvent({
+        event: 'order_status_changed',
+        title: `Pedido #${order.id.slice(-8).toUpperCase()} — ${status}`,
+        message: `Tu pedido ha sido actualizado a: ${status}`,
+        targetUserId: order.userId ?? undefined,
+        data: { orderId: order.id, status, customerName: order.customerName },
+      });
     }
 
     res.json(order);

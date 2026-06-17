@@ -11,6 +11,7 @@ import CartDrawer from './CartDrawer';
 
 const links = [
   { to: '/tienda', label: 'Tienda' },
+  { to: '/paquetes', label: 'Paquetes' },
   { to: '/recetas', label: 'Recetas' },
   { to: '/leaderboard', label: 'Ranking' },
   { to: '/logros', label: 'Logros' },

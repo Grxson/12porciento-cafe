@@ -11,7 +11,8 @@ export type EventName =
   | 'review_approved'
   | 'new_reply'
   | 'subscription_created'
-  | 'subscription_cancelled';
+  | 'subscription_cancelled'
+  | 'low_stock';
 
 export interface SocketEvent {
   event: EventName;

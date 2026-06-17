@@ -44,6 +44,7 @@ import Quiz from './pages/Quiz';
 import BaristaProfile from './pages/BaristaProfile';
 import Leaderboard from './pages/Leaderboard';
 import AchievementGallery from './pages/AchievementGallery';
+import Bundles from './pages/Bundles';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
@@ -81,6 +82,7 @@ export default function App() {
         <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
         <Route path="/carrito" element={<PublicLayout><Cart /></PublicLayout>} />
         <Route path="/checkout" element={<PublicLayout><Checkout /></PublicLayout>} />
+        <Route path="/paquetes" element={<PublicLayout><Bundles /></PublicLayout>} />
         <Route path="/recetas" element={<PublicLayout><Recipes /></PublicLayout>} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />

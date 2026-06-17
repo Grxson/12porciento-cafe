@@ -8,6 +8,8 @@ import ConfirmDialog from './components/ConfirmDialog';
 import FormField from './components/FormField';
 import ImageUploader from './components/ImageUploader';
 import AdminModal from './components/AdminModal';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
 
 // ── types ──────────────────────────────────────────────────────────────────
 type ModalMode = 'add' | 'edit';
@@ -47,6 +49,8 @@ export default function AdminBundles() {
   const {
     items: bundles,
     loading,
+    error,
+    retry,
     create,
     update,
     delete: remove,
@@ -240,9 +244,9 @@ export default function AdminBundles() {
 
       {/* List */}
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-        </div>
+        <AdminSkeleton rows={4} />
+      ) : error ? (
+        <AdminErrorState error={error} onRetry={retry} />
       ) : bundles.length === 0 ? (
         <div className="text-center py-20 text-coffee-500">
           <Package size={40} className="mx-auto mb-4 text-coffee-700" />

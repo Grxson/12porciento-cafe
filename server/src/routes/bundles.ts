@@ -45,6 +45,27 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Se requiere al menos un producto' });
     }
+
+    for (const item of items) {
+      if (!item.productId || typeof item.productId !== 'string') {
+        return res.status(400).json({ error: 'Cada item debe tener un productId válido' });
+      }
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+        select: { isActive: true, name: true },
+      });
+      if (!product) {
+        return res.status(400).json({ error: `Producto no encontrado` });
+      }
+      if (!product.isActive) {
+        return res.status(400).json({ error: `El producto "${product.name}" no está activo` });
+      }
+      const qty = item.quantity || 1;
+      if (!Number.isInteger(qty) || qty < 1) {
+        return res.status(400).json({ error: 'Cantidad debe ser un entero positivo' });
+      }
+    }
+
     const finalPrice = Math.max(basePrice * (1 - discountPct / 100), 0);
 
     const bundle = await prisma.bundle.create({
@@ -88,9 +109,17 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     const effectiveDiscount = discountPct ?? existing.discountPct;
     const finalPrice = Math.max(effectiveBase * (1 - effectiveDiscount / 100), 0);
 
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (basePrice !== undefined) { updateData.basePrice = basePrice; updateData.finalPrice = finalPrice; }
+    if (discountPct !== undefined) { updateData.discountPct = discountPct; updateData.finalPrice = finalPrice; }
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
     const bundle = await prisma.bundle.update({
       where: { id: req.params.id },
-      data: { name, description, basePrice, discountPct, finalPrice, imageUrl, isActive },
+      data: updateData,
       include: { items: { include: { product: true } } },
     });
 

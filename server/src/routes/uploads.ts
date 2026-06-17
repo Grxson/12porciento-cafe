@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import rateLimit from 'express-rate-limit';
-import { requireAuth, requireAnyAuth, AnyAuthRequest, AuthRequest } from '../middleware/auth';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 import { uploadMiddleware, processImage, deleteImage } from '../lib/uploads';
 
 const router = Router();
@@ -13,7 +13,7 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.post('/', uploadLimiter, requireAnyAuth, (req: AnyAuthRequest, res: Response) => {
+router.post('/', uploadLimiter, requireAuth, (req: AuthRequest, res: Response) => {
   uploadMiddleware(req, res, async (err: any) => {
     if (err) {
       res.status(400).json({ error: err.message || 'Error al subir imagen' });

@@ -15,7 +15,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const { addItem, items } = useCart((s) => ({ addItem: s.addItem, items: s.items }));
   const [added, setAdded] = useState(false);
   const isCafe = product.category === 'CAFÉ';
-  const inCart = items.some((i) => i.product.id === product.id);
+  const inCart = items.some((i) => i.itemType === 'product' && i.product.id === product.id);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();

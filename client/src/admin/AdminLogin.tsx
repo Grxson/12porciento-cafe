@@ -82,10 +82,6 @@ export default function AdminLogin() {
             </button>
           </form>
         </div>
-
-        <p className="text-coffee-500 text-xs text-center mt-6">
-          Default: admin@12porciento.com / admin123
-        </p>
       </motion.div>
     </div>
   );

@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe } from 'lucide-react';
 import { productsApi, reviewsApi, recipesApi } from '../api';
-import { useCart } from '../context/CartContext';
+import { useCart, MAX_QTY_PER_PRODUCT } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import ProductGallery from '../components/ProductGallery';
@@ -27,6 +27,7 @@ export default function ProductDetail() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [productRecipes, setProductRecipes] = useState<Recipe[]>([]);
   const addItem = useCart((s) => s.addItem);
+  const cartItems = useCart((s) => s.items);
   const loggedUser = useUser((s) => s.user);
   const { add: addToast } = useToast();
   const [reviewForm, setReviewForm] = useState({ name: loggedUser?.name ?? '', email: loggedUser?.email ?? '', rating: 0, comment: '' });
@@ -61,6 +62,8 @@ export default function ProductDetail() {
   const handleQtyIncrease = () => {
     if (qty >= product!.stock) {
       addToast(`Stock insuficiente. Máximo disponible: ${product!.stock} unidades.`, 'warning');
+    } else if (qty >= MAX_QTY_PER_PRODUCT) {
+      addToast(`Máximo ${MAX_QTY_PER_PRODUCT} unidades de "${product!.name}" por pedido.`, 'warning');
     } else {
       setQty(qty + 1);
     }
@@ -106,8 +109,7 @@ export default function ProductDetail() {
     .filter(Boolean)
     .filter((v, i, arr) => arr.indexOf(v) === i) as string[];
 
-  const cartItems = useCart((s) => s.items);
-  const inCart = cartItems.some((i) => i.product.id === product.id);
+  const inCart = cartItems.some((i) => i.itemType === 'product' && i.product.id === product.id);
   const isCafe = product.category === 'CAFÉ';
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
@@ -319,26 +321,26 @@ export default function ProductDetail() {
                   <p className="text-coffee-500 text-sm">Información técnica completa del lote seleccionado</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-coffee-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-coffee-200 dark:bg-coffee-700">
                   {/* Origin block */}
-                  <div className="bg-white p-5">
+                  <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Globe className="w-4 h-4 text-gold-500" />
                       <span className="text-xs text-coffee-500 uppercase tracking-widest">Origen</span>
                     </div>
-                    <p className="font-serif text-lg text-coffee-900">{product.origin || '—'}</p>
-                    {product.region && <p className="text-coffee-600 text-sm mt-1">{product.region}</p>}
+                    <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.origin || '—'}</p>
+                    {product.region && <p className="text-coffee-600 dark:text-coffee-300 text-sm mt-1">{product.region}</p>}
                   </div>
 
                   {/* Altitude block */}
-                  <div className="bg-white p-5">
+                  <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Mountain className="w-4 h-4 text-gold-500" />
                       <span className="text-xs text-coffee-500 uppercase tracking-widest">Altitud</span>
                     </div>
-                    <p className="font-serif text-lg text-coffee-900">{product.altitude ? `${product.altitude} msnm` : '—'}</p>
+                    <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.altitude ? `${product.altitude} msnm` : '—'}</p>
                     {product.altitude && (
-                      <p className="text-coffee-500 text-xs mt-1">
+                      <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
                         {product.altitude >= 1600 ? 'Alta montaña — complejidad aromática superior' :
                          product.altitude >= 1200 ? 'Altitud media-alta — buen balance acidez/cuerpo' :
                          'Altitud media — perfil dulce y corpulento'}
@@ -347,23 +349,23 @@ export default function ProductDetail() {
                   </div>
 
                   {/* Variety block */}
-                  <div className="bg-white p-5">
+                  <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Leaf className="w-4 h-4 text-gold-500" />
                       <span className="text-xs text-coffee-500 uppercase tracking-widest">Variedad</span>
                     </div>
-                    <p className="font-serif text-lg text-coffee-900">{product.variety || '—'}</p>
-                    <p className="text-coffee-500 text-xs mt-1">Varietal del café</p>
+                    <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.variety || '—'}</p>
+                    <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">Varietal del café</p>
                   </div>
 
                   {/* Process block */}
-                  <div className="bg-white p-5">
+                  <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <FlaskConical className="w-4 h-4 text-gold-500" />
                       <span className="text-xs text-coffee-500 uppercase tracking-widest">Proceso</span>
                     </div>
-                    <p className="font-serif text-lg text-coffee-900">{product.process || '—'}</p>
-                    <p className="text-coffee-500 text-xs mt-1">
+                    <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.process || '—'}</p>
+                    <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
                       {product.process === 'Lavado' ? 'Fermentación húmeda — limpieza y acidez brillante' :
                        product.process === 'Natural' ? 'Secado con fruto — dulzura frutal intensa' :
                        product.process === 'Honey' ? 'Mucílago parcial — balance dulzura / acidez' :
@@ -373,13 +375,13 @@ export default function ProductDetail() {
                   </div>
 
                   {/* Roast block */}
-                  <div className="bg-white p-5">
+                  <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Thermometer className="w-4 h-4 text-gold-500" />
                       <span className="text-xs text-coffee-500 uppercase tracking-widest">Perfil de Tueste</span>
                     </div>
-                    <p className="font-serif text-lg text-coffee-900">{product.roastLevel || '—'}</p>
-                    <p className="text-coffee-500 text-xs mt-1">
+                    <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.roastLevel || '—'}</p>
+                    <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
                       {product.roastLevel === 'Ligero' ? 'Preserva acidez y florales del terroir' :
                        product.roastLevel === 'Medio-Ligero' ? 'Balance entre dulzura y complejidad aromática' :
                        product.roastLevel === 'Medio' ? 'Cuerpo redondo, acidez integrada, dulzura notable' :
@@ -389,22 +391,22 @@ export default function ProductDetail() {
                   </div>
 
                   {/* SCA Score block */}
-                  <div className="bg-white p-5">
+                  <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Award className="w-4 h-4 text-gold-500" />
                       <span className="text-xs text-coffee-500 uppercase tracking-widest">Puntaje SCA</span>
                     </div>
                     {product.scaScore ? (
                       <>
-                        <p className="font-serif text-3xl text-coffee-900 font-bold">{product.scaScore}</p>
+                        <p className="font-serif text-3xl text-coffee-900 dark:text-cream font-bold">{product.scaScore}</p>
                         <div className="mt-2">
-                          <div className="w-full bg-coffee-100 h-1.5 rounded-full overflow-hidden">
+                          <div className="w-full bg-coffee-100 dark:bg-coffee-800 h-1.5 rounded-full overflow-hidden">
                             <div
                               className="h-full bg-gradient-to-r from-gold-500 to-gold-400 rounded-full"
                               style={{ width: `${Math.min(100, ((product.scaScore - 80) / 20) * 100)}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-[10px] text-coffee-400 mt-1">
+                          <div className="flex justify-between text-[10px] text-coffee-400 dark:text-coffee-500 mt-1">
                             <span>80 · Specialty</span>
                             <span>90 · Outstanding</span>
                             <span>100</span>
@@ -412,7 +414,7 @@ export default function ProductDetail() {
                         </div>
                       </>
                     ) : (
-                      <p className="font-serif text-lg text-coffee-900">—</p>
+                      <p className="font-serif text-lg text-coffee-900 dark:text-cream">—</p>
                     )}
                   </div>
                 </div>
@@ -461,24 +463,24 @@ export default function ProductDetail() {
             {tab === 'recipes' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {productRecipes.map((recipe) => (
-                  <div key={recipe.id} className="bg-white border border-coffee-200 p-6">
+                  <div key={recipe.id} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-serif text-xl text-coffee-900">{recipe.title}</h3>
+                      <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">{recipe.title}</h3>
                       <span className="text-xs text-gold-600 border border-gold-500/40 px-2 py-1 uppercase tracking-widest">{recipe.method}</span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-coffee-200">
+                    <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-coffee-200 dark:border-coffee-700">
                       <div>
-                        <p className="text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Temperatura</p>
-                        <p className="text-coffee-800 text-sm font-medium">{recipe.temp}</p>
+                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] uppercase tracking-widest mb-1">Temperatura</p>
+                        <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.temp}</p>
                       </div>
                       <div>
-                        <p className="text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Molido</p>
-                        <p className="text-coffee-800 text-sm font-medium">{recipe.grind}</p>
+                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] uppercase tracking-widest mb-1">Molido</p>
+                        <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.grind}</p>
                       </div>
                       <div>
-                        <p className="text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Ratio</p>
-                        <p className="text-coffee-800 text-sm font-medium">{recipe.ratio}</p>
+                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] uppercase tracking-widest mb-1">Ratio</p>
+                        <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.ratio}</p>
                       </div>
                     </div>
 
@@ -523,8 +525,8 @@ export default function ProductDetail() {
                 </div>
 
                 <div>
-                  <div className="bg-white border border-coffee-200 p-6">
-                    <h3 className="font-serif text-xl text-coffee-900 mb-5">Escribe tu reseña</h3>
+                  <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 p-6">
+                    <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5">Escribe tu reseña</h3>
 
                     {reviewSuccess ? (
                       <div className="text-center py-4">
@@ -562,7 +564,7 @@ export default function ProductDetail() {
                               type={type}
                               value={(reviewForm as any)[key]}
                               onChange={(e) => setReviewForm((f) => ({ ...f, [key]: e.target.value }))}
-                              className="w-full bg-white border border-coffee-300 text-coffee-900 px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
                             />
                           </div>
                         ))}
@@ -574,7 +576,7 @@ export default function ProductDetail() {
                             rows={4}
                             value={reviewForm.comment}
                             onChange={(e) => setReviewForm((f) => ({ ...f, comment: e.target.value }))}
-                            className="w-full bg-white border border-coffee-300 text-coffee-900 px-3 py-2 text-sm focus:border-gold-500 focus:outline-none resize-none"
+                            className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none resize-none"
                           />
                         </div>
 

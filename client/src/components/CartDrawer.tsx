@@ -1,16 +1,117 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, Plus, Minus, Trash2 } from 'lucide-react';
+import { X, ShoppingBag, Plus, Minus, Trash2, Package } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import type { CartItemFull } from '../types';
+
+function getItemKey(item: CartItemFull): string {
+  return item.itemType === 'product' ? `prod_${item.product.id}` : `bund_${item.bundleId}`;
+}
+
+function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product' } }) {
+  const { updateQuantity, removeItem } = useCart();
+  const { product, quantity } = item;
+  const key = getItemKey(item);
+
+  return (
+    <motion.div
+      key={key}
+      layout
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      className="flex gap-3 py-4 border-b border-coffee-100 dark:border-coffee-800 last:border-0"
+    >
+      <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight truncate">{product.name}</p>
+        {product.weight && <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{product.weight}g</p>}
+        {product.stock <= 5 && product.stock > 0 && (
+          <p className="text-amber-500 text-[10px] font-semibold uppercase tracking-wider mt-0.5">Stock bajo</p>
+        )}
+        {product.stock === 0 && (
+          <p className="text-red-400 text-[10px] font-semibold uppercase tracking-wider mt-0.5">Agotado</p>
+        )}
+        <div className="flex items-center gap-2 mt-2">
+          <button
+            onClick={() => updateQuantity(key, quantity - 1)}
+            className="w-6 h-6 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
+          >
+            <Minus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
+          </button>
+          <span className="text-coffee-900 dark:text-cream text-sm w-5 text-center">{quantity}</span>
+          <button
+            onClick={() => updateQuantity(key, quantity + 1)}
+            className="w-6 h-6 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
+          >
+            <Plus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-col items-end justify-between shrink-0">
+        <button onClick={() => removeItem(key)} className="text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
+          <Trash2 className="w-4 h-4" />
+        </button>
+        <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+          ${(Number(product.price) * quantity).toLocaleString('es-MX')}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' } }) {
+  const { removeItem } = useCart();
+  const { bundle } = item;
+  const key = getItemKey(item);
+
+  return (
+    <motion.div
+      key={key}
+      layout
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      className="flex gap-3 py-4 border-b border-gold-200 dark:border-gold-500/20 last:border-0"
+    >
+      {bundle.imageUrl ? (
+        <img src={bundle.imageUrl} alt={bundle.name} className="w-16 h-16 object-cover shrink-0" />
+      ) : (
+        <div className="w-16 h-16 bg-gold-50 dark:bg-gold-500/10 flex items-center justify-center shrink-0">
+          <Package className="w-6 h-6 text-gold-500" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight">{bundle.name}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="bg-gold-500/20 text-gold-600 text-[10px] px-1.5 py-0.5">Paquete</span>
+          {bundle.discountPct > 0 && (
+            <span className="text-gold-600 text-[10px]">{bundle.discountPct}% OFF</span>
+          )}
+        </div>
+        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] mt-1">
+          {bundle.items.map((bi) => bi.product?.name || 'Producto').join(', ')}
+        </p>
+      </div>
+      <div className="flex flex-col items-end justify-between shrink-0">
+        <button onClick={() => removeItem(key)} className="text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
+          <Trash2 className="w-4 h-4" />
+        </button>
+        <p className="text-gold-600 text-sm font-medium">
+          ${Number(bundle?.finalPrice ?? 0).toLocaleString('es-MX')}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function CartDrawer() {
-  const { items, drawerOpen, closeDrawer, updateQuantity, removeItem, total } = useCart();
+  const { items, drawerOpen, closeDrawer, total } = useCart();
 
   return (
     <AnimatePresence>
       {drawerOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -18,7 +119,6 @@ export default function CartDrawer() {
             onClick={closeDrawer}
             className="fixed inset-0 bg-coffee-950/60 backdrop-blur-sm z-40"
           />
-          {/* Panel */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -26,7 +126,6 @@ export default function CartDrawer() {
             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
             className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-white dark:bg-coffee-900 shadow-2xl flex flex-col"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-coffee-200 dark:border-coffee-700">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-gold-500" />
@@ -40,7 +139,6 @@ export default function CartDrawer() {
               </button>
             </div>
 
-            {/* Items */}
             <div className="flex-1 overflow-y-auto px-5 py-4">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
@@ -53,80 +151,28 @@ export default function CartDrawer() {
                 </div>
               ) : (
                 <AnimatePresence initial={false}>
-                  {items.map(({ product, quantity }) => (
-                    <motion.div
-                      key={product.id}
-                      layout
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      className="flex gap-3 py-4 border-b border-coffee-100 dark:border-coffee-800 last:border-0"
-                    >
-                      <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight truncate">{product.name}</p>
-                        {product.weight && <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{product.weight}g</p>}
-                        {product.stock <= 5 && product.stock > 0 && (
-                          <p className="text-amber-500 text-[10px] font-semibold uppercase tracking-wider mt-0.5">
-                            Stock bajo
-                          </p>
-                        )}
-                        {product.stock === 0 && (
-                          <p className="text-red-400 text-[10px] font-semibold uppercase tracking-wider mt-0.5">
-                            Agotado
-                          </p>
-                        )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => updateQuantity(product.id, quantity - 1)}
-                            className="w-6 h-6 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
-                          >
-                            <Minus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
-                          </button>
-                          <span className="text-coffee-900 dark:text-cream text-sm w-5 text-center">{quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(product.id, quantity + 1)}
-                            className="w-6 h-6 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
-                          >
-                            <Plus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end justify-between shrink-0">
-                        <button
-                          onClick={() => removeItem(product.id)}
-                          className="text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <p className="text-coffee-900 dark:text-cream text-sm font-medium">${(product.price * quantity).toLocaleString('es-MX')}</p>
-                      </div>
-                    </motion.div>
-                  ))}
+                  {items.map((item) =>
+                    item.itemType === 'product'
+                      ? <ProductDrawerItem key={getItemKey(item)} item={item} />
+                      : <BundleDrawerItem key={getItemKey(item)} item={item} />,
+                  )}
                 </AnimatePresence>
               )}
             </div>
 
-            {/* Footer */}
             {items.length > 0 && (
               <div className="px-5 py-4 border-t border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-800">
                 <div className="flex justify-between mb-4">
                   <span className="text-coffee-700 dark:text-coffee-300 font-medium">Subtotal</span>
-                  <span className="font-serif text-coffee-900 dark:text-cream text-lg">${total().toLocaleString('es-MX')} <span className="text-sm text-coffee-500">MXN</span></span>
+                  <span className="font-serif text-coffee-900 dark:text-cream text-lg">
+                    ${total().toLocaleString('es-MX')} <span className="text-sm text-coffee-500">MXN</span>
+                  </span>
                 </div>
                 <div className="space-y-2">
-                  <Link
-                    to="/checkout"
-                    onClick={closeDrawer}
-                    className="btn-primary w-full block text-center"
-                  >
+                  <Link to="/checkout" onClick={closeDrawer} className="btn-primary w-full block text-center">
                     Proceder al pago
                   </Link>
-                  <Link
-                    to="/carrito"
-                    onClick={closeDrawer}
-                    className="btn-outline w-full block text-center text-sm py-2.5"
-                  >
+                  <Link to="/carrito" onClick={closeDrawer} className="btn-outline w-full block text-center text-sm py-2.5">
                     Ver carrito completo
                   </Link>
                 </div>

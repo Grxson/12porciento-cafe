@@ -5,6 +5,26 @@ import jwt from 'jsonwebtoken';
 
 const router = Router();
 
+const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000;
+const adminCache = new Map<string, { exists: boolean; expiresAt: number }>();
+
+function getCachedAdmin(adminId: string): boolean | null {
+  const cached = adminCache.get(adminId);
+  if (!cached) return null;
+  if (Date.now() > cached.expiresAt) { adminCache.delete(adminId); return null; }
+  return cached.exists;
+}
+
+function setCachedAdmin(adminId: string, exists: boolean): void {
+  adminCache.set(adminId, { exists, expiresAt: Date.now() + ADMIN_CACHE_TTL_MS });
+  if (adminCache.size > 500) {
+    const now = Date.now();
+    for (const [key, val] of adminCache.entries()) {
+      if (now > val.expiresAt) adminCache.delete(key);
+    }
+  }
+}
+
 // Helper: check premium access from auth header
 async function hasRecipeAccess(authHeader: string | undefined): Promise<boolean> {
   if (!authHeader?.startsWith('Bearer ')) return false;
@@ -14,9 +34,12 @@ async function hasRecipeAccess(authHeader: string | undefined): Promise<boolean>
       const sub = await prisma.subscription.findFirst({ where: { userId: payload.id, status: 'ACTIVE' } });
       return !!sub;
     }
-    // Admin tokens have no role field — verify against admin table
+    const cached = getCachedAdmin(payload.id);
+    if (cached !== null) return cached;
     const admin = await prisma.adminUser.findUnique({ where: { id: payload.id } });
-    return !!admin;
+    const exists = !!admin;
+    setCachedAdmin(payload.id, exists);
+    return exists;
   } catch {
     return false;
   }

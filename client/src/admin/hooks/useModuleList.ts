@@ -140,7 +140,6 @@ export function useModuleList<T extends { id: string }>(
 
   return {
     items: filtered,
-    allItems: items,
     loading,
     error,
     filters,
@@ -154,5 +153,6 @@ export function useModuleList<T extends { id: string }>(
     selectAll,
     clearSelect,
     reload: load,
+    retry: load,
   };
 }

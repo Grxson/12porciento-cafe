@@ -37,6 +37,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { to: '/tienda', label: 'Todos los cafés' },
+                { to: '/paquetes', label: 'Paquetes' },
                 { to: '/recetas', label: 'Recetas de preparación' },
                 { to: '/suscripciones', label: 'Suscripciones' },
                 { to: '/carrito', label: 'Carrito' },

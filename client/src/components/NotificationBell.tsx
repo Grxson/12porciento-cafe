@@ -10,6 +10,7 @@ const EVENT_ICONS: Record<string, string> = {
   new_reply: '💬',
   subscription_created: '☕',
   subscription_cancelled: '❌',
+  low_stock: '⚠️',
 };
 
 export default function NotificationBell() {

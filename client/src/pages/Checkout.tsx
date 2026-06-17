@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard, Package } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { ordersApi, paymentsApi, promoCodesApi, usersApi } from '../api';
 import { retryWithBackoff } from '../services/paymentRetry';
@@ -171,8 +171,13 @@ export default function Checkout() {
     try {
       const freshIdempotencyKey = crypto.randomUUID();
       const useSavedCard = methodChoice !== 'new' && user?.stripeCustomerId;
+      const expandedItems = items.flatMap((i) =>
+        i.itemType === 'product'
+          ? [{ productId: i.product.id, quantity: i.quantity }]
+          : i.bundle.items.map((bi) => ({ productId: bi.product.id, quantity: bi.quantity * i.quantity })),
+      );
       const payload = {
-        items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        items: expandedItems,
         ...(promoCode ? { promoCode } : {}),
         ...(user?.stripeCustomerId ? { stripeCustomerId: user.stripeCustomerId } : {}),
         ...(useSavedCard ? { paymentMethodId: methodChoice } : {}),
@@ -196,7 +201,7 @@ export default function Checkout() {
     } catch (err: any) {
       const msg = err.response?.data?.error || 'Error al iniciar el pago. Intenta de nuevo.';
       setError(msg);
-      if (err.response?.status === 400 && msg.toLowerCase().includes('stock')) {
+      if (err.response?.status === 400 && /stock|máximo|maximo/i.test(msg)) {
         addToast(msg, 'warning');
       }
     } finally {
@@ -235,19 +240,25 @@ export default function Checkout() {
 
   const handlePaymentSuccess = async () => {
     try {
+      const orderItems = items.flatMap((i) =>
+        i.itemType === 'product'
+          ? [{ productId: i.product.id, quantity: i.quantity }]
+          : i.bundle.items.map((bi) => ({ productId: bi.product.id, quantity: bi.quantity * i.quantity })),
+      );
       await ordersApi.create({
         ...form,
         ...(user ? { userId: user.id } : {}),
         ...(paymentIntentId ? { paymentIntentId } : {}),
         ...(promoCode ? { promoCode } : {}),
-        items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity, price: i.product.price })),
+        items: orderItems,
       });
+      clearCart();
+      setSuccess(true);
     } catch (err: any) {
       console.error('Order creation failed after payment:', err);
-      setError('Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte con el email de confirmación de Stripe.');
+      setError('Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte.');
+      clearCart();
     }
-    clearCart();
-    setSuccess(true);
   };
 
   const handlePaymentError = (msg: string) => {
@@ -618,16 +629,40 @@ export default function Checkout() {
             <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-6 sticky top-24">
               <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5">Tu pedido</h3>
               <div className="space-y-3 mb-5">
-                {items.map(({ product, quantity }) => (
-                  <div key={product.id} className="flex gap-3">
-                    <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{product.name}</p>
-                      <p className="text-coffee-500 text-xs">{product.weight}g · x{quantity}</p>
+                {items.map((item) =>
+                  item.itemType === 'product' ? (
+                    <div key={`prod_${item.product.id}`} className="flex gap-3">
+                      <img src={item.product.imageUrl} alt={item.product.name} className="w-12 h-12 object-cover shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{item.product?.name ?? 'Producto'}</p>
+                        <p className="text-coffee-500 text-xs">{item.product.weight}g · x{item.quantity}</p>
+                      </div>
+                      <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">
+                        ${(Number(item.product.price) * item.quantity).toLocaleString('es-MX')}
+                      </p>
                     </div>
-                    <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">${(product.price * quantity).toLocaleString('es-MX')}</p>
-                  </div>
-                ))}
+                  ) : (
+                    <div key={`bund_${item.bundleId}`} className="flex gap-3">
+                      {item.bundle.imageUrl ? (
+                        <img src={item.bundle.imageUrl} alt={item.bundle.name} className="w-12 h-12 object-cover shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 bg-gold-50 dark:bg-gold-500/10 flex items-center justify-center shrink-0">
+                          <Package className="w-5 h-5 text-gold-500" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{item.bundle?.name ?? 'Paquete'}</p>
+                        <p className="text-coffee-500 text-xs">
+                          {item.bundle.items.length} producto{item.bundle.items.length !== 1 ? 's' : ''}
+                          {item.bundle.discountPct > 0 && ` · ${item.bundle.discountPct}% OFF`}
+                        </p>
+                      </div>
+                      <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">
+                        ${(Number(item.bundle?.finalPrice ?? 0) * item.quantity).toLocaleString('es-MX')}
+                      </p>
+                    </div>
+                  ),
+                )}
               </div>
               {/* Promo code */}
               {step === 1 && (

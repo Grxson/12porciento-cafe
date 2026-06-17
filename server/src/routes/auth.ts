@@ -38,7 +38,7 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: admin.id, email: admin.email, name: admin.name },
       process.env.JWT_SECRET!,
-      { expiresIn: '8h' },
+      { expiresIn: '2h' },
     );
 
     res.json({ token, admin: { id: admin.id, name: admin.name, email: admin.email } });

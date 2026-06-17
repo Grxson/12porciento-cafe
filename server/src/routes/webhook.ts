@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { sendOrderConfirmation } from '../email';
+import { emitEvent } from '../socket';
 
 const router = Router();
 
@@ -15,6 +16,11 @@ router.post('/', async (req: Request, res: Response) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[webhook] STRIPE_WEBHOOK_SECRET not set in production');
+      res.status(500).json({ error: 'Webhook secret not configured' });
+      return;
+    }
     console.warn('[webhook] STRIPE_WEBHOOK_SECRET not set — skipping signature verification');
     res.json({ received: true });
     return;
@@ -41,7 +47,6 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    // Parse items from metadata (set during create-intent)
     let items: { productId: string; quantity: number }[] = [];
     try {
       items = JSON.parse(intent.metadata?.items || '[]');
@@ -51,28 +56,69 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    if (items.length === 0) {
+    if (!items?.length) {
       res.json({ received: true, status: 'no_items' });
       return;
     }
 
-    // Fetch current prices
     const orderItems: { productId: string; quantity: number; price: number }[] = [];
     for (const item of items) {
       const product = await prisma.product.findUnique({
         where: { id: item.productId },
-        select: { price: true },
+        select: { price: true, stock: true, isActive: true, name: true },
       });
-      if (product) {
-        orderItems.push({ productId: item.productId, quantity: item.quantity, price: product.price });
+      if (!product) {
+        console.error('[webhook] Product not found:', item.productId);
+        res.json({ received: true, status: 'product_not_found', productId: item.productId });
+        return;
       }
+      if (!product.isActive) {
+        console.error('[webhook] Product inactive:', item.productId);
+        res.json({ received: true, status: 'product_inactive', productId: item.productId });
+        return;
+      }
+      if (product.stock < item.quantity) {
+        console.error('[webhook] Insufficient stock for', item.productId, 'needed:', item.quantity, 'available:', product.stock);
+        res.json({ received: true, status: 'insufficient_stock', productId: item.productId });
+        return;
+      }
+      orderItems.push({ productId: item.productId, quantity: item.quantity, price: Number(product.price) });
     }
 
-    // Amount from Stripe is authoritative (already includes discount)
     const total = intent.amount / 100;
 
     try {
       await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        for (const item of orderItems) {
+          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true, name: true, lowStockThreshold: true } });
+          if (!prod || prod.stock < item.quantity) {
+            throw new Error('Stock insuficiente al confirmar orden');
+          }
+          const newStock = prod.stock - item.quantity;
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId,
+              type: 'SALE',
+              quantity: -item.quantity,
+              previousStock: prod.stock,
+              newStock,
+              notes: `Webhook PI ${intent.id}`,
+            },
+          });
+          if (newStock <= prod.lowStockThreshold) {
+            emitEvent({
+              event: 'low_stock',
+              title: 'Stock bajo',
+              message: `${prod.name}: ${newStock} unidades (umbral: ${prod.lowStockThreshold})`,
+              data: { productId: item.productId, productName: prod.name, stock: newStock, threshold: prod.lowStockThreshold },
+            });
+          }
+        }
+
         const created = await tx.order.create({
           data: {
             customerName: intent.metadata?.customerName || 'Cliente',
@@ -85,35 +131,10 @@ router.post('/', async (req: Request, res: Response) => {
             total,
             paymentIntentId: intent.id,
             notes: intent.metadata?.notes || null,
-            items: {
-              create: orderItems,
-            },
+            items: { create: orderItems },
           },
         });
 
-        // Decrement stock and record stock movements atomically
-        for (const item of orderItems) {
-          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { stock: { decrement: item.quantity } },
-          });
-          if (prod) {
-            await tx.stockMovement.create({
-              data: {
-                productId: item.productId,
-                type: 'SALE',
-                quantity: -item.quantity,
-                previousStock: prod.stock,
-                newStock: prod.stock - item.quantity,
-                orderId: created.id,
-                notes: `Webhook PI ${intent.id}`,
-              },
-            });
-          }
-        }
-
-        // Atomically increment promo usedCount if code was stored in metadata
         if (intent.metadata?.promoCode) {
           await tx.promoCode.updateMany({
             where: { code: intent.metadata.promoCode.toUpperCase(), isActive: true },

@@ -105,7 +105,7 @@ describe('POST /orders — idempotency', () => {
           create: vi.fn().mockResolvedValue(newOrder),
         },
         product: {
-          findUnique: vi.fn().mockResolvedValue(null),
+          findUnique: vi.fn().mockResolvedValue({ stock: 100, name: 'Coffee', isActive: true }),
           update: vi.fn(),
         },
         stockMovement: { create: vi.fn() },

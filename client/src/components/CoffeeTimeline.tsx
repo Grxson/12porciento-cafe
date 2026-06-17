@@ -49,7 +49,7 @@ function DesktopNode({ node, index }: { node: TimelineNode; index: number }) {
         initial={{ scale: 0, opacity: 0 }}
         animate={isInView ? { scale: 1, opacity: 1 } : {}}
         transition={{ duration: 0.4, delay: index * 0.1 }}
-        className="relative z-10 w-12 h-12 rounded-full bg-white border-2 border-coffee-200 group-hover:border-gold-500 flex items-center justify-center mb-3 transition-all duration-300 shadow-sm group-hover:shadow-md"
+        className="relative z-10 w-12 h-12 rounded-full bg-white dark:bg-coffee-900 border-2 border-coffee-200 dark:border-coffee-600 group-hover:border-gold-500 flex items-center justify-center mb-3 transition-all duration-300 shadow-sm group-hover:shadow-md"
       >
         <node.icon className="w-5 h-5 text-coffee-400 group-hover:text-gold-500 transition-colors duration-300" />
       </motion.div>
@@ -94,7 +94,7 @@ export default function CoffeeTimeline({ product }: { product: Product }) {
             className="flex gap-3 pb-5"
           >
             <div className="flex flex-col items-center shrink-0">
-              <div className="w-9 h-9 rounded-full bg-white border-2 border-gold-500/50 flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-white dark:bg-coffee-900 border-2 border-gold-500/50 flex items-center justify-center shadow-sm">
                 <node.icon className="w-4 h-4 text-gold-500" />
               </div>
               {i < nodes.length - 1 && <div className="w-px flex-1 bg-coffee-200 mt-1 min-h-[16px]" />}

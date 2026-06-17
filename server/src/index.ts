@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 import productsRouter from './routes/products';
 import ordersRouter from './routes/orders';
 import subscriptionsRouter from './routes/subscriptions';
@@ -23,6 +24,14 @@ import { startBillingScheduler } from './jobs/billing';
 import http from 'http';
 import { initSocket } from './socket';
 
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes. Intenta en 15 minutos.' },
+});
+
 dotenv.config();
 
 const app = express();
@@ -42,18 +51,22 @@ app.use('/api/subscription-payments/webhook/invoice', express.raw({ type: 'appli
 
 app.use(express.json({ limit: '50kb' }));
 
+app.use('/api/dashboard', adminLimiter, dashboardRouter);
+app.use('/api/customers', adminLimiter, customersRouter);
+app.use('/api/inventory', adminLimiter, inventoryRouter);
+
 app.use('/api/products', productsRouter);
-app.use('/api/orders', ordersRouter);
-app.use('/api/subscriptions', subscriptionsRouter);
+app.use('/api/orders', adminLimiter, ordersRouter);
+app.use('/api/subscriptions', adminLimiter, subscriptionsRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/bundles', bundlesRouter);
-app.use('/api/reviews', reviewsRouter);
-app.use('/api/users', usersRouter);
-app.use('/api/dashboard', dashboardRouter);
+app.use('/api/bundles', adminLimiter, bundlesRouter);
+app.use('/api/reviews', adminLimiter, reviewsRouter);
+app.use('/api/users', adminLimiter, usersRouter);
+app.use('/api/dashboard', adminLimiter, dashboardRouter);
 app.use('/api/payments', paymentsRouter);
-app.use('/api/promo-codes', promoCodesRouter);
-app.use('/api/customers', customersRouter);
-app.use('/api/inventory', inventoryRouter);
+app.use('/api/promo-codes', adminLimiter, promoCodesRouter);
+app.use('/api/customers', adminLimiter, customersRouter);
+app.use('/api/inventory', adminLimiter, inventoryRouter);
 app.use('/api/subscription-payments', subscriptionPaymentsRouter);
 app.use('/api/recipes', recipesRouter);
 app.use('/api/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));

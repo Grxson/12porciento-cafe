@@ -1,9 +1,23 @@
 :root {
   color-scheme: light;
+  --chart-bg: #ffffff;
+  --chart-grid: #e8d5c4;
+  --chart-text: #8b5a2b;
+  --chart-gold: #c9a96e;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #e8d5c4;
+  --chart-tooltip-text: #4a3728;
 }
 
 .dark {
   color-scheme: dark;
+  --chart-bg: #0d0806;
+  --chart-grid: #2c1810;
+  --chart-text: #a05a2c;
+  --chart-gold: #c9a96e;
+  --chart-tooltip-bg: #1a0f0a;
+  --chart-tooltip-border: #2c1810;
+  --chart-tooltip-text: #e8d5b7;
 }
 
 @tailwind base;
@@ -83,7 +97,8 @@
            text-sm tracking-[0.15em] uppercase font-medium
            hover:bg-coffee-900 hover:text-cream
            transition-all duration-300 cursor-pointer
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           disabled:opacity-50 disabled:cursor-not-allowed
+           dark:border-coffee-200 dark:text-cream dark:hover:bg-coffee-200 dark:hover:text-coffee-900;
   }
 
   .btn-outline-dark {
@@ -145,7 +160,7 @@
   /* ── Form inputs ── */
   .input-dark {
     @apply w-full bg-coffee-800 border border-coffee-700 text-cream px-4 py-3 text-sm
-           placeholder:text-coffee-500
+           placeholder:text-coffee-400
            focus:border-gold-500/60 focus:outline-none focus:ring-0
            transition-colors duration-200;
   }

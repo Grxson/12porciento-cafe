@@ -78,8 +78,9 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items requeridos' });
   }
-  if (items.some((i) => !i.productId || !Number.isInteger(i.quantity) || i.quantity < 1 || i.quantity > 99)) {
-    return res.status(400).json({ error: 'Cantidad debe ser entre 1 y 99 por producto' });
+  const MAX_QTY_PER_PRODUCT = 10;
+  if (items.some((i) => !i.productId || !Number.isInteger(i.quantity) || i.quantity < 1 || i.quantity > MAX_QTY_PER_PRODUCT)) {
+    return res.status(400).json({ error: `Cantidad máxima por producto: ${MAX_QTY_PER_PRODUCT}` });
   }
 
   let amount: number;

@@ -2,18 +2,13 @@ services:
   - type: web
     name: cafe-server
     runtime: docker
-    plan: starter
-    dockerfilePath: ./server/Dockerfile
+    dockerfilePath: server/Dockerfile
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
-        fromDatabase:
-          name: cafe-db
-          property: connectionString
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_URL
@@ -28,15 +23,9 @@ services:
   - type: web
     name: cafe-client
     runtime: docker
-    plan: starter
-    dockerfilePath: ./client/Dockerfile
-    envVars: []
-    routes:
-      - path: /api/*
-        destination: https://cafe-server.onrender.com/api/:path
+    dockerfilePath: client/Dockerfile
 
 databases:
   - name: cafe-db
     databaseName: cafe_db
     user: cafe_user
-    region: ohio

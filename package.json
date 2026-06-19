@@ -7,6 +7,7 @@
     "build": "pnpm --filter client build && pnpm --filter server build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "railway": "^3.3.2"
   }
 }

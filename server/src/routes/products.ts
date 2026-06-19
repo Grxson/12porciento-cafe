@@ -186,7 +186,7 @@ router.get('/gallery', async (_req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    const images = products.flatMap((p) => {
+    const images = products.flatMap((p: { id: string; name: string; slug: string; imageUrl: string | null; images: string | null }) => {
       const urls = [p.imageUrl, ...(p.images ? JSON.parse(p.images) : [])].filter(Boolean);
       return urls.map((url: string) => ({
         id: `${p.id}-${url}`,

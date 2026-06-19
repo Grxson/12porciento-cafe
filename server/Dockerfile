@@ -26,4 +26,6 @@ ENV NODE_ENV=production
 
 EXPOSE 3001
 
-CMD ["node", "server/dist/src/index.js"]
+COPY server/prisma/migrations ./server/prisma/migrations
+
+CMD ["sh", "-c", "npx prisma migrate deploy && node server/dist/src/index.js"]

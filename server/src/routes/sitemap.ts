@@ -29,7 +29,7 @@ router.get('/sitemap.xml', async (_req, res) => {
 
     const urls = [
       ...staticUrls,
-      ...products.map((p) => ({
+      ...products.map((p: { slug: string; updatedAt: Date }) => ({
         loc: `/producto/${p.slug}`,
         changefreq: 'weekly' as const,
         priority: '0.7',

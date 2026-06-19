@@ -3,7 +3,9 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
   ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
+  Shield, Sun, Moon, Award, CreditCard,
 } from 'lucide-react';
+import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
 import { ModuleProvider } from './context/ModuleContext';
 import ToastContainer from './components/ToastContainer';
@@ -18,7 +20,10 @@ const navLinks = [
   { to: '/admin/bundles',      label: 'Bundles',      icon: Gift },
   { to: '/admin/resenas',      label: 'Reseñas',      icon: Star },
   { to: '/admin/clientes',     label: 'Clientes',     icon: UserSearch },
+  { to: '/admin/usuarios',    label: 'Usuarios Admin', icon: Shield },
   { to: '/admin/descuentos',   label: 'Descuentos',   icon: Tag },
+  { to: '/admin/logros',       label: 'Logros',       icon: Award },
+  { to: '/admin/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -31,13 +36,17 @@ const pageTitles: Record<string, string> = {
   '/admin/bundles':      'Bundles',
   '/admin/resenas':      'Reseñas',
   '/admin/clientes':     'Clientes',
+  '/admin/usuarios':    'Usuarios Admin',
   '/admin/descuentos':   'Descuentos',
+  '/admin/logros':       'Logros',
+  '/admin/pagos-suscripciones': 'Pagos Suscripciones',
 };
 
 function AdminLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const adminTheme = useAdminTheme();
 
   const currentTitle = pageTitles[location.pathname] ?? 'Admin';
 
@@ -48,6 +57,7 @@ function AdminLayoutInner() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex">
+      <ThemeSync store={adminTheme} />
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -139,6 +149,13 @@ function AdminLayoutInner() {
             <span className="text-coffee-500 text-xs hidden md:block">
               {new Date().toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}
             </span>
+            <button
+              onClick={adminTheme.toggle}
+              className="p-1.5 rounded-md text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200 dark:hover:bg-coffee-800 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {adminTheme.dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             <NotificationBell />
             <div className="w-7 h-7 bg-gold-500/20 border border-gold-500/30 flex items-center justify-center">
               <span className="text-gold-500 text-xs font-bold">A</span>

@@ -128,6 +128,8 @@ export const subscriptionPaymentsApi = {
         errorMessage?: string | null;
       }>;
     }>(`/subscription-payments/user/${subscriptionId}/payments`),
+  list: (params?: Record<string, string>) =>
+    api.get<{ data: any[]; pagination: any }>('/subscription-payments/admin/all', { params }),
 };
 
 export const bundlesApi = {
@@ -172,6 +174,8 @@ export const usersApi = {
     api.put(`/users/me/subscription/${id}/status`, { status: 'CANCELLED' }),
   pauseSubscription: (id: string) =>
     api.put(`/users/me/subscription/${id}/status`, { status: 'PAUSED' }),
+  resumeSubscription: (id: string) =>
+    api.put(`/users/me/subscription/${id}/status`, { status: 'ACTIVE' }),
   setupPaymentMethod: () =>
     api.post<{ clientSecret: string }>('/users/me/payment-methods/setup'),
   listPaymentMethods: () =>
@@ -180,6 +184,10 @@ export const usersApi = {
     api.post('/users/me/payment-methods/default', { paymentMethodId }),
   deletePaymentMethod: (pmId: string) =>
     api.delete(`/users/me/payment-methods/${pmId}`),
+  forgotPassword: (email: string) =>
+    api.post<{ ok: boolean; message: string }>('/users/forgot-password', { email }),
+  resetPassword: (token: string, password: string) =>
+    api.post<{ ok: boolean; message: string }>('/users/reset-password', { token, password }),
 };
 
 export const paymentsApi = {
@@ -233,6 +241,22 @@ export const uploadsApi = {
     // Let axios set Content-Type with the multipart boundary (do not set it manually).
     return api.post<{ data: { url: string; thumbUrl: string } }>('/uploads', fd);
   },
+};
+
+export const adminUsersApi = {
+  list: () => api.get<any[]>('/admin-users'),
+  create: (data: { name: string; email: string; password: string }) =>
+    api.post<any>('/admin-users', data),
+  delete: (id: string) => api.delete(`/admin-users/${id}`),
+};
+
+export const achievementsApi = {
+  list: () => api.get<{ achievements: any[] }>('/barista/achievements'),
+  create: (data: { name: string; slug: string; description?: string; icon?: string; rarity?: string; xpReward?: number }) =>
+    api.post<any>('/barista/admin-achievements', data),
+  update: (id: string, data: any) =>
+    api.put<any>(`/barista/admin-achievements/${id}`, data),
+  delete: (id: string) => api.delete(`/barista/admin-achievements/${id}`),
 };
 
 export default api;

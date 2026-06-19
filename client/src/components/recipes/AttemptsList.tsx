@@ -22,7 +22,7 @@ export default function AttemptsList({ recipeId, userId }: AttemptsListProps) {
   useEffect(() => {
     baristaApi.getUserBrews(userId, { recipeId, limit: '20' })
       .then((res) => setBrews(res.data.data ?? []))
-      .catch(() => {})
+      .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
   }, [userId, recipeId]);
 

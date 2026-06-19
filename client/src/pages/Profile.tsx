@@ -7,6 +7,7 @@ import Reviews from './profile/Reviews';
 import Subscription from './profile/Subscription';
 import ProfileSettings from './profile/Settings';
 import PaymentMethod from './profile/PaymentMethod';
+import { PageMeta } from '../hooks/usePageMeta';
 
 const tabs = [
   { to: '/perfil/pedidos',       label: 'Pedidos',      icon: Package },
@@ -22,6 +23,7 @@ export default function Profile() {
 
   return (
     <div className="pt-20 min-h-screen bg-coffee-50 dark:bg-coffee-950 pb-24 md:pb-0">
+      <PageMeta title="Mi Perfil" />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-full overflow-hidden bg-coffee-200 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-800 shrink-0">

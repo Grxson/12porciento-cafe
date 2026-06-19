@@ -16,7 +16,7 @@ export default function OfflineBanner() {
 
   useEffect(() => {
     if (!isOffline) return;
-    listQueue().then(q => setQueueCount(q.filter(b => b.status === 'pending' || b.status === 'failed').length)).catch(() => {});
+    listQueue().then(q => setQueueCount(q.filter(b => b.status === 'pending' || b.status === 'failed').length)).catch(console.error);
   }, [isOffline]);
 
   if (!isOffline && !syncing) return null;

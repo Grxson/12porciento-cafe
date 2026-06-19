@@ -8,15 +8,25 @@ import type { Review } from '../../types';
 export default function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    usersApi.myReviews().then((r) => { setReviews(r.data); }).catch(() => {}).finally(() => setLoading(false));
+    usersApi.myReviews().then((r) => { setReviews(r.data); }).catch((err) => { console.error(err); setError('Error al cargar reseñas.'); }).finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
       <div className="flex justify-center py-12">
         <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button onClick={() => window.location.reload()} className="btn-primary">Reintentar</button>
       </div>
     );
   }

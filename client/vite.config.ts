@@ -16,8 +16,8 @@ export default defineConfig({
         background_color: '#0d0806',
         display: 'standalone',
         orientation: 'portrait-primary',
-        scope: '/tienda',
-        start_url: '/tienda',
+        scope: '/',
+        start_url: '/',
         categories: ['shopping', 'food & drink'],
         icons: [
           { src: 'icons/pwa-64x64.png', sizes: '64x64', type: 'image/png' },
@@ -100,6 +100,22 @@ export default defineConfig({
   ],
   resolve: {
     dedupe: ['react', 'react-dom'],
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'vendor-react';
+          if (id.includes('node_modules/react-router')) return 'vendor-router';
+          if (id.includes('node_modules/framer-motion')) return 'vendor-animation';
+          if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
+          if (id.includes('node_modules/@stripe')) return 'vendor-stripe';
+          if (id.includes('node_modules/zustand')) return 'vendor-state';
+          if (id.includes('node_modules')) return 'vendor-other';
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
   },
   server: {
     port: 5173,

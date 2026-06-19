@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 
 const router = Router();
@@ -307,6 +308,60 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener perfil' });
+  }
+});
+
+// Admin: Create achievement
+router.post('/admin-achievements', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, slug, description, icon, rarity, xpReward } = req.body;
+    if (!name || !slug) {
+      return res.status(400).json({ error: 'Nombre y slug requeridos' });
+    }
+    const existing = await prisma.achievement.findUnique({ where: { slug } });
+    if (existing) {
+      return res.status(409).json({ error: 'Ya existe un logro con ese slug' });
+    }
+    const achievement = await prisma.achievement.create({
+      data: { name, slug, description: description || '', icon: icon || '🏆', rarity: rarity || 'COMMON', xpReward: xpReward || 20 },
+    });
+    res.json(achievement);
+  } catch (err) {
+    console.error('[admin/achievements] Error:', err);
+    res.status(500).json({ error: 'Error al crear logro' });
+  }
+});
+
+// Admin: Update achievement
+router.put('/admin-achievements/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, slug, description, icon, rarity, xpReward } = req.body;
+    const data: any = {};
+    if (name !== undefined) data.name = name;
+    if (slug !== undefined) data.slug = slug;
+    if (description !== undefined) data.description = description;
+    if (icon !== undefined) data.icon = icon;
+    if (rarity !== undefined) data.rarity = rarity;
+    if (xpReward !== undefined) data.xpReward = xpReward;
+    const achievement = await prisma.achievement.update({
+      where: { id: req.params.id },
+      data,
+    });
+    res.json(achievement);
+  } catch (err) {
+    console.error('[admin/achievements] Error:', err);
+    res.status(500).json({ error: 'Error al actualizar logro' });
+  }
+});
+
+// Admin: Delete achievement
+router.delete('/admin-achievements/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    await prisma.achievement.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[admin/achievements] Error:', err);
+    res.status(500).json({ error: 'Error al eliminar logro' });
   }
 });
 

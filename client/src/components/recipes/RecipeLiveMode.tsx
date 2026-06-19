@@ -47,7 +47,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     if (!user) return;
     loadDraft(user.id, recipe.id).then((d) => {
       if (d && d.status === 'in_progress') setDraft(d);
-    }).catch(() => {});
+    }).catch((err) => { console.error(err); });
   }, [user?.id, recipe.id]);
 
   // Persist draft helper
@@ -62,7 +62,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       steps: newSteps,
       status: 'in_progress',
     };
-    saveDraft(d).catch(() => {});
+    saveDraft(d).catch(console.error);
   }, [user?.id, recipe.id]);
 
   const handleResume = () => {
@@ -74,7 +74,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   };
 
   const handleStartOver = () => {
-    if (user) clearDraft(user.id, recipe.id).catch(() => {});
+    if (user) clearDraft(user.id, recipe.id).catch(console.error);
     startedAtRef.current = new Date().toISOString();
     setDraft(null);
     setSteps([]);
@@ -176,7 +176,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       for (const a of newAchievements) {
         setTimeout(() => addToast(`🏆 Logro: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success'), 400);
       }
-      if (user) clearDraft(user.id, recipe.id).catch(() => {});
+      if (user) clearDraft(user.id, recipe.id).catch(console.error);
       setBrewRegistered(true);
     } catch {
       addToast('Error al registrar brew. Intenta de nuevo.', 'error');

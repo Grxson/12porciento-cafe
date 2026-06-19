@@ -287,6 +287,8 @@ model User {
   state                        String?
   zipCode                      String?
   avatarUrl                    String?
+  resetToken                   String?
+  resetTokenExpires            DateTime?
   stripeCustomerId             String?        @unique
   stripeDefaultPaymentMethodId String?
   createdAt                    DateTime       @default(now())

@@ -5,6 +5,7 @@ import { SlidersHorizontal, X, ChevronDown, Search, ChevronLeft, ChevronRight as
 import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import type { Product } from '../types';
+import { PageMeta } from '../hooks/usePageMeta';
 
 const PAGE_SIZE = 12;
 
@@ -69,7 +70,7 @@ export default function Shop() {
       const all = r.data.data.flatMap((p) => p.flavors ?? []);
       const unique = Array.from(new Set(all)).sort();
       setAvailableFlavors(unique);
-    }).catch(() => {});
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function Shop() {
         setTotal(r.data.total);
         setTotalPages(r.data.totalPages);
       })
-      .catch(() => {})
+      .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
   }, [process, roast, sort, category, search, page, selectedFlavors]);
 
@@ -127,6 +128,7 @@ export default function Shop() {
 
   return (
     <div className="min-h-screen pt-24 pb-24 bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta title="Tienda" description="Explora nuestra selección de cafés de especialidad: origen único, blends y suscripciones." />
       {/* Page header */}
       <div className="page-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -301,16 +303,16 @@ export default function Shop() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 32, stiffness: 320 }}
-                className="fixed bottom-0 left-0 right-0 z-50 bg-coffee-900 border-t border-coffee-800 p-5 space-y-4 md:hidden max-h-[80vh] overflow-y-auto"
+                className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-coffee-900 border-t border-coffee-200 dark:border-coffee-800 p-5 space-y-4 md:hidden max-h-[80vh] overflow-y-auto"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 1.25rem)' }}
               >
                 {/* Sheet header */}
                 <div className="flex items-center justify-between">
-                  <h3 className="text-cream font-serif text-lg">Filtros</h3>
+                  <h3 className="font-serif text-lg text-coffee-900 dark:text-cream">Filtros</h3>
                   <button
                     onClick={() => setFiltersOpen(false)}
                     aria-label="Cerrar"
-                    className="text-coffee-400 hover:text-cream"
+                    className="text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream"
                   >
                     <X className="w-5 h-5" />
                   </button>

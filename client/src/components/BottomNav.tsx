@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Store, Package, BookOpen, ShoppingBag, User } from 'lucide-react';
+import { Store, Package, ShoppingBag, Image, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
@@ -7,7 +7,7 @@ const tabs = [
   { to: '/tienda', label: 'Tienda', icon: Store },
   { to: '/paquetes', label: 'Paquetes', icon: Package },
   { to: '/carrito', label: 'Carrito', icon: ShoppingBag, badge: true },
-  { to: '/recetas', label: 'Recetas', icon: BookOpen },
+  { to: '/galeria', label: 'Galería', icon: Image },
   { to: '/perfil', label: 'Perfil', icon: User },
 ];
 

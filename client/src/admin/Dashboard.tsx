@@ -99,7 +99,7 @@ export default function Dashboard() {
   useEffect(() => {
     baristaApi.getLeaderboard(10)
       .then((res) => setTopBaristas(res.data.data))
-      .catch(() => {});
+      .catch(console.error);
   }, []);
 
   const revenueData = useMemo(() => {

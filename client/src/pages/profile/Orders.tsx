@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Package } from 'lucide-react';
 import { usersApi } from '../../api';
 import type { Order } from '../../types';
+import { PageMeta } from '../../hooks/usePageMeta';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   PENDING:    { label: 'Pendiente',   color: 'text-yellow-400' },
@@ -31,6 +32,7 @@ export default function Orders() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
+        <PageMeta title="Mis Pedidos" />
         <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
       </div>
     );
@@ -39,6 +41,7 @@ export default function Orders() {
   if (error) {
     return (
       <div className="text-center py-16">
+        <PageMeta title="Mis Pedidos" />
         <p className="text-red-400 mb-4">{error}</p>
         <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
           Reintentar
@@ -50,6 +53,7 @@ export default function Orders() {
   if (orders.length === 0) {
     return (
       <div className="text-center py-16">
+        <PageMeta title="Mis Pedidos" />
         <Package className="w-12 h-12 text-coffee-400 dark:text-coffee-600 mx-auto mb-4" />
         <p className="text-coffee-600 dark:text-coffee-400">Aún no tienes pedidos.</p>
       </div>
@@ -58,6 +62,7 @@ export default function Orders() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+      <PageMeta title="Mis Pedidos" />
       {orders.map((order, i) => (
         <motion.div key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">

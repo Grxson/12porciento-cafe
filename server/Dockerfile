@@ -1,9 +1,11 @@
-FROM node:24-alpine
+FROM node:24-bullseye
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm + libssl1.1 (required by Prisma libquery_engine)
+RUN npm install -g pnpm && \
+    apt-get update && apt-get install -y --no-install-recommends libssl1.1 && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy root package files
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
@@ -16,13 +18,12 @@ COPY client ./client
 RUN pnpm install --frozen-lockfile
 
 # Build server + client
-RUN pnpm --filter server build && pnpm --filter server exec prisma generate
+RUN pnpm --filter=cafe-12-server build && pnpm --filter=cafe-12-server exec prisma generate && ls server/dist/src/
 
 # Prisma migration at startup
 ENV DATABASE_URL=$DATABASE_URL
 ENV NODE_ENV=production
-ENV PORT=10000
 
-EXPOSE 10000
+EXPOSE 3001
 
 CMD ["node", "server/dist/src/index.js"]

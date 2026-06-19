@@ -7,6 +7,7 @@ import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import ScrollReveal from '../components/ScrollReveal';
 import type { Product } from '../types';
+import { PageMeta } from '../hooks/usePageMeta';
 
 function AnimatedCounter({ end, suffix = '' }: { end: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -50,17 +51,25 @@ const pillars = [
 
 export default function Home() {
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [featuredError, setFeaturedError] = useState('');
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   useEffect(() => {
-    productsApi.list({ limit: '3' }).then((r) => setFeatured(r.data.data));
+    setFeaturedLoading(true);
+    setFeaturedError('');
+    productsApi.list({ limit: '3' })
+      .then((r) => setFeatured(r.data.data))
+      .catch(() => setFeaturedError('Error al cargar productos destacados'))
+      .finally(() => setFeaturedLoading(false));
   }, []);
 
   return (
     <div>
+      <PageMeta title="Inicio" description="Café de especialidad mexicano. Descubre notas florales y cítricas de Veracruz y Chiapas." />
       {/* ── HERO ── */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-coffee-950">
         <motion.div style={{ y }} className="absolute inset-0">
@@ -336,11 +345,36 @@ export default function Home() {
             </ScrollReveal>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featured.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
-            ))}
-          </div>
+          {featuredLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+            </div>
+          ) : featuredError ? (
+            <div className="text-center py-8">
+              <p className="text-red-500 text-sm">{featuredError}</p>
+              <button
+                onClick={() => {
+                  setFeaturedLoading(true);
+                  setFeaturedError('');
+                  productsApi.list({ limit: '3' })
+                    .then((r) => setFeatured(r.data.data))
+                    .catch(() => setFeaturedError('Error al cargar productos destacados'))
+                    .finally(() => setFeaturedLoading(false));
+                }}
+                className="mt-3 text-xs text-gold-500 hover:text-gold-400 underline"
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : featured.length === 0 ? (
+            <p className="text-center text-coffee-500 py-8">No hay productos disponibles</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featured.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-10 sm:hidden">
             <Link to="/tienda" className="btn-outline-dark">Ver toda la tienda</Link>
@@ -349,7 +383,7 @@ export default function Home() {
       </section>
 
       {/* ── ESTADÍSTICAS ── */}
-      <section className="py-20 bg-gold-500 dark:bg-gold-600/20">
+      <section className="py-20 bg-gold-500 dark:bg-gold-500/10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
@@ -359,10 +393,10 @@ export default function Home() {
               { value: 100, suffix: '%', label: 'Comercio directo' },
             ].map(({ value, suffix, label }) => (
               <div key={label}>
-                <p className="font-serif text-5xl font-black text-coffee-950 dark:text-gold-500 leading-none">
+                <p className="font-serif text-5xl font-black text-coffee-950 dark:text-gold-300 leading-none">
                   <AnimatedCounter end={value} suffix={suffix} />
                 </p>
-                <p className="text-coffee-700 dark:text-gold-500/70 text-sm mt-2 uppercase tracking-widest">{label}</p>
+                <p className="text-coffee-700 dark:text-gold-400/90 text-sm mt-2 uppercase tracking-widest">{label}</p>
               </div>
             ))}
           </div>

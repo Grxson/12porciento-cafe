@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { authApi } from '../api';
+import { PageMeta } from '../hooks/usePageMeta';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -31,6 +32,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4">
+      <PageMeta title="Admin — Iniciar Sesión" noSuffix />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

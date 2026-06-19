@@ -20,7 +20,7 @@ export default function SearchableProductSelect({ value, onChange, initialLabel 
   useEffect(() => {
     productsApi.list()
       .then((r) => { setProducts(r.data.data.filter((p: Product) => p.isActive)); })
-      .catch(() => {})
+      .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 

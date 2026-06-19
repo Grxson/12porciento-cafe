@@ -4,6 +4,7 @@ import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag, Package } from 'luci
 import { useCart } from '../context/CartContext';
 import { resolveImageUrl } from '../utils/imageUrl';
 import type { CartItemFull } from '../types';
+import { PageMeta } from '../hooks/usePageMeta';
 
 function getItemKey(item: CartItemFull): string {
   return item.itemType === 'product' ? `prod_${item.product.id}` : `bund_${item.bundleId}`;
@@ -163,6 +164,7 @@ export default function Cart() {
   if (count() === 0) {
     return (
       <div className="min-h-screen pt-20 flex flex-col items-center justify-center gap-6 px-4 bg-coffee-50 dark:bg-coffee-950">
+        <PageMeta title="Carrito" description="Revisa tu carrito de compras antes de pagar." />
         <div className="w-24 h-24 border border-coffee-200 dark:border-coffee-800 flex items-center justify-center">
           <ShoppingBag className="w-10 h-10 text-coffee-700 dark:text-coffee-300" />
         </div>
@@ -179,6 +181,7 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen pt-20 pb-24 md:pb-0 bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta title="Carrito" description="Revisa tu carrito de compras antes de pagar." />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-10">
           <div className="gold-line mb-4" />
@@ -232,7 +235,7 @@ export default function Cart() {
               </div>
 
               <div className="flex justify-between items-baseline mb-1">
-                <span className="text-coffee-500 text-sm">Subtotal</span>
+                <span className="text-coffee-500 dark:text-coffee-400 text-sm">Subtotal</span>
                 <span className="font-serif text-2xl text-coffee-900 dark:text-cream">
                   ${total().toLocaleString('es-MX')}
                 </span>
@@ -245,7 +248,7 @@ export default function Cart() {
 
               <Link
                 to="/tienda"
-                className="block text-center text-coffee-500 hover:text-coffee-800 dark:hover:text-cream text-xs mt-4 transition-colors tracking-wide"
+                className="block text-center text-coffee-500 dark:text-coffee-400 hover:text-coffee-800 dark:hover:text-cream text-xs mt-4 transition-colors tracking-wide"
               >
                 Seguir comprando
               </Link>

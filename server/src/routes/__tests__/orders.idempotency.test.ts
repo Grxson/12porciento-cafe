@@ -54,7 +54,13 @@ app.use('/orders', ordersRouter);
 describe('POST /orders — idempotency', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRetrieve.mockResolvedValue({ status: 'succeeded' });
+    mockRetrieve.mockResolvedValue({
+      status: 'succeeded',
+      amount: 10000,
+      metadata: {
+        items: JSON.stringify([{ productId: 'p1', quantity: 1 }]),
+      },
+    });
     mockPromoCodeFindUnique.mockResolvedValue(null);
     mockSendOrderConfirmation.mockResolvedValue(undefined);
   });
@@ -65,16 +71,16 @@ describe('POST /orders — idempotency', () => {
     // findUnique returns an existing order on the idempotency check
     mockOrderFindUnique.mockResolvedValue(existingOrder);
 
-    const res = await request(app)
+      const res = await request(app)
       .post('/orders')
       .send({
         paymentIntentId: 'pi_123',
         items: [{ productId: 'p1', quantity: 1, price: 100 }],
-        customerName: 'Test',
+        customerName: 'Test User',
         email: 't@t.com',
-        address: 'x',
-        city: 'y',
-        state: 'z',
+        address: 'Calle Test 123',
+        city: 'CDMX',
+        state: 'CDMX',
         zipCode: '00000',
       });
 
@@ -93,7 +99,7 @@ describe('POST /orders — idempotency', () => {
       id: 'o2',
       paymentIntentId: 'pi_456',
       email: 't@t.com',
-      customerName: 'Test',
+      customerName: 'Test User',
       total: 100,
       items: [{ product: { name: 'Coffee' }, quantity: 1, price: 100 }],
     };
@@ -105,9 +111,10 @@ describe('POST /orders — idempotency', () => {
           create: vi.fn().mockResolvedValue(newOrder),
         },
         product: {
-          findUnique: vi.fn().mockResolvedValue({ stock: 100, name: 'Coffee', isActive: true }),
+          findUnique: vi.fn().mockResolvedValue({ stock: 100, price: 100, name: 'Coffee', isActive: true }),
           update: vi.fn(),
         },
+        orderItem: { update: vi.fn() },
         stockMovement: { create: vi.fn() },
       }),
     );
@@ -117,11 +124,11 @@ describe('POST /orders — idempotency', () => {
       .send({
         paymentIntentId: 'pi_456',
         items: [{ productId: 'p1', quantity: 1, price: 100 }],
-        customerName: 'Test',
+        customerName: 'Test User',
         email: 't@t.com',
-        address: 'x',
-        city: 'y',
-        state: 'z',
+        address: 'Calle Test 123',
+        city: 'CDMX',
+        state: 'CDMX',
         zipCode: '00000',
       });
 

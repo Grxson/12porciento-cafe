@@ -3,6 +3,7 @@ import { ShoppingBag, Package } from 'lucide-react';
 import { bundlesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import type { Bundle } from '../types';
+import { PageMeta } from '../hooks/usePageMeta';
 
 function BundleSkeleton() {
   return (
@@ -25,13 +26,14 @@ function BundleSkeleton() {
 export default function Bundles() {
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bundlesError, setBundlesError] = useState('');
   const [addingId, setAddingId] = useState<string | null>(null);
   const addBundle = useCart((s) => s.addBundle);
 
   useEffect(() => {
     bundlesApi.list()
       .then((res) => setBundles(res.data.data || []))
-      .catch(() => {})
+      .catch(() => setBundlesError('Error al cargar paquetes'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -46,6 +48,7 @@ export default function Bundles() {
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta title="Paquetes" description="Paquetes y combos de café de especialidad con descuento." />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="gold-line mb-4" />
         <div className="flex items-center gap-3 mb-2">
@@ -59,6 +62,23 @@ export default function Bundles() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => <BundleSkeleton key={i} />)}
+          </div>
+        ) : bundlesError ? (
+          <div className="text-center py-20">
+            <p className="text-red-500 text-lg mb-3">{bundlesError}</p>
+            <button
+              onClick={() => {
+                setLoading(true);
+                setBundlesError('');
+                bundlesApi.list()
+                  .then((res) => setBundles(res.data.data || []))
+                  .catch(() => setBundlesError('Error al cargar paquetes'))
+                  .finally(() => setLoading(false));
+              }}
+              className="text-gold-500 hover:text-gold-400 underline text-sm"
+            >
+              Reintentar
+            </button>
           </div>
         ) : bundles.length === 0 ? (
           <div className="text-center py-20 text-coffee-500">

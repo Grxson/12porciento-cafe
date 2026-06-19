@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { useTheme } from '../context/ThemeContext';
+import { useClientTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import UserMenu from './UserMenu';
 import NotificationBell from './NotificationBell';
@@ -13,6 +13,7 @@ const links = [
   { to: '/tienda', label: 'Tienda' },
   { to: '/paquetes', label: 'Paquetes' },
   { to: '/recetas', label: 'Recetas' },
+  { to: '/galeria', label: 'Galería' },
   { to: '/leaderboard', label: 'Ranking' },
   { to: '/logros', label: 'Logros' },
   { to: '/suscripciones', label: 'Suscripciones' },
@@ -25,7 +26,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const count = useCart((s) => s.count());
   const openDrawer = useCart((s) => s.openDrawer);
-  const { dark, toggle } = useTheme();
+  const { dark, toggle } = useClientTheme();
   const user = useUser((s) => s.user);
   const menuRef = useRef<HTMLDivElement>(null);
 

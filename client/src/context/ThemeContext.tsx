@@ -7,7 +7,8 @@ interface ThemeStore {
   toggle: () => void;
 }
 
-export const useTheme = create<ThemeStore>()(
+/** Client theme store — persisted under 'cafe-12-theme' */
+export const useClientTheme = create<ThemeStore>()(
   persist(
     (set) => ({
       dark: true,
@@ -17,12 +18,24 @@ export const useTheme = create<ThemeStore>()(
   ),
 );
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const dark = useTheme((s) => s.dark);
+/** Admin theme store — persisted under 'cafe-12-admin-theme' (independent) */
+export const useAdminTheme = create<ThemeStore>()(
+  persist(
+    (set) => ({
+      dark: true,
+      toggle: () => set((s) => ({ dark: !s.dark })),
+    }),
+    { name: 'cafe-12-admin-theme' },
+  ),
+);
 
+/**
+ * Sync component: toggles `.dark` class on document.documentElement
+ * based on the provided store. Place one per active layout.
+ */
+export function ThemeSync({ store }: { store: { dark: boolean } }) {
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-  }, [dark]);
-
-  return <>{children}</>;
+    document.documentElement.classList.toggle('dark', store.dark);
+  }, [store.dark]);
+  return null;
 }

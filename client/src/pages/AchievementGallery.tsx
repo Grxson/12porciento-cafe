@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Lock, Trophy } from 'lucide-react';
 import { baristaApi } from '../api';
 import type { AchievementWithUnlock } from '../types';
+import { PageMeta } from '../hooks/usePageMeta';
 
 const rarityConfig: Record<string, { label: string; color: string }> = {
   COMMON:    { label: 'Común',      color: 'text-coffee-600 dark:text-coffee-400 bg-coffee-100 dark:bg-coffee-800/60' },
@@ -41,6 +42,7 @@ export default function AchievementGallery() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
+      <PageMeta title="Logros" description="Todos los logros disponibles en 12% Café. Completa cada desafío barista." />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Colección</p>

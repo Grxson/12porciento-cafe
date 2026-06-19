@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /perfil/
+Disallow: /login
+Disallow: /registro
+
+Sitemap: https://12porciento.cafe/api/sitemap.xml

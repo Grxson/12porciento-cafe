@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { baristaApi } from '../api';
+import { PageMeta } from '../hooks/usePageMeta';
 
 interface LeaderboardEntry {
   id: string;
@@ -29,6 +30,7 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 pb-24">
+      <PageMeta title="Ranking Barista" description="Tabla de líderes de la comunidad barista 12%. Gana experiencia con cada preparación." />
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Clasificación</p>

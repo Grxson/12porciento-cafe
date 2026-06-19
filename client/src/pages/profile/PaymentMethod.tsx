@@ -7,6 +7,7 @@ import { usersApi } from '../../api';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import type { PaymentMethod as PM } from '../../types';
+import { PageMeta } from '../../hooks/usePageMeta';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -172,12 +173,14 @@ export default function PaymentMethod() {
 
   if (loading) return (
     <div className="flex justify-center py-12">
+      <PageMeta title="Métodos de Pago" />
       <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
     </div>
   );
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-lg">
+      <PageMeta title="Métodos de Pago" />
       <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">Método de pago</h2>
       <p className="text-coffee-500 text-sm mb-6">
         Tu tarjeta guardada se usará en futuros pedidos. Puedes cambiarla o eliminarla en cualquier momento.

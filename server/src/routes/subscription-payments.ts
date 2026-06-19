@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
@@ -203,6 +204,47 @@ router.post('/webhook/invoice', async (req: Request, res: Response) => {
 
   } else {
     res.json({ received: true });
+  }
+});
+
+// GET /admin/all — admin list of all subscription payments
+router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const { search, status, plan, startDate, endDate } = req.query;
+
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { subscription: { name: { contains: search as string } } },
+        { subscription: { email: { contains: search as string } } },
+        { stripeInvoiceId: { contains: search as string } },
+      ];
+    }
+    if (status) where.status = status as string;
+    if (plan) where.subscription = { ...where.subscription, plan: plan as string };
+    if (startDate) where.billingDate = { ...where.billingDate, gte: new Date(startDate as string) };
+    if (endDate) where.billingDate = { ...where.billingDate, lte: new Date(endDate as string) };
+
+    const [payments, total] = await Promise.all([
+      prisma.subscriptionPayment.findMany({
+        where,
+        include: { subscription: { select: { name: true, email: true, plan: true } } },
+        orderBy: { billingDate: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.subscriptionPayment.count({ where }),
+    ]);
+
+    res.json({
+      data: payments,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    console.error('[admin/subscription-payments] Error:', err);
+    res.status(500).json({ error: 'Error al cargar pagos' });
   }
 });
 

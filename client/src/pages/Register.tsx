@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { mexicanStates } from '../constants/mexico';
+import { PageMeta } from '../hooks/usePageMeta';
 
 export default function Register() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -49,6 +50,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta title="Crear Cuenta" />
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}

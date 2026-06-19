@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Coffee } from 'lucide-react';
+import { PageMeta } from '../hooks/usePageMeta';
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex flex-col items-center justify-center px-4 text-center">
+      <PageMeta title="Página No Encontrada" description="La página que buscas no existe." />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

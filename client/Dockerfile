@@ -8,8 +8,10 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY server ./server
 COPY client ./client
 
+ARG VITE_API_URL
+ARG VITE_STRIPE_PUBLISHABLE_KEY
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter client build
+RUN pnpm --filter=cafe-12-client build && ls client/dist/
 
 FROM nginx:alpine
 

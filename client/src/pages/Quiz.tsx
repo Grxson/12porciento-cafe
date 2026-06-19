@@ -5,6 +5,7 @@ import { ArrowRight, ArrowLeft, Coffee, Loader2 } from 'lucide-react';
 import { productsApi } from '../api';
 import type { Product } from '../types';
 import ProductCard from '../components/ProductCard';
+import { PageMeta } from '../hooks/usePageMeta';
 
 interface Question {
   id: string;
@@ -187,6 +188,7 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex flex-col items-center px-4 pt-20 pb-20">
+      <PageMeta title="Encuentra tu Café" description="Descubre qué café de especialidad se adapta mejor a tu paladar." />
       <div className="w-full max-w-lg">
         <div className="text-center mb-10">
           <Coffee className="w-10 h-10 text-gold-500/60 mx-auto mb-4" />

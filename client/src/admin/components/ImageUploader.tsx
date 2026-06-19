@@ -72,7 +72,7 @@ export default function ImageUploader({ value, onChange, label = 'Imagen' }: Ima
           onDragLeave={() => setDragOver(false)}
           onDrop={onDrop}
           className={`border-2 border-dashed p-6 text-center transition-colors ${
-            dragOver ? 'border-gold-500 bg-gold-500/5' : 'border-coffee-700'
+            dragOver ? 'border-gold-500 bg-gold-500/5' : 'border-coffee-300 dark:border-coffee-700'
           }`}
         >
           {uploading ? (

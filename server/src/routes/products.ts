@@ -171,6 +171,40 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
   }
 });
 
+// GET /api/products/gallery — public, returns active products with images
+router.get('/gallery', async (_req: Request, res: Response) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true, imageUrl: { not: '' } },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        imageUrl: true,
+        images: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    const images = products.flatMap((p) => {
+      const urls = [p.imageUrl, ...(p.images ? JSON.parse(p.images) : [])].filter(Boolean);
+      return urls.map((url: string) => ({
+        id: `${p.id}-${url}`,
+        url,
+        alt: p.name,
+        productName: p.name,
+        productSlug: p.slug,
+      }));
+    });
+    res.json({ images });
+  } catch (err) {
+    console.error('[gallery] Error:', err);
+    res.status(500).json({ error: 'Error al cargar la galería' });
+  }
+});
+
+// IMPORTANT: keep /:slug route after /gallery so 'gallery' is not caught as a slug param
+
 router.get('/:slug', async (req: Request, res: Response) => {
   try {
     const product = await prisma.product.findUnique({ where: { slug: req.params.slug } });

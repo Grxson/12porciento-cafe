@@ -1,11 +1,13 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import Stripe from 'stripe';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
+import nodemailer from 'nodemailer';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
@@ -196,7 +198,7 @@ router.get('/me/subscription', requireUserAuth, async (req: UserAuthRequest, res
 router.put('/me/subscription/:id/status', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const { status } = req.body;
-    if (!['CANCELLED', 'PAUSED'].includes(status)) {
+    if (!['CANCELLED', 'PAUSED', 'ACTIVE'].includes(status)) {
       res.status(400).json({ error: 'Estado inválido' });
       return;
     }
@@ -318,6 +320,100 @@ router.delete('/me/payment-methods/:pmId', requireUserAuth, async (req: UserAuth
   } catch (err: any) {
     if (err.statusCode === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
     res.status(500).json({ error: 'Error al eliminar método de pago' });
+  }
+});
+
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Demasiados intentos. Intenta en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+const emailTransport = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: process.env.SMTP_USER ? {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  } : undefined,
+});
+
+// POST /api/users/forgot-password — send reset link
+router.post('/forgot-password', resetLimiter, async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email requerido' });
+    }
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    // Always return 200 to avoid email enumeration
+    if (!user) {
+      return res.json({ ok: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
+    }
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000); // 1 hour
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken: token, resetTokenExpires: expires },
+    });
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/restablecer-contrasena/${token}`;
+    const html = `
+      <div style="background:#1a0f0a;padding:40px 20px;font-family:sans-serif;">
+        <div style="max-width:480px;margin:0 auto;background:#2a1a0e;border-radius:8px;padding:32px;">
+          <h1 style="color:#c9a227;font-size:24px;margin:0 0 16px;">12% Café</h1>
+          <p style="color:#d4b896;font-size:14px;line-height:1.6;">Recibimos una solicitud para restablecer tu contraseña.</p>
+          <a href="${resetUrl}" style="display:inline-block;background:#c9a227;color:#1a0f0a;padding:12px 24px;border-radius:4px;text-decoration:none;font-weight:bold;margin:16px 0;font-size:14px;">Restablecer contraseña</a>
+          <p style="color:#8c6a4a;font-size:12px;line-height:1.4;">Este enlace expira en 1 hora. Si no solicitaste este cambio, ignora este correo.</p>
+        </div>
+      </div>
+    `;
+    await emailTransport.sendMail({
+      from: process.env.SMTP_FROM || 'noreply@12porciento.cafe',
+      to: normalizedEmail,
+      subject: 'Restablece tu contraseña — 12% Café',
+      html,
+    });
+    console.log(`[email] Password reset sent to ${normalizedEmail}`);
+    res.json({ ok: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
+  } catch (err) {
+    console.error('[password-reset] Failed:', err);
+    res.status(500).json({ error: 'Error al enviar el correo. Intenta más tarde.' });
+  }
+});
+
+// POST /api/users/reset-password — reset password with token
+router.post('/reset-password', authLimiter, async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ error: 'Token requerido' });
+    }
+    if (!password || typeof password !== 'string' || password.length < 6 || password.length > 128) {
+      return res.status(400).json({ error: 'La contraseña debe tener entre 6 y 128 caracteres' });
+    }
+    const user = await prisma.user.findFirst({
+      where: { resetToken: token, resetTokenExpires: { gt: new Date() } },
+    });
+    if (!user) {
+      return res.status(400).json({ error: 'Token inválido o expirado. Solicita un nuevo enlace.' });
+    }
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashed, resetToken: null, resetTokenExpires: null },
+    });
+    res.json({ ok: true, message: 'Contraseña actualizada exitosamente.' });
+  } catch (err) {
+    console.error('[password-reset] Failed:', err);
+    res.status(500).json({ error: 'Error al restablecer la contraseña.' });
   }
 });
 

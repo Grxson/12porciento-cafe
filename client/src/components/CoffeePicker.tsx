@@ -16,12 +16,13 @@ interface Props {
 export default function CoffeePicker({ plan, selected, onChange, grindPreference, onGrindChange }: Props) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const slots = PLAN_SLOTS[plan];
 
   useEffect(() => {
     productsApi.list({ category: 'CAFÉ' })
       .then((r) => { setProducts(r.data.data.filter((p: Product) => p.isActive)); })
-      .catch(() => {})
+      .catch((err) => { console.error(err); setError('Error al cargar opciones de café.'); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -83,6 +84,11 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
         ))}
       </div>
 
+      {error && (
+        <p className="text-red-500 text-sm mb-4" role="alert">
+          {error}
+        </p>
+      )}
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[3/4] shimmer" />)}

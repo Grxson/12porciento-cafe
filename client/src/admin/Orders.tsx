@@ -29,6 +29,9 @@ export default function AdminOrders() {
   const [dateTo, setDateTo] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const load = (overrides?: Record<string, string>) => {
     setLoading(true);
@@ -75,6 +78,40 @@ export default function AdminOrders() {
       setOrders(prev);
       addToast('Error al actualizar estado del pedido', 'error');
     }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === orders.length) setSelected(new Set());
+    else setSelected(new Set(orders.map((o) => o.id)));
+  };
+
+  const handleBulkStatus = async () => {
+    if (!bulkStatus) return;
+    setBulkBusy(true);
+    let success = 0;
+    let fail = 0;
+    for (const id of selected) {
+      try {
+        await ordersApi.updateStatus(id, bulkStatus);
+        success++;
+      } catch {
+        fail++;
+      }
+    }
+    if (success > 0) addToast(`${success} pedido${success !== 1 ? 's' : ''} actualizado${success !== 1 ? 's' : ''} a ${statusConfig[bulkStatus as OrderStatus]?.label ?? bulkStatus}`, 'success');
+    if (fail > 0) addToast(`${fail} pedido${fail !== 1 ? 's' : ''} fallaron`, 'error');
+    setSelected(new Set());
+    setBulkBusy(false);
+    setBulkStatus('');
   };
 
   const hasFilters = status || search || dateFrom || dateTo;
@@ -156,6 +193,24 @@ export default function AdminOrders() {
         </div>
       </form>
 
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
+          <span className="text-sm text-coffee-700 dark:text-coffee-300">{selected.size} seleccionado{selected.size !== 1 ? 's' : ''}</span>
+          <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-2 py-1 text-xs">
+            <option value="">Cambiar estado…</option>
+            <option value="PROCESSING">Procesando</option>
+            <option value="SHIPPED">Enviado</option>
+            <option value="DELIVERED">Entregado</option>
+            <option value="CANCELLED">Cancelado</option>
+          </select>
+          <button onClick={handleBulkStatus} disabled={!bulkStatus || bulkBusy}
+            className="text-xs btn-primary disabled:opacity-50">
+            {bulkBusy ? 'Actualizando…' : 'Aplicar'}
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-cream ml-auto">Limpiar</button>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
@@ -171,6 +226,10 @@ export default function AdminOrders() {
         <div className="text-center py-20 text-coffee-500">No hay pedidos con ese filtro.</div>
       ) : (
         <div className="space-y-2">
+          <div className="flex items-center px-5 py-2 bg-coffee-50/50 dark:bg-coffee-800/20 border border-coffee-200 dark:border-coffee-800 mb-2">
+            <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === orders.length && orders.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+            <span className="text-xs text-coffee-500 ml-2">Seleccionar todo</span>
+          </div>
           {orders.map((order) => {
             const cfg = statusConfig[order.status as OrderStatus] ?? statusConfig.PENDING;
             const isOpen = expanded === order.id;
@@ -181,6 +240,7 @@ export default function AdminOrders() {
                   className="w-full flex items-center justify-between px-5 py-4 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors"
                 >
                   <div className="flex items-center gap-6 text-left">
+                    <input type="checkbox" checked={selected.has(order.id)} onChange={() => toggleSelect(order.id)} onClick={(e) => e.stopPropagation()} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
                     <div>
                       <p className="text-coffee-900 dark:text-cream font-medium">{order.customerName}</p>
                       <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{order.email}</p>

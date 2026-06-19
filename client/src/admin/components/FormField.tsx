@@ -3,7 +3,7 @@ interface FormFieldProps {
   value: string | number;
   onChange: (value: string | number) => void;
   error?: string;
-  type?: 'text' | 'email' | 'number' | 'textarea' | 'select';
+  type?: 'text' | 'email' | 'number' | 'password' | 'textarea' | 'select';
   options?: { label: string; value: string }[];
   required?: boolean;
   placeholder?: string;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../context/UserContext';
+import { PageMeta } from '../hooks/usePageMeta';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -28,6 +29,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta title="Iniciar Sesión" />
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -61,6 +63,11 @@ export default function Login() {
                 className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                 placeholder="••••••••"
               />
+            </div>
+            <div className="flex justify-end">
+              <Link to="/olvide-contrasena" className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">
+                Olvidé mi contraseña
+              </Link>
             </div>
             {error && <p className="text-red-400 text-sm">{error}</p>}
             <button type="submit" disabled={loading}

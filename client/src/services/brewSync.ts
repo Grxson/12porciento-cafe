@@ -61,17 +61,17 @@ export async function initBrewSync(): Promise<void> {
   if (typeof window === 'undefined') return;
 
   // Sync on app load
-  syncBrews().catch(() => {});
+  syncBrews().catch(console.error);
 
   // Sync when connectivity returns
   window.addEventListener('online', () => {
-    syncBrews().catch(() => {});
+    syncBrews().catch(console.error);
   });
 
   // Register Background Sync (Chromium only; gracefully ignored elsewhere)
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready
       .then((reg) => (reg as any).sync.register('brew-sync'))
-      .catch(() => {});
+      .catch(console.error);
   }
 }

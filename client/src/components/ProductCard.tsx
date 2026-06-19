@@ -31,7 +31,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="group card-light overflow-hidden flex flex-col"
+      className="group bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/50 dark:hover:border-gold-500/70 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.3)] transition-all duration-300 overflow-hidden flex flex-col"
     >
       {/* Image container */}
       <Link to={`/tienda/${product.slug}`} className="relative block overflow-hidden aspect-[3/4] shrink-0">

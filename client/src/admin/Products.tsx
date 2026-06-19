@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
+import { ShoppingBag, Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
 import { productsApi } from '../api';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ImageUploader from './components/ImageUploader';
 import GalleryUploader from './components/GalleryUploader';
 import { resolveImageUrl } from './utils/imageUrl';
+import { useModuleToast } from './context/ModuleContext';
 import type { Product } from '../types';
 
 const emptyForm = {
@@ -17,6 +18,7 @@ const emptyForm = {
 const categoryLabels: Record<string, string> = { 'CAFÉ': 'Café', 'ACCESORIOS': 'Accesorios', 'MERCH': 'Merch' };
 
 export default function AdminProducts() {
+  const { addToast } = useModuleToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<'add' | 'edit' | null>(null);
@@ -26,6 +28,8 @@ export default function AdminProducts() {
   const [catFilter, setCatFilter] = useState('TODOS');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const [loadError, setLoadError] = useState('');
   const [formError, setFormError] = useState('');
@@ -103,6 +107,39 @@ export default function AdminProducts() {
     load();
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((p) => p.id)));
+  };
+
+  const handleBulkActive = async (active: boolean) => {
+    setBulkBusy(true);
+    let success = 0;
+    let fail = 0;
+    for (const id of selected) {
+      try {
+        await productsApi.update(id, { isActive: active });
+        success++;
+      } catch {
+        fail++;
+      }
+    }
+    if (success > 0) addToast(`${success} producto${success !== 1 ? 's' : ''} ${active ? 'activado' : 'desactivado'}${success !== 1 ? 's' : ''}`, 'success');
+    if (fail > 0) addToast(`${fail} producto${fail !== 1 ? 's' : ''} fallaron`, 'error');
+    setSelected(new Set());
+    setBulkBusy(false);
+    load();
+  };
+
   const isCafe = form.category === 'CAFÉ';
   const filtered = catFilter === 'TODOS' ? products : products.filter((p) => p.category === catFilter);
 
@@ -133,6 +170,19 @@ export default function AdminProducts() {
         ))}
       </div>
 
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
+          <span className="text-sm text-coffee-700 dark:text-coffee-300">{selected.size} seleccionado{selected.size !== 1 ? 's' : ''}</span>
+          <button onClick={() => handleBulkActive(true)} disabled={bulkBusy} className="text-xs bg-green-600 text-white px-3 py-1 hover:bg-green-500 disabled:opacity-50">
+            Activar
+          </button>
+          <button onClick={() => handleBulkActive(false)} disabled={bulkBusy} className="text-xs bg-red-600 text-white px-3 py-1 hover:bg-red-500 disabled:opacity-50">
+            Desactivar
+          </button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-cream ml-auto">Limpiar</button>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
@@ -150,15 +200,21 @@ export default function AdminProducts() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-coffee-200 dark:border-coffee-800">
+                  <th className="w-8 px-4 py-3">
+                    <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === filtered.length && filtered.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+                  </th>
                   {['Producto', 'Categoría', 'Info', 'Precio', 'Stock', 'Estado', ''].map((h) => (
                     <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors">
-                    <td className="px-4 py-3">
+                  {filtered.map((p) => (
+                    <tr key={p.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+                      </td>
+                      <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <img src={resolveImageUrl(p.imageUrl)} alt={p.name} className="w-10 h-10 object-cover shrink-0" />
                         <div>

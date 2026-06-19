@@ -11,6 +11,7 @@ import { useToast } from '../context/ToastContext';
 import StripePaymentForm from '../components/StripePaymentForm';
 import { mexicanStates } from '../constants/mexico';
 import type { PaymentMethod } from '../types';
+import { PageMeta } from '../hooks/usePageMeta';
 
 interface FormData {
   customerName: string;
@@ -268,6 +269,7 @@ export default function Checkout() {
   if (items.length === 0 && !success) {
     return (
       <div className="min-h-screen pt-20 flex flex-col items-center justify-center gap-4 bg-coffee-50 dark:bg-coffee-950">
+        <PageMeta title="Pago" description="Finaliza tu compra de café de especialidad de forma segura." />
         <p className="text-coffee-600 dark:text-coffee-400">No hay productos en el carrito.</p>
         <Link to="/tienda" className="btn-primary">Ir a la tienda</Link>
       </div>
@@ -277,6 +279,7 @@ export default function Checkout() {
   if (success) {
     return (
       <div className="min-h-screen pt-20 flex flex-col items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
+        <PageMeta title="Pago" description="Finaliza tu compra de café de especialidad de forma segura." />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -312,24 +315,25 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen pt-20 pb-24 md:pb-0 bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta title="Pago" description="Finaliza tu compra de café de especialidad de forma segura." />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="gold-line mb-4" />
         <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-4">Checkout</h1>
 
         {/* Offline banner */}
         {isOffline && (
-          <div className="bg-yellow-900/20 border border-yellow-500/30 text-yellow-400 dark:text-yellow-300 px-4 py-3 text-sm mb-4 rounded">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-500/30 text-yellow-800 dark:text-yellow-300 px-4 py-3 text-sm mb-4 rounded">
             Sin conexión — no puedes completar el pago sin internet.
           </div>
         )}
 
         {/* Address save suggestion for logged-in users with no saved address */}
         {user && !user.address && step === 1 && !form.address && (
-          <div className="flex items-start gap-3 bg-gold-50 border border-gold-200 p-3 mb-6">
+          <div className="flex items-start gap-3 bg-gold-50 dark:bg-gold-500/5 border border-gold-200 dark:border-gold-500/20 p-3 mb-6">
             <MapPin className="w-4 h-4 text-gold-600 shrink-0 mt-0.5" />
-            <p className="text-coffee-700 text-xs leading-relaxed">
+            <p className="text-coffee-700 dark:text-coffee-300 text-xs leading-relaxed">
               Completa tu dirección aquí y{' '}
-              <Link to="/perfil/datos" className="text-gold-600 hover:text-gold-700 underline">guárdala en tu perfil</Link>
+              <Link to="/perfil/datos" className="text-gold-600 dark:text-gold-400 hover:text-gold-700 underline">guárdala en tu perfil</Link>
               {' '}para que se autocomplete en futuros pedidos.
             </p>
           </div>
@@ -635,7 +639,7 @@ export default function Checkout() {
                       <img src={item.product.imageUrl} alt={item.product.name} className="w-12 h-12 object-cover shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{item.product?.name ?? 'Producto'}</p>
-                        <p className="text-coffee-500 text-xs">{item.product.weight}g · x{item.quantity}</p>
+                        <p className="text-coffee-500 dark:text-coffee-400 text-xs">{item.product.weight}g · x{item.quantity}</p>
                       </div>
                       <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">
                         ${(Number(item.product.price) * item.quantity).toLocaleString('es-MX')}
@@ -652,7 +656,7 @@ export default function Checkout() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{item.bundle?.name ?? 'Paquete'}</p>
-                        <p className="text-coffee-500 text-xs">
+                        <p className="text-coffee-500 dark:text-coffee-400 text-xs">
                           {item.bundle.items.length} producto{item.bundle.items.length !== 1 ? 's' : ''}
                           {item.bundle.discountPct > 0 && ` · ${item.bundle.discountPct}% OFF`}
                         </p>
@@ -667,7 +671,7 @@ export default function Checkout() {
               {/* Promo code */}
               {step === 1 && (
                 <div className="border-t border-coffee-200 dark:border-coffee-700 pt-4 mb-4">
-                  <p className="text-[10px] text-coffee-500 uppercase tracking-widest mb-2">Código de descuento</p>
+                  <p className="text-[10px] text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Código de descuento</p>
                   {promoCode ? (
                     <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 px-3 py-2">
                       <div className="flex items-center gap-2">
@@ -716,7 +720,7 @@ export default function Checkout() {
                   <span className="text-coffee-900 dark:text-cream">Total</span>
                   <span className="text-gold-600 text-lg">${Math.max(total() - promoDiscount, 0).toLocaleString('es-MX')}</span>
                 </div>
-                <p className="text-coffee-500 text-xs mt-1">+ envío según destino</p>
+                <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">+ envío según destino</p>
               </div>
             </div>
           </div>

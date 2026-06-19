@@ -11,6 +11,7 @@ import { useUser } from '../context/UserContext';
 import type { Recipe } from '../types';
 import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 import AttemptsList from '../components/recipes/AttemptsList';
+import { PageMeta } from '../hooks/usePageMeta';
 
 function getVideoEmbed(url: string): { type: 'youtube' | 'vimeo' | 'native' | 'link'; src: string } {
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/);
@@ -194,6 +195,7 @@ export default function Recipes() {
   if (error) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4">
+        <PageMeta title="Recetas" description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso." />
         <div className="text-center">
           <p className="text-red-400 dark:text-red-300 text-sm mb-4">{error}</p>
           <button
@@ -221,6 +223,7 @@ export default function Recipes() {
   if (loading) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
+        <PageMeta title="Recetas" description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso." />
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 space-y-3">
             <div className="shimmer dark:shimmer-dark h-3 w-32 mx-auto" />
@@ -253,6 +256,7 @@ export default function Recipes() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
+      <PageMeta title="Recetas" description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso." />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Guías de preparación</p>

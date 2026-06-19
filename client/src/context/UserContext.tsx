@@ -28,7 +28,7 @@ export const useUser = create<UserStore>()(
         localStorage.setItem('user_token', token);
         set({ user, token });
         const apiBase = import.meta.env.VITE_API_URL || '/api';
-        fetch(`${apiBase}/products?category=${encodeURIComponent('CAFÉ')}&limit=100`).catch(() => {});
+        fetch(`${apiBase}/products?category=${encodeURIComponent('CAFÉ')}&limit=100`).catch(console.error);
         try {
           const sub = await usersApi.mySubscription();
           set({ hasSubscription: sub.data !== null });
@@ -43,7 +43,7 @@ export const useUser = create<UserStore>()(
         localStorage.setItem('user_token', token);
         set({ user, token });
         const apiBase = import.meta.env.VITE_API_URL || '/api';
-        fetch(`${apiBase}/products?category=${encodeURIComponent('CAFÉ')}&limit=100`).catch(() => {});
+        fetch(`${apiBase}/products?category=${encodeURIComponent('CAFÉ')}&limit=100`).catch(console.error);
       },
 
       logout: () => {

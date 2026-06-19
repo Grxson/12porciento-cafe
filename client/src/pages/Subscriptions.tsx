@@ -8,6 +8,7 @@ import ScrollReveal from '../components/ScrollReveal';
 import CoffeePicker from '../components/CoffeePicker';
 import type { SubscriptionPlan } from '../types';
 import { PLAN_SLOTS } from '../types';
+import { PageMeta } from '../hooks/usePageMeta';
 
 const plans: Array<{
   id: SubscriptionPlan;
@@ -124,6 +125,7 @@ export default function Subscriptions() {
   if (success) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 flex items-center justify-center px-4">
+        <PageMeta title="Suscripciones" description="Recibe café de especialidad cada mes. Personaliza tu dosis y frecuencia." />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -145,6 +147,7 @@ export default function Subscriptions() {
 
   return (
     <div className="bg-coffee-50 dark:bg-coffee-950 pt-20 min-h-screen">
+      <PageMeta title="Suscripciones" description="Recibe café de especialidad cada mes. Personaliza tu dosis y frecuencia." />
       {/* Hero */}
       <div className="bg-coffee-100 dark:bg-coffee-900 border-b border-coffee-200 dark:border-coffee-800 py-12">
         <div className="max-w-3xl mx-auto px-4 text-center">

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import { PageMeta } from '../hooks/usePageMeta';
 
 const origins = [
   { region: 'Coatepec, Veracruz', altitude: '1,200–1,600 msnm', notes: 'Notas achocolatadas, frutos amarillos, acidez cítrica balanceada.' },
@@ -20,6 +21,7 @@ const values = [
 export default function About() {
   return (
     <div className="pt-20 min-h-screen bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta title="Nosotros" description="Conoce la historia de 12% Café. Comercio directo con fincas mexicanas, tueste artesanal." />
       {/* Hero — stays dark with imagery */}
       <section className="bg-coffee-950 relative min-h-[65vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">

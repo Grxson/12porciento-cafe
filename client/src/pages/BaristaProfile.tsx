@@ -3,6 +3,7 @@ import { Trophy, Zap, Coffee } from 'lucide-react';
 import { useBarista } from '../hooks/useBarista';
 import { useUser } from '../context/UserContext';
 import BrewComparator from '../components/barista/BrewComparator';
+import { PageMeta } from '../hooks/usePageMeta';
 
 export default function BaristaProfile() {
   const { userId } = useParams<{ userId: string }>();
@@ -13,6 +14,7 @@ export default function BaristaProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 pb-24">
+        <PageMeta title="Perfil Barista" description="Nivel barista, experiencia y logros." />
         <div className="max-w-2xl mx-auto px-4 space-y-6">
           <div className="flex items-center gap-4 pt-6">
             <div className="shimmer dark:shimmer-dark w-16 h-16 rounded-full" />
@@ -46,6 +48,7 @@ export default function BaristaProfile() {
   if (error || !profile) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-24 flex items-center justify-center px-4">
+        <PageMeta title="Perfil Barista" description="Nivel barista, experiencia y logros." />
         <div className="text-center max-w-sm">
           <Coffee className="w-12 h-12 text-coffee-700 mx-auto mb-4" />
           {isOwnProfile ? (
@@ -73,6 +76,7 @@ export default function BaristaProfile() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 pb-24">
+      <PageMeta title={`Perfil de ${currentUser?.name || 'Barista'}`} description="Nivel barista, experiencia y logros." />
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Perfil Barista</p>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe } from 'lucide-react';
 import { productsApi, reviewsApi, recipesApi } from '../api';
@@ -45,10 +46,10 @@ export default function ProductDetail() {
     productsApi.getBySlug(slug)
       .then((r) => {
         setProduct(r.data);
-        reviewsApi.listByProduct(r.data.id).then((rr) => setReviews(rr.data.data || [])).catch(() => {});
-        recipesApi.list({ productId: r.data.id }).then((rr) => setProductRecipes(rr.data.data)).catch(() => {});
+        reviewsApi.listByProduct(r.data.id).then((rr) => setReviews(rr.data.data || [])).catch(console.error);
+        recipesApi.list({ productId: r.data.id }).then((rr) => setProductRecipes(rr.data.data)).catch(console.error);
       })
-      .catch(() => {})
+      .catch((err) => { console.error(err); console.error('No se pudo cargar el producto.'); })
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -90,7 +91,7 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
+      <div className="min-h-screen flex items-center justify-center pt-20 bg-coffee-50 dark:bg-coffee-950">
         <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
       </div>
     );
@@ -98,8 +99,8 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center pt-20 gap-4">
-        <p className="text-coffee-600 text-lg">Producto no encontrado.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center pt-20 gap-4 bg-coffee-50 dark:bg-coffee-950">
+        <p className="text-coffee-600 dark:text-coffee-400 text-lg">Producto no encontrado.</p>
         <Link to="/tienda" className="btn-outline">Volver a la tienda</Link>
       </div>
     );
@@ -121,14 +122,40 @@ export default function ProductDetail() {
   ];
 
   return (
-    <div className="pt-20 min-h-screen pb-28 md:pb-0">
+    <>
+      <Helmet>
+        <title>{product.name} | 12% — Café de Especialidad</title>
+        <meta name="description" content={product.description?.slice(0, 160) ?? `Café de especialidad ${product.name}. ${product.origin ?? ''} ${product.process ?? ''}`.trim()} />
+        <meta property="og:title" content={`${product.name} | 12% — Café de Especialidad`} />
+        <meta property="og:description" content={product.description?.slice(0, 160) ?? `Café de especialidad ${product.name}`} />
+        <meta property="og:image" content={product.imageUrl ?? ''} />
+        <meta property="og:type" content="product" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org/',
+            '@type': 'Product',
+            name: product.name,
+            image: product.imageUrl,
+            description: product.description,
+            sku: product.id,
+            offers: {
+              '@type': 'Offer',
+              url: window.location.href,
+              priceCurrency: 'USD',
+              price: product.price,
+              availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            },
+          })}
+        </script>
+      </Helmet>
+      <div className="pt-20 min-h-screen pb-28 md:pb-0 bg-coffee-50 dark:bg-coffee-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Breadcrumbs crumbs={[
           { label: 'Inicio', to: '/' },
           { label: 'Tienda', to: '/tienda' },
           { label: product.name },
         ]} />
-        <Link to="/tienda" className="inline-flex items-center gap-2 text-coffee-500 hover:text-coffee-900 transition-colors text-sm mb-10">
+        <Link to="/tienda" className="inline-flex items-center gap-2 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors text-sm mb-10">
           <ArrowLeft className="w-4 h-4" /> Volver a la tienda
         </Link>
 
@@ -153,7 +180,7 @@ export default function ProductDetail() {
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.1 }}>
             <div className="gold-line mb-4" />
             {product.origin && <p className="text-gold-600 text-xs tracking-widest uppercase mb-2">{product.origin}</p>}
-            <h1 className="font-serif text-4xl md:text-5xl text-coffee-900 mb-2">{product.name}</h1>
+            <h1 className="font-serif text-4xl md:text-5xl text-coffee-900 dark:text-cream mb-2">{product.name}</h1>
 
             {isCafe && (
               <div className="flex items-center gap-3 mt-3 mb-6">
@@ -164,14 +191,14 @@ export default function ProductDetail() {
                   </span>
                 )}
                 {product.roastLevel && (
-                  <span className="text-xs text-coffee-600 border border-coffee-300 px-3 py-1.5 uppercase tracking-wider">
+                  <span className="text-xs text-coffee-600 dark:text-coffee-400 border border-coffee-300 dark:border-coffee-700 px-3 py-1.5 uppercase tracking-wider">
                     {product.roastLevel}
                   </span>
                 )}
               </div>
             )}
 
-            <p className="text-coffee-700 leading-relaxed mb-8">{product.description}</p>
+            <p className="text-coffee-700 dark:text-coffee-300 leading-relaxed mb-8">{product.description}</p>
 
             {isCafe && product.flavors.length > 0 && (
               <div className="mb-8">
@@ -181,7 +208,7 @@ export default function ProductDetail() {
                     <button
                       key={f}
                       onClick={() => navigate(`/tienda?flavors=${encodeURIComponent(f)}`)}
-                      className="bg-coffee-100 border border-coffee-200 text-coffee-700 text-sm px-3 py-1.5 hover:border-gold-500 hover:text-gold-600 transition-all cursor-pointer"
+                      className="bg-coffee-100 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm px-3 py-1.5 hover:border-gold-500 hover:text-gold-600 transition-all cursor-pointer"
                       title={`Ver cafés con nota "${f}"`}
                     >
                       {f}
@@ -195,19 +222,19 @@ export default function ProductDetail() {
             {isCafe && (
               <div className="flex flex-wrap gap-4 mb-8 text-sm">
                 {product.region && (
-                  <div className="flex items-center gap-1.5 text-coffee-600">
+                  <div className="flex items-center gap-1.5 text-coffee-600 dark:text-coffee-400">
                     <MapPin className="w-3.5 h-3.5 text-gold-500 shrink-0" />
                     {product.region}
                   </div>
                 )}
                 {product.altitude && (
-                  <div className="flex items-center gap-1.5 text-coffee-600">
+                  <div className="flex items-center gap-1.5 text-coffee-600 dark:text-coffee-400">
                     <Mountain className="w-3.5 h-3.5 text-gold-500 shrink-0" />
                     {product.altitude} msnm
                   </div>
                 )}
                 {product.process && (
-                  <div className="flex items-center gap-1.5 text-coffee-600">
+                  <div className="flex items-center gap-1.5 text-coffee-600 dark:text-coffee-400">
                     <Leaf className="w-3.5 h-3.5 text-gold-500 shrink-0" />
                     {product.process}
                   </div>
@@ -216,20 +243,20 @@ export default function ProductDetail() {
             )}
 
             {/* Price + Add */}
-            <div className="border-t border-coffee-200 pt-6">
+            <div className="border-t border-coffee-200 dark:border-coffee-800 pt-6">
               <div className="flex items-baseline gap-2 mb-6">
-                <span className="font-serif text-4xl text-coffee-900 font-semibold">${product.price}</span>
-                <span className="text-coffee-500 text-sm">MXN{product.weight ? ` / ${product.weight}g` : ''}</span>
+                <span className="font-serif text-4xl text-coffee-900 dark:text-cream font-semibold">${product.price}</span>
+                <span className="text-coffee-500 dark:text-coffee-400 text-sm">MXN{product.weight ? ` / ${product.weight}g` : ''}</span>
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex items-center border border-coffee-300">
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors">−</button>
-                  <span className="w-10 text-center text-coffee-900">{qty}</span>
+                <div className="flex items-center border border-coffee-300 dark:border-coffee-700">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors dark:text-coffee-400">−</button>
+                  <span className="w-10 text-center text-coffee-900 dark:text-cream">{qty}</span>
                   <button
                     onClick={handleQtyIncrease}
                     disabled={product.stock === 0}
-                    className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-40 disabled:cursor-not-allowed dark:text-coffee-400"
                   >+</button>
                 </div>
 
@@ -238,7 +265,7 @@ export default function ProductDetail() {
                   disabled={product.stock === 0}
                   className={`flex-1 flex items-center justify-center gap-2 h-10 font-medium text-sm uppercase tracking-wide transition-all ${
                     added ? 'bg-green-600 text-white' : 'bg-gold-500 text-coffee-950 hover:bg-gold-400'
-                  } disabled:bg-coffee-200 disabled:text-coffee-400`}
+                  } disabled:bg-coffee-200 dark:disabled:bg-coffee-700 disabled:text-coffee-400`}
                 >
                   <ShoppingBag className="w-4 h-4" />
                   {product.stock === 0 ? 'Agotado' : added ? '¡Agregado!' : 'Agregar al carrito'}
@@ -253,7 +280,7 @@ export default function ProductDetail() {
                 ) : (
                   <span className="text-xs font-semibold text-green-600">✓ En stock</span>
                 )}
-                {isCafe && <span className="text-coffee-400 text-xs">· Tostado a pedido</span>}
+                {isCafe && <span className="text-coffee-400 dark:text-coffee-500 text-xs">· Tostado a pedido</span>}
               </div>
               {inCart && (
                 <div className="mt-2">
@@ -275,8 +302,8 @@ export default function ProductDetail() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-16 border-t border-coffee-200">
-          <div className="flex gap-0 border-b border-coffee-200">
+        <div className="mt-16 border-t border-coffee-200 dark:border-coffee-800">
+          <div className="flex gap-0 border-b border-coffee-200 dark:border-coffee-800">
             {tabs.map(({ id, label, icon: Icon, count }) => (
               <button
                 key={id}
@@ -284,13 +311,13 @@ export default function ProductDetail() {
                 className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-all ${
                   tab === id
                     ? 'border-gold-500 text-gold-600'
-                    : 'border-transparent text-coffee-500 hover:text-coffee-900'
+                    : 'border-transparent text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {label}
                 {count !== undefined && count > 0 && (
-                  <span className="bg-coffee-100 text-coffee-600 text-xs px-1.5 py-0.5 rounded-full">{count}</span>
+                  <span className="bg-coffee-100 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 text-xs px-1.5 py-0.5 rounded-full">{count}</span>
                 )}
               </button>
             ))}
@@ -308,7 +335,7 @@ export default function ProductDetail() {
             {/* Description tab */}
             {tab === 'info' && (
               <div className="max-w-2xl">
-                <p className="text-coffee-700 leading-relaxed text-lg">{product.description}</p>
+                <p className="text-coffee-700 dark:text-coffee-300 leading-relaxed text-lg">{product.description}</p>
               </div>
             )}
 
@@ -317,8 +344,8 @@ export default function ProductDetail() {
               <div className="max-w-3xl">
                 <div className="mb-6">
                   <div className="gold-line mb-4" />
-                  <h2 className="font-serif text-2xl text-coffee-900 mb-1">Ficha Técnica</h2>
-                  <p className="text-coffee-500 text-sm">Información técnica completa del lote seleccionado</p>
+                  <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">Ficha Técnica</h2>
+                  <p className="text-coffee-500 dark:text-coffee-400 text-sm">Información técnica completa del lote seleccionado</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-coffee-200 dark:bg-coffee-700">
@@ -326,7 +353,7 @@ export default function ProductDetail() {
                   <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Globe className="w-4 h-4 text-gold-500" />
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Origen</span>
+                      <span className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">Origen</span>
                     </div>
                     <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.origin || '—'}</p>
                     {product.region && <p className="text-coffee-600 dark:text-coffee-300 text-sm mt-1">{product.region}</p>}
@@ -336,7 +363,7 @@ export default function ProductDetail() {
                   <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Mountain className="w-4 h-4 text-gold-500" />
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Altitud</span>
+                      <span className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">Altitud</span>
                     </div>
                     <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.altitude ? `${product.altitude} msnm` : '—'}</p>
                     {product.altitude && (
@@ -352,7 +379,7 @@ export default function ProductDetail() {
                   <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Leaf className="w-4 h-4 text-gold-500" />
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Variedad</span>
+                      <span className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">Variedad</span>
                     </div>
                     <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.variety || '—'}</p>
                     <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">Varietal del café</p>
@@ -362,7 +389,7 @@ export default function ProductDetail() {
                   <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <FlaskConical className="w-4 h-4 text-gold-500" />
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Proceso</span>
+                      <span className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">Proceso</span>
                     </div>
                     <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.process || '—'}</p>
                     <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
@@ -378,7 +405,7 @@ export default function ProductDetail() {
                   <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Thermometer className="w-4 h-4 text-gold-500" />
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Perfil de Tueste</span>
+                      <span className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">Perfil de Tueste</span>
                     </div>
                     <p className="font-serif text-lg text-coffee-900 dark:text-cream">{product.roastLevel || '—'}</p>
                     <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
@@ -394,7 +421,7 @@ export default function ProductDetail() {
                   <div className="bg-white dark:bg-coffee-900 p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Award className="w-4 h-4 text-gold-500" />
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Puntaje SCA</span>
+                      <span className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">Puntaje SCA</span>
                     </div>
                     {product.scaScore ? (
                       <>
@@ -421,21 +448,21 @@ export default function ProductDetail() {
 
                 {/* Tasting notes */}
                 {product.flavors.length > 0 && (
-                  <div className="mt-6 bg-coffee-900 p-6">
+                  <div className="mt-6 bg-coffee-900 dark:bg-coffee-950 p-6">
                     <p className="text-xs text-gold-500 uppercase tracking-widest mb-4">Notas de Catación</p>
                     <div className="flex flex-wrap gap-2">
                       {product.flavors.map((f) => (
                         <button
                           key={f}
                           onClick={() => navigate(`/tienda?flavors=${encodeURIComponent(f)}`)}
-                          className="bg-coffee-800 border border-coffee-700 text-coffee-200 px-3 py-1.5 text-sm hover:border-gold-500 hover:text-gold-400 transition-all cursor-pointer"
+                          className="bg-coffee-800 dark:bg-coffee-900 border border-coffee-700 dark:border-coffee-800 text-coffee-200 dark:text-coffee-300 px-3 py-1.5 text-sm hover:border-gold-500 hover:text-gold-400 transition-all cursor-pointer"
                           title={`Ver cafés con nota "${f}"`}
                         >
                           {f}
                         </button>
                       ))}
                     </div>
-                    <p className="text-coffee-400 text-xs mt-4">
+                    <p className="text-coffee-400 dark:text-coffee-500 text-xs mt-4">
                       Notas detectadas bajo protocolo de cata SCA. Las notas pueden variar según método de preparación.
                     </p>
                   </div>
@@ -443,16 +470,16 @@ export default function ProductDetail() {
 
                 {/* Gramaje */}
                 {product.weight && (
-                  <div className="mt-4 border border-coffee-200 p-4 flex items-center justify-between">
+                  <div className="mt-4 border border-coffee-200 dark:border-coffee-700 p-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Package className="w-4 h-4 text-gold-500" />
-                      <span className="text-coffee-700 text-sm">Presentación</span>
+                      <span className="text-coffee-700 dark:text-coffee-300 text-sm">Presentación</span>
                     </div>
-                    <span className="font-medium text-coffee-900">{product.weight}g · Grano entero o molido</span>
+                    <span className="font-medium text-coffee-900 dark:text-cream">{product.weight}g · Grano entero o molido</span>
                   </div>
                 )}
 
-                <p className="text-coffee-400 text-xs mt-6 italic">
+                <p className="text-coffee-400 dark:text-coffee-500 text-xs mt-6 italic">
                   * Tostado a pedido en lotes pequeños para garantizar frescura. Envío dentro de los 7 días posteriores al tueste.
                 </p>
                 <CoffeeTimeline product={product} />
@@ -486,10 +513,10 @@ export default function ProductDetail() {
 
                     <ol className="space-y-3">
                       {recipe.steps.map((step, si) => (
-                        <li key={step.id} className="flex gap-3 text-sm text-coffee-700">
+                        <li key={step.id} className="flex gap-3 text-sm text-coffee-700 dark:text-coffee-300">
                           <span className="text-gold-600 font-bold w-5 shrink-0">{si + 1}.</span>
                           <span>
-                            <span className="font-medium text-coffee-900">{step.title}</span>
+                            <span className="font-medium text-coffee-900 dark:text-cream">{step.title}</span>
                             {step.title && step.description ? ' — ' : ''}
                             {step.description}
                           </span>
@@ -506,18 +533,18 @@ export default function ProductDetail() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-6">
                   {reviews.length === 0 ? (
-                    <p className="text-coffee-500">Sin reseñas aún. ¡Sé el primero!</p>
+                    <p className="text-coffee-500 dark:text-coffee-400">Sin reseñas aún. ¡Sé el primero!</p>
                   ) : (
                     reviews.map((review) => (
-                      <div key={review.id} className="border-b border-coffee-200 pb-6">
+                      <div key={review.id} className="border-b border-coffee-200 dark:border-coffee-700 pb-6">
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <p className="text-coffee-900 font-medium">{review.name}</p>
-                            <p className="text-coffee-400 text-xs">{new Date(review.createdAt).toLocaleDateString('es-MX')}</p>
+                            <p className="text-coffee-900 dark:text-cream font-medium">{review.name}</p>
+                            <p className="text-coffee-400 dark:text-coffee-300 text-xs">{new Date(review.createdAt).toLocaleDateString('es-MX')}</p>
                           </div>
                           <StarRating value={review.rating} size={16} readonly />
                         </div>
-                        <p className="text-coffee-700 text-sm leading-relaxed">{review.comment}</p>
+                        <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">{review.comment}</p>
                         <ReviewThread reviewId={review.id} />
                       </div>
                     ))
@@ -537,15 +564,15 @@ export default function ProductDetail() {
                     ) : (
                       <form onSubmit={handleReviewSubmit} className="space-y-4">
                         {loggedUser && (
-                          <div className="flex items-center gap-2 bg-coffee-50 border border-coffee-200 px-3 py-2 text-xs text-coffee-600">
+                          <div className="flex items-center gap-2 bg-coffee-50 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-3 py-2 text-xs text-coffee-600 dark:text-coffee-400">
                             <div className="w-6 h-6 rounded-full bg-gold-500 flex items-center justify-center text-coffee-950 font-bold text-[10px] shrink-0">
                               {loggedUser.name.charAt(0).toUpperCase()}
                             </div>
-                            Publicando como <span className="font-medium text-coffee-800">{loggedUser.name}</span>
+                            Publicando como <span className="font-medium text-coffee-800 dark:text-coffee-200">{loggedUser.name}</span>
                           </div>
                         )}
                         <div>
-                          <p className="text-xs text-coffee-600 uppercase tracking-widest mb-2">Calificación *</p>
+                          <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Calificación *</p>
                           <StarRating
                             value={reviewForm.rating}
                             onChange={(v) => setReviewForm((f) => ({ ...f, rating: v }))}
@@ -558,7 +585,7 @@ export default function ProductDetail() {
                           { key: 'email', label: 'Email *', required: true, type: 'email' },
                         ].map(({ key, label, required, type }) => (
                           <div key={key}>
-                            <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-1">{label}</label>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1">{label}</label>
                             <input
                               required={required}
                               type={type}
@@ -585,7 +612,7 @@ export default function ProductDetail() {
                         <button type="submit" disabled={reviewSubmitting} className="w-full btn-primary disabled:opacity-50">
                           {reviewSubmitting ? 'Enviando…' : 'Enviar reseña'}
                         </button>
-                        <p className="text-coffee-400 text-[10px]">Tu reseña aparecerá tras aprobación del equipo.</p>
+                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px]">Tu reseña aparecerá tras aprobación del equipo.</p>
                       </form>
                     )}
                   </div>
@@ -622,6 +649,7 @@ export default function ProductDetail() {
           {product.stock === 0 ? 'Agotado' : added ? '¡Agregado!' : 'Agregar al carrito'}
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

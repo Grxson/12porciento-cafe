@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { CreditCard, AlertTriangle, Edit3, Lock, Check } from 'lucide-react';
+import { CreditCard, AlertTriangle, Edit3, Lock, Check, PauseCircle, PlayCircle } from 'lucide-react';
 import { usersApi, subscriptionsApi } from '../../api';
 import { useUser } from '../../context/UserContext';
 import SubscriptionBilling from './SubscriptionBilling';
@@ -9,6 +9,7 @@ import CoffeePicker from '../../components/CoffeePicker';
 import type { Subscription as Sub, SubscriptionPlan } from '../../types';
 import { PLAN_SLOTS } from '../../types';
 import { resolveImageUrl } from '../../utils/imageUrl';
+import { PageMeta } from '../../hooks/usePageMeta';
 
 const FULFILLMENT_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE:  { label: 'Pendiente de envío', color: 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30' },
@@ -21,7 +22,9 @@ export default function Subscription() {
   const [sub, setSub] = useState<Sub | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [pausing, setPausing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showPauseConfirm, setShowPauseConfirm] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editCoffees, setEditCoffees] = useState<string[]>([]);
   const [editGrind, setEditGrind] = useState<'MOLIDO' | 'GRANO'>('GRANO');
@@ -38,7 +41,7 @@ export default function Subscription() {
           setEditGrind((r.data.grindPreference as 'MOLIDO' | 'GRANO') ?? 'GRANO');
         }
       })
-      .catch(() => {})
+      .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
@@ -51,6 +54,25 @@ export default function Subscription() {
       setHasSubscription(false);
       setShowConfirm(false);
     } finally { setCancelling(false); }
+  };
+
+  const handlePause = async () => {
+    if (!sub) return;
+    setPausing(true);
+    try {
+      const updated = await usersApi.pauseSubscription(sub.id);
+      setSub(updated.data);
+      setShowPauseConfirm(false);
+    } finally { setPausing(false); }
+  };
+
+  const handleResume = async () => {
+    if (!sub) return;
+    setPausing(true);
+    try {
+      const updated = await usersApi.resumeSubscription(sub.id);
+      setSub(updated.data);
+    } finally { setPausing(false); }
   };
 
   const handleSaveEdit = async () => {
@@ -71,12 +93,13 @@ export default function Subscription() {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>;
+    return <div className="flex justify-center py-12"><PageMeta title="Mi Suscripción" /><div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>;
   }
 
   if (!sub) {
     return (
       <div className="text-center py-16">
+        <PageMeta title="Mi Suscripción" />
         <CreditCard className="w-12 h-12 text-coffee-400 dark:text-coffee-600 mx-auto mb-4" />
         <p className="text-coffee-600 dark:text-coffee-400 mb-4">Sin suscripción activa.</p>
         <Link to="/suscripciones" className="btn-primary">Ver planes</Link>
@@ -89,6 +112,7 @@ export default function Subscription() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      <PageMeta title="Mi Suscripción" />
       {/* Subscription card */}
       <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-6 max-w-2xl">
         <div className="flex flex-wrap items-start justify-between gap-2 mb-5">
@@ -204,27 +228,67 @@ export default function Subscription() {
         )}
       </AnimatePresence>
 
-      {/* Cancel */}
-      {!showConfirm ? (
-        <button onClick={() => setShowConfirm(true)} className="text-xs text-coffee-500 hover:text-red-400 border border-coffee-200 dark:border-coffee-800 hover:border-red-400/30 px-4 py-2 min-h-[44px] transition-colors">
-          Cancelar suscripción
+      {/* Pause / Resume */}
+      {sub.status === 'ACTIVE' && (
+        <>
+          {!showPauseConfirm ? (
+            <button onClick={() => setShowPauseConfirm(true)} className="text-xs text-coffee-500 hover:text-gold-500 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/30 px-4 py-2 min-h-[44px] transition-colors mr-3">
+              <PauseCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+              Pausar suscripción
+            </button>
+          ) : (
+            <div className="bg-white dark:bg-coffee-900 border border-gold-500/30 p-5 max-w-md mb-4">
+              <div className="flex items-start gap-3 mb-4">
+                <PauseCircle className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
+                <p className="text-coffee-800 dark:text-coffee-200 text-sm">¿Pausar tu suscripción? Seguiremos guardando tu selección de cafés. Puedes reactivar cuando quieras.</p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={handlePause} disabled={pausing}
+                  className="text-xs text-gold-500 border border-gold-500/40 hover:border-gold-500 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
+                  {pausing ? 'Pausando...' : 'Sí, pausar'}
+                </button>
+                <button onClick={() => setShowPauseConfirm(false)} className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
+                  Mantener activa
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {sub.status === 'PAUSED' && (
+        <button onClick={handleResume} disabled={pausing}
+          className="text-xs text-green-500 hover:text-green-400 border border-green-500/30 hover:border-green-500/50 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
+          <PlayCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+          {pausing ? 'Reactivando...' : 'Reactivar suscripción'}
         </button>
-      ) : (
-        <div className="bg-white dark:bg-coffee-900 border border-red-500/30 p-5 max-w-md">
-          <div className="flex items-start gap-3 mb-4">
-            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-            <p className="text-coffee-800 dark:text-coffee-200 text-sm">¿Confirmas que quieres cancelar? Perderás el siguiente envío si cancelas antes de la fecha de facturación.</p>
-          </div>
-          <div className="flex gap-3">
-            <button onClick={handleCancel} disabled={cancelling}
-              className="text-xs text-red-400 border border-red-500/40 hover:border-red-400 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
-              {cancelling ? 'Cancelando...' : 'Sí, cancelar'}
+      )}
+
+      {/* Cancel */}
+      {sub.status !== 'CANCELLED' && (
+        <>
+          {!showConfirm ? (
+            <button onClick={() => setShowConfirm(true)} className="text-xs text-coffee-500 hover:text-red-400 border border-coffee-200 dark:border-coffee-800 hover:border-red-400/30 px-4 py-2 min-h-[44px] transition-colors mt-3">
+              Cancelar suscripción
             </button>
-            <button onClick={() => setShowConfirm(false)} className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
-              Mantener
-            </button>
-          </div>
-        </div>
+          ) : (
+            <div className="bg-white dark:bg-coffee-900 border border-red-500/30 p-5 max-w-md mt-3">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <p className="text-coffee-800 dark:text-coffee-200 text-sm">¿Confirmas que quieres cancelar? Perderás el siguiente envío si cancelas antes de la fecha de facturación.</p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={handleCancel} disabled={cancelling}
+                  className="text-xs text-red-400 border border-red-500/40 hover:border-red-400 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
+                  {cancelling ? 'Cancelando...' : 'Sí, cancelar'}
+                </button>
+                <button onClick={() => setShowConfirm(false)} className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
+                  Mantener
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </motion.div>
   );

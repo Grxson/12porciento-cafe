@@ -105,7 +105,8 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
         animate={{ scale: 1, opacity: 1 }}
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
-        className="bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-6 max-w-md w-full max-h-[min(90vh,calc(100dvh-8rem))] overflow-y-auto overscroll-contain"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)' }}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-coffee-900 dark:text-cream font-serif text-lg">Registrar Brew</h3>

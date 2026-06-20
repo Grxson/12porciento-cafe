@@ -119,7 +119,15 @@
       "Bash(echo \"---exit:$?---\")",
       "Bash(echo \"exit:$?\")",
       "Bash(echo \"exit: $?\")",
-      "Bash(xargs -I{} basename {} .tsx)"
+      "Bash(xargs -I{} basename {} .tsx)",
+      "Bash(uv tool *)",
+      "Bash(specify *)",
+      "Bash(.specify/scripts/bash/setup-plan.sh *)",
+      "Bash(.specify/extensions/agent-context/scripts/bash/update-agent-context.sh *)",
+      "Bash(pip install *)",
+      "Bash(xargs ls -la)",
+      "Bash(.specify/scripts/bash/setup-tasks.sh *)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh *)"
     ]
   }
 }

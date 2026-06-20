@@ -203,7 +203,7 @@ export default function Cart() {
           </div>
 
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-6 sticky top-24">
+            <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-6 sticky top-16 md:top-24">
               <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5">Resumen</h3>
 
               <div className="space-y-2 mb-5 pb-5 border-b border-coffee-100 dark:border-coffee-700">

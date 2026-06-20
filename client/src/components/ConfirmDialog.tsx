@@ -42,6 +42,7 @@ export default function ConfirmDialog({
             transition={{ duration: 0.15 }}
             onClick={(e) => e.stopPropagation()}
             className="bg-coffee-900 border border-coffee-800 p-6 max-w-sm w-full"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)' }}
             role="dialog"
             aria-modal
             aria-labelledby="confirm-dialog-title"
@@ -60,14 +61,14 @@ export default function ConfirmDialog({
               <button
                 onClick={onCancel}
                 disabled={loading}
-                className="text-sm text-coffee-400 hover:text-cream border border-coffee-700 hover:border-coffee-600 px-4 py-2 transition-colors disabled:opacity-50"
+                className="text-sm text-coffee-400 hover:text-cream border border-coffee-700 hover:border-coffee-600 px-4 py-3 min-h-[44px] transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={onConfirm}
                 disabled={loading}
-                className={`text-sm px-4 py-2 font-medium transition-colors disabled:opacity-50 ${
+                className={`text-sm px-4 py-3 min-h-[44px] font-medium transition-colors disabled:opacity-50 ${
                   confirmVariant === 'danger'
                     ? 'bg-red-600 hover:bg-red-500 text-white'
                     : 'bg-gold-500 hover:bg-gold-400 text-coffee-950'

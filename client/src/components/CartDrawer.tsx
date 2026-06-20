@@ -35,21 +35,21 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
         <div className="flex items-center gap-2 mt-2">
           <button
             onClick={() => updateQuantity(key, quantity - 1)}
-            className="w-6 h-6 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
+            className="w-11 h-11 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
           >
             <Minus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
           </button>
           <span className="text-coffee-900 dark:text-cream text-sm w-5 text-center">{quantity}</span>
           <button
             onClick={() => updateQuantity(key, quantity + 1)}
-            className="w-6 h-6 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
+            className="w-11 h-11 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
           >
             <Plus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
           </button>
         </div>
       </div>
       <div className="flex flex-col items-end justify-between shrink-0">
-        <button onClick={() => removeItem(key)} className="text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
+        <button onClick={() => removeItem(key)} className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
           <Trash2 className="w-4 h-4" />
         </button>
         <p className="text-coffee-900 dark:text-cream text-sm font-medium">
@@ -94,7 +94,7 @@ function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' 
         </p>
       </div>
       <div className="flex flex-col items-end justify-between shrink-0">
-        <button onClick={() => removeItem(key)} className="text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
+        <button onClick={() => removeItem(key)} className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
           <Trash2 className="w-4 h-4" />
         </button>
         <p className="text-gold-600 text-sm font-medium">
@@ -139,7 +139,7 @@ export default function CartDrawer() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
                   <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-200 mb-4" />
@@ -161,7 +161,10 @@ export default function CartDrawer() {
             </div>
 
             {items.length > 0 && (
-              <div className="px-5 py-4 border-t border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-800">
+              <div
+                className="px-5 pt-4 border-t border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-800"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+              >
                 <div className="flex justify-between mb-4">
                   <span className="text-coffee-700 dark:text-coffee-300 font-medium">Subtotal</span>
                   <span className="font-serif text-coffee-900 dark:text-cream text-lg">

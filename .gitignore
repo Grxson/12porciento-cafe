@@ -5,3 +5,7 @@ dist/
 *.db
 *.db-journal
 .DS_Store
+./claude
+.specify
+.agents
+.claude

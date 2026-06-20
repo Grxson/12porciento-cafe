@@ -75,6 +75,15 @@
   img {
     image-rendering: -webkit-optimize-contrast;
   }
+
+  /* Eliminate 300ms tap delay in PWA mode */
+  button,
+  a,
+  [role="button"],
+  [role="tab"],
+  [role="link"] {
+    touch-action: manipulation;
+  }
 }
 
 @layer components {

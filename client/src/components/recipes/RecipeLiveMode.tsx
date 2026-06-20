@@ -293,7 +293,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto flex flex-col p-6">
+      <div className="flex-1 overflow-y-auto overscroll-contain flex flex-col p-6">
         <AnimatePresence>
           <motion.div
             key={step.id}
@@ -482,7 +482,8 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
-            className="fixed bottom-0 left-0 right-0 z-[60] bg-coffee-900 border-t border-coffee-700 p-4"
+            className="fixed bottom-0 left-0 right-0 z-[60] bg-coffee-900 border-t border-coffee-700 px-4 pt-4"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-coffee-400 uppercase tracking-widest">Menú rápido</p>

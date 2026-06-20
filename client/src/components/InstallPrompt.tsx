@@ -52,7 +52,7 @@ export default function InstallPrompt() {
         {showAndroid && (
           <button
             onClick={promptInstall}
-            className="shrink-0 flex items-center gap-1.5 bg-gold-500 text-coffee-950 text-sm font-semibold px-3 py-2 hover:bg-gold-400 transition-colors"
+            className="shrink-0 flex items-center gap-1.5 bg-gold-500 text-coffee-950 text-sm font-semibold px-3 py-3 min-h-[44px] hover:bg-gold-400 transition-colors"
           >
             <Download size={15} /> Instalar
           </button>

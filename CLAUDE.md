@@ -103,3 +103,14 @@ All 4 master initiatives already shipped:
 
 ---
 Last updated: 2026-06-09 (gamification sprint)
+
+<!-- SPECKIT START -->
+## Current Feature Plan
+
+**Active feature**: PWA Responsive Mobile Fixes
+**Plan**: [specs/001-pwa-responsive-mobile/plan.md](specs/001-pwa-responsive-mobile/plan.md)
+**Spec**: [specs/001-pwa-responsive-mobile/spec.md](specs/001-pwa-responsive-mobile/spec.md)
+**Tasks**: [specs/001-pwa-responsive-mobile/tasks.md](specs/001-pwa-responsive-mobile/tasks.md)
+
+For technical context, research findings, and implementation tasks, read the plan and tasks above before touching any mobile layout files.
+<!-- SPECKIT END -->

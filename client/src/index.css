@@ -34,7 +34,7 @@
   }
 
   body {
-    @apply bg-coffee-50 text-coffee-900 font-sans;
+    @apply bg-coffee-50 dark:bg-coffee-950 text-coffee-900 dark:text-cream font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'kern' 1, 'liga' 1;
@@ -46,7 +46,7 @@
   }
 
   ::selection {
-    @apply bg-gold-500/30 text-coffee-950;
+    @apply bg-gold-500/30 text-coffee-950 dark:bg-gold-500/40 dark:text-cream;
   }
 
   ::-webkit-scrollbar {
@@ -126,7 +126,7 @@
 
   /* ── Section titles ── */
   .section-title {
-    @apply font-serif text-4xl md:text-5xl text-cream leading-tight;
+    @apply font-serif text-4xl md:text-5xl text-coffee-900 dark:text-cream leading-tight;
   }
 
   .section-title-dark {
@@ -163,7 +163,7 @@
 
   /* ── Page header (shared across pages) ── */
   .page-header {
-    @apply bg-coffee-900 border-b border-coffee-800/60 py-16 md:py-20;
+    @apply bg-coffee-100 dark:bg-coffee-900 border-b border-coffee-200 dark:border-coffee-800/60 py-16 md:py-20;
   }
 
   /* ── Form inputs ── */

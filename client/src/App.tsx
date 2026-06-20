@@ -5,6 +5,9 @@ import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
 import { NotificationsProvider } from './context/NotificationsContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import { useUpdateNotification } from './hooks/useUpdateNotification';
+import UpdateNotificationModal from './components/UpdateNotificationModal';
+import { useToast } from './context/ToastContext';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -89,6 +92,27 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function PWAUpdateManager() {
+  const { showNotification, handleDismiss, handleUpdate } = useUpdateNotification();
+  const addToast = useToast((s) => s.add);
+
+  useEffect(() => {
+    const justUpdated = localStorage.getItem('pwa_just_updated');
+    if (justUpdated) {
+      localStorage.removeItem('pwa_just_updated');
+      addToast('Hemos actualizado el diseño de la app ✨', 'success', 4000);
+    }
+  }, [addToast]);
+
+  return (
+    <UpdateNotificationModal
+      open={showNotification}
+      onUpdate={handleUpdate}
+      onDismiss={handleDismiss}
+    />
+  );
+}
+
 export default function App() {
   return (
     <HelmetProvider>
@@ -96,6 +120,7 @@ export default function App() {
     <NotificationsProvider>
     <CartProvider>
       <ToastContainer />
+      <PWAUpdateManager />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />

@@ -92,6 +92,9 @@ All 4 master initiatives already shipped:
 4. **Two auth middlewares:** `requireUserAuth`/`UserAuthRequest` for user routes vs `requireAuth`/`AuthRequest` for admin routes — do not mix
 5. **AnimatePresence mode="wait":** Breaks jsdom tests — new content never mounts. Use default sync mode
 6. **Prisma migration in CI:** Use `prisma db push` not `migrate dev` (non-interactive shell)
+7. **Dark mode colors:** Every color class must have a `dark:` variant — e.g., `text-coffee-900 dark:text-cream`, `bg-coffee-50 dark:bg-coffee-950`. Exception: components that intentionally use a dark background (admin modals, dark overlays, recipe live mode) may use `text-cream` without `dark:` since their bg is always dark.
+8. **Safe-area inset (Navbar):** `Navbar` `<header>` uses `style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}` to clear transparent system status bar on iOS/Android. Requires `viewport-fit=cover` in `index.html` meta viewport. Any new fixed header must do the same. Bottom-fixed elements use `padding-bottom: env(safe-area-inset-bottom, 0px)`.
+9. **PWA update flow:** `vite.config.ts` uses `registerType: 'prompt'` (NOT `autoUpdate`). `useUpdateNotification` hook handles SW updates; `UpdateNotificationModal` shown when update available. After update, `localStorage('pwa_just_updated')` triggers toast on reload. Do not re-add `skipWaiting: true` to workbox config — it bypasses the prompt flow.
 
 ## Key Contacts
 - Email: gael.grxson@gmail.com
@@ -102,15 +105,18 @@ All 4 master initiatives already shipped:
 - Run type checking & tests if available
 
 ---
-Last updated: 2026-06-09 (gamification sprint)
+Last updated: 2026-06-19 (dark mode audit + PWA update notifications)
 
 <!-- SPECKIT START -->
 ## Current Feature Plan
 
-**Active feature**: PWA Responsive Mobile Fixes
-**Plan**: [specs/001-pwa-responsive-mobile/plan.md](specs/001-pwa-responsive-mobile/plan.md)
-**Spec**: [specs/001-pwa-responsive-mobile/spec.md](specs/001-pwa-responsive-mobile/spec.md)
-**Tasks**: [specs/001-pwa-responsive-mobile/tasks.md](specs/001-pwa-responsive-mobile/tasks.md)
+**Active feature**: Dark Mode Audit & PWA Update Notifications — **SHIPPED**
+**Plan**: [specs/002-dark-mode-audit-and-pwa-updates/plan.md](specs/002-dark-mode-audit-and-pwa-updates/plan.md)
+**Spec**: [specs/002-dark-mode-audit-and-pwa-updates/spec.md](specs/002-dark-mode-audit-and-pwa-updates/spec.md)
+**Tasks**: [specs/002-dark-mode-audit-and-pwa-updates/tasks.md](specs/002-dark-mode-audit-and-pwa-updates/tasks.md)
 
-For technical context, research findings, and implementation tasks, read the plan and tasks above before touching any mobile layout files.
+All 43 tasks complete. Full theme coherence, safe-area Navbar fix, PWA update modal + post-update toast.
+
+### Previous Features
+- **PWA Responsive Mobile Fixes**: [specs/001-pwa-responsive-mobile/plan.md](specs/001-pwa-responsive-mobile/plan.md) — CSS fixes for mobile layout, safe areas, touch targets
 <!-- SPECKIT END -->

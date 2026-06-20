@@ -329,7 +329,7 @@ export default function Shop() {
                         className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                           category === cat.id
                             ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
-                            : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                         }`}
                       >
                         {cat.label}
@@ -350,7 +350,7 @@ export default function Shop() {
                           className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             process === p
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
-                              : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                              : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                           }`}
                         >
                           {p}
@@ -372,7 +372,7 @@ export default function Shop() {
                           className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             roast === r
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
-                              : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                              : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                           }`}
                         >
                           {r}
@@ -393,7 +393,7 @@ export default function Shop() {
                           className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             selectedFlavors.includes(f)
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
-                              : 'border-coffee-700 text-coffee-300 hover:border-coffee-500 hover:text-cream'
+                              : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                           }`}
                         >
                           {f}

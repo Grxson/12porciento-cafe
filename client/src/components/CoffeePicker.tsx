@@ -147,7 +147,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
 
                 <div className="pt-2.5 pb-1">
                   <p className="text-[10px] text-gold-600 uppercase tracking-widest mb-0.5 truncate">{product.region}</p>
-                  <p className={`font-serif text-sm leading-tight transition-colors ${isSelected ? 'text-gold-500' : 'text-coffee-900'}`}>
+                  <p className={`font-serif text-sm leading-tight transition-colors ${isSelected ? 'text-gold-500' : 'text-coffee-900 dark:text-cream'}`}>
                     {product.name}
                   </p>
                   <div className="flex items-center justify-between mt-1">

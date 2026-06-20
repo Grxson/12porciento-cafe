@@ -62,7 +62,7 @@ function DesktopNode({ node, index }: { node: TimelineNode; index: number }) {
         className="text-center px-1"
       >
         <p className="text-[9px] text-gold-600 uppercase tracking-[0.25em] mb-0.5">{node.stage}</p>
-        <p className="font-serif text-coffee-900 text-sm leading-tight">{node.value}</p>
+        <p className="font-serif text-coffee-900 dark:text-cream text-sm leading-tight">{node.value}</p>
         <p className="text-coffee-400 text-[10px] mt-1 leading-relaxed max-h-0 overflow-hidden group-hover:max-h-20 transition-all duration-300">{node.detail}</p>
       </motion.div>
     </div>
@@ -78,7 +78,7 @@ export default function CoffeeTimeline({ product }: { product: Product }) {
     <div className="mt-10 pt-8 border-t border-coffee-200">
       <div className="flex items-center gap-3 mb-8">
         <div className="gold-line" />
-        <h3 className="font-serif text-xl text-coffee-900">Del origen a tu taza</h3>
+        <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">Del origen a tu taza</h3>
         <span className="text-xs text-coffee-400 ml-auto hidden sm:block italic">Pasa el cursor sobre cada etapa</span>
       </div>
 
@@ -101,7 +101,7 @@ export default function CoffeeTimeline({ product }: { product: Product }) {
             </div>
             <div className="pt-1 min-w-0 flex-1">
               <p className="text-[9px] text-gold-600 uppercase tracking-widest">{node.stage}</p>
-              <p className="font-serif text-coffee-900 text-sm break-words">{node.value}</p>
+              <p className="font-serif text-coffee-900 dark:text-cream text-sm break-words">{node.value}</p>
               <p className="text-coffee-500 text-xs mt-0.5 leading-relaxed break-words">{node.detail}</p>
             </div>
           </motion.div>

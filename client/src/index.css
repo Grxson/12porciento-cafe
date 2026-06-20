@@ -24,6 +24,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark mode convention: every color class needs a dark: pair.
+   Exception: components on intentionally dark bg (admin modals, overlays) may omit dark: variant. */
 @layer base {
   * {
     box-sizing: border-box;

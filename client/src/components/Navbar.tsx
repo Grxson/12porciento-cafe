@@ -55,6 +55,7 @@ export default function Navbar() {
   return (
     <>
     <header
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
           ? 'bg-coffee-50/98 dark:bg-coffee-950/98 backdrop-blur-sm shadow-lg shadow-coffee-400/20 dark:shadow-coffee-950/20 border-b border-coffee-200/60 dark:border-coffee-800/60'

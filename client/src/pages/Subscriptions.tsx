@@ -201,7 +201,7 @@ export default function Subscriptions() {
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-gold-500 shrink-0" />
                     <div>
-                      <p className="text-cream text-sm font-medium">Ya tienes una suscripción activa</p>
+                      <p className="text-coffee-900 dark:text-cream text-sm font-medium">Ya tienes una suscripción activa</p>
                       <p className="text-coffee-400 text-xs">Selecciona un plan diferente para hacer el cambio o mejora al siguiente nivel.</p>
                     </div>
                   </div>
@@ -278,12 +278,12 @@ export default function Subscriptions() {
         {step === 2 && selectedPlan && (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-              <button onClick={() => goToStep(1)} className="flex items-center gap-1 text-coffee-500 hover:text-cream text-xs mb-8 transition-colors">
+              <button onClick={() => goToStep(1)} className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors">
                 <ChevronLeft className="w-3.5 h-3.5" /> Cambiar plan
               </button>
               <div className="flex items-center gap-3 mb-8">
                 <div className="gold-line" />
-                <h2 className="font-serif text-3xl text-cream">Plan {selectedPlan.name}</h2>
+                <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream">Plan {selectedPlan.name}</h2>
               </div>
               <CoffeePicker
                 plan={selectedPlan.id}
@@ -310,7 +310,7 @@ export default function Subscriptions() {
         {step === 3 && selectedPlan && (
           <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
             <div className="max-w-xl mx-auto px-4 sm:px-6 py-12">
-              <button onClick={() => goToStep(2)} className="flex items-center gap-1 text-coffee-500 hover:text-cream text-xs mb-8 transition-colors">
+              <button onClick={() => goToStep(2)} className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors">
                 <ChevronLeft className="w-3.5 h-3.5" /> Cambiar cafés
               </button>
               <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">

@@ -17,6 +17,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const slots = PLAN_SLOTS[plan];
 
   useEffect(() => {
@@ -94,8 +95,24 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[3/4] shimmer" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {products.map((product) => {
+        <>
+          <input
+            type="text"
+            placeholder="Buscar por región, proceso, notas..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full mb-6 px-4 py-2.5 border border-coffee-700 bg-coffee-950 text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500 transition-colors"
+          />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {products
+              .filter(
+                (p) =>
+                  searchInput === '' ||
+                  p.region?.toLowerCase().includes(searchInput.toLowerCase()) ||
+                  p.process?.toLowerCase().includes(searchInput.toLowerCase()) ||
+                  p.flavors?.some((f) => f.toLowerCase().includes(searchInput.toLowerCase()))
+              )
+              .map((product) => {
             const isSelected = selected.includes(product.id);
             const disabled = isDisabled(product);
             const locked = !slots.allowLimited && product.isLimited;
@@ -143,6 +160,12 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
                       Limitado
                     </span>
                   )}
+
+                  {product.isLimited && slots.max >= 3 && !locked && (
+                    <span className="absolute bottom-3 left-3 text-[8px] bg-green-900/60 border border-green-600/60 text-green-300 px-1.5 py-0.5 uppercase tracking-widest">
+                      Plan benefit
+                    </span>
+                  )}
                 </div>
 
                 <div className="pt-2.5 pb-1">
@@ -150,6 +173,11 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
                   <p className={`font-serif text-sm leading-tight transition-colors ${isSelected ? 'text-gold-500' : 'text-coffee-900 dark:text-cream'}`}>
                     {product.name}
                   </p>
+                  {product.flavors && product.flavors.length > 0 && (
+                    <p className="text-[9px] text-coffee-400 mt-1 truncate">
+                      {product.flavors.join(', ')}
+                    </p>
+                  )}
                   <div className="flex items-center justify-between mt-1">
                     <p className="text-coffee-500 text-xs">${product.price} MXN</p>
                     {product.scaScore && (
@@ -162,8 +190,9 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
                 </div>
               </motion.button>
             );
-          })}
-        </div>
+              })}
+          </div>
+        </>
       )}
 
       {!isReady && selected.length > 0 && (

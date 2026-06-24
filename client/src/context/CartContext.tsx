@@ -61,6 +61,7 @@ export const useCart = create<CartStore>()(
         } else {
           set({ items: [...items, { itemType: 'product', product, quantity: cappedQty }] });
         }
+        useToast.getState().add(`${product.name} agregado al carrito`, 'success');
       },
 
       addBundle: (bundle) => {

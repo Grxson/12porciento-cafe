@@ -27,10 +27,16 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
         <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight truncate">{product.name}</p>
         {product.weight && <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{product.weight}g</p>}
         {product.stock <= 5 && product.stock > 0 && (
-          <p className="text-amber-500 text-[10px] font-semibold uppercase tracking-wider mt-0.5">Stock bajo</p>
+          <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-600 dark:text-amber-400 text-xs px-2.5 py-1 font-medium tracking-wide mt-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            Stock bajo
+          </div>
         )}
         {product.stock === 0 && (
-          <p className="text-red-400 text-[10px] font-semibold uppercase tracking-wider mt-0.5">Agotado</p>
+          <div className="inline-flex items-center gap-1.5 bg-red-500/20 border border-red-500/40 text-red-600 dark:text-red-400 text-xs px-2.5 py-1 font-medium tracking-wide mt-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            Agotado
+          </div>
         )}
         <div className="flex items-center gap-2 mt-2">
           <button

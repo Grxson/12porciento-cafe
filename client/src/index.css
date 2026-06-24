@@ -147,7 +147,7 @@
   }
 
   .card-light {
-    @apply bg-white border border-coffee-200 hover:border-gold-500/50
+    @apply bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 hover:border-gold-500/50 dark:hover:border-gold-500/30
            hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]
            transition-all duration-300;
   }

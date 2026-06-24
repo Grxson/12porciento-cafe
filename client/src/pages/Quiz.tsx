@@ -306,7 +306,7 @@ export default function Quiz() {
                 )}
 
                 {!recsLoading && !recsError && recommendations.length > 0 && (
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     {recommendations.map((product, i) => (
                       <ProductCard key={product.id} product={product} index={i} />
                     ))}

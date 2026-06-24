@@ -21,14 +21,31 @@ const links = [
   { to: '/quiz', label: 'Quiz' },
 ];
 
+const primaryLinks = [
+  { to: '/tienda', label: 'Tienda' },
+  { to: '/recetas', label: 'Recetas' },
+  { to: '/suscripciones', label: 'Suscripciones' },
+  { to: '/nosotros', label: 'Nosotros' },
+];
+
+const secondaryLinks = [
+  { to: '/paquetes', label: 'Paquetes' },
+  { to: '/galeria', label: 'Galería' },
+  { to: '/leaderboard', label: 'Ranking' },
+  { to: '/logros', label: 'Logros' },
+  { to: '/quiz', label: 'Quiz' },
+];
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const count = useCart((s) => s.count());
   const openDrawer = useCart((s) => s.openDrawer);
   const { dark, toggle } = useClientTheme();
   const user = useUser((s) => s.user);
   const menuRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
@@ -37,15 +54,18 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open && !moreOpen) return;
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  }, [open, moreOpen]);
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
@@ -68,8 +88,8 @@ export default function Navbar() {
           <span className="text-[9px] tracking-[0.3em] text-gold-500 uppercase">doce por ciento</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
-          {links.map(({ to, label }) => (
+        <nav className="hidden md:flex items-center gap-8 relative">
+          {primaryLinks.map(({ to, label }) => (
             <NavLink
               key={to}
               to={to}
@@ -82,6 +102,46 @@ export default function Navbar() {
               {label}
             </NavLink>
           ))}
+
+          <div ref={moreRef} className="relative">
+            <button
+              onClick={() => setMoreOpen(!moreOpen)}
+              className={`text-sm tracking-widest uppercase transition-colors duration-200 ${
+                moreOpen ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+              }`}
+            >
+              Más
+            </button>
+
+            <AnimatePresence>
+              {moreOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full right-0 mt-2 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 rounded-lg shadow-lg min-w-[160px] z-50"
+                >
+                  <nav className="flex flex-col py-2">
+                    {secondaryLinks.map(({ to, label }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        onClick={() => setMoreOpen(false)}
+                        className={({ isActive }) =>
+                          `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
+                            isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                          }`
+                        }
+                      >
+                        {label}
+                      </NavLink>
+                    ))}
+                  </nav>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </nav>
 
         <div className="flex items-center gap-3">

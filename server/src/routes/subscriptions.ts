@@ -386,4 +386,55 @@ router.put('/:id/fulfillment', requireAuth, async (req: AuthRequest, res: Respon
   }
 });
 
+// POST /b2b-inquiry — public B2B inquiry submission
+router.post('/b2b-inquiry', async (req: Request, res: Response) => {
+  try {
+    const { empresa, rfc, contactoNombre, contactoEmail, contactoTelefono, volumenEstimado, giroNegocio } = req.body;
+
+    // Validate required fields
+    if (!empresa || typeof empresa !== 'string' || empresa.trim().length === 0) {
+      res.status(400).json({ error: 'Empresa es requerida' });
+      return;
+    }
+    if (!rfc || typeof rfc !== 'string' || rfc.trim().length === 0) {
+      res.status(400).json({ error: 'RFC es requerido' });
+      return;
+    }
+    if (!contactoNombre || typeof contactoNombre !== 'string' || contactoNombre.trim().length === 0) {
+      res.status(400).json({ error: 'Nombre de contacto es requerido' });
+      return;
+    }
+    if (!contactoEmail || typeof contactoEmail !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactoEmail)) {
+      res.status(400).json({ error: 'Email de contacto inválido' });
+      return;
+    }
+    if (!contactoTelefono || typeof contactoTelefono !== 'string' || contactoTelefono.trim().length === 0) {
+      res.status(400).json({ error: 'Teléfono de contacto es requerido' });
+      return;
+    }
+    if (!volumenEstimado || typeof volumenEstimado !== 'string' || volumenEstimado.trim().length === 0) {
+      res.status(400).json({ error: 'Volumen estimado es requerido' });
+      return;
+    }
+
+    // Create B2B inquiry record
+    const inquiry = await prisma.b2bInquiry.create({
+      data: {
+        empresa: empresa.trim(),
+        rfc: rfc.trim(),
+        contactoNombre: contactoNombre.trim(),
+        contactoEmail: contactoEmail.toLowerCase().trim(),
+        contactoTelefono: contactoTelefono.trim(),
+        volumenEstimado,
+        ...(giroNegocio ? { giroNegocio } : {}),
+      },
+    });
+
+    res.status(201).json({ message: 'Inquiry received. We\'ll contact you within 24 hours.', id: inquiry.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al crear solicitud B2B' });
+  }
+});
+
 export default router;

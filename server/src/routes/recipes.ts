@@ -64,12 +64,13 @@ function lockRecipe(recipe: any) {
 // GET / — list published recipes; premium ones gated behind subscription
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { method, productId, premium } = req.query;
+    const { method, productId, premium, difficulty } = req.query;
     const where: any = { isPublished: true };
     if (method) where.method = method;
     if (productId) where.productId = productId as string;
     if (premium === 'true') where.isPremium = true;
     if (premium === 'false') where.isPremium = false;
+    if (difficulty && typeof difficulty === 'string') where.difficulty = difficulty;
 
     const recipes = await prisma.recipe.findMany({
       where,

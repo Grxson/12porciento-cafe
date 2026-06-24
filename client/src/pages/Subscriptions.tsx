@@ -9,6 +9,7 @@ import CoffeePicker from '../components/CoffeePicker';
 import type { SubscriptionPlan } from '../types';
 import { PLAN_SLOTS } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
+import { useToast } from '../hooks/useToast';
 
 const plans: Array<{
   id: SubscriptionPlan;
@@ -19,6 +20,8 @@ const plans: Array<{
   features: string[];
   excluded: string[];
   featured: boolean;
+  badge?: string;
+  badgeColor?: 'gold' | 'accent' | 'neutral';
 }> = [
   {
     id: 'FUNDADOR', name: 'Fundador', price: 350,
@@ -27,6 +30,8 @@ const plans: Array<{
     features: ['2 cafés de especialidad a elegir', 'Grano entero o molido', 'Notas de catación incluidas', 'Envío incluido', 'Cancela cuando quieras'],
     excluded: ['Ediciones limitadas', 'Microlotes exclusivos'],
     featured: false,
+    badge: 'Perfecto para empezar',
+    badgeColor: 'neutral',
   },
   {
     id: 'EXPLORADOR', name: 'Explorador', price: 650,
@@ -35,6 +40,8 @@ const plans: Array<{
     features: ['2 a 3 cafés a elegir', 'Acceso a microlotes', 'Grano entero o molido', 'Notas de catación detalladas', 'Envío incluido', 'Cancela cuando quieras'],
     excluded: ['Experimentales anaeróbicos'],
     featured: true,
+    badge: 'Más popular',
+    badgeColor: 'gold',
   },
   {
     id: 'CONNOISSEUR', name: 'Connoisseur', price: 890,
@@ -43,6 +50,8 @@ const plans: Array<{
     features: ['3 cafés premium a elegir', 'Acceso a ediciones limitadas', 'Cafés experimentales y anaeróbicos', 'Prioridad en microlotes', 'Notas de catación extendidas', 'Envío exprés incluido'],
     excluded: [],
     featured: false,
+    badge: 'Acceso anticipado · 48h antes',
+    badgeColor: 'accent',
   },
   {
     id: 'EMPRESARIAL', name: 'Empresarial', price: null,
@@ -51,15 +60,27 @@ const plans: Array<{
     features: ['Mínimo 10 lotes a elegir', 'Todo el catálogo disponible', '15% descuento por volumen', 'Gestor de cuenta dedicado', 'Facturación mensual', 'Envío exprés'],
     excluded: [],
     featured: false,
+    badge: 'Solución personalizada',
+    badgeColor: 'neutral',
   },
 ];
 
 type Step = 1 | 2 | 3;
 interface FormData { name: string; email: string; phone: string; frequency: string; }
+interface B2BFormData {
+  empresa: string;
+  rfc: string;
+  contactoNombre: string;
+  contactoEmail: string;
+  contactoTelefono: string;
+  volumenEstimado: '10-25' | '26-50' | '50+';
+  giroNegocio?: string;
+}
 
 export default function Subscriptions() {
   const user = useUser((s) => s.user);
   const hasSubscription = useUser((s) => s.hasSubscription);
+  const toast = useToast();
   const [step, setStep] = useState<Step>(1);
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
   const [selectedCoffees, setSelectedCoffees] = useState<string[]>([]);
@@ -70,8 +91,18 @@ export default function Subscriptions() {
     phone: user?.phone ?? '',
     frequency: 'monthly',
   });
+  const [b2bForm, setB2BForm] = useState<B2BFormData>({
+    empresa: '',
+    rfc: '',
+    contactoNombre: '',
+    contactoEmail: '',
+    contactoTelefono: '',
+    volumenEstimado: '10-25',
+    giroNegocio: '',
+  });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showB2BConfirm, setShowB2BConfirm] = useState(false);
   const [error, setError] = useState('');
 
   const hasAddress = !!(user?.address && user?.city && user?.state && user?.zipCode);
@@ -115,6 +146,31 @@ export default function Subscriptions() {
       setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al procesar suscripción. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleB2BSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPlan || selectedPlan.id !== 'EMPRESARIAL') return;
+
+    setLoading(true); setError('');
+    try {
+      await fetch('/api/subscriptions/b2b-inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(b2bForm),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Error al enviar consulta');
+        }
+        return res.json();
+      });
+      setShowB2BConfirm(true);
+    } catch (err: any) {
+      toast.error(err.message || 'Error al procesar consulta. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -224,9 +280,15 @@ export default function Subscriptions() {
                         : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900/60 hover:border-coffee-300 dark:hover:border-coffee-700'
                       }`}
                   >
-                    {plan.featured && (
+                    {plan.badge && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className="bg-gold-500 text-coffee-950 text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1">Más popular</span>
+                        <span className={`text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1 ${
+                          plan.badgeColor === 'gold'
+                            ? 'bg-gold-500 text-coffee-950'
+                            : plan.badgeColor === 'accent'
+                            ? 'bg-blue-600 dark:bg-blue-500 text-white dark:text-cream'
+                            : 'bg-coffee-300 dark:bg-coffee-700 text-coffee-900 dark:text-cream'
+                        }`}>{plan.badge}</span>
                       </div>
                     )}
                     <div className="p-6 flex-1">
@@ -306,102 +368,215 @@ export default function Subscriptions() {
           </motion.div>
         )}
 
-        {/* Step 3: Contact form */}
+        {/* Step 3: Contact form or B2B inquiry */}
         {step === 3 && selectedPlan && (
           <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
             <div className="max-w-xl mx-auto px-4 sm:px-6 py-12">
-              <button onClick={() => goToStep(2)} className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors">
-                <ChevronLeft className="w-3.5 h-3.5" /> Cambiar cafés
-              </button>
-              <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-coffee-500 uppercase tracking-widest">Tu suscripción</span>
-                  <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-3">
-                  <Coffee className="w-3.5 h-3.5 text-gold-500" />
-                  {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''} seleccionados · {grindPreference === 'GRANO' ? 'Grano entero' : 'Molido'}
-                </div>
-                {selectedPlan.price && (
-                  <p className="font-serif text-2xl text-coffee-900 dark:text-cream">${selectedPlan.price} <span className="text-coffee-500 text-sm font-sans">/ mes</span></p>
-                )}
-              </div>
-              {/* Address validation banner */}
-              {user && !hasAddress && (
-                <div className="flex items-start gap-3 bg-yellow-900/20 border border-yellow-500/30 p-4 mb-6">
-                  <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-yellow-300 text-sm font-medium mb-1">Dirección de envío requerida</p>
-                    <p className="text-yellow-400/70 text-xs leading-relaxed mb-2">
-                      Necesitas agregar tu dirección de envío completa antes de activar tu suscripción.
+              {selectedPlan.id === 'EMPRESARIAL' ? (
+                <>
+                  <button onClick={() => goToStep(1)} className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors">
+                    <ChevronLeft className="w-3.5 h-3.5" /> Cambiar plan
+                  </button>
+                  <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Tu plan</span>
+                      <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
+                    </div>
+                    <p className="text-coffee-600 dark:text-coffee-400 text-xs leading-relaxed">
+                      {selectedPlan.subtitle} • 15% descuento por volumen
                     </p>
-                    <Link to="/perfil/datos" className="inline-flex items-center gap-1 text-xs text-gold-400 hover:text-gold-300 underline transition-colors">
-                      <MapPin className="w-3 h-3" /> Ir a mis datos
-                    </Link>
                   </div>
-                </div>
-              )}
-              {!user && (
-                <div className="flex items-start gap-3 bg-coffee-100 dark:bg-coffee-800/60 border border-coffee-200 dark:border-coffee-700 p-4 mb-6">
-                  <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-                  <p className="text-coffee-700 dark:text-coffee-300 text-xs leading-relaxed">
-                    Para recibir tus envíos necesitamos tu dirección. <Link to="/registro" className="text-gold-400 hover:text-gold-300 underline">Crea tu cuenta</Link> y agrégala en tu perfil antes de confirmar.
-                  </p>
-                </div>
-              )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="gold-line mb-5" />
-                <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Tus datos</h3>
-                {[
-                  { name: 'name',  label: 'Nombre completo *', type: 'text',  required: true,  placeholder: 'Tu nombre' },
-                  { name: 'email', label: 'Email *',           type: 'email', required: true,  placeholder: 'tu@email.com' },
-                  { name: 'phone', label: 'Teléfono',          type: 'tel',   required: false, placeholder: '55 1234 5678' },
-                ].map(({ name, label, type, required, placeholder }) => (
-                  <div key={name}>
-                    <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">{label}</label>
-                    <input
-                      name={name} type={type} required={required} placeholder={placeholder}
-                      value={(form as any)[name]}
-                      onChange={(e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))}
-                      className="input-dark !text-base min-h-[48px]"
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-3">Frecuencia de envío</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[{ value: 'monthly', label: 'Mensual' }, { value: 'bimonthly', label: 'Bimestral' }].map(({ value, label }) => (
-                      <button key={value} type="button"
-                        onClick={() => setForm((f) => ({ ...f, frequency: value }))}
-                        className={`py-3 text-xs font-medium tracking-widest uppercase border transition-all ${
-                          form.frequency === value
-                            ? 'border-gold-500 text-gold-400 bg-gold-500/10'
-                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 dark:hover:border-coffee-600 hover:text-coffee-900 dark:hover:text-cream'
-                        }`}>
-                        {label}
-                      </button>
+                  {/* B2B Consultation Form */}
+                  <form onSubmit={handleB2BSubmit} className="space-y-5">
+                    <div className="gold-line mb-5" />
+                    <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Solicitud de asesoría</h3>
+
+                    {[
+                      { name: 'empresa', label: 'Empresa *', type: 'text', required: true, placeholder: 'Nombre de tu empresa' },
+                      { name: 'rfc', label: 'RFC *', type: 'text', required: true, placeholder: 'RFC de tu empresa' },
+                      { name: 'contactoNombre', label: 'Nombre del contacto *', type: 'text', required: true, placeholder: 'Tu nombre completo' },
+                      { name: 'contactoEmail', label: 'Email corporativo *', type: 'email', required: true, placeholder: 'contacto@empresa.com' },
+                      { name: 'contactoTelefono', label: 'Teléfono *', type: 'tel', required: true, placeholder: '55 1234 5678' },
+                    ].map(({ name, label, type, required, placeholder }) => (
+                      <div key={name}>
+                        <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">{label}</label>
+                        <input
+                          type={type} required={required} placeholder={placeholder}
+                          value={(b2bForm as any)[name]}
+                          onChange={(e) => setB2BForm((f) => ({ ...f, [name]: e.target.value }))}
+                          className="input-dark !text-base min-h-[48px]"
+                        />
+                      </div>
                     ))}
-                  </div>
-                </div>
-                {error && (
-                  <div className="flex items-start gap-2 text-red-400 text-sm">
-                    <span>{error}</span>
-                    {error.includes('dirección') && (
-                      <Link to="/perfil/datos" className="text-gold-400 hover:text-gold-300 underline text-xs shrink-0 self-center">
-                        Ir ahora
-                      </Link>
+
+                    <div>
+                      <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">Volumen estimado *</label>
+                      <select
+                        required
+                        value={b2bForm.volumenEstimado}
+                        onChange={(e) => setB2BForm((f) => ({ ...f, volumenEstimado: e.target.value as any }))}
+                        className="input-dark !text-base min-h-[48px]"
+                      >
+                        <option value="10-25">10-25 lotes/mes</option>
+                        <option value="26-50">26-50 lotes/mes</option>
+                        <option value="50+">50+ lotes/mes</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">Giro del negocio</label>
+                      <input
+                        type="text" placeholder="Ej: Oficina, Café, Restaurante, etc."
+                        value={b2bForm.giroNegocio || ''}
+                        onChange={(e) => setB2BForm((f) => ({ ...f, giroNegocio: e.target.value }))}
+                        className="input-dark !text-base min-h-[48px]"
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="text-red-400 text-sm">
+                        <span>{error}</span>
+                      </div>
+                    )}
+
+                    <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                      {loading ? 'Enviando…' : 'Enviar solicitud'}
+                    </button>
+                    <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
+                      Te contactaremos en 24h para diseñar tu plan personalizado.
+                    </p>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => goToStep(2)} className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors">
+                    <ChevronLeft className="w-3.5 h-3.5" /> Cambiar cafés
+                  </button>
+                  <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs text-coffee-500 uppercase tracking-widest">Tu suscripción</span>
+                      <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-3">
+                      <Coffee className="w-3.5 h-3.5 text-gold-500" />
+                      {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''} seleccionados · {grindPreference === 'GRANO' ? 'Grano entero' : 'Molido'}
+                    </div>
+                    {selectedPlan.price && (
+                      <p className="font-serif text-2xl text-coffee-900 dark:text-cream">${selectedPlan.price} <span className="text-coffee-500 text-sm font-sans">/ mes</span></p>
                     )}
                   </div>
-                )}
-                <button type="submit" disabled={loading || (!!user && !hasAddress)} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
-                  {loading ? 'Procesando…' : 'Confirmar suscripción'}
-                </button>
-                <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
-                  El pago se coordina por transferencia. Te enviamos los datos al correo proporcionado.
-                </p>
-              </form>
+                  {/* Address validation banner */}
+                  {user && !hasAddress && (
+                    <div className="flex items-start gap-3 bg-yellow-900/20 border border-yellow-500/30 p-4 mb-6">
+                      <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-yellow-300 text-sm font-medium mb-1">Dirección de envío requerida</p>
+                        <p className="text-yellow-400/70 text-xs leading-relaxed mb-2">
+                          Necesitas agregar tu dirección de envío completa antes de activar tu suscripción.
+                        </p>
+                        <Link to="/perfil/datos" className="inline-flex items-center gap-1 text-xs text-gold-400 hover:text-gold-300 underline transition-colors">
+                          <MapPin className="w-3 h-3" /> Ir a mis datos
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                  {!user && (
+                    <div className="flex items-start gap-3 bg-coffee-100 dark:bg-coffee-800/60 border border-coffee-200 dark:border-coffee-700 p-4 mb-6">
+                      <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
+                      <p className="text-coffee-700 dark:text-coffee-300 text-xs leading-relaxed">
+                        Para recibir tus envíos necesitamos tu dirección. <Link to="/registro" className="text-gold-400 hover:text-gold-300 underline">Crea tu cuenta</Link> y agrégala en tu perfil antes de confirmar.
+                      </p>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="gold-line mb-5" />
+                    <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Tus datos</h3>
+                    {[
+                      { name: 'name',  label: 'Nombre completo *', type: 'text',  required: true,  placeholder: 'Tu nombre' },
+                      { name: 'email', label: 'Email *',           type: 'email', required: true,  placeholder: 'tu@email.com' },
+                      { name: 'phone', label: 'Teléfono',          type: 'tel',   required: false, placeholder: '55 1234 5678' },
+                    ].map(({ name, label, type, required, placeholder }) => (
+                      <div key={name}>
+                        <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">{label}</label>
+                        <input
+                          name={name} type={type} required={required} placeholder={placeholder}
+                          value={(form as any)[name]}
+                          onChange={(e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))}
+                          className="input-dark !text-base min-h-[48px]"
+                        />
+                      </div>
+                    ))}
+                    <div>
+                      <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-3">Frecuencia de envío</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[{ value: 'monthly', label: 'Mensual' }, { value: 'bimonthly', label: 'Bimestral' }].map(({ value, label }) => (
+                          <button key={value} type="button"
+                            onClick={() => setForm((f) => ({ ...f, frequency: value }))}
+                            className={`py-3 text-xs font-medium tracking-widest uppercase border transition-all ${
+                              form.frequency === value
+                                ? 'border-gold-500 text-gold-400 bg-gold-500/10'
+                                : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 dark:hover:border-coffee-600 hover:text-coffee-900 dark:hover:text-cream'
+                            }`}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {error && (
+                      <div className="flex items-start gap-2 text-red-400 text-sm">
+                        <span>{error}</span>
+                        {error.includes('dirección') && (
+                          <Link to="/perfil/datos" className="text-gold-400 hover:text-gold-300 underline text-xs shrink-0 self-center">
+                            Ir ahora
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                    <button type="submit" disabled={loading || (!!user && !hasAddress)} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                      {loading ? 'Procesando…' : 'Confirmar suscripción'}
+                    </button>
+                    <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
+                      El pago se coordina por transferencia. Te enviamos los datos al correo proporcionado.
+                    </p>
+                  </form>
+                </>
+              )}
             </div>
+          </motion.div>
+        )}
+
+        {/* B2B Confirmation Modal */}
+        {showB2BConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md w-full bg-white dark:bg-coffee-900 border border-gold-500/30 p-8 text-center"
+            >
+              <div className="w-16 h-16 border-2 border-gold-500 flex items-center justify-center mx-auto mb-6">
+                <Check className="w-8 h-8 text-gold-500" />
+              </div>
+              <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">¡Solicitud enviada!</h2>
+              <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed mb-6">
+                Te contactaremos en <span className="font-medium text-gold-400">24h</span> para diseñar tu plan personalizado.
+              </p>
+              <button
+                onClick={() => {
+                  setShowB2BConfirm(false);
+                  goToStep(1);
+                }}
+                className="btn-primary w-full"
+              >
+                Volver al inicio
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

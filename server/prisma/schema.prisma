@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -357,4 +357,20 @@ model AchievementUnlock {
 
   @@unique([userId, achievementId])
   @@index([userId])
+}
+
+model B2BInquiry {
+  id String @id @default(cuid())
+  empresa String
+  rfc String
+  contactoNombre String
+  contactoEmail String
+  contactoTelefono String
+  volumenEstimado String
+  giroNegocio String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contactoEmail])
 }

@@ -127,7 +127,8 @@
       "Bash(pip install *)",
       "Bash(xargs ls -la)",
       "Bash(.specify/scripts/bash/setup-tasks.sh *)",
-      "Bash(.specify/scripts/bash/check-prerequisites.sh *)"
+      "Bash(.specify/scripts/bash/check-prerequisites.sh *)",
+      "Bash(grep -n \"^  {$\\\\|slug:\" /home/grxson/github/12porciento-cafe/server/prisma/seed.ts)"
     ]
   }
 }

@@ -122,6 +122,13 @@ function downloadRecipePDF(recipe: Recipe) {
   doc.save(`${recipe.slug}.pdf`);
 }
 
+const METHOD_CATEGORIES = {
+  'Filtro': ['V60', 'Chemex', 'Kalita Wave', 'Pour Over'],
+  'Inmersión': ['AeroPress', 'French Press', 'Cold Brew', 'Sifón'],
+  'Espresso': ['Espresso', 'Moka Pot'],
+  'Especiales': ['Café de Olla', 'Dalgona', 'Café Turco'],
+};
+
 export default function Recipes() {
   const hasSubscription = useUser((s) => s.hasSubscription);
   const user = useUser((s) => s.user);
@@ -130,6 +137,7 @@ export default function Recipes() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [methodFilter, setMethodFilter] = useState<string>('TODOS');
+  const [difficultyFilter, setDifficultyFilter] = useState<string>('TODOS');
   const [search, setSearch] = useState<string>('');
   const [timerState, setTimerState] = useState<{ recipeId: string; stepIndex: number; secondsLeft: number } | null>(null);
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
@@ -172,8 +180,11 @@ export default function Recipes() {
     return () => clearInterval(interval);
   }, [timerState]);
 
-  const methods = ['TODOS', ...Array.from(new Set(recipes.map((r) => r.method))).sort()];
-  const filtered = methodFilter === 'TODOS' ? recipes : recipes.filter((r) => r.method === methodFilter);
+  const filtered = recipes.filter((r) => {
+    if (methodFilter !== 'TODOS' && r.method !== methodFilter) return false;
+    if (difficultyFilter !== 'TODOS' && r.difficulty !== difficultyFilter) return false;
+    return true;
+  });
 
   const searched = filtered.filter((r) =>
     search === '' ||
@@ -276,23 +287,69 @@ export default function Recipes() {
           />
         </div>
 
-        <div className="flex gap-2 flex-wrap justify-center mb-10">
-          {methods.map((m) => (
+        <div className="mb-10">
+          <div className="flex gap-2 flex-wrap justify-center mb-6">
             <button
-              key={m}
-              onClick={() => setMethodFilter(m)}
+              onClick={() => setDifficultyFilter('TODOS')}
               className={`px-4 py-1.5 text-xs uppercase tracking-wider border transition-colors ${
-                methodFilter === m
+                difficultyFilter === 'TODOS'
                   ? 'border-gold-500 text-gold-500 bg-gold-500/10'
                   : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-600'
               }`}
             >
-              {m}
+              Todos
             </button>
-          ))}
+            {(['FÁCIL', 'MEDIA', 'DIFÍCIL'] as const).map((d) => (
+              <button
+                key={d}
+                onClick={() => setDifficultyFilter(d)}
+                className={`px-4 py-1.5 text-xs uppercase tracking-wider border transition-colors ${
+                  difficultyFilter === d
+                    ? 'border-gold-500 text-gold-500 bg-gold-500/10'
+                    : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-600'
+                }`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            {Object.entries(METHOD_CATEGORIES).map(([category, methods]) => (
+              <div key={category}>
+                <p className="text-xs text-coffee-500 uppercase tracking-wider mb-2">{category}</p>
+                <div className="flex gap-2 flex-wrap">
+                  {methods.map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setMethodFilter(m)}
+                      className={`px-4 py-1.5 text-xs uppercase tracking-wider border transition-colors ${
+                        methodFilter === m
+                          ? 'border-gold-500 text-gold-500 bg-gold-500/10'
+                          : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-600'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {methodFilter !== 'TODOS' && (
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                onClick={() => setMethodFilter('TODOS')}
+                className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
+              >
+                Limpiar filtro de método
+              </button>
+            </div>
+          )}
         </div>
 
-        {(methodFilter !== 'TODOS' || search !== '') && (
+        {(methodFilter !== 'TODOS' || difficultyFilter !== 'TODOS' || search !== '') && (
           <div className="flex flex-wrap gap-2 items-center mb-4 -mt-6">
             {methodFilter !== 'TODOS' && (
               <button
@@ -300,6 +357,15 @@ export default function Recipes() {
                 className="flex items-center gap-1.5 px-3 py-1 bg-coffee-100 dark:bg-coffee-800 border border-gold-500/30 text-coffee-900 dark:text-cream text-xs hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
               >
                 {methodFilter}
+                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
+              </button>
+            )}
+            {difficultyFilter !== 'TODOS' && (
+              <button
+                onClick={() => setDifficultyFilter('TODOS')}
+                className="flex items-center gap-1.5 px-3 py-1 bg-coffee-100 dark:bg-coffee-800 border border-gold-500/30 text-coffee-900 dark:text-cream text-xs hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
+              >
+                {difficultyFilter}
                 <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
               </button>
             )}
@@ -312,9 +378,9 @@ export default function Recipes() {
                 <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
               </button>
             )}
-            {methodFilter !== 'TODOS' && search !== '' && (
+            {(methodFilter !== 'TODOS' || difficultyFilter !== 'TODOS' || search !== '') && (
               <button
-                onClick={() => { setMethodFilter('TODOS'); setSearch(''); }}
+                onClick={() => { setMethodFilter('TODOS'); setDifficultyFilter('TODOS'); setSearch(''); }}
                 className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
               >
                 Limpiar todo

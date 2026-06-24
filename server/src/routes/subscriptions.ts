@@ -418,7 +418,7 @@ router.post('/b2b-inquiry', async (req: Request, res: Response) => {
     }
 
     // Create B2B inquiry record
-    const inquiry = await prisma.b2bInquiry.create({
+    const inquiry = await prisma.b2BInquiry.create({
       data: {
         empresa: empresa.trim(),
         rfc: rfc.trim(),

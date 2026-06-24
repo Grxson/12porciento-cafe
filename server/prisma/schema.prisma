@@ -298,6 +298,7 @@ model User {
   subscriptions                Subscription[]
   reviewReplies                ReviewReply[] @relation("reviewReplies")
   baristaProfile               BaristaProfile?
+  pushSubscriptions            PushSubscription[]
 }
 
 model BaristaProfile {
@@ -357,6 +358,34 @@ model AchievementUnlock {
 
   @@unique([userId, achievementId])
   @@index([userId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String?
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model AdminNotificationPreference {
+  id        String   @id @default(cuid())
+  adminId   String
+  eventType String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([adminId, eventType])
+  @@map("admin_notification_preferences")
 }
 
 model B2BInquiry {

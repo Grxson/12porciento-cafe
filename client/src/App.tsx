@@ -69,6 +69,7 @@ import AdminInventory from './admin/Inventory';
 import AdminRecipesPage from './admin/Recipes';
 import Achievements from './admin/Achievements';
 import SubscriptionPayments from './admin/SubscriptionPayments';
+import AdminNotificationSettings from './admin/AdminNotificationSettings';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
 import BottomNav from './components/BottomNav';
@@ -197,6 +198,7 @@ export default function App() {
           <Route path="recetas" element={<AdminRecipesPage />} />
           <Route path="logros" element={<Achievements />} />
           <Route path="pagos-suscripciones" element={<SubscriptionPayments />} />
+          <Route path="notificaciones" element={<AdminNotificationSettings />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

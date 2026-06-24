@@ -12,6 +12,7 @@ import StripePaymentForm from '../components/StripePaymentForm';
 import { mexicanStates } from '../constants/mexico';
 import type { PaymentMethod } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
+import PushPermissionBanner from '../components/PushPermissionBanner';
 
 interface FormData {
   customerName: string;
@@ -317,6 +318,9 @@ export default function Checkout() {
           )}
           <Link to="/tienda" className="btn-primary block">Seguir comprando</Link>
         </motion.div>
+        <div className="max-w-md w-full mt-4">
+          <PushPermissionBanner />
+        </div>
       </div>
     );
   }

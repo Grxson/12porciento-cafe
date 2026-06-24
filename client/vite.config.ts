@@ -7,6 +7,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       includeAssets: ['favicon.ico', 'icons/*.png', 'icons/*.svg', 'fonts/*.woff2'],
       manifest: {
         name: '12% Café de Especialidad',
@@ -46,51 +49,6 @@ export default defineConfig({
             description: 'Ver planes de suscripción',
             url: '/suscripciones',
             icons: [{ src: 'icons/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
-          },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/, /\.json$/],
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }: { url: URL }) =>
-              url.pathname.startsWith('/api/recipes'),
-            handler: 'StaleWhileRevalidate' as const,
-            options: {
-              cacheName: 'recipes-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith('/api/'),
-            handler: 'NetworkFirst' as const,
-            options: {
-              cacheName: 'api-runtime',
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: ({ url }: { url: URL }) => /fonts\.googleapis\.com|fonts\.gstatic\.com/.test(url.origin),
-            handler: 'CacheFirst' as const,
-            options: {
-              cacheName: 'google-fonts',
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: ({ url }: { url: URL }) => url.hostname.includes('images.unsplash.com'),
-            handler: 'CacheFirst' as const,
-            options: {
-              cacheName: 'unsplash-images',
-              expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
           },
         ],
       },

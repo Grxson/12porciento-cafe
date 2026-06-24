@@ -4,6 +4,7 @@ import { Camera } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { mexicanStates } from '../../constants/mexico';
+import NotificationSettings from '../../components/NotificationSettings';
 
 function resizeToBase64(file: File, size = 256): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -175,6 +176,11 @@ export default function ProfileSettings() {
           {loading ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
+
+      <div className="max-w-lg mt-12 pt-8 border-t border-coffee-200 dark:border-coffee-800">
+        <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Notificaciones</h3>
+        <NotificationSettings />
+      </div>
     </motion.div>
   );
 }

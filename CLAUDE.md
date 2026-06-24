@@ -133,13 +133,18 @@ Last updated: 2026-06-23 (Sprint 003 + 004 — Design Refinement + Light Mode Au
 <!-- SPECKIT START -->
 ## Current Feature Plan
 
-**Active feature**: Dark Mode Audit & PWA Update Notifications — **SHIPPED**
-**Plan**: [specs/002-dark-mode-audit-and-pwa-updates/plan.md](specs/002-dark-mode-audit-and-pwa-updates/plan.md)
-**Spec**: [specs/002-dark-mode-audit-and-pwa-updates/spec.md](specs/002-dark-mode-audit-and-pwa-updates/spec.md)
-**Tasks**: [specs/002-dark-mode-audit-and-pwa-updates/tasks.md](specs/002-dark-mode-audit-and-pwa-updates/tasks.md)
+**Active feature**: PWA Push Notifications — **PLANNED**
+**Spec**: [specs/003-pwa-push-notifications/spec.md](specs/003-pwa-push-notifications/spec.md)
+**Plan**: [specs/003-pwa-push-notifications/plan.md](specs/003-pwa-push-notifications/plan.md)
+**Tasks**: [specs/003-pwa-push-notifications/tasks.md](specs/003-pwa-push-notifications/tasks.md)
+**Data Model**: [specs/003-pwa-push-notifications/data-model.md](specs/003-pwa-push-notifications/data-model.md)
+**Research**: [specs/003-pwa-push-notifications/research.md](specs/003-pwa-push-notifications/research.md)
+**UI Contracts**: [specs/003-pwa-push-notifications/contracts/ui-contracts.md](specs/003-pwa-push-notifications/contracts/ui-contracts.md)
+**Quickstart**: [specs/003-pwa-push-notifications/quickstart.md](specs/003-pwa-push-notifications/quickstart.md)
 
-All 43 tasks complete. Full theme coherence, safe-area Navbar fix, PWA update modal + post-update toast.
+Real native PWA push notifications. VAPID keys, Prisma PushSubscription, custom SW `push`/`notificationclick`, contextual permission prompt, admin toggles. 53 tasks across 8 phases. No Firebase dependency.
 
 ### Previous Features
-- **PWA Responsive Mobile Fixes**: [specs/001-pwa-responsive-mobile/plan.md](specs/001-pwa-responsive-mobile/plan.md) — CSS fixes for mobile layout, safe areas, touch targets
+- **Dark Mode Audit & PWA Update Notifications**: [specs/002-dark-mode-audit-and-pwa-updates/](specs/002-dark-mode-audit-and-pwa-updates/) — SHIPPED ✅
+- **PWA Responsive Mobile Fixes**: [specs/001-pwa-responsive-mobile/](specs/001-pwa-responsive-mobile/) — SHIPPED ✅
 <!-- SPECKIT END -->

@@ -22,10 +22,21 @@ import recipesRouter from './routes/recipes';
 import uploadsRouter from './routes/uploads';
 import baristaRouter from './routes/barista';
 import sitemapRouter from './routes/sitemap';
+import pushRouter from './routes/push';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import http from 'http';
 import { initSocket } from './socket';
+import webpush from 'web-push';
+
+// Initialize web-push VAPID for PWA push notifications
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:gael.grxson@gmail.com',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY,
+  );
+}
 
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -73,6 +84,7 @@ app.use('/api/recipes', recipesRouter);
 app.use('/api/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/barista', baristaRouter);
+app.use('/api/push', pushRouter);
 app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

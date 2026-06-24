@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
   ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
-  Shield, Sun, Moon, Award, CreditCard,
+  Shield, Sun, Moon, Award, CreditCard, Bell,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -24,6 +24,7 @@ const navLinks = [
   { to: '/admin/descuentos',   label: 'Descuentos',   icon: Tag },
   { to: '/admin/logros',       label: 'Logros',       icon: Award },
   { to: '/admin/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
+  { to: '/admin/notificaciones', label: 'Notificaciones', icon: Bell },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -40,6 +41,7 @@ const pageTitles: Record<string, string> = {
   '/admin/descuentos':   'Descuentos',
   '/admin/logros':       'Logros',
   '/admin/pagos-suscripciones': 'Pagos Suscripciones',
+  '/admin/notificaciones': 'Notificaciones',
 };
 
 function AdminLayoutInner() {

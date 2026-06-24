@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { Trophy, Zap, Coffee } from 'lucide-react';
 import { useBarista } from '../hooks/useBarista';
+import PushPermissionBanner from '../components/PushPermissionBanner';
 import { useUser } from '../context/UserContext';
 import BrewComparator from '../components/barista/BrewComparator';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -86,6 +87,9 @@ export default function BaristaProfile() {
           <h1 className="font-serif text-4xl text-gold-400 mb-2">Nivel {profile.level}</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm">{profile.totalBrews} brews registrados</p>
         </div>
+
+        {/* Permission prompt — only on own profile */}
+        {isOwnProfile && <PushPermissionBanner />}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">

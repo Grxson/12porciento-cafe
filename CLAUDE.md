@@ -9,7 +9,7 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 - Database: PostgreSQL (production) / SQLite (local dev) via Prisma ORM (`server/prisma/schema.prisma`)
 - Monorepo: pnpm workspaces (client/, server/)
 
-## Recent Work (2026-05-30 to 2026-06-23)
+## Recent Work (2026-05-30 to 2026-06-23, Sprints 003-004)
 
 ### Feature Sprint (May 2026) - SHIPPED
 - Stripe integration with saved cards
@@ -66,6 +66,16 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 - **Phase G — Recipes:** Difficulty filter (Fácil, Media, Difícil) + method grouping (Filtro, Inmersión, Espresso, Especiales) + API `?difficulty=MEDIA` support
 - **Execution:** 12 caveman:cavecrew-builder subagents in parallel, 3 commits (b9fabff, 97d6f9a, c608bb5), 522 insertions across 13 files
 
+### Light Mode Audit & Fix Sprint (June 2026) - SHIPPED
+- **Phase 1 — Footer/Navbar contrast:** gold-500 → gold-600 on cream bg (unreadable fix), coffee-600 → coffee-700 icons
+- **Phase 2 — Difficulty badges:** DIFFICULTY_COLORS from dark-only to dual-theme (green-700 light/green-400 dark, etc.)
+- **Phase 3 — Subscriptions badge fix:** Remove broken dual-badge stacking from Sprint 003. Single gold badge per plan.
+- **Phase 4 — CoffeePicker light mode:** Search input white bg light/dark bg dark, progress dots light variant, all inputs dual-theme
+- **Phase 5 — Audit sweep:** Breadcrumbs, ProductDetail, About bare color fixes. 30+ classes audited.
+- **Phase 6 — Quiz responsive:** Grid cols-1 (mobile) → cols-2 (tablet) → cols-3 (desktop). Product names readable all sizes.
+- **Execution:** 6 caveman:cavecrew-builder subagents in parallel, 1 commit (37fc044), 60 insertions/71 deletions across 9 files
+- **Key fix:** Every color class now has `dark:` variant or is unconditional. Light mode contrast ratio ≥ WCAG AA.
+
 ### Roadmap Status
 All 4 master initiatives already shipped:
 - ✅ Gallery/showcase
@@ -118,7 +128,7 @@ All 4 master initiatives already shipped:
 - Run type checking & tests if available
 
 ---
-Last updated: 2026-06-23 (Design Refinement Sprint 003 — Navbar, theme fixes, cart UX, Subscriptions B2B, recipe filtering)
+Last updated: 2026-06-23 (Sprint 003 + 004 — Design Refinement + Light Mode Audit & Fix)
 
 <!-- SPECKIT START -->
 ## Current Feature Plan

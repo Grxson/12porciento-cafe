@@ -204,7 +204,7 @@ export default function Navbar() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 bottom-0 z-50 max-w-[18rem] w-full bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-20 pb-8 md:hidden"
+            className="fixed top-0 right-0 bottom-0 z-50 max-w-[18rem] w-full bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-20 pb-[max(2rem,env(safe-area-inset-bottom,0px))] md:hidden"
           >
             <nav className="flex flex-col px-6 gap-1">
               {links.map(({ to, label }) => (

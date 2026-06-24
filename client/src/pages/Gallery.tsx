@@ -102,7 +102,7 @@ export default function Gallery() {
             {images.map((img, i) => (
               <div
                 key={img.id}
-                className="break-inside-avoid mb-4 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden group"
+                className="break-inside-avoid mb-4 bg-coffee-100 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-800 overflow-hidden group min-h-[180px]"
               >
                 <button
                   onClick={() => setLightboxIndex(i)}

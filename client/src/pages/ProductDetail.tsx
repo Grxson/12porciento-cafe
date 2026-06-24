@@ -633,7 +633,7 @@ export default function ProductDetail() {
 
       {/* Sticky mobile add-to-cart bar — sits above BottomNav */}
       <div
-        className="md:hidden fixed left-0 right-0 z-40 bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-800 p-3 flex items-center gap-3"
+        className="md:hidden fixed left-0 right-0 z-40 bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] flex items-center gap-3"
         style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 3.75rem)' }}
       >
         <div className="shrink-0">

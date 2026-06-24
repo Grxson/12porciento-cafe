@@ -152,17 +152,7 @@ export default function Subscriptions() {
 
     setLoading(true); setError('');
     try {
-      await fetch('/api/subscriptions/b2b-inquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(b2bForm),
-      }).then(async (res) => {
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Error al enviar consulta');
-        }
-        return res.json();
-      });
+      await subscriptionsApi.b2bInquiry(b2bForm);
       setShowB2BConfirm(true);
     } catch (err: any) {
       addToast(err.message || 'Error al procesar consulta. Intenta de nuevo.', 'error');
@@ -172,6 +162,7 @@ export default function Subscriptions() {
   };
 
   const stepLabels = ['Elige tu plan', 'Tus cafés', 'Finalizar'];
+  const stepShortLabels = ['Plan', 'Cafés', 'Fin'];
 
   if (success) {
     return (
@@ -233,7 +224,7 @@ export default function Subscriptions() {
                     {step > n ? <Check className="w-3.5 h-3.5" /> : n}
                   </div>
                   <span className={`hidden sm:inline text-xs transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{label}</span>
-                  <span className={`sm:hidden text-[10px] leading-tight transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{label.split(' ')[0]}</span>
+                  <span className={`sm:hidden text-[11px] leading-tight transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{stepShortLabels[i]}</span>
                 </div>
                 {i < stepLabels.length - 1 && <div className="flex-1 h-px bg-coffee-200 dark:bg-coffee-800 mx-3" />}
               </div>

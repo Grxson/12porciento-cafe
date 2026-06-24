@@ -24,7 +24,7 @@ export default function BottomNav() {
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-200 dark:border-coffee-800"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-5 overflow-hidden">
         {tabs.map(({ to, label, icon: Icon, badge }) => {
           const target = resolveTo(to);
           const active = pathname === to || pathname.startsWith(to + '/');

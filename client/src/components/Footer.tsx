@@ -43,7 +43,7 @@ export default function Footer() {
                 { to: '/carrito', label: 'Carrito' },
               ].map(({ to, label }) => (
                 <li key={to}>
-                  <Link to={to} className="text-coffee-700 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream text-sm transition-colors">
+                  <Link to={to} className="text-coffee-700 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream text-sm transition-colors inline-flex items-center min-h-[44px]">
                     {label}
                   </Link>
                 </li>
@@ -60,7 +60,7 @@ export default function Footer() {
                 { to: '/nosotros#origenes', label: 'Orígenes' },
               ].map(({ to, label }) => (
                 <li key={to}>
-                  <Link to={to} className="text-coffee-700 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream text-sm transition-colors">
+                  <Link to={to} className="text-coffee-700 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream text-sm transition-colors inline-flex items-center min-h-[44px]">
                     {label}
                   </Link>
                 </li>

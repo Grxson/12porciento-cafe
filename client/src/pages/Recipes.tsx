@@ -594,6 +594,21 @@ export default function Recipes() {
           />
         )}
       </div>
+
+      {/* Floating timer badge — visible when timer active on any recipe */}
+      {timerState && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-3 py-2 bg-coffee-950/90 dark:bg-coffee-800/90 backdrop-blur-sm border border-gold-500/40 rounded shadow-lg text-xs">
+          <span className="w-2 h-2 bg-gold-500 rounded-full animate-pulse" />
+          <span className="text-gold-400 font-mono font-bold">{timerState.secondsLeft}s</span>
+          <button
+            onClick={() => setTimerState(null)}
+            className="ml-1 text-coffee-400 hover:text-red-400 transition-colors"
+            aria-label="Cancelar temporizador"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

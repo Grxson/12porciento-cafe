@@ -12,18 +12,19 @@ export default function StarRating({ value, onChange, size = 20, readonly = fals
   const [hovered, setHovered] = useState(0);
 
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-0.5" role="img" aria-label={`${value} de 5 estrellas`}>
       {[1, 2, 3, 4, 5].map((star) => {
         const filled = star <= (hovered || value);
         return (
           <button
             key={star}
             type="button"
+            aria-hidden={readonly}
             onClick={() => !readonly && onChange?.(star)}
             onMouseEnter={() => !readonly && setHovered(star)}
             onMouseLeave={() => !readonly && setHovered(0)}
             className={readonly ? 'cursor-default' : 'cursor-pointer'}
-            aria-label={`${star} stars`}
+            tabIndex={readonly ? -1 : 0}
           >
             <Star
               size={size}

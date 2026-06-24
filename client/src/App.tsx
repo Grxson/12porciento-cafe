@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
@@ -11,7 +11,30 @@ import { useToast } from './context/ToastContext';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  const navType = useNavigationType();
+  const prevPathname = useRef(pathname);
+
+  useEffect(() => {
+    // Save scroll position before navigating away
+    if (prevPathname.current !== pathname) {
+      sessionStorage.setItem(`scroll:${prevPathname.current}`, String(window.scrollY));
+    }
+    prevPathname.current = pathname;
+  }, [pathname]);
+
+  useEffect(() => {
+    // POP = back/forward → restore saved position
+    // PUSH/REPLACE = link click → scroll to top
+    if (navType === 'POP') {
+      const saved = sessionStorage.getItem(`scroll:${pathname}`);
+      if (saved) {
+        requestAnimationFrame(() => window.scrollTo(0, parseInt(saved, 10)));
+        return;
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [pathname, navType]);
+
   return null;
 }
 import { Helmet } from 'react-helmet-async';
@@ -69,7 +92,6 @@ const UserRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
-  const clientTheme = useClientTheme();
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -81,7 +103,6 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
-      <ThemeSync store={clientTheme} />
       <Navbar />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       <Footer />
@@ -114,11 +135,13 @@ function PWAUpdateManager() {
 }
 
 export default function App() {
+  const clientTheme = useClientTheme();
   return (
     <HelmetProvider>
     <ErrorBoundary>
     <NotificationsProvider>
     <CartProvider>
+      <ThemeSync store={clientTheme} />
       <ToastContainer />
       <PWAUpdateManager />
       <ScrollToTop />

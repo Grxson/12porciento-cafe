@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard, Package } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard, Package, ShoppingBag } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { ordersApi, paymentsApi, promoCodesApi, usersApi } from '../api';
 import { retryWithBackoff } from '../services/paymentRetry';
@@ -42,8 +42,8 @@ export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const user = useUser((s) => s.user);
   const { add: addToast } = useToast();
-  // step 1 = shipping, '2a' = card selection, 2 = payment UI
-  const [step, setStep] = useState<1 | '2a' | 2>(1);
+  // step 1 = shipping, 2 = payment method (card selection), 3 = confirm payment
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [form, setForm] = useState<FormData>({
     customerName: user?.name ?? '',
     email: user?.email ?? '',
@@ -158,7 +158,7 @@ export default function Checkout() {
 
     // If the user has saved methods, show the card-selection step first
     if (user?.stripeCustomerId && savedMethods.length > 0) {
-      setStep('2a');
+      setStep(2);
       return;
     }
 
@@ -198,7 +198,7 @@ export default function Checkout() {
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');
       setIntentAmount(res.data.amount);
-      setStep(2);
+      setStep(3);
     } catch (err: any) {
       const msg = err.response?.data?.error || 'Error al iniciar el pago. Intenta de nuevo.';
       setError(msg);
@@ -268,9 +268,17 @@ export default function Checkout() {
 
   if (items.length === 0 && !success) {
     return (
-      <div className="min-h-screen pt-20 flex flex-col items-center justify-center gap-4 bg-coffee-50 dark:bg-coffee-950">
+      <div className="min-h-screen pt-20 flex flex-col items-center justify-center gap-6 px-4 bg-coffee-50 dark:bg-coffee-950">
         <PageMeta title="Pago" description="Finaliza tu compra de café de especialidad de forma segura." />
-        <p className="text-coffee-600 dark:text-coffee-400">No hay productos en el carrito.</p>
+        <div className="w-24 h-24 border border-coffee-200 dark:border-coffee-800 flex items-center justify-center">
+          <ShoppingBag className="w-10 h-10 text-coffee-700 dark:text-coffee-300" />
+        </div>
+        <div className="text-center">
+          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">Carrito vacío</h2>
+          <p className="text-coffee-500 max-w-xs leading-relaxed text-sm">
+            Agrega productos a tu carrito antes de proceder al pago.
+          </p>
+        </div>
         <Link to="/tienda" className="btn-primary">Ir a la tienda</Link>
       </div>
     );
@@ -345,7 +353,7 @@ export default function Checkout() {
             { n: 1, label: 'Datos de envío' },
             { n: 2, label: 'Pago' },
           ].map(({ n, label }, i, arr) => {
-            const stepNum = step === '2a' ? 2 : (step as number);
+            const stepNum = step >= 2 ? 2 : 1;
             const isActive = stepNum === n;
             const isPast = stepNum > n;
             return (
@@ -458,9 +466,9 @@ export default function Checkout() {
                 </motion.form>
               )}
 
-              {step === '2a' && (
+              {step === 2 && (
                 <motion.div
-                  key="step2a"
+                  key="step-payment-method"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
@@ -574,7 +582,7 @@ export default function Checkout() {
                         setClientSecret('');
                         setPaymentIntentId('');
                         setError('');
-                        setStep(savedMethods.length > 0 && !!user?.stripeCustomerId ? '2a' : 1);
+                        setStep(savedMethods.length > 0 && !!user?.stripeCustomerId ? 2 : 1);
                       }}
                       className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors text-sm"
                     >

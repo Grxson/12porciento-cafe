@@ -168,6 +168,7 @@ export default function Shop() {
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}
+              aria-pressed={category === cat.id}
               className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.15em] whitespace-nowrap transition-all duration-200 border-b-2 -mb-px ${
                 category === cat.id
                   ? 'border-gold-500 text-coffee-900 dark:text-cream bg-white dark:bg-coffee-800'
@@ -198,6 +199,7 @@ export default function Shop() {
                   <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Proceso</span>
                   {processes.map((p) => (
                     <button key={p} onClick={() => { setProcess(p); setPage(1); }}
+                      aria-pressed={process === p}
                       className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
                         process === p ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                       }`}>{p}</button>
@@ -208,6 +210,7 @@ export default function Shop() {
                   <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Tueste</span>
                   {roasts.map((r) => (
                     <button key={r} onClick={() => { setRoast(r); setPage(1); }}
+                      aria-pressed={roast === r}
                       className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
                         roast === r ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                       }`}>{r}</button>
@@ -221,6 +224,7 @@ export default function Shop() {
                       <button
                         key={f}
                         onClick={() => toggleFlavor(f)}
+                        aria-pressed={selectedFlavors.includes(f)}
                         className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
                           selectedFlavors.includes(f)
                             ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium'
@@ -326,6 +330,7 @@ export default function Shop() {
                       <button
                         key={cat.id}
                         onClick={() => handleCategoryChange(cat.id)}
+                        aria-pressed={category === cat.id}
                         className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                           category === cat.id
                             ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
@@ -347,6 +352,7 @@ export default function Shop() {
                         <button
                           key={p}
                           onClick={() => { setProcess(p); setPage(1); }}
+                          aria-pressed={process === p}
                           className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             process === p
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
@@ -369,6 +375,7 @@ export default function Shop() {
                         <button
                           key={r}
                           onClick={() => { setRoast(r); setPage(1); }}
+                          aria-pressed={roast === r}
                           className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             roast === r
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
@@ -390,6 +397,7 @@ export default function Shop() {
                         <button
                           key={f}
                           onClick={() => toggleFlavor(f)}
+                          aria-pressed={selectedFlavors.includes(f)}
                           className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             selectedFlavors.includes(f)
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'

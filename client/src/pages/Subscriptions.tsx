@@ -9,7 +9,7 @@ import CoffeePicker from '../components/CoffeePicker';
 import type { SubscriptionPlan } from '../types';
 import { PLAN_SLOTS } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
-import { useToast } from '../hooks/useToast';
+import { useToast } from '../context/ToastContext';
 
 const plans: Array<{
   id: SubscriptionPlan;
@@ -80,7 +80,7 @@ interface B2BFormData {
 export default function Subscriptions() {
   const user = useUser((s) => s.user);
   const hasSubscription = useUser((s) => s.hasSubscription);
-  const toast = useToast();
+  const { add: addToast } = useToast();
   const [step, setStep] = useState<Step>(1);
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
   const [selectedCoffees, setSelectedCoffees] = useState<string[]>([]);
@@ -170,7 +170,7 @@ export default function Subscriptions() {
       });
       setShowB2BConfirm(true);
     } catch (err: any) {
-      toast.error(err.message || 'Error al procesar consulta. Intenta de nuevo.');
+      addToast(err.message || 'Error al procesar consulta. Intenta de nuevo.', 'error');
     } finally {
       setLoading(false);
     }

@@ -6,10 +6,10 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 **Tech Stack:**
 - Client: React 19, TypeScript, Tailwind CSS, Shadcn/ui
 - Server: Node/Express, TypeScript, Stripe API
-- Database: SQLite via Prisma ORM (`server/prisma/schema.prisma`)
+- Database: PostgreSQL (production) / SQLite (local dev) via Prisma ORM (`server/prisma/schema.prisma`)
 - Monorepo: pnpm workspaces (client/, server/)
 
-## Recent Work (2026-05-30 to 2026-06-10)
+## Recent Work (2026-05-30 to 2026-06-23)
 
 ### Feature Sprint (May 2026) - SHIPPED
 - Stripe integration with saved cards
@@ -52,6 +52,19 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 - **RecipeLiveMode:** guard against 0-step recipes. BrewLogForm: double-submit guard + revokeObjectURL.
 - **Rate limiting:** added to `POST /promo-codes/validate` (30/15min)
 - **Leaderboard:** NaN guard on limit param, error state with retry button
+
+### Design Refinement Sprint (June 2026) - SHIPPED
+- **Phase A — Navbar:** Collapse desktop nav to 4 primary links (Tienda, Recetas, Suscripciones, Nosotros) + secondary links (Paquetes, Galería, Ranking, Logros, Quiz) in "Más" dropdown
+- **Phase B — Theme fixes:** Add dark variants to `.card-light` (fixes About origins visibility). RecipeLiveMode stays always-dark (cinema mode). Prisma schema verified (PostgreSQL for production, SQLite for local dev via .env)
+- **Phase C — Cart UX:** Success toast on `addItem()`, styled stock badges (amber "bajo", red "agotado")
+- **Phase D — Quiz:** Responsive grid for recommended coffees (gap-6)
+- **Phase E — Checkout:** Promo input alignment + dark mode border consistency
+- **Phase F — Subscriptions redesign:**
+  - CoffeePicker: search by region, flavor notes display, plan benefit badges
+  - Plan cards: offer badges (POPULAR / EARLY ACCESS / CUSTOM)
+  - B2B flow: EMPRESARIAL plan → consultation form (empresa, rfc, contacto*) → `POST /api/subscriptions/b2b-inquiry` → B2BInquiry model
+- **Phase G — Recipes:** Difficulty filter (Fácil, Media, Difícil) + method grouping (Filtro, Inmersión, Espresso, Especiales) + API `?difficulty=MEDIA` support
+- **Execution:** 12 caveman:cavecrew-builder subagents in parallel, 3 commits (b9fabff, 97d6f9a, c608bb5), 522 insertions across 13 files
 
 ### Roadmap Status
 All 4 master initiatives already shipped:
@@ -105,7 +118,7 @@ All 4 master initiatives already shipped:
 - Run type checking & tests if available
 
 ---
-Last updated: 2026-06-19 (dark mode audit + PWA update notifications)
+Last updated: 2026-06-23 (Design Refinement Sprint 003 — Navbar, theme fixes, cart UX, Subscriptions B2B, recipe filtering)
 
 <!-- SPECKIT START -->
 ## Current Feature Plan

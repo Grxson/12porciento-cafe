@@ -21,7 +21,6 @@ const plans: Array<{
   excluded: string[];
   featured: boolean;
   badge?: string;
-  badgeColor?: 'gold' | 'accent' | 'neutral';
 }> = [
   {
     id: 'FUNDADOR', name: 'Fundador', price: 350,
@@ -30,8 +29,7 @@ const plans: Array<{
     features: ['2 cafés de especialidad a elegir', 'Grano entero o molido', 'Notas de catación incluidas', 'Envío incluido', 'Cancela cuando quieras'],
     excluded: ['Ediciones limitadas', 'Microlotes exclusivos'],
     featured: false,
-    badge: 'Perfecto para empezar',
-    badgeColor: 'neutral',
+    badge: 'Para empezar',
   },
   {
     id: 'EXPLORADOR', name: 'Explorador', price: 650,
@@ -41,7 +39,6 @@ const plans: Array<{
     excluded: ['Experimentales anaeróbicos'],
     featured: true,
     badge: 'Más popular',
-    badgeColor: 'gold',
   },
   {
     id: 'CONNOISSEUR', name: 'Connoisseur', price: 890,
@@ -50,8 +47,7 @@ const plans: Array<{
     features: ['3 cafés premium a elegir', 'Acceso a ediciones limitadas', 'Cafés experimentales y anaeróbicos', 'Prioridad en microlotes', 'Notas de catación extendidas', 'Envío exprés incluido'],
     excluded: [],
     featured: false,
-    badge: 'Acceso anticipado · 48h antes',
-    badgeColor: 'accent',
+    badge: 'Acceso anticipado · 48h',
   },
   {
     id: 'EMPRESARIAL', name: 'Empresarial', price: null,
@@ -60,8 +56,7 @@ const plans: Array<{
     features: ['Mínimo 10 lotes a elegir', 'Todo el catálogo disponible', '15% descuento por volumen', 'Gestor de cuenta dedicado', 'Facturación mensual', 'Envío exprés'],
     excluded: [],
     featured: false,
-    badge: 'Solución personalizada',
-    badgeColor: 'neutral',
+    badge: 'Personalizado',
   },
 ];
 
@@ -282,13 +277,7 @@ export default function Subscriptions() {
                   >
                     {plan.badge && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className={`text-[9px] font-bold uppercase tracking-[0.2em] px-3 py-1 ${
-                          plan.badgeColor === 'gold'
-                            ? 'bg-gold-500 text-coffee-950'
-                            : plan.badgeColor === 'accent'
-                            ? 'bg-blue-600 dark:bg-blue-500 text-white dark:text-cream'
-                            : 'bg-coffee-300 dark:bg-coffee-700 text-coffee-900 dark:text-cream'
-                        }`}>{plan.badge}</span>
+                        <span className={`${plan.featured ? 'text-[10px] font-extrabold' : 'text-[9px] font-bold'} uppercase tracking-[0.2em] px-3 py-1 bg-gold-500 text-coffee-950`}>{plan.badge}</span>
                       </div>
                     )}
                     <div className="p-6 flex-1">

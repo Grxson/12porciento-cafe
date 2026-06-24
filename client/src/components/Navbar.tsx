@@ -85,7 +85,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
         <Link to="/" className="flex flex-col leading-none">
           <span className="font-serif text-2xl font-bold text-coffee-900 dark:text-cream tracking-tight">12%</span>
-          <span className="text-[9px] tracking-[0.3em] text-gold-500 uppercase">doce por ciento</span>
+          <span className="text-[9px] tracking-[0.3em] text-gold-600 dark:text-gold-400 uppercase">doce por ciento</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 relative">
@@ -147,7 +147,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           <button
             onClick={toggle}
-            className="text-coffee-600 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            className="text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Cambiar tema"
           >
             {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -156,7 +156,7 @@ export default function Navbar() {
           {user && <NotificationBell />}
           <button
             onClick={openDrawer}
-            className="relative text-coffee-600 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            className="relative text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Carrito"
           >
             <ShoppingBag className="w-5 h-5" />
@@ -174,7 +174,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden text-coffee-600 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            className="md:hidden text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Menú"
           >
             <AnimatePresence mode="wait">

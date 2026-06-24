@@ -48,7 +48,7 @@ function StepVideoPlayer({ url }: { url: string }) {
   }
   return (
     <a href={url} target="_blank" rel="noopener noreferrer"
-      className="mt-3 flex items-center gap-2 text-xs text-gold-400 hover:text-gold-300 transition-colors">
+      className="mt-3 flex items-center gap-2 text-xs text-gold-600 dark:text-gold-400 hover:text-gold-700 dark:hover:text-gold-300 transition-colors">
       <Play className="w-3.5 h-3.5" /> Ver video
     </a>
   );
@@ -63,9 +63,9 @@ function MethodIcon({ method }: { method: string }) {
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  'FÁCIL': 'text-green-400 bg-green-900/20 border-green-500/30',
-  'MEDIA': 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30',
-  'DIFÍCIL': 'text-red-400 bg-red-900/20 border-red-500/30',
+  'FÁCIL': 'text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-400 dark:border-green-500/30',
+  'MEDIA': 'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-500/30',
+  'DIFÍCIL': 'text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-400 dark:border-red-500/30',
 };
 
 function downloadRecipePDF(recipe: Recipe) {
@@ -317,7 +317,7 @@ export default function Recipes() {
           <div className="space-y-4">
             {Object.entries(METHOD_CATEGORIES).map(([category, methods]) => (
               <div key={category}>
-                <p className="text-xs text-coffee-500 uppercase tracking-wider mb-2">{category}</p>
+                <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-2">{category}</p>
                 <div className="flex gap-2 flex-wrap">
                   {methods.map((m) => (
                     <button
@@ -341,7 +341,7 @@ export default function Recipes() {
             <div className="mt-4 flex items-center gap-2">
               <button
                 onClick={() => setMethodFilter('TODOS')}
-                className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
+                className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
               >
                 Limpiar filtro de método
               </button>
@@ -381,7 +381,7 @@ export default function Recipes() {
             {(methodFilter !== 'TODOS' || difficultyFilter !== 'TODOS' || search !== '') && (
               <button
                 onClick={() => { setMethodFilter('TODOS'); setDifficultyFilter('TODOS'); setSearch(''); }}
-                className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
+                className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
               >
                 Limpiar todo
               </button>
@@ -406,20 +406,20 @@ export default function Recipes() {
                   onClick={() => !isLocked && setExpandedId(isExpanded ? null : recipe.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-gold-400"><MethodIcon method={recipe.method} /></span>
+                    <span className="text-gold-600 dark:text-gold-400"><MethodIcon method={recipe.method} /></span>
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-coffee-900 dark:text-cream font-medium">{recipe.title}</h3>
                         {recipe.isPremium && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400 uppercase tracking-wider">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-600 dark:text-gold-400 uppercase tracking-wider">
                             Premium
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-coffee-500">{recipe.method}</span>
+                        <span className="text-xs text-coffee-600 dark:text-coffee-400">{recipe.method}</span>
                         {recipe.prepTime && (
-                          <span className="flex items-center gap-1 text-xs text-coffee-500">
+                          <span className="flex items-center gap-1 text-xs text-coffee-600 dark:text-coffee-400">
                             <Clock className="w-3 h-3" /> {recipe.prepTime} min
                           </span>
                         )}
@@ -436,7 +436,7 @@ export default function Recipes() {
                     {!isLocked && (
                       <button
                         onClick={(e) => { e.stopPropagation(); setLiveRecipeId(recipe.id); }}
-                        className="p-1.5 text-coffee-500 hover:text-gold-400 transition-colors"
+                        className="p-1.5 text-coffee-600 dark:text-coffee-400 hover:text-gold-700 dark:hover:text-gold-400 transition-colors"
                         title="Modo en vivo"
                       >
                         <Play className="w-4 h-4" />
@@ -445,7 +445,7 @@ export default function Recipes() {
                     {!isLocked && (
                       <button
                         onClick={(e) => { e.stopPropagation(); downloadRecipePDF(recipe); }}
-                        className="p-1.5 text-coffee-500 hover:text-gold-400 transition-colors"
+                        className="p-1.5 text-coffee-600 dark:text-coffee-400 hover:text-gold-700 dark:hover:text-gold-400 transition-colors"
                         title="Descargar PDF"
                       >
                         <Download className="w-4 h-4" />
@@ -498,7 +498,7 @@ export default function Recipes() {
                               { label: 'Rendimiento', value: recipe.yield },
                             ].filter((x) => x.value).map((x) => (
                               <div key={x.label} className="bg-coffee-100 dark:bg-coffee-800/50 p-3 text-center">
-                                <p className="text-[10px] text-coffee-500 uppercase tracking-wider mb-1">{x.label}</p>
+                                <p className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">{x.label}</p>
                                 <p className="text-coffee-900 dark:text-cream text-sm font-medium">{x.value}</p>
                               </div>
                             ))}
@@ -509,13 +509,13 @@ export default function Recipes() {
                           {recipe.steps.map((step, i) => (
                             <div key={step.id} className="flex gap-4">
                               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center">
-                                <span className="text-gold-400 text-xs font-bold">{i + 1}</span>
+                                <span className="text-gold-600 dark:text-gold-400 text-xs font-bold">{i + 1}</span>
                               </div>
                               <div className="flex-1">
                                 <p className="text-coffee-900 dark:text-cream font-medium mb-1">{step.title}</p>
                                 <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">{step.description}</p>
                                 {step.duration && (
-                                  <p className="text-xs text-coffee-500 mt-1 flex items-center gap-1">
+                                  <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-1 flex items-center gap-1">
                                     <Clock className="w-3 h-3" /> {step.duration}s
                                   </p>
                                 )}
@@ -529,7 +529,7 @@ export default function Recipes() {
                                 {step.duration && !timerState && (
                                   <button
                                     onClick={() => setTimerState({ recipeId: recipe.id, stepIndex: i, secondsLeft: step.duration! })}
-                                    className="mt-2 flex items-center gap-1 px-3 py-1 bg-gold-500/10 border border-gold-500/30 text-gold-400 text-xs hover:bg-gold-500/20 transition-colors"
+                                    className="mt-2 flex items-center gap-1 px-3 py-1 bg-gold-500/10 border border-gold-500/30 text-gold-600 dark:text-gold-400 text-xs hover:bg-gold-500/20 transition-colors"
                                   >
                                     <Clock className="w-3 h-3" /> Iniciar temporizador ({step.duration}s)
                                   </button>
@@ -538,8 +538,8 @@ export default function Recipes() {
                                 {timerState?.recipeId === recipe.id && timerState?.stepIndex === i && (
                                   <div className="mt-3 p-3 bg-gold-500/10 border border-gold-500/30 rounded">
                                     <div className="text-center">
-                                      <p className="text-xs text-gold-400 uppercase tracking-wider mb-1">Temporizador activo</p>
-                                      <p className="text-3xl font-bold text-gold-400 font-mono">{timerState.secondsLeft}s</p>
+                                      <p className="text-xs text-gold-600 dark:text-gold-400 uppercase tracking-wider mb-1">Temporizador activo</p>
+                                      <p className="text-3xl font-bold text-gold-600 dark:text-gold-400 font-mono">{timerState.secondsLeft}s</p>
                                     </div>
                                     <button
                                       onClick={() => setTimerState(null)}
@@ -556,10 +556,10 @@ export default function Recipes() {
 
                         {recipe.product && (
                           <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
-                            <p className="text-xs text-coffee-500 mb-2">Recomendado con:</p>
+                            <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-2">Recomendado con:</p>
                             <Link to={`/tienda/${recipe.product.slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                               <img src={recipe.product.imageUrl} alt={recipe.product.name} className="w-10 h-10 object-cover" />
-                              <span className="text-gold-400 text-sm">{recipe.product.name}</span>
+                              <span className="text-gold-600 dark:text-gold-400 text-sm">{recipe.product.name}</span>
                             </Link>
                           </div>
                         )}

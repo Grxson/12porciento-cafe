@@ -179,7 +179,7 @@ export default function ProductDetail() {
           {/* Info */}
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.1 }}>
             <div className="gold-line mb-4" />
-            {product.origin && <p className="text-gold-600 text-xs tracking-widest uppercase mb-2">{product.origin}</p>}
+            {product.origin && <p className="text-gold-600 dark:text-gold-500 text-xs tracking-widest uppercase mb-2">{product.origin}</p>}
             <h1 className="font-serif text-4xl md:text-5xl text-coffee-900 dark:text-cream mb-2">{product.name}</h1>
 
             {isCafe && (
@@ -202,7 +202,7 @@ export default function ProductDetail() {
 
             {isCafe && product.flavors.length > 0 && (
               <div className="mb-8">
-                <p className="text-xs text-gold-600 uppercase tracking-widest mb-3">Notas de cata</p>
+                <p className="text-xs text-gold-600 dark:text-gold-500 uppercase tracking-widest mb-3">Notas de cata</p>
                 <div className="flex flex-wrap gap-2">
                   {product.flavors.map((f) => (
                     <button
@@ -280,7 +280,7 @@ export default function ProductDetail() {
                 ) : (
                   <span className="text-xs font-semibold text-green-600">✓ En stock</span>
                 )}
-                {isCafe && <span className="text-coffee-400 dark:text-coffee-500 text-xs">· Tostado a pedido</span>}
+                {isCafe && <span className="text-coffee-600 dark:text-coffee-400 text-xs">· Tostado a pedido</span>}
               </div>
               {inCart && (
                 <div className="mt-2">
@@ -310,7 +310,7 @@ export default function ProductDetail() {
                 onClick={() => setTab(id)}
                 className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-all ${
                   tab === id
-                    ? 'border-gold-500 text-gold-600'
+                    ? 'border-gold-500 text-gold-600 dark:text-gold-500'
                     : 'border-transparent text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
                 }`}
               >
@@ -433,7 +433,7 @@ export default function ProductDetail() {
                               style={{ width: `${Math.min(100, ((product.scaScore - 80) / 20) * 100)}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-[10px] text-coffee-400 dark:text-coffee-500 mt-1">
+                          <div className="flex justify-between text-[10px] text-coffee-600 dark:text-coffee-400 mt-1">
                             <span>80 · Specialty</span>
                             <span>90 · Outstanding</span>
                             <span>100</span>
@@ -479,7 +479,7 @@ export default function ProductDetail() {
                   </div>
                 )}
 
-                <p className="text-coffee-400 dark:text-coffee-500 text-xs mt-6 italic">
+                <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-6 italic">
                   * Tostado a pedido en lotes pequeños para garantizar frescura. Envío dentro de los 7 días posteriores al tueste.
                 </p>
                 <CoffeeTimeline product={product} />
@@ -493,20 +493,20 @@ export default function ProductDetail() {
                   <div key={recipe.id} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">{recipe.title}</h3>
-                      <span className="text-xs text-gold-600 border border-gold-500/40 px-2 py-1 uppercase tracking-widest">{recipe.method}</span>
+                      <span className="text-xs text-gold-600 dark:text-gold-500 border border-gold-500/40 px-2 py-1 uppercase tracking-widest">{recipe.method}</span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-coffee-200 dark:border-coffee-700">
                       <div>
-                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] uppercase tracking-widest mb-1">Temperatura</p>
+                        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Temperatura</p>
                         <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.temp}</p>
                       </div>
                       <div>
-                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] uppercase tracking-widest mb-1">Molido</p>
+                        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Molido</p>
                         <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.grind}</p>
                       </div>
                       <div>
-                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] uppercase tracking-widest mb-1">Ratio</p>
+                        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Ratio</p>
                         <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.ratio}</p>
                       </div>
                     </div>
@@ -514,7 +514,7 @@ export default function ProductDetail() {
                     <ol className="space-y-3">
                       {recipe.steps.map((step, si) => (
                         <li key={step.id} className="flex gap-3 text-sm text-coffee-700 dark:text-coffee-300">
-                          <span className="text-gold-600 font-bold w-5 shrink-0">{si + 1}.</span>
+                          <span className="text-gold-600 dark:text-gold-500 font-bold w-5 shrink-0">{si + 1}.</span>
                           <span>
                             <span className="font-medium text-coffee-900 dark:text-cream">{step.title}</span>
                             {step.title && step.description ? ' — ' : ''}
@@ -559,7 +559,7 @@ export default function ProductDetail() {
                       <div className="text-center py-4">
                         <div className="text-green-600 text-2xl mb-2">✓</div>
                         <p className="text-coffee-700 text-sm">Reseña enviada. Será publicada tras revisión.</p>
-                        <button onClick={() => setReviewSuccess(false)} className="text-gold-600 text-xs mt-3 underline">Escribir otra</button>
+                        <button onClick={() => setReviewSuccess(false)} className="text-gold-600 dark:text-gold-500 text-xs mt-3 underline">Escribir otra</button>
                       </div>
                     ) : (
                       <form onSubmit={handleReviewSubmit} className="space-y-4">

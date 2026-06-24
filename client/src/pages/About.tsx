@@ -118,7 +118,7 @@ export default function About() {
           <ScrollReveal className="mb-14">
             <div className="gold-line mb-5" />
             <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl text-coffee-900 dark:text-cream leading-tight">Nuestros orígenes</h2>
-            <p className="text-coffee-600 dark:text-coffee-400 mt-4 max-w-xl">
+            <p className="text-coffee-700 dark:text-coffee-300 mt-4 max-w-xl">
               Trabajamos con zonas cafetaleras de México con denominación de origen e identidad climática única.
             </p>
           </ScrollReveal>
@@ -133,7 +133,7 @@ export default function About() {
                   <div>
                     <h4 className="font-serif text-lg text-coffee-900 dark:text-cream mb-1">{region}</h4>
                     <p className="text-gold-600 dark:text-gold-500 text-xs uppercase tracking-widest mb-2">{altitude}</p>
-                    <p className="text-coffee-600 dark:text-coffee-400 text-sm">{notes}</p>
+                    <p className="text-coffee-700 dark:text-coffee-300 text-sm">{notes}</p>
                   </div>
                 </div>
               </ScrollReveal>
@@ -150,7 +150,7 @@ export default function About() {
             <p className="text-coffee-700 dark:text-coffee-300 mb-8">Explora nuestros lotes actuales o suscríbete para recibirlos cada mes.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/tienda" className="btn-primary">Visitar tienda</Link>
-              <Link to="/suscripciones" className="btn-outline-dark">Ver suscripciones</Link>
+              <Link to="/suscripciones" className="btn-outline">Ver suscripciones</Link>
             </div>
           </ScrollReveal>
         </div>

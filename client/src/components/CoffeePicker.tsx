@@ -53,14 +53,14 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
         <p className="text-xs text-coffee-500 uppercase tracking-widest mb-3">
           Preferencia de molido — aplica a todos tus cafés
         </p>
-        <div className="inline-flex border border-coffee-700">
+        <div className="inline-flex border border-coffee-300 dark:border-coffee-700">
           {(['GRANO', 'MOLIDO'] as const).map((g) => (
             <button
               key={g}
               type="button"
               onClick={() => onGrindChange(g)}
               className={`px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] transition-all ${
-                grindPreference === g ? 'bg-gold-500 text-coffee-950' : 'text-coffee-400 hover:text-cream'
+                grindPreference === g ? 'bg-gold-500 text-coffee-950' : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
               }`}
             >
               {g === 'GRANO' ? 'Grano entero' : 'Molido'}
@@ -72,7 +72,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
       {/* Slot counter */}
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-coffee-500 uppercase tracking-widest">Selecciona tus cafés</p>
-        <div className={`text-xs font-semibold px-3 py-1 ${isReady ? 'bg-green-900/30 text-green-400' : 'bg-coffee-800 text-coffee-300'}`}>
+        <div className={`text-xs font-semibold px-3 py-1 ${isReady ? 'bg-green-900/30 text-green-400' : 'bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300'}`}>
           {selected.length}/{slots.max} seleccionados
           {slots.min !== slots.max && ` (mín. ${slots.min})`}
         </div>
@@ -81,7 +81,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
       {/* Progress dots */}
       <div className="flex gap-2 mb-8">
         {Array.from({ length: Math.min(slots.max, 10) }).map((_, i) => (
-          <div key={i} className={`h-1.5 flex-1 max-w-[60px] transition-all duration-300 ${i < selected.length ? 'bg-gold-500' : 'bg-coffee-800'}`} />
+          <div key={i} className={`h-1.5 flex-1 max-w-[60px] transition-all duration-300 ${i < selected.length ? 'bg-gold-500' : 'bg-coffee-300 dark:bg-coffee-800'}`} />
         ))}
       </div>
 
@@ -101,7 +101,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
             placeholder="Buscar por región, proceso, notas..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full mb-6 px-4 py-2.5 border border-coffee-700 bg-coffee-950 text-cream placeholder-coffee-500 focus:outline-none focus:border-gold-500 transition-colors"
+            className="w-full mb-6 px-4 py-2.5 border border-coffee-300 dark:border-coffee-700 bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream placeholder:text-coffee-400 dark:placeholder:text-coffee-500 focus:outline-none focus:border-gold-500 transition-colors"
           />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {products

@@ -137,7 +137,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
         <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
       <Navbar />
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      <main className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">{children}</main>
       <Footer />
       <BottomNav />
       <OfflineBanner />

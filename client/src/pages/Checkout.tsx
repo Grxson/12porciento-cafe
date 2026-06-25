@@ -254,11 +254,12 @@ export default function Checkout() {
         ...(promoCode ? { promoCode } : {}),
         items: orderItems,
       });
-      clearCart();
       setSuccess(true);
+      clearCart();
     } catch (err: any) {
       console.error('Order creation failed after payment:', err);
-      setError('Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte.');
+      setSuccess(true);
+      addToast('Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte.', 'error', 8000);
       clearCart();
     }
   };
@@ -580,7 +581,7 @@ export default function Checkout() {
                 </motion.div>
               )}
 
-              {step === 2 && clientSecret && (
+              {step === 3 && (
                 <motion.div
                   key="step2"
                   initial={{ opacity: 0, x: 20 }}

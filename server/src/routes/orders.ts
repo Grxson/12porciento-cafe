@@ -165,13 +165,16 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
 
     try {
       const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        // Validate stock and collect prices
+        const priceMap: Record<string, number> = {};
         for (const item of intentItems) {
           const prod = await tx.product.findUnique({
             where: { id: item.productId },
-            select: { stock: true, name: true, isActive: true, price: true },
+            select: { price: true, stock: true, isActive: true, name: true },
           });
           if (!prod || !prod.isActive) throw new Error(`VALIDATION:Producto no disponible`);
           if (prod.stock < item.quantity) throw new Error(`VALIDATION:Stock insuficiente para "${prod.name}" (disponible: ${prod.stock})`);
+          priceMap[item.productId] = Number(prod.price);
         }
 
         const created = await tx.order.create({
@@ -184,7 +187,7 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
               create: intentItems.map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
-                price: 0,
+                price: priceMap[item.productId],
               })),
             },
           },
@@ -195,7 +198,6 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
           const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true, price: true, name: true, lowStockThreshold: true } });
           if (prod) {
             const newStock = prod.stock - item.quantity;
-            await tx.orderItem.update({ where: { id: created.items.find((i: { productId: string }) => i.productId === item.productId)?.id }, data: { price: prod.price } });
             await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
             await tx.stockMovement.create({
               data: {

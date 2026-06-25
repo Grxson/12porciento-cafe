@@ -139,10 +139,14 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
                   description: productRecords.map((p: { name: string }) => p.name).join(', '),
                 },
                 unit_amount: priceInCents,
+                recurring: {
+                  interval: frequency === 'bimonthly' ? 'month' : 'month',
+                  interval_count: frequency === 'bimonthly' ? 2 : 1,
+                },
               },
             },
           ],
-        } as any);
+        });
 
         stripeSubscriptionId = stripeSub.id;
       } catch (stripeErr) {
@@ -161,6 +165,7 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
             status: 'ACTIVE', fulfillmentStatus: 'PENDIENTE',
             ...(userId ? { userId } : {}),
             ...(stripeSubscriptionId ? { stripeSubscriptionId } : {}),
+            ...(stripeCustomerId ? { stripeCustomerId } : {}),
             items: { create: items.map((productId: string) => ({ productId })) },
           },
           include: subItemsInclude,
@@ -173,6 +178,7 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
           name: name.trim(), email: normalizedEmail, phone, plan, frequency, grindPreference, nextBilling,
           ...(userId ? { userId } : {}),
           ...(stripeSubscriptionId ? { stripeSubscriptionId } : {}),
+          ...(stripeCustomerId ? { stripeCustomerId } : {}),
           items: { create: items.map((productId: string) => ({ productId })) },
         },
         include: subItemsInclude,

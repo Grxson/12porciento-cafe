@@ -6,6 +6,7 @@ import { prisma } from '../db';
 import { emitEvent } from '../socket';
 
 const router = Router();
+export const webhookRouter = Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
@@ -59,8 +60,8 @@ router.get('/user/:subscriptionId/payments', requireUserAuth, async (req: UserAu
   }
 });
 
-// POST /webhook/invoice — handles invoice.payment_succeeded and invoice.payment_failed
-router.post('/webhook/invoice', async (req: Request, res: Response) => {
+// POST / — handles invoice.payment_succeeded and invoice.payment_failed
+webhookRouter.post('/', async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 

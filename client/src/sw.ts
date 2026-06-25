@@ -127,3 +127,10 @@ self.addEventListener('notificationclick', (event) => {
       }),
   );
 });
+
+// Message handler — required by workbox-window for SKIP_WAITING flow
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});

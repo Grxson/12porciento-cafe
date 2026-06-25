@@ -16,7 +16,7 @@ import promoCodesRouter from './routes/promoCodes';
 import customersRouter from './routes/customers';
 import webhookRouter from './routes/webhook';
 import inventoryRouter from './routes/inventory';
-import subscriptionPaymentsRouter from './routes/subscription-payments';
+import subscriptionPaymentsRouter, { webhookRouter as subWebhookRouter } from './routes/subscription-payments';
 import adminUsersRouter from './routes/admin-users';
 import recipesRouter from './routes/recipes';
 import uploadsRouter from './routes/uploads';
@@ -60,8 +60,8 @@ app.use(cors({
 
 // Webhooks must receive raw body — register before express.json()
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRouter);
-// Apply raw body to the exact sub-payment webhook path only; the router is mounted normally below.
-app.use('/api/subscription-payments/webhook/invoice', express.raw({ type: 'application/json' }));
+// Subscription invoice webhook — dedicated router with raw body middleware
+app.use('/api/subscription-payments/webhook/invoice', express.raw({ type: 'application/json' }), subWebhookRouter);
 
 app.use(express.json({ limit: '50kb' }));
 

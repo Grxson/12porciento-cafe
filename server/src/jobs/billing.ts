@@ -26,9 +26,8 @@ export function startBillingScheduler(): void {
         try {
           const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId!);
           if (stripeSub.status === 'active' || stripeSub.status === 'trialing') {
-            const monthsToAdd = sub.frequency === 'bimonthly' ? 2 : 1;
-            const nextBilling = new Date();
-            nextBilling.setMonth(nextBilling.getMonth() + monthsToAdd);
+            // Use Stripe's current_period_end as next billing date
+            const nextBilling = new Date(stripeSub.current_period_end * 1000);
             await prisma.subscription.update({
               where: { id: sub.id },
               data: { nextBilling },

@@ -272,12 +272,10 @@ export default function Subscriptions() {
                         : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900/60 hover:border-coffee-300 dark:hover:border-coffee-700'
                       }`}
                   >
-                    {plan.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className={`${plan.featured ? 'text-[10px] font-extrabold' : 'text-[9px] font-bold'} uppercase tracking-[0.2em] px-3 py-1 bg-gold-500 text-coffee-950`}>{plan.badge}</span>
-                      </div>
-                    )}
                     <div className="p-6 flex-1">
+                      {plan.badge && (
+                        <span className={`block -mt-7 mb-3 ${plan.featured ? 'text-[10px] font-extrabold' : 'text-[9px] font-bold'} uppercase tracking-[0.2em] px-3 py-1 bg-gold-500 text-coffee-950 w-fit`}>{plan.badge}</span>
+                      )}
                       <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">{plan.name}</h3>
                       <p className="text-coffee-500 text-[10px] tracking-widest uppercase mb-4">{plan.subtitle}</p>
                       {plan.price ? (

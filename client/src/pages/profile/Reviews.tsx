@@ -10,9 +10,13 @@ export default function Reviews() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const fetchReviews = () => {
+    setLoading(true);
+    setError('');
     usersApi.myReviews().then((r) => { setReviews(r.data); }).catch((err) => { console.error(err); setError('Error al cargar reseñas.'); }).finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchReviews(); }, []);
 
   if (loading) {
     return (
@@ -26,7 +30,7 @@ export default function Reviews() {
     return (
       <div className="text-center py-16">
         <p className="text-red-500 mb-4">{error}</p>
-        <button onClick={() => window.location.reload()} className="btn-primary">Reintentar</button>
+        <button onClick={fetchReviews} className="btn-primary">Reintentar</button>
       </div>
     );
   }

@@ -11,6 +11,13 @@ const rarityConfig: Record<string, { label: string; color: string }> = {
   LEGENDARY: { label: 'Legendario', color: 'text-gold-400 bg-gold-500/10' },
 };
 
+const unlockHints: Record<string, string> = {
+  'first_brew':    'Prepara y registra tu primer café',
+  'five_brews':    'Acumula 5 preparaciones registradas',
+  'ten_brews':     'Acumula 10 preparaciones registradas',
+  'perfect_brew':  'Obtén una calificación perfecta en tu preparación',
+};
+
 function AchievementSkeleton() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -102,7 +109,13 @@ export default function AchievementGallery() {
                   <h3 className={`font-serif text-base mt-2 mb-1 ${isUnlocked ? 'text-coffee-900 dark:text-cream' : 'text-coffee-600'}`}>
                     {a.name}
                   </h3>
-                  <p className="text-coffee-500 text-xs leading-relaxed mb-3">{a.description}</p>
+                  <p className="text-coffee-500 text-xs leading-relaxed">{a.description}</p>
+                  {!isUnlocked && unlockHints[a.slug] && (
+                    <p className="text-coffee-400 dark:text-coffee-500 text-[10px] italic mt-1 mb-3">
+                      {unlockHints[a.slug]}
+                    </p>
+                  )}
+                  {isUnlocked && <div className="mb-3" />}
 
                   {isUnlocked ? (
                     <div className="text-xs text-gold-500">

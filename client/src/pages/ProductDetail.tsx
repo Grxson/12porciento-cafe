@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe } from 'lucide-react';
+import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe, PackageX, AlertTriangle, CheckCircle } from 'lucide-react';
 import { productsApi, reviewsApi, recipesApi } from '../api';
 import { useCart, MAX_QTY_PER_PRODUCT } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
@@ -274,11 +274,17 @@ export default function ProductDetail() {
 
               <div className="flex items-center gap-2 mt-3">
                 {product.stock === 0 ? (
-                  <span className="text-xs font-semibold text-red-500">❌ Sin existencias</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-500">
+                    <PackageX className="w-3.5 h-3.5" /> Sin existencias
+                  </span>
                 ) : product.stock <= 5 ? (
-                  <span className="text-xs font-semibold text-amber-500">⚠️ Quedan {product.stock} unidades</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-500">
+                    <AlertTriangle className="w-3.5 h-3.5" /> Quedan {product.stock} unidades
+                  </span>
                 ) : (
-                  <span className="text-xs font-semibold text-green-600">✓ En stock</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600">
+                    <CheckCircle className="w-3.5 h-3.5" /> En stock
+                  </span>
                 )}
                 {isCafe && <span className="text-coffee-600 dark:text-coffee-400 text-xs">· Tostado a pedido</span>}
               </div>
@@ -597,7 +603,7 @@ export default function ProductDetail() {
                         ))}
 
                         <div>
-                          <label className="block text-xs text-coffee-600 uppercase tracking-widest mb-1">Comentario *</label>
+                          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1">Comentario *</label>
                           <textarea
                             required
                             rows={4}

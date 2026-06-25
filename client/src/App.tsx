@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
@@ -8,6 +8,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { useUpdateNotification } from './hooks/useUpdateNotification';
 import UpdateNotificationModal from './components/UpdateNotificationModal';
 import { useToast } from './context/ToastContext';
+import { motion } from 'framer-motion';
+import { ArrowUpToLine } from 'lucide-react';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -92,6 +94,36 @@ const UserRoute = ({ children }: { children: React.ReactNode }) => {
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
+function ScrollToTopFab() {
+  const [visible, setVisible] = useState(false);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const handler = () => setVisible(window.scrollY > 300);
+    window.addEventListener('scroll', handler, { passive: true });
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
+
+  // Hide on route change
+  useEffect(() => { setVisible(false); }, [pathname]);
+
+  if (!visible) return null;
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-50 w-10 h-10 bg-gold-500 text-coffee-950 flex items-center justify-center shadow-lg hover:bg-gold-400 transition-colors"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      aria-label="Volver arriba"
+    >
+      <ArrowUpToLine className="w-4 h-4" />
+    </motion.button>
+  );
+}
+
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
@@ -110,6 +142,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <BottomNav />
       <OfflineBanner />
       <InstallPrompt />
+      <ScrollToTopFab />
     </div>
   );
 }

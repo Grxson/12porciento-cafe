@@ -9,6 +9,7 @@ import CoffeePicker from '../../components/CoffeePicker';
 import type { Subscription as Sub, SubscriptionPlan } from '../../types';
 import { PLAN_SLOTS } from '../../types';
 import { resolveImageUrl } from '../../utils/imageUrl';
+import { useToast } from '../../context/ToastContext';
 import { PageMeta } from '../../hooks/usePageMeta';
 
 const FULFILLMENT_LABELS: Record<string, { label: string; color: string }> = {
@@ -31,6 +32,7 @@ export default function Subscription() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const setHasSubscription = useUser((s) => s.setHasSubscription);
+  const { add: addToast } = useToast();
 
   useEffect(() => {
     usersApi.mySubscription()
@@ -87,6 +89,7 @@ export default function Subscription() {
       const updated = await subscriptionsApi.updateItems(sub.id, editCoffees, editGrind);
       setSub(updated.data);
       setEditing(false);
+      addToast('Selección de cafés actualizada ✓', 'success');
     } catch (err: any) {
       setSaveError(err.response?.data?.error || 'Error al guardar cambios');
     } finally { setSaving(false); }

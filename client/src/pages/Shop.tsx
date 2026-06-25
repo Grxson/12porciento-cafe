@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, X, ChevronDown, Search, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown, Search, ChevronLeft, ChevronRight as ChevronRightIcon, SearchX } from 'lucide-react';
 import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import type { Product } from '../types';
@@ -427,8 +427,10 @@ export default function Shop() {
           <ShopSkeleton />
         ) : products.length === 0 ? (
           <div className="text-center py-24">
-            <p className="font-serif text-2xl text-coffee-400 mb-3">Sin resultados</p>
-            <p className="text-coffee-500 text-sm mb-8">No hay productos con esos filtros.</p>
+            <SearchX className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
+            <p className="font-serif text-2xl text-coffee-400 mb-2">Sin resultados</p>
+            <p className="text-coffee-500 text-sm mb-2">No hay productos con esos filtros.</p>
+            <p className="text-coffee-400 dark:text-coffee-500 text-xs mb-8">Intenta cambiar categoría, proceso o buscar otro término.</p>
             <button onClick={resetFilters} className="btn-outline">Ver todos</button>
           </div>
         ) : (

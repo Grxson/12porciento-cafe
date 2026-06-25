@@ -89,9 +89,8 @@ export default function NotificationSettings() {
       <ConfirmDialog
         open={showConfirm}
         title="Desuscribir dispositivo"
-        message="¿Dejar de recibir notificaciones push en este dispositivo? Puedes volver a activarlas después."
+        description="¿Dejar de recibir notificaciones push en este dispositivo? Puedes volver a activarlas después."
         confirmLabel="Desuscribir"
-        cancelLabel="Cancelar"
         onConfirm={() => {
           setShowConfirm(false);
           unsubscribe();

@@ -2,6 +2,7 @@
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate, NetworkFirst, CacheFirst } from 'workbox-strategies';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -14,11 +15,7 @@ registerRoute(
   ({ url }) => url.pathname.startsWith('/api/recipes'),
   new StaleWhileRevalidate({
     cacheName: 'recipes-cache',
-    plugins: [
-      {
-        cacheableResponse: { statuses: [0, 200] },
-      },
-    ],
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
   }),
 );
 
@@ -27,11 +24,7 @@ registerRoute(
   new NetworkFirst({
     cacheName: 'api-runtime',
     networkTimeoutSeconds: 5,
-    plugins: [
-      {
-        cacheableResponse: { statuses: [0, 200] },
-      },
-    ],
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
   }),
 );
 
@@ -39,11 +32,7 @@ registerRoute(
   ({ url }) => /fonts\.googleapis\.com|fonts\.gstatic\.com/.test(url.origin),
   new CacheFirst({
     cacheName: 'google-fonts',
-    plugins: [
-      {
-        cacheableResponse: { statuses: [0, 200] },
-      },
-    ],
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
   }),
 );
 
@@ -51,11 +40,7 @@ registerRoute(
   ({ url }) => url.hostname.includes('images.unsplash.com'),
   new CacheFirst({
     cacheName: 'unsplash-images',
-    plugins: [
-      {
-        cacheableResponse: { statuses: [0, 200] },
-      },
-    ],
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
   }),
 );
 
@@ -109,7 +94,7 @@ self.addEventListener('push', (event) => {
             { action: 'open', title: 'Abrir' },
             { action: 'close', title: 'Cerrar' },
           ],
-        });
+        } as NotificationOptions);
       }),
     );
   } catch (err) {

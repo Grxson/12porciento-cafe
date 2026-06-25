@@ -152,7 +152,13 @@ export default function Subscriptions() {
 
     setLoading(true); setError('');
     try {
-      await subscriptionsApi.b2bInquiry(b2bForm);
+      await subscriptionsApi.b2bInquiry({
+        empresa: b2bForm.empresa,
+        rfc: b2bForm.rfc,
+        contacto: b2bForm.contactoNombre,
+        telefono: b2bForm.contactoTelefono,
+        comentarios: `${b2bForm.volumenEstimado} kg/mes${b2bForm.giroNegocio ? ` · ${b2bForm.giroNegocio}` : ''}`,
+      });
       setShowB2BConfirm(true);
     } catch (err: any) {
       addToast(err.message || 'Error al procesar consulta. Intenta de nuevo.', 'error');

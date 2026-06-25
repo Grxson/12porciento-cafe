@@ -264,7 +264,7 @@ export default function Quiz() {
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex flex-col items-center px-4 pt-20 pb-20">
       <PageMeta title="Encuentra tu Café" description="Descubre qué café de especialidad se adapta mejor a tu paladar." />
-      <div className="w-full max-w-lg">
+      <div className={`w-full ${done ? 'max-w-6xl' : 'max-w-lg'}`}>
         <div className="text-center mb-10">
           <Coffee className="w-10 h-10 text-gold-500/60 mx-auto mb-4" />
           <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-2">Coffee Quiz</p>
@@ -381,7 +381,7 @@ export default function Quiz() {
                 )}
 
                 {!recsLoading && !recsError && recommendations.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
                     {recommendations.map((item) => (
                       <QuizProductCard key={item.product.id} product={item.product} matchPct={Math.round(item.score * 100)} />
                     ))}

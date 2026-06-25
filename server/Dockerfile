@@ -17,7 +17,12 @@ COPY client ./client
 # Install deps
 RUN pnpm install --frozen-lockfile
 
-# Build server + client
+# Build client (needed for Express to serve SPA)
+ENV VITE_API_URL=/api
+ENV VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51SDU5OK5XTakJuYbJd3LwWdLT2cE16wb8f2lzKoYeydLalbF7DAwwbwPeLlzWSJC6NjfY4n9EV2jUo9r5nN9a50m00AhZXrD7X
+RUN pnpm --filter=cafe-12-client build && ls client/dist/
+
+# Build server
 RUN pnpm --filter=cafe-12-server build && pnpm --filter=cafe-12-server exec prisma generate && ls server/dist/src/
 
 # Prisma migration at startup

@@ -128,16 +128,24 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
           throw new Error('El total de la suscripción debe ser al menos $10 MXN');
         }
 
+        // Find or create a Stripe product for this plan (price_data needs product ID, not product_data)
+        const productName = `Suscripción 12% — ${plan}`;
+        const existingProducts = await stripe.products.list({ active: true, limit: 100 });
+        let stripeProduct = existingProducts.data.find((p) => p.name === productName);
+        if (!stripeProduct) {
+          stripeProduct = await stripe.products.create({
+            name: productName,
+            description: `Plan de suscripción ${plan} — 12% Café de Especialidad`,
+          });
+        }
+
         const stripeSub = await stripe.subscriptions.create({
           customer: stripeCustomerId,
           items: [
             {
               price_data: {
                 currency: 'mxn',
-                product_data: {
-                  name: `Suscripción 12% — ${plan}`,
-                  description: productRecords.map((p: { name: string }) => p.name).join(', '),
-                },
+                product: stripeProduct.id,
                 unit_amount: priceInCents,
                 recurring: {
                   interval: frequency === 'bimonthly' ? 'month' : 'month',

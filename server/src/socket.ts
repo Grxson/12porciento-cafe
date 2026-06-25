@@ -108,12 +108,12 @@ async function dispatchPushNotifications(event: SocketEvent): Promise<void> {
   // For admin events, load preference map to filter by event type
   let prefMap: Map<string, boolean> | null = null;
   if (!event.targetUserId) {
-    const adminIds = [...new Set(subs.filter(s => s.userId).map(s => s.userId!))];
+    const adminIds = [...new Set(subs.filter((s: { userId: string | null }) => s.userId).map((s: { userId: string | null }) => s.userId!))];
     if (adminIds.length > 0) {
       const prefs = await prisma.adminNotificationPreference.findMany({
         where: { adminId: { in: adminIds }, eventType: event.event },
       });
-      prefMap = new Map(prefs.map(p => [p.adminId, p.enabled]));
+      prefMap = new Map(prefs.map((p: { adminId: string; enabled: boolean }) => [p.adminId, p.enabled]));
     }
   }
 

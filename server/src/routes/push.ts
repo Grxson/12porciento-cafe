@@ -93,7 +93,7 @@ router.get('/subscriptions', requireAuth, async (_req: AuthRequest, res: Respons
   try {
     const subs = await getAdminSubscriptions();
     return res.json({
-      subscriptions: subs.map((s) => ({
+      subscriptions: subs.map((s: { id: string; endpoint: string; userId: string | null; userAgent: string | null; createdAt: Date }) => ({
         id: s.id,
         endpoint: s.endpoint,
         userId: s.userId,
@@ -152,7 +152,7 @@ router.get('/my-subscriptions', requireUserAuth, async (req: UserAuthRequest, re
   try {
     const subs = await getUserSubscriptions(req.user!.id);
     return res.json({
-      subscriptions: subs.map((s) => ({
+      subscriptions: subs.map((s: { id: string; endpoint: string; userAgent: string | null; createdAt: Date }) => ({
         id: s.id,
         endpoint: s.endpoint,
         userAgent: s.userAgent,

@@ -61,14 +61,15 @@ export async function getSubscriptionByEndpoint(endpoint: string) {
   return prisma.pushSubscription.findUnique({ where: { endpoint } });
 }
 
-export async function getAdminPreferences(adminId: string) {
+export async function getAdminPreferences(adminId: string): Promise<Record<string, boolean>> {
   const prefs = await prisma.adminNotificationPreference.findMany({
     where: { adminId },
   });
-  return prefs.reduce<Record<string, boolean>>((acc, p) => {
-    acc[p.eventType] = p.enabled;
-    return acc;
-  }, {});
+  const result: Record<string, boolean> = {};
+  for (const p of prefs) {
+    result[p.eventType] = p.enabled;
+  }
+  return result;
 }
 
 export async function upsertAdminPreference(

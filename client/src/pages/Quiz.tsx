@@ -381,7 +381,7 @@ export default function Quiz() {
                 )}
 
                 {!recsLoading && !recsError && recommendations.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8">
                     {recommendations.map((item) => (
                       <QuizProductCard key={item.product.id} product={item.product} matchPct={Math.round(item.score * 100)} />
                     ))}

@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Zap, Coffee } from 'lucide-react';
+import { Trophy, Zap, Coffee, Flame } from 'lucide-react';
 import { useBarista } from '../hooks/useBarista';
 import PushPermissionBanner from '../components/PushPermissionBanner';
 import { useUser } from '../context/UserContext';
 import BrewComparator from '../components/barista/BrewComparator';
+import StreakHeatmap from '../components/StreakHeatmap';
 import { PageMeta } from '../hooks/usePageMeta';
 
 export default function BaristaProfile() {
@@ -84,12 +85,20 @@ export default function BaristaProfile() {
           {profile.user && (
             <p className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">{profile.user.name}</p>
           )}
-          <h1 className="font-serif text-4xl text-gold-400 mb-2">Nivel {profile.level}</h1>
+          <h1 className="font-serif text-4xl text-gold-400 mb-1">Nivel {profile.level}</h1>
+          {profile.rankTitle && (
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm font-medium mb-1">{profile.rankTitle}</p>
+          )}
           <p className="text-coffee-600 dark:text-coffee-400 text-sm">{profile.totalBrews} brews registrados</p>
         </div>
 
         {/* Permission prompt — only on own profile */}
         {isOwnProfile && <PushPermissionBanner />}
+
+        {/* Streak Heatmap */}
+        {profile.streakData && profile.streakData.length > 0 && (
+          <StreakHeatmap data={profile.streakData} />
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">

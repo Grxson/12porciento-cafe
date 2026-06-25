@@ -217,6 +217,8 @@ export interface BaristaProfile {
   totalXp: number;
   totalBrews: number;
   favoriteMethod?: string;
+  rankTitle?: string;
+  streakData?: { date: string; count: number }[];
   brewLogs: BrewLog[];
   achievements: AchievementUnlock[];
   createdAt: string;

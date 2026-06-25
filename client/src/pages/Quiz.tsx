@@ -4,8 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Coffee, Loader2 } from 'lucide-react';
 import { productsApi } from '../api';
 import type { Product } from '../types';
-import ProductCard from '../components/ProductCard';
+import QuizProductCard from '../components/QuizProductCard';
 import { PageMeta } from '../hooks/usePageMeta';
+
+interface ScoredProduct {
+  product: Product;
+  score: number;
+}
 
 interface Question {
   id: string;
@@ -62,8 +67,10 @@ function getResult(answers: Answers): { roast: string; process: string; label: s
   const fruity = answers.flavor === 'fruity' || answers.flavor === 'citrus';
   const lightBody = answers.body === 'light';
   const pourover = answers.method === 'pourover';
+  const early = answers.time === 'early';
+  const night = answers.time === 'night';
 
-  if (fruity && (lightBody || pourover)) {
+  if (fruity && (lightBody || pourover || night)) {
     return {
       roast: 'Ligero',
       process: 'Natural',
@@ -72,7 +79,7 @@ function getResult(answers: Answers): { roast: string; process: string; label: s
       filter: '?roast=Ligero',
     };
   }
-  if (answers.flavor === 'chocolate' || answers.body === 'full') {
+  if (answers.flavor === 'chocolate' || answers.body === 'full' || early) {
     return {
       roast: 'Medio',
       process: 'Lavado',
@@ -90,54 +97,122 @@ function getResult(answers: Answers): { roast: string; process: string; label: s
   };
 }
 
-// Maps quiz flavor answer → keywords to look for in product.flavors
-const flavorKeywords: Record<string, string[]> = {
-  chocolate: ['chocolate', 'caramelo', 'cacao'],
-  fruity:    ['fruta', 'frutal', 'floral', 'berry'],
-  nutty:     ['nuez', 'almendra', 'especia'],
-  citrus:    ['cítrico', 'limón', 'naranja', 'acidez'],
-};
-
-function scoreProducts(products: Product[], flavorAnswer: string): Product[] {
-  const keywords = flavorKeywords[flavorAnswer] ?? [];
-  const scored = products.map((p) => {
-    const flavorsLower = p.flavors.map((f) => f.toLowerCase());
-    const hits = keywords.filter((k) => flavorsLower.some((f) => f.includes(k))).length;
-    return { product: p, score: hits + (p.scaScore ?? 0) / 100 };
-  });
-  scored.sort((a, b) => b.score - a.score);
-  return scored.map((s) => s.product);
+// Stemming: normalize flavor text for matching
+function stem(word: string): string {
+  return word.toLowerCase()
+    .replace(/[áéíóú]/g, (c) => ({ 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u' })[c] ?? c)
+    .replace(/[^a-z0-9]/g, '');
 }
 
-async function fetchRecommendations(answers: Answers): Promise<Product[]> {
-  const result = getResult(answers);
+// Maps quiz flavor answer → flavor stems to match against product.flavors
+const flavorStems: Record<string, string[]> = {
+  chocolate: ['chocolat', 'caramel', 'cacao', 'cremoso', 'dulce'],
+  fruity:    ['frut', 'floral', 'berry', 'mora', 'fresa', 'frambues', 'tropical'],
+  nutty:     ['nuez', 'almendra', 'especi', 'canela', 'avellana'],
+  citrus:    ['citric', 'limon', 'naranj', 'acidez', 'mandarina'],
+};
 
-  // Primary fetch: roast + pageSize 12
-  const primary = await productsApi.list({ roast: result.roast, pageSize: '12' });
-  let products = primary.data.data;
+// Infer body (light/medium/full) from process + roast
+function inferBody(process?: string, roast?: string): 'light' | 'medium' | 'full' {
+  const p = (process ?? '').toLowerCase();
+  const r = (roast ?? '').toLowerCase();
+  if (p.includes('natural') || p.includes('anaerob') || r.includes('oscuro')) return 'full';
+  if (p.includes('honey') || r.includes('medio')) return 'medium';
+  return 'light';
+}
 
-  // Broaden if fewer than 3 results
-  if (products.length < 3) {
-    const broad = await productsApi.list({ pageSize: '12' });
-    products = broad.data.data;
+// Probabilistic scoring: each answer weights multiple product attributes
+function scoreProduct(product: Product, answers: Answers): number {
+  const flavorAnswer = answers.flavor ?? '';
+  const bodyAnswer = answers.body ?? 'surprise';
+  const timeAnswer = answers.time ?? 'mid';
+  const methodAnswer = answers.method ?? 'any';
+
+  // Roast match (25%) — time answer drives roast preference
+  const roastPref: Record<string, string[]> = {
+    early:     ['Medio', 'Oscuro'],
+    night:     ['Ligero', 'Medio-Ligero'],
+    mid:       ['Medio', 'Medio-Ligero'],
+    afternoon: ['Medio-Ligero', 'Ligero'],
+  };
+  const preferredRoasts = roastPref[timeAnswer] ?? ['Medio', 'Medio-Ligero'];
+  const roastScore = preferredRoasts.includes(product.roastLevel ?? '') ? 1 : 0.2;
+
+  // Process match (20%) — method answer drives process preference
+  const processPref: Record<string, string[]> = {
+    espresso: ['Natural', 'Anaeróbico'],
+    pourover: ['Lavado', 'Honey'],
+    french:   ['Honey', 'Natural'],
+    any:      ['Lavado', 'Natural', 'Honey', 'Anaeróbico'],
+  };
+  const preferredProcesses = processPref[methodAnswer] ?? ['Lavado', 'Natural'];
+  const processScore = preferredProcesses.includes(product.process ?? '') ? 1 : 0.2;
+
+  // Body match (15%) — body answer matched to inferred body
+  const userBody = bodyAnswer === 'surprise' ? 'any' : bodyAnswer;
+  const productBody = inferBody(product.process, product.roastLevel);
+  const bodyScore = userBody === 'any' ? 0.5 : (productBody === userBody ? 1 : 0.1);
+
+  // Flavor match (10%) — stemmed keyword hits
+  const stems = flavorStems[flavorAnswer] ?? [];
+  const productStems = product.flavors.map((f) => stem(f));
+  const hits = stems.filter((s) => productStems.some((pf) => pf.includes(s))).length;
+  const flavorScore = stems.length > 0 ? Math.min(hits / stems.length, 1) : 0.3;
+
+  // SCA score (30%)
+  const scaScore = (product.scaScore ?? 80) / 100;
+
+  // Weighted sum (each attribute contributes proportionally)
+  return roastScore * 0.25 + processScore * 0.20 + bodyScore * 0.15 + flavorScore * 0.10 + scaScore * 0.30;
+}
+
+async function fetchRecommendations(answers: Answers): Promise<ScoredProduct[]> {
+  // Fetch a broad set of products (no roast filter — score all against user profile)
+  let products: Product[] = [];
+  try {
+    const res = await productsApi.list({ pageSize: '20' });
+    products = res.data.data;
+  } catch { /* fallback below */ }
+
+  // Broaden if too few results
+  if (products.length < 6) {
+    try {
+      const res = await productsApi.list({ pageSize: '20', page: '2' });
+      products = [...products, ...res.data.data];
+    } catch { /* ignore */ }
   }
 
-  // Final fallback: top SCA
-  if (products.length < 3) {
-    const fallback = await productsApi.list({ sort: 'sca', pageSize: '6' });
-    products = fallback.data.data;
+  // Ultimate fallback: top SCA
+  if (products.length < 6) {
+    try {
+      const res = await productsApi.list({ sort: 'sca', pageSize: '12' });
+      products = res.data.data;
+    } catch { /* ignore */ }
   }
 
-  // Rank by flavor affinity + SCA score, cap at 6
-  const ranked = scoreProducts(products, answers.flavor ?? '');
-  return ranked.slice(0, 6);
+  // Score each product using the probabilistic engine
+  const scored = products.map((p) => ({ product: p, score: scoreProduct(p, answers) }));
+  scored.sort((a, b) => b.score - a.score);
+
+  // Diversity guarantee: max 2 products from same origin
+  const originCount = new Map<string, number>();
+  const diverse: ScoredProduct[] = [];
+  for (const item of scored) {
+    const origin = item.product.origin ?? 'Desconocido';
+    if ((originCount.get(origin) ?? 0) >= 2) continue;
+    originCount.set(origin, (originCount.get(origin) ?? 0) + 1);
+    diverse.push(item);
+    if (diverse.length >= 6) break;
+  }
+
+  return diverse;
 }
 
 export default function Quiz() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [done, setDone] = useState(false);
-  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [recommendations, setRecommendations] = useState<ScoredProduct[]>([]);
   const [recsLoading, setRecsLoading] = useState(false);
   const [recsError, setRecsError] = useState(false);
   const navigate = useNavigate();
@@ -306,9 +381,9 @@ export default function Quiz() {
                 )}
 
                 {!recsLoading && !recsError && recommendations.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {recommendations.map((product, i) => (
-                      <ProductCard key={product.id} product={product} index={i} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+                    {recommendations.map((item) => (
+                      <QuizProductCard key={item.product.id} product={item.product} matchPct={Math.round(item.score * 100)} />
                     ))}
                   </div>
                 )}

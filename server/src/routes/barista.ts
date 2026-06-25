@@ -167,7 +167,7 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
       data: {
         totalXp: { increment: xpEarned },
         totalBrews: { increment: 1 },
-        ...(rating === 10 ? { favoriteMethod: recipe.method } : {}),
+        favoriteMethod: recipe.method,
       },
     });
     const correctLevel = Math.floor(updatedProfile.totalXp / 100) + 1;
@@ -260,6 +260,15 @@ router.get('/:userId/brews', async (req: Request, res: Response) => {
   }
 });
 
+function getRankTitle(level: number): string {
+  if (level <= 2) return 'Aprendiz';
+  if (level <= 5) return 'Barista';
+  if (level <= 10) return 'Maestro Tostador';
+  if (level <= 15) return 'Catador Experto';
+  if (level <= 20) return 'Maestro del Café';
+  return 'Leyenda Viva';
+}
+
 // GET /barista/:userId/profile
 router.get('/:userId/profile', async (req: Request, res: Response) => {
   try {
@@ -281,9 +290,24 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
       },
     });
 
+    // Compute streak data: daily brew counts for last 90 days
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000);
+    const rawBrews = await prisma.brewLog.findMany({
+      where: { userId, createdAt: { gte: ninetyDaysAgo } },
+      select: { createdAt: true },
+    });
+    const dateCount = new Map<string, number>();
+    for (const b of rawBrews) {
+      const day = b.createdAt.toISOString().split('T')[0];
+      dateCount.set(day, (dateCount.get(day) ?? 0) + 1);
+    }
+    const streakData: { date: string; count: number }[] = [];
+    for (let i = 89; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
+      streakData.push({ date: d, count: dateCount.get(d) ?? 0 });
+    }
+
     if (!profile) {
-      // Users exist before they brew; return an empty profile instead of 404
-      // so the UI can render level 1 / 0 XP without a console error.
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, name: true },
@@ -304,7 +328,13 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
       } as any;
     }
 
-    res.json({ data: profile });
+    res.json({
+      data: {
+        ...profile,
+        rankTitle: getRankTitle(profile!.level),
+        streakData,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener perfil' });

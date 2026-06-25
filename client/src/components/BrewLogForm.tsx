@@ -128,8 +128,8 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
         {/* Rating */}
         <div className="mb-5">
           <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-2">Calificación</label>
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5].map((r) => (
+          <div className="flex flex-wrap gap-1.5">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
               <button
                 key={r}
                 type="button"
@@ -137,7 +137,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 aria-label={`${r} estrellas`}
                 className={`transition-colors ${r <= rating ? 'text-gold-400' : 'text-coffee-600 hover:text-gold-300'}`}
               >
-                <Star className="w-7 h-7 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
               </button>
             ))}
           </div>

@@ -16,6 +16,11 @@ const unlockHints: Record<string, string> = {
   'five_brews':    'Acumula 5 preparaciones registradas',
   'ten_brews':     'Acumula 10 preparaciones registradas',
   'perfect_brew':  'Obtén una calificación perfecta en tu preparación',
+  'v60_5':         'Registra 5 preparaciones con V60',
+  'aeropress_5':   'Registra 5 preparaciones con AeroPress',
+  'espresso_5':    'Registra 5 preparaciones con Espresso',
+  'streak_3':      'Registra preparaciones 3 días seguidos',
+  'streak_7':      'Registra preparaciones 7 días seguidos',
 };
 
 function AchievementSkeleton() {

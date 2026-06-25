@@ -12,6 +12,31 @@ export interface Notification {
   read: boolean;
 }
 
+const STORAGE_KEY = 'cafe12_notifications';
+
+function loadPersistedState(): State {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { notifications: [], unreadCount: 0 };
+    const parsed = JSON.parse(raw);
+    // Rehydrate timestamp strings into Date objects
+    const notifications: Notification[] = (parsed.notifications ?? []).map((n: any) => ({
+      ...n,
+      timestamp: new Date(n.timestamp),
+    }));
+    const unread = notifications.filter((n) => !n.read).length;
+    return { notifications, unreadCount: unread };
+  } catch {
+    return { notifications: [], unreadCount: 0 };
+  }
+}
+
+function persistState(state: State): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch { /* storage full or unavailable */ }
+}
+
 interface State {
   notifications: Notification[];
   unreadCount: number;
@@ -78,9 +103,14 @@ const EVENT_TOAST_TYPE: Record<string, 'success' | 'error' | 'info' | 'warning'>
 };
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, { notifications: [], unreadCount: 0 });
+  const [state, dispatch] = useReducer(reducer, undefined, loadPersistedState);
   const connectedRef = useRef(false);
   const { add: addToast } = useToast();
+
+  // Persist to localStorage on every state change
+  useEffect(() => {
+    persistState(state);
+  }, [state]);
 
   useEffect(() => {
     if (connectedRef.current) return;

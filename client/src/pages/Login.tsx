@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useUser } from '../context/UserContext';
 import { PageMeta } from '../hooks/usePageMeta';
+import PasswordField from '../components/PasswordField';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -54,16 +55,14 @@ export default function Login() {
                 placeholder="tu@email.com"
               />
             </div>
-            <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Contraseña</label>
-              <input
-                type="password" required value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
-                placeholder="••••••••"
-              />
-            </div>
+            <PasswordField
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              label="Contraseña"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              showStrength={false}
+            />
             <div className="flex justify-end">
               <Link to="/olvide-contrasena" className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">
                 Olvidé mi contraseña

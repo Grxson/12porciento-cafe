@@ -5,6 +5,7 @@ import { ChevronRight, Check } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { mexicanStates } from '../constants/mexico';
 import { PageMeta } from '../hooks/usePageMeta';
+import PasswordField from '../components/PasswordField';
 
 export default function Register() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -87,7 +88,6 @@ export default function Register() {
                   {[
                     { name: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', autoComplete: 'name' },
                     { name: 'email', label: 'Email', type: 'email', placeholder: 'tu@email.com', autoComplete: 'email' },
-                    { name: 'password', label: 'Contraseña', type: 'password', placeholder: 'Mínimo 6 caracteres', autoComplete: 'new-password' },
                   ].map(({ name, label, type, placeholder, autoComplete }) => (
                     <div key={name}>
                       <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
@@ -100,6 +100,15 @@ export default function Register() {
                       />
                     </div>
                   ))}
+                  <PasswordField
+                    value={form.password}
+                    onChange={handleChange}
+                    label="Contraseña"
+                    placeholder="Mínimo 6 caracteres"
+                    autoComplete="new-password"
+                    name="password"
+                    showStrength
+                  />
                   {error && <p className="text-red-400 text-sm">{error}</p>}
                   <button type="submit" disabled={loading}
                     className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">

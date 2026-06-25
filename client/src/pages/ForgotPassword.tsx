@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PageMeta } from '../hooks/usePageMeta';
 import { usersApi } from '../api';
@@ -9,6 +9,7 @@ export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +43,24 @@ export default function ForgotPassword() {
                 recibirás un enlace para restablecer tu contraseña en unos minutos.
               </p>
               <p className="text-coffee-500 dark:text-coffee-500 text-xs mt-4">¿No recibiste el correo? Revisa tu bandeja de spam.</p>
+              <div className="flex flex-col gap-3 mt-6">
+                <button
+                  onClick={async () => {
+                    const btn = document.activeElement as HTMLButtonElement;
+                    btn!.disabled = true;
+                    try {
+                      await usersApi.forgotPassword(email);
+                      btn!.textContent = '¡Reenviado!';
+                    } catch { btn!.disabled = false; }
+                  }}
+                  className="text-xs text-gold-500 hover:text-gold-400 underline transition-colors"
+                >
+                  Reenviar enlace
+                </button>
+                <Link to="/login" className="text-xs text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors">
+                  Volver a iniciar sesión
+                </Link>
+              </div>
             </div>
           ) : (
             <>
@@ -55,11 +74,13 @@ export default function ForgotPassword() {
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400" />
                     <input
+                      ref={emailRef}
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tu@email.com"
+                      autoFocus
                       className="w-full pl-10 bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500 focus:outline-none"
                     />
                   </div>

@@ -49,8 +49,11 @@ export default function ResetPassword() {
             <div className="text-center">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
               <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">Contraseña actualizada</h1>
-              <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">Serás redirigido al inicio de sesión…</p>
-              <Link to="/login" className="btn-primary inline-block">Ir a iniciar sesión</Link>
+              <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-6">Serás redirigido al inicio de sesión…</p>
+              <div className="flex flex-col gap-3">
+                <Link to="/login" className="btn-primary inline-block">Ir a iniciar sesión ahora</Link>
+                <span className="text-coffee-400 text-xs">Redirigiendo automáticamente en 3 segundos…</span>
+              </div>
             </div>
           ) : (
             <>
@@ -86,6 +89,15 @@ export default function ResetPassword() {
                       className="w-full pl-10 bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500 focus:outline-none"
                     />
                   </div>
+                  {confirm.length > 0 && (
+                    <p className={`flex items-center gap-1 text-xs mt-1 ${password === confirm ? 'text-green-500' : 'text-red-500'}`}>
+                      {password === confirm ? (
+                        <><CheckCircle className="w-3 h-3" /> Coinciden</>
+                      ) : (
+                        <><AlertCircle className="w-3 h-3" /> No coinciden</>
+                      )}
+                    </p>
+                  )}
                 </div>
                 {error && (
                   <div className="flex items-start gap-2 text-red-500 text-xs">

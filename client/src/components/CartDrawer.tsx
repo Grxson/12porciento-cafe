@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, Plus, Minus, Trash2, Package } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -113,6 +114,18 @@ function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' 
 
 export default function CartDrawer() {
   const { items, drawerOpen, closeDrawer, total } = useCart();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const { pathname } = useLocation();
+
+  // Close drawer on route change
+  useEffect(() => { if (drawerOpen) closeDrawer(); }, [pathname]);
+
+  // Focus trap: focus close button when drawer opens
+  useEffect(() => {
+    if (drawerOpen && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [drawerOpen]);
 
   return (
     <AnimatePresence>
@@ -140,7 +153,7 @@ export default function CartDrawer() {
                   <span className="text-xs text-coffee-500">({items.length} {items.length === 1 ? 'producto' : 'productos'})</span>
                 )}
               </div>
-              <button onClick={closeDrawer} className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
+              <button ref={closeButtonRef} onClick={closeDrawer} className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>

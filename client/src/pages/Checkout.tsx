@@ -352,16 +352,24 @@ export default function Checkout() {
         )}
 
         {/* Step indicator */}
-        <div className="flex items-center gap-3 mb-10">
+        <div
+          className="flex items-center gap-3 mb-10"
+          role="progressbar"
+          aria-valuenow={step}
+          aria-valuemin={1}
+          aria-valuemax={3}
+          aria-label="Progreso del pedido"
+        >
           {[
             { n: 1, label: 'Datos de envío' },
-            { n: 2, label: 'Pago' },
+            { n: 2, label: 'Método de pago' },
+            { n: 3, label: 'Confirmar' },
           ].map(({ n, label }, i, arr) => {
-            const stepNum = step >= 2 ? 2 : 1;
+            const stepNum = step;
             const isActive = stepNum === n;
             const isPast = stepNum > n;
             return (
-              <div key={n} className="flex items-center gap-2">
+              <div key={n} className="flex items-center gap-2" aria-current={isActive ? 'step' : undefined}>
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   stepNum >= n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400'
                 }`}>

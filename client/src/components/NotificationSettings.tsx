@@ -36,7 +36,7 @@ export default function NotificationSettings() {
     <div className="p-4 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800">
       <div className="flex items-start gap-3">
         <Bell className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0" aria-live="polite" aria-label="Estado de notificaciones">
           <p className="text-sm font-medium text-coffee-900 dark:text-cream mb-1">
             Notificaciones push
           </p>

@@ -10,8 +10,8 @@ RUN pnpm install --frozen-lockfile
 ENV VITE_API_URL=/api
 ENV VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51SDU5OK5XTakJuYbJd3LwWdLT2cE16wb8f2lzKoYeydLalbF7DAwwbwPeLlzWSJC6NjfY4n9EV2jUo9r5nN9a50m00AhZXrD7X
 RUN pnpm --filter=cafe-12-client build
-RUN pnpm --filter=cafe-12-server build && \
-    pnpm --filter=cafe-12-server exec prisma generate
+RUN pnpm --filter=cafe-12-server exec prisma generate && \
+    pnpm --filter=cafe-12-server build
 
 FROM node:24-bullseye
 WORKDIR /app

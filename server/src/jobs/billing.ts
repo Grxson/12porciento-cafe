@@ -27,7 +27,12 @@ export function startBillingScheduler(): void {
           const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId!);
           if (stripeSub.status === 'active' || stripeSub.status === 'trialing') {
             // Use Stripe's current_period_end as next billing date
-            const nextBilling = new Date(stripeSub.current_period_end * 1000);
+            const periodEnd = stripeSub.items?.data?.[0]?.current_period_end;
+            if (!periodEnd) {
+              console.warn(`[billing-job] No items/period_end for ${sub.id}, skipping`);
+              continue;
+            }
+            const nextBilling = new Date(periodEnd * 1000);
             await prisma.subscription.update({
               where: { id: sub.id },
               data: { nextBilling },

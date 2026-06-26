@@ -2315,7 +2315,7 @@ const bundles = [
 ];
 
 async function main() {
-  console.log('🌱 Iniciando seed de cafetería con 114 productos, 10 bundles y 11 achievements...\n');
+  console.log('🌱 Iniciando seed de cafetería con 114 productos, 10 bundles y 16 achievements...\n');
 
   // ──────────────────────────────────────────────────────────────────────────
   // 0. SEED achievements
@@ -2326,6 +2326,11 @@ async function main() {
     { name: 'Cinco Brews', slug: 'five_brews', icon: '🎯', description: '5 brews registrados', rarity: 'UNCOMMON', xpReward: 25 },
     { name: 'Diez Brews', slug: 'ten_brews', icon: '⚡', description: '10 brews registrados', rarity: 'UNCOMMON', xpReward: 40 },
     { name: 'Brew Perfecto', slug: 'perfect_brew', icon: '⭐', description: 'Brew con calificación 10/10', rarity: 'RARE', xpReward: 50 },
+    { name: 'V60 Experto', slug: 'v60_5', icon: '▽', description: '5 brews con V60', rarity: 'UNCOMMON', xpReward: 30 },
+    { name: 'AeroPress Experto', slug: 'aeropress_5', icon: '⊕', description: '5 brews con AeroPress', rarity: 'UNCOMMON', xpReward: 30 },
+    { name: 'Espresso Experto', slug: 'espresso_5', icon: '☕', description: '5 brews con Espresso', rarity: 'UNCOMMON', xpReward: 30 },
+    { name: 'Racha de 3', slug: 'streak_3', icon: '🔥', description: '3 días consecutivos preparando café', rarity: 'COMMON', xpReward: 15 },
+    { name: 'Racha de 7', slug: 'streak_7', icon: '🔥', description: '7 días consecutivos preparando café', rarity: 'UNCOMMON', xpReward: 30 },
     { name: 'Café Connoisseur', slug: 'coffee_connoisseur', icon: '🎓', description: '50 brews registrados', rarity: 'UNCOMMON', xpReward: 50 },
     { name: 'Racha Perfecta 30', slug: 'perfect_streak_30', icon: '🔥', description: '30 días consecutivos preparando café', rarity: 'RARE', xpReward: 75 },
     { name: 'Coleccionista de Métodos', slug: 'method_collector', icon: '🎯', description: '5+ brews de 3 métodos diferentes', rarity: 'UNCOMMON', xpReward: 40 },

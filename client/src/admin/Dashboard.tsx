@@ -53,9 +53,9 @@ function useChartColors(): ChartColors {
 }
 
 const statusConfig: Record<string, { label: string; color: string; hex: string }> = {
-  PENDING:    { label: 'Pendiente',  color: 'text-yellow-400', hex: '#eab308' },
-  PROCESSING: { label: 'Procesando', color: 'text-blue-400',   hex: '#3b82f6' },
-  SHIPPED:    { label: 'Enviado',    color: 'text-purple-400', hex: '#a855f7' },
+  PENDING:    { label: 'Pendiente',  color: 'text-yellow-700 dark:text-yellow-400', hex: '#eab308' },
+  PROCESSING: { label: 'Procesando', color: 'text-blue-700 dark:text-blue-400',   hex: '#3b82f6' },
+  SHIPPED:    { label: 'Enviado',    color: 'text-purple-700 dark:text-purple-400', hex: '#a855f7' },
   DELIVERED:  { label: 'Entregado',  color: 'text-green-600 dark:text-green-400',  hex: '#22c55e' },
   CANCELLED:  { label: 'Cancelado',  color: 'text-red-600 dark:text-red-400',    hex: '#ef4444' },
 };
@@ -226,7 +226,7 @@ export default function Dashboard() {
               <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest">{card.label}</p>
               <card.icon className={`w-4 h-4 ${card.accent ? 'text-yellow-500/80' : 'text-gold-500/60'}`} />
             </div>
-            <p className={`font-serif text-3xl font-semibold ${card.accent ? 'text-yellow-400' : 'text-coffee-900 dark:text-cream'}`}>
+            <p className={`font-serif text-3xl font-semibold ${card.accent ? 'text-yellow-600 dark:text-yellow-400' : 'text-coffee-900 dark:text-cream'}`}>
               {card.value}
             </p>
             <div className="flex items-center justify-between mt-2">

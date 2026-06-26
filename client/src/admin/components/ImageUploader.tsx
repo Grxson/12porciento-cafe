@@ -48,14 +48,14 @@ export default function ImageUploader({ value, onChange, label = 'Imagen' }: Ima
 
   return (
     <div>
-      <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
+      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
 
       {value ? (
         <div className="relative inline-block">
           <img
             src={resolveImageUrl(value)}
             alt="Vista previa"
-            className="w-32 h-32 object-cover border border-coffee-700"
+            className="w-32 h-32 object-cover border border-coffee-400 dark:border-coffee-600"
           />
           <button
             type="button"
@@ -76,25 +76,25 @@ export default function ImageUploader({ value, onChange, label = 'Imagen' }: Ima
           }`}
         >
           {uploading ? (
-            <div className="flex flex-col items-center gap-2 text-coffee-400">
+            <div className="flex flex-col items-center gap-2 text-coffee-600 dark:text-coffee-400">
               <Loader2 className="w-6 h-6 animate-spin" />
               <span className="text-xs">Subiendo...</span>
             </div>
           ) : (
             <>
-              <p className="text-coffee-400 text-sm mb-3">Arrastra una imagen aquí o</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-3">Arrastra una imagen aquí o</p>
               <div className="flex gap-2 justify-center">
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-2 px-3 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 border border-coffee-400 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-500 transition-colors"
                 >
                   <Upload size={14} /> Subir archivo
                 </button>
                 <button
                   type="button"
                   onClick={() => cameraRef.current?.click()}
-                  className="flex items-center gap-2 px-3 py-2 border border-coffee-700 text-coffee-300 text-sm hover:text-cream hover:border-coffee-500 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 border border-coffee-400 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-500 transition-colors"
                 >
                   <Camera size={14} /> Tomar foto
                 </button>

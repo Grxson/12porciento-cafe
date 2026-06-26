@@ -29,9 +29,9 @@ interface Pagination {
 const statusBadge: Record<string, { label: string; color: string }> = {
   COMPLETED: { label: 'Completado', color: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-500/30' },
   FAILED: { label: 'Fallido', color: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-500/30' },
-  PENDING: { label: 'Pendiente', color: 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30' },
-  REFUNDED: { label: 'Reembolsado', color: 'text-blue-400 bg-blue-900/20 border-blue-500/30' },
-  CANCELLED: { label: 'Cancelado', color: 'text-gray-400 bg-gray-900/20 border-gray-500/30' },
+  PENDING: { label: 'Pendiente', color: 'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-600 dark:border-yellow-500/30' },
+  REFUNDED: { label: 'Reembolsado', color: 'text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/20 border-blue-600 dark:border-blue-500/30' },
+  CANCELLED: { label: 'Cancelado', color: 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-900/20 border-gray-400 dark:border-gray-500/30' },
 };
 
 const planLabels: Record<string, string> = {

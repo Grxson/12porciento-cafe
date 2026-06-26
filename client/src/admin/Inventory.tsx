@@ -35,15 +35,15 @@ interface Movement {
 const MOVEMENT_TYPES: Record<string, { label: string; color: string; icon: React.FC<any> }> = {
   SALE:       { label: 'Venta',      color: 'text-red-600 dark:text-red-400',    icon: ArrowDownCircle },
   RESTOCK:    { label: 'Reabasto',   color: 'text-green-600 dark:text-green-400',  icon: ArrowUpCircle },
-  ADJUSTMENT: { label: 'Ajuste',     color: 'text-blue-400',   icon: SlidersHorizontal },
-  LOSS:       { label: 'Merma',      color: 'text-orange-400', icon: TrendingDown },
-  RETURN:     { label: 'Devolución', color: 'text-purple-400', icon: TrendingUp },
+  ADJUSTMENT: { label: 'Ajuste',     color: 'text-blue-700 dark:text-blue-400',   icon: SlidersHorizontal },
+  LOSS:       { label: 'Merma',      color: 'text-orange-600 dark:text-orange-400', icon: TrendingDown },
+  RETURN:     { label: 'Devolución', color: 'text-purple-700 dark:text-purple-400', icon: TrendingUp },
   INITIAL:    { label: 'Inicial',    color: 'text-coffee-600 dark:text-coffee-400', icon: Package },
 };
 
 const STATUS_CONFIG = {
   OK:  { label: 'OK',     cls: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-500/30' },
-  LOW: { label: 'Bajo',   cls: 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30' },
+  LOW: { label: 'Bajo',   cls: 'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-600 dark:border-yellow-500/30' },
   OUT: { label: 'Agotado', cls: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-500/30' },
 };
 
@@ -204,9 +204,9 @@ export default function Inventory() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           {[
             { label: 'SKUs activos', value: summary.activeSKUs, sub: `de ${summary.totalSKUs}`, icon: Package, color: 'text-coffee-700 dark:text-coffee-300' },
-            { label: 'Unidades totales', value: fmt(summary.totalUnits), icon: TrendingUp, color: 'text-blue-400' },
+            { label: 'Unidades totales', value: fmt(summary.totalUnits), icon: TrendingUp, color: 'text-blue-700 dark:text-blue-400' },
             { label: 'Valor inventario', value: fmtCurrency(summary.totalValue), icon: TrendingUp, color: 'text-gold-500' },
-            { label: 'Stock bajo', value: summary.lowStockCount, icon: AlertTriangle, color: 'text-yellow-400', alert: summary.lowStockCount > 0 },
+            { label: 'Stock bajo', value: summary.lowStockCount, icon: AlertTriangle, color: 'text-yellow-700 dark:text-yellow-400', alert: summary.lowStockCount > 0 },
             { label: 'Sin stock', value: summary.outOfStockCount, icon: XCircle, color: 'text-red-600 dark:text-red-400', alert: summary.outOfStockCount > 0 },
           ].map(({ label, value, sub, icon: Icon, color, alert }) => (
             <div key={label} className={`bg-coffee-100 dark:bg-coffee-900 border p-4 ${alert ? 'border-yellow-500/30' : 'border-coffee-200 dark:border-coffee-800'}`}>
@@ -471,9 +471,9 @@ export default function Inventory() {
               <div className="grid grid-cols-2 gap-2">
                 {([
                   { value: 'RESTOCK',    label: 'Reabasto',   desc: 'Entrada de mercancía',  color: 'text-green-600 dark:text-green-400', icon: ArrowUpCircle },
-                  { value: 'LOSS',       label: 'Merma',      desc: 'Pérdida / vencimiento', color: 'text-orange-400', icon: TrendingDown },
-                  { value: 'RETURN',     label: 'Devolución', desc: 'Regreso de cliente',    color: 'text-purple-400', icon: TrendingUp },
-                  { value: 'ADJUSTMENT', label: 'Ajuste',     desc: 'Corrección de conteo',  color: 'text-blue-400', icon: SlidersHorizontal },
+                  { value: 'LOSS',       label: 'Merma',      desc: 'Pérdida / vencimiento', color: 'text-orange-600 dark:text-orange-400', icon: TrendingDown },
+                  { value: 'RETURN',     label: 'Devolución', desc: 'Regreso de cliente',    color: 'text-purple-700 dark:text-purple-400', icon: TrendingUp },
+                  { value: 'ADJUSTMENT', label: 'Ajuste',     desc: 'Corrección de conteo',  color: 'text-blue-700 dark:text-blue-400', icon: SlidersHorizontal },
                 ] as const).map(({ value, label, desc, color, icon: Icon }) => (
                   <button key={value} type="button"
                     onClick={() => setAdjType(value)}
@@ -569,7 +569,7 @@ export default function Inventory() {
                 </h3>
                 <div className="space-y-2">
                   {alerts.outOfStock.map((p: any) => (
-                    <div key={p.id} className="flex items-center justify-between bg-red-900/10 border border-red-500/20 p-3">
+                    <div key={p.id} className="flex items-center justify-between bg-red-100 dark:bg-red-900/10 border border-red-300 dark:border-red-500/20 p-3">
                       <div className="flex items-center gap-3">
                         <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
                         <div>
@@ -586,12 +586,12 @@ export default function Inventory() {
 
             {alerts.lowStock.length > 0 && (
               <div>
-                <h3 className="text-xs text-yellow-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <h3 className="text-xs text-yellow-700 dark:text-yellow-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" /> Stock bajo ({alerts.lowStock.length})
                 </h3>
                 <div className="space-y-2">
                   {alerts.lowStock.map((p: any) => (
-                    <div key={p.id} className="flex items-center justify-between bg-yellow-900/10 border border-yellow-500/20 p-3">
+                    <div key={p.id} className="flex items-center justify-between bg-yellow-100 dark:bg-yellow-900/10 border border-yellow-300 dark:border-yellow-500/20 p-3">
                       <div className="flex items-center gap-3">
                         <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
                         <div>
@@ -600,7 +600,7 @@ export default function Inventory() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-yellow-400 text-xs font-medium">Stock: {p.stock}</p>
+                        <p className="text-yellow-700 dark:text-yellow-400 text-xs font-medium">Stock: {p.stock}</p>
                         <p className="text-coffee-500 dark:text-coffee-400 text-xs">Umbral: {p.lowStockThreshold}</p>
                       </div>
                     </div>
@@ -611,16 +611,16 @@ export default function Inventory() {
 
             {alerts.expiringBatches.length > 0 && (
               <div>
-                <h3 className="text-xs text-orange-400 uppercase tracking-widest mb-3">
+                <h3 className="text-xs text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-3">
                   Lotes por vencer (próximos 30 días) ({alerts.expiringBatches.length})
                 </h3>
                 <div className="space-y-2">
                   {alerts.expiringBatches.map((b: any, i: number) => (
-                    <div key={`${b.productId}-${b.batchNumber ?? i}`} className="flex items-center justify-between bg-orange-900/10 border border-orange-500/20 p-3">
+                    <div key={`${b.productId}-${b.batchNumber ?? i}`} className="flex items-center justify-between bg-orange-100 dark:bg-orange-900/10 border border-orange-300 dark:border-orange-500/20 p-3">
                       <p className="text-coffee-900 dark:text-cream text-sm">{b.productName}</p>
                       <div className="text-right">
                         {b.batchNumber && <p className="text-coffee-600 dark:text-coffee-400 text-xs">Lote: {b.batchNumber}</p>}
-                        <p className="text-orange-400 text-xs">{new Date(b.expiryDate).toLocaleDateString('es-MX')}</p>
+                        <p className="text-orange-600 dark:text-orange-400 text-xs">{new Date(b.expiryDate).toLocaleDateString('es-MX')}</p>
                       </div>
                     </div>
                   ))}
@@ -630,12 +630,12 @@ export default function Inventory() {
 
             {alerts.overstock.length > 0 && (
               <div>
-                <h3 className="text-xs text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <h3 className="text-xs text-blue-700 dark:text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" /> Sobreabasto ({alerts.overstock.length})
                 </h3>
                 <div className="space-y-2">
                   {alerts.overstock.map((p: any) => (
-                    <div key={p.id} className="flex items-center justify-between bg-blue-900/10 border border-blue-500/20 p-3">
+                    <div key={p.id} className="flex items-center justify-between bg-blue-100 dark:bg-blue-900/10 border border-blue-300 dark:border-blue-500/20 p-3">
                       <div className="flex items-center gap-3">
                         <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
                         <div>
@@ -643,7 +643,7 @@ export default function Inventory() {
                         <p className="text-coffee-500 dark:text-coffee-400 text-xs">Umbral: {p.lowStockThreshold}</p>
                         </div>
                       </div>
-                      <span className="text-blue-400 text-xs font-medium">Stock: {p.stock}</span>
+                      <span className="text-blue-700 dark:text-blue-400 text-xs font-medium">Stock: {p.stock}</span>
                     </div>
                   ))}
                 </div>

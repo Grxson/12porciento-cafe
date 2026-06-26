@@ -205,7 +205,7 @@ export default function AdminPromoCodes() {
                     {c.usedCount}{c.maxUses ? `/${c.maxUses}` : ''} usos
                   </span>
                   {c.expiresAt && (
-                    <span className={`text-xs ${expired ? 'text-red-400' : days !== null && days <= 7 ? 'text-yellow-400' : 'text-coffee-500 dark:text-coffee-400'}`}>
+                    <span className={`text-xs ${expired ? 'text-red-600 dark:text-red-400' : days !== null && days <= 7 ? 'text-yellow-700 dark:text-yellow-400' : 'text-coffee-500 dark:text-coffee-400'}`}>
                       {expired ? 'Expirado' : days === 0 ? 'Expira hoy' : `Expira en ${days} día${days === 1 ? '' : 's'}`}
                     </span>
                   )}

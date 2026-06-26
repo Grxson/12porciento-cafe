@@ -50,13 +50,13 @@ export default function GalleryUploader({ value, onChange, label = 'Galería de 
 
   return (
     <div>
-      <label className="block text-xs text-coffee-400 uppercase tracking-widest mb-1.5">
-        {label} <span className="text-coffee-600 normal-case tracking-normal">({value.length}/{max})</span>
+      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">
+        {label} <span className="text-coffee-600 dark:text-coffee-400 normal-case tracking-normal">({value.length}/{max})</span>
       </label>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
         {value.map((url, i) => (
-          <div key={url + i} className="relative group aspect-square border border-coffee-700">
+          <div key={url + i} className="relative group aspect-square border border-coffee-400 dark:border-coffee-600">
             <img src={resolveImageUrl(url)} alt={`Imagen ${i + 1}`} className="w-full h-full object-cover" />
             <button
               type="button"
@@ -81,7 +81,7 @@ export default function GalleryUploader({ value, onChange, label = 'Galería de 
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="aspect-square border-2 border-dashed border-coffee-700 flex flex-col items-center justify-center text-coffee-400 hover:border-gold-500 hover:text-cream transition-colors"
+            className="aspect-square border-2 border-dashed border-coffee-400 dark:border-coffee-700 flex flex-col items-center justify-center text-coffee-600 dark:text-coffee-400 hover:border-gold-500 hover:text-coffee-900 dark:hover:text-cream transition-colors"
           >
             {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Plus size={18} /><span className="text-[10px] mt-1">Agregar</span></>}
           </button>

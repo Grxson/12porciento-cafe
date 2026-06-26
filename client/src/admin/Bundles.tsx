@@ -411,7 +411,7 @@ export default function AdminBundles() {
                     type="button"
                     onClick={() => setField('isActive', !form.isActive)}
                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      form.isActive ? 'bg-gold-500' : 'bg-coffee-700'
+                      form.isActive ? 'bg-gold-500' : 'bg-coffee-400 dark:bg-coffee-700'
                     }`}
                   >
                     <span

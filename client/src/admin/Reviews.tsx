@@ -186,7 +186,7 @@ export default function AdminReviews() {
                       <span className="text-coffee-500 text-xs">{r.email}</span>
                       {r.product && <span className="text-coffee-600 dark:text-coffee-400 text-xs">· {r.product.name}</span>}
                       {!r.isApproved && (
-                        <span className="text-xs px-2 py-0.5 bg-yellow-900/30 text-yellow-400">Pendiente</span>
+                        <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Pendiente</span>
                       )}
                     </div>
                     <p className="text-coffee-800 dark:text-coffee-200 text-sm leading-relaxed">{r.comment}</p>

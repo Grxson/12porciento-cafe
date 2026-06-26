@@ -51,6 +51,7 @@ import About from './pages/About';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Recipes from './pages/Recipes';
+import RecipeDetail from './pages/RecipeDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -198,6 +199,7 @@ export default function App() {
             <Route path="/checkout" element={<PublicLayout><Checkout /></PublicLayout>} />
             <Route path="/paquetes" element={<PublicLayout><Bundles /></PublicLayout>} />
             <Route path="/recetas" element={<PublicLayout><Recipes /></PublicLayout>} />
+            <Route path="/recetas/:slug" element={<PublicLayout><RecipeDetail /></PublicLayout>} />
             <Route path="/galeria" element={<PublicLayout><Gallery /></PublicLayout>} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Register />} />

@@ -25,6 +25,7 @@ import sitemapRouter from './routes/sitemap';
 import pushRouter from './routes/push';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
+import { initMail } from './lib/mail';
 import http from 'http';
 import { initSocket } from './socket';
 import webpush from 'web-push';
@@ -110,3 +111,4 @@ httpServer.listen(PORT, () => {
 });
 
 startBillingScheduler();
+initMail();

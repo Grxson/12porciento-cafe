@@ -7,6 +7,7 @@ import { saveDraft, loadDraft, clearDraft } from '../../hooks/useRecipeDraft';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { useBarista } from '../../hooks/useBarista';
+import { recipesApi } from '../../api';
 import RatingSlider from './RatingSlider';
 import NotesCapture from './NotesCapture';
 import GestureHints from './GestureHints';
@@ -14,6 +15,22 @@ import GestureHints from './GestureHints';
 interface RecipeLiveModeProps {
   recipe: Recipe;
   onClose: () => void;
+}
+
+// R10: Helper function for relative time display
+function getRelativeTime(dateString: string): string {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSecs < 60) return 'hace unos segundos';
+  if (diffMins < 60) return `hace ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}`;
+  if (diffHours < 24) return `hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+  return `hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
 }
 
 export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps) {
@@ -31,8 +48,6 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null); // R8: Auto-advance timer
-  const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]); // R9: Post-brew related recipes
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const objectUrlRef = useRef<string | null>(null);
@@ -116,6 +131,8 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
             osc.start(ctx.currentTime);
             osc.stop(ctx.currentTime + 0.6);
           }
+          // R8: Start auto-advance countdown
+          setAutoAdvanceCountdown(3);
           return null;
         }
         return t ? t - 1 : null;
@@ -125,6 +142,20 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   }, [timerActive]);
 
   useEffect(() => { setTimerActive(null); }, [currentStepIndex]);
+
+  // R8: Auto-advance countdown when timer reaches 0
+  useEffect(() => {
+    if (autoAdvanceCountdown === null) return;
+    if (autoAdvanceCountdown <= 0) {
+      setAutoAdvanceCountdown(null);
+      if (hasNext) goNext();
+      return;
+    }
+    const interval = setInterval(() => {
+      setAutoAdvanceCountdown((t) => (t ? t - 1 : null));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [autoAdvanceCountdown, hasNext]);
 
   useEffect(() => {
     return () => {
@@ -261,7 +292,8 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       {/* Resume banner */}
       {draft && (
         <div className="bg-gold-500/10 border-b border-gold-500/30 px-4 py-2.5 flex items-center justify-between gap-4">
-          <p className="text-gold-400 text-xs">↻ Tienes un brew en progreso.</p>
+          {/* R10: Show relative time since brew started */}
+          <p className="text-gold-400 text-xs">↻ Iniciado {getRelativeTime(draft.startedAt)}</p>
           <div className="flex gap-2">
             <button
               onClick={handleResume}
@@ -365,6 +397,22 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
               </div>
             )}
 
+            {/* R8: Auto-advance countdown when timer reaches 0 */}
+            {autoAdvanceCountdown !== null && (
+              <div className="flex justify-center mb-6">
+                <div className="inline-block px-8 py-6 bg-gold-500/10 border border-gold-500/30 rounded text-center">
+                  <p className="text-xs text-gold-400 uppercase mb-3">Paso completado</p>
+                  <p className="text-lg text-gold-400 mb-4">Siguiente en {autoAdvanceCountdown}s</p>
+                  <button
+                    onClick={() => setAutoAdvanceCountdown(null)}
+                    className="text-xs px-4 py-1 bg-coffee-900 border border-gold-500/30 text-gold-400 hover:border-gold-500 transition-colors"
+                  >
+                    Quedarme aquí
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Inline rating + notes */}
             <div className="mt-4 border-t border-coffee-800/50 pt-4">
               <RatingSlider
@@ -374,6 +422,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
               <NotesCapture
                 value={currentStepDraft.notes ?? ''}
                 onChange={(n) => updateStep({ notes: n })}
+                onPhotoCapture={(photo) => setStepPhotos((prev) => ({ ...prev, [currentStepIndex]: photo }))}
               />
             </div>
           </motion.div>
@@ -425,13 +474,36 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
                 )}
               </div>
             )}
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-3 flex-col">
               {brewRegistered ? (
                 <>
                   <span className="text-green-400 text-sm">✓ Brew registrado</span>
+
+                  {/* R9: Post-brew related recipes */}
+                  {relatedRecipes.length > 0 && (
+                    <div className="mt-4 w-full border-t border-coffee-700 pt-4">
+                      <p className="text-xs text-coffee-500 uppercase tracking-wider mb-3">Sigue probando</p>
+                      <div className="space-y-2">
+                        {relatedRecipes.map((r) => (
+                          <div
+                            key={r.id}
+                            className="flex items-center gap-3 p-2 bg-coffee-900/40 border border-coffee-700/50 rounded cursor-pointer hover:border-gold-500/50 transition-colors"
+                          >
+                            <span className="text-sm text-cream font-medium">{r.title}</span>
+                            {r.difficulty && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400">
+                                {r.difficulty}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     onClick={onClose}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors mt-4"
                   >
                     Finalizar
                   </button>
@@ -502,6 +574,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
             <NotesCapture
               value={currentStepDraft.notes ?? ''}
               onChange={(n) => updateStep({ notes: n })}
+              onPhotoCapture={(photo) => setStepPhotos((prev) => ({ ...prev, [currentStepIndex]: photo }))}
             />
             <button
               onClick={() => setShowQuickPanel(false)}

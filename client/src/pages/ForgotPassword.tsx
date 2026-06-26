@@ -19,7 +19,11 @@ export default function ForgotPassword() {
       await usersApi.forgotPassword(email);
       setSubmitted(true);
     } catch (err: any) {
-      setError(err?.response?.data?.error || 'Error al enviar el correo');
+      if (err?.response?.status === 404) {
+        setError(err?.response?.data?.error || 'No encontramos una cuenta con ese correo.');
+      } else {
+        setError(err?.response?.data?.error || 'Error al enviar el correo. Intenta más tarde.');
+      }
     } finally {
       setLoading(false);
     }

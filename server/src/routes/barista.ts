@@ -23,7 +23,7 @@ function calculateXp(recipeDifficulty: string, rating: number): number {
 async function checkAndUnlockAchievements(userId: string): Promise<{ id: string; name: string; icon: string; xpReward: number }[]> {
   const today = new Date().toISOString().split('T')[0];
 
-  const [profile, brewCount, hasPerfect, v60Count, aeropressCount, espressoCount, recentBrews] = await Promise.all([
+  const [profile, brewCount, hasPerfect, v60Count, aeropressCount, espressoCount, recentBrews, allBrews] = await Promise.all([
     prisma.baristaProfile.findUnique({
       where: { userId },
       include: { achievements: { include: { achievement: true } } },
@@ -38,6 +38,10 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
       select: { createdAt: true },
       orderBy: { createdAt: 'desc' },
     }),
+    prisma.brewLog.findMany({
+      where: { userId },
+      select: { createdAt: true, rating: true, recipe: { select: { method: true } } },
+    }),
   ]);
   if (!profile) return [];
 
@@ -47,9 +51,9 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
   ).sort().reverse();
 
   let streak = 0;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   if (uniqueDates.length > 0) {
     const first = uniqueDates[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     if (first === today || first === yesterday) {
       for (let i = 0; i < uniqueDates.length; i++) {
         const expected = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
@@ -62,6 +66,52 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
   // Determine if streak is active (includes today or yesterday)
   const streakActive = uniqueDates.length > 0 && (uniqueDates[0] === today || uniqueDates[0] === yesterday);
 
+  // G10 achievements: Compute conditions for new achievements
+  // Coffee Connoisseur: 50 brews
+  const coffeeConnoisseurMet = brewCount >= 50;
+
+  // Perfect Streak 30: 30 consecutive days
+  let longestStreak = 0;
+  let currentStreak = 0;
+  for (let i = 0; i < uniqueDates.length; i++) {
+    const expected = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
+    if (uniqueDates[i] === expected) currentStreak++;
+    else { longestStreak = Math.max(longestStreak, currentStreak); currentStreak = 0; break; }
+  }
+  longestStreak = Math.max(longestStreak, currentStreak);
+  const perfectStreak30Met = longestStreak >= 30;
+
+  // Method Collector: 5+ brews of 3 different methods
+  const methodCounts = new Map<string, number>();
+  allBrews.forEach((b: any) => {
+    const method = b.recipe.method || 'Unknown';
+    methodCounts.set(method, (methodCounts.get(method) ?? 0) + 1);
+  });
+  const methodCollectorMet = Array.from(methodCounts.values()).filter(c => c >= 5).length >= 3;
+
+  // Master Taster: average rating >= 8
+  const avgRating = allBrews.length ? allBrews.reduce((s: number, b: any) => s + b.rating, 0) / allBrews.length : 0;
+  const masterTasterMet = avgRating >= 8 && allBrews.length >= 1;
+
+  // Early Bird: 5 brews before 8am
+  const earlyBirdMet = allBrews.filter((b: any) => {
+    const hour = new Date(b.createdAt).getHours();
+    return hour < 8;
+  }).length >= 5;
+
+  // Night Owl: 5 brews after 9pm
+  const nightOwlMet = allBrews.filter((b: any) => {
+    const hour = new Date(b.createdAt).getHours();
+    return hour >= 21;
+  }).length >= 5;
+
+  // Weekend Warrior: 10 brews on weekends (Sat/Sun)
+  const weekendBrews = allBrews.filter((b: any) => {
+    const day = new Date(b.createdAt).getDay();
+    return day === 0 || day === 6;
+  }).length;
+  const weekendWarriorMet = weekendBrews >= 10;
+
   const candidates = [
     { slug: 'first_brew',    met: brewCount >= 1 },
     { slug: 'five_brews',    met: brewCount >= 5 },
@@ -72,6 +122,13 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
     { slug: 'espresso_5',    met: espressoCount >= 5 },
     { slug: 'streak_3',      met: streak >= 3 },
     { slug: 'streak_7',      met: streak >= 7 },
+    { slug: 'coffee_connoisseur', met: coffeeConnoisseurMet },
+    { slug: 'perfect_streak_30', met: perfectStreak30Met },
+    { slug: 'method_collector', met: methodCollectorMet },
+    { slug: 'master_taster', met: masterTasterMet },
+    { slug: 'early_bird', met: earlyBirdMet },
+    { slug: 'night_owl', met: nightOwlMet },
+    { slug: 'weekend_warrior', met: weekendWarriorMet },
   ];
 
   const unlocked: { id: string; name: string; icon: string; xpReward: number }[] = [];
@@ -284,6 +341,79 @@ router.get('/:userId/brews', async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener brews' });
+  }
+});
+
+// GET /barista/:userId/stats — G8 stats aggregation
+router.get('/:userId/stats', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const brews = await prisma.brewLog.findMany({
+      where: { userId },
+      include: { recipe: { select: { method: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (brews.length === 0) {
+      return res.json({
+        data: {
+          favoriteMethod: null,
+          favMethodEmoji: null,
+          avgRating: 0,
+          totalBrews: 0,
+          brewsPerMethod: {},
+          xpPerWeek: [],
+        },
+      });
+    }
+
+    // Favorite method (most brews)
+    const methodCounts = new Map<string, number>();
+    brews.forEach((b: any) => {
+      const method = b.recipe.method || 'Unknown';
+      methodCounts.set(method, (methodCounts.get(method) ?? 0) + 1);
+    });
+    const [favoriteMethod, count] = Array.from(methodCounts.entries()).sort((a, b) => b[1] - a[1])[0];
+
+    // Method emojis
+    const methodEmojis: Record<string, string> = {
+      'V60': '☕',
+      'AeroPress': '🫖',
+      'Espresso': '💪',
+      'Moka': '⚡',
+    };
+    const favMethodEmoji = methodEmojis[favoriteMethod] || '☕';
+
+    // Average rating
+    const avgRating = brews.reduce((s: number, b: any) => s + b.rating, 0) / brews.length;
+
+    // XP per week (last 8 weeks)
+    const weeklyXp = new Map<string, number>();
+    brews.forEach((b: any) => {
+      const date = new Date(b.createdAt);
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay());
+      const weekKey = weekStart.toISOString().split('T')[0];
+      weeklyXp.set(weekKey, (weeklyXp.get(weekKey) ?? 0) + b.xpEarned);
+    });
+    const xpPerWeek = Array.from(weeklyXp.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-8)
+      .map(([week, xp]) => ({ week, xp }));
+
+    res.json({
+      data: {
+        favoriteMethod,
+        favMethodEmoji,
+        avgRating: Math.round(avgRating * 10) / 10,
+        totalBrews: brews.length,
+        brewsPerMethod: Object.fromEntries(methodCounts),
+        xpPerWeek,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener stats' });
   }
 });
 

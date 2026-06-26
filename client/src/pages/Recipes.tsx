@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Coffee, GlassWater, Snowflake, Wrench, Lock, Star,
@@ -55,10 +55,19 @@ function StepVideoPlayer({ url }: { url: string }) {
 }
 
 function MethodIcon({ method }: { method: string }) {
-  const m = method.toLowerCase();
-  if (m.includes('espresso') || m.includes('americano')) return <Coffee className="w-4 h-4" />;
-  if (m.includes('cold') || m.includes('frío')) return <Snowflake className="w-4 h-4" />;
-  if (m.includes('moka') || m.includes('presión')) return <Wrench className="w-4 h-4" />;
+  // R12: Method icons specific — map method → emoji
+  const methodLower = method.toLowerCase();
+  const emojis: Record<string, string> = {
+    'v60': '▽',
+    'chemex': '⬡',
+    'aerop': '⊕',
+    'french': '⊞',
+    'moka': '☕',
+    'cold': '🧊',
+  };
+  for (const [key, emoji] of Object.entries(emojis)) {
+    if (methodLower.includes(key)) return <span className="text-lg leading-none">{emoji}</span>;
+  }
   return <GlassWater className="w-4 h-4" />;
 }
 
@@ -132,6 +141,7 @@ const METHOD_CATEGORIES = {
 export default function Recipes() {
   const hasSubscription = useUser((s) => s.hasSubscription);
   const user = useUser((s) => s.user);
+  const location = useLocation();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +151,8 @@ export default function Recipes() {
   const [search, setSearch] = useState<string>('');
   const [timerState, setTimerState] = useState<{ recipeId: string; stepIndex: number; secondsLeft: number } | null>(null);
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
 
   useEffect(() => {
     setError(null);
@@ -152,6 +164,29 @@ export default function Recipes() {
       setLoading(false);
     });
   }, []);
+
+  // R7: URL filters persistent — read from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const method = params.get('method');
+    const difficulty = params.get('difficulty');
+    const searchQuery = params.get('search');
+
+    if (method) setMethodFilter(method);
+    if (difficulty) setDifficultyFilter(difficulty);
+    if (searchQuery) setSearch(decodeURIComponent(searchQuery));
+  }, []); // run once on mount
+
+  // R7: Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (methodFilter !== 'TODOS') params.set('method', methodFilter);
+    if (difficultyFilter !== 'TODOS') params.set('difficulty', difficultyFilter);
+    if (search) params.set('search', search);
+
+    const newUrl = params.toString() ? `?${params.toString()}` : '';
+    window.history.replaceState(null, '', newUrl);
+  }, [methodFilter, difficultyFilter, search]);
 
   useEffect(() => {
     if (!timerState || timerState.secondsLeft <= 0) return;
@@ -193,15 +228,21 @@ export default function Recipes() {
     r.description?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // R13: Pagination
+  const startIdx = (page - 1) * pageSize;
+  const endIdx = startIdx + pageSize;
+
   const visible = hasSubscription
-    ? searched
+    ? searched.slice(startIdx, endIdx)
     : (() => {
         const free = searched.filter((r) => !r.isPremium);
         const premium = searched.filter((r) => r.isPremium);
-        return [...free.slice(0, 2), ...premium];
+        return [...free.slice(0, 2), ...premium].slice(startIdx, endIdx);
       })();
 
   const freeLimit = !hasSubscription && searched.filter((r) => !r.isPremium).length > 2;
+  const totalPages = Math.ceil((hasSubscription ? searched.length : [...searched.filter((r) => !r.isPremium).slice(0, 2), ...searched.filter((r) => r.isPremium)].length) / pageSize);
+  const hasMore = page < totalPages;
 
   if (error) {
     return (
@@ -264,6 +305,18 @@ export default function Recipes() {
       </div>
     );
   }
+
+  // R2: Auto-scroll to expanded accordion when it changes
+  useEffect(() => {
+    if (expandedId) {
+      const element = document.getElementById(`recipe-${expandedId}`);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  }, [expandedId]);
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
@@ -397,6 +450,7 @@ export default function Recipes() {
             return (
               <motion.div
                 key={recipe.id}
+                id={`recipe-${recipe.id}`}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`border ${isLocked ? 'border-gold-500/20 bg-coffee-100/50 dark:bg-coffee-900/40' : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900'}`}
@@ -405,13 +459,18 @@ export default function Recipes() {
                   className="flex items-center justify-between p-5 cursor-pointer"
                   onClick={() => !isLocked && setExpandedId(isExpanded ? null : recipe.id)}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <span className="text-gold-600 dark:text-gold-400"><MethodIcon method={recipe.method} /></span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-coffee-900 dark:text-cream font-medium">{recipe.title}</h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link
+                          to={`/recetas/${recipe.slug}`}
+                          className="text-coffee-900 dark:text-cream font-medium hover:text-gold-600 dark:hover:text-gold-400 transition-colors truncate"
+                        >
+                          {recipe.title}
+                        </Link>
                         {recipe.isPremium && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-600 dark:text-gold-400 uppercase tracking-wider">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-600 dark:text-gold-400 uppercase tracking-wider shrink-0">
                             Premium
                           </span>
                         )}
@@ -461,14 +520,16 @@ export default function Recipes() {
 
                 {isLocked && (
                   <div className="px-5 pb-5">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-gold-500/5 border border-gold-500/20 p-4">
-                      <Star className="w-5 h-5 text-gold-500 shrink-0 hidden sm:block" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-coffee-900 dark:text-cream text-sm font-medium">Receta exclusiva para suscriptores</p>
-                        <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Suscríbete para acceder a todas las recetas premium y más.</p>
+                    <div className="flex flex-col items-stretch gap-3 bg-gold-500/5 border border-gold-500/20 p-4">
+                      <div className="flex items-start gap-3">
+                        <Star className="w-5 h-5 text-gold-500 shrink-0 hidden sm:block mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-coffee-900 dark:text-cream text-sm font-medium">Receta exclusiva para suscriptores</p>
+                          <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Suscríbete para acceder a todas las recetas premium y más.</p>
+                        </div>
                       </div>
-                      <Link to="/suscripciones" className="self-start sm:self-auto shrink-0 px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors">
-                        Ver planes
+                      <Link to="/suscripciones" className="self-start px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors">
+                        Desbloquear — Ver suscripciones →
                       </Link>
                     </div>
                     {recipe.steps?.length > 0 && recipe.steps[0] && (
@@ -564,9 +625,8 @@ export default function Recipes() {
                           </div>
                         )}
 
-                        {user && (
-                          <AttemptsList recipeId={recipe.id} userId={user.id} />
-                        )}
+                        {/* R11: Show login CTA if not logged in, otherwise show attempts */}
+                        <AttemptsList recipeId={recipe.id} userId={user?.id} />
                       </div>
                     </motion.div>
                   )}
@@ -575,6 +635,18 @@ export default function Recipes() {
             );
           })}
         </div>
+
+        {/* R13: Pagination — "Cargar más" button */}
+        {hasMore && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              className="px-6 py-3 bg-gold-500/10 border border-gold-500/40 text-gold-600 dark:text-gold-400 text-xs font-semibold uppercase tracking-wider hover:bg-gold-500/20 hover:border-gold-500 transition-colors"
+            >
+              Cargar más
+            </button>
+          </div>
+        )}
 
         {freeLimit && (
           <div className="mt-8 text-center border border-gold-500/20 bg-gold-500/5 p-6">

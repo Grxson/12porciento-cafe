@@ -7,7 +7,7 @@ import Stripe from 'stripe';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
-import nodemailer from 'nodemailer';
+import { sendMail } from '../lib/mail';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
@@ -331,20 +331,6 @@ const resetLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-const emailTransport = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: process.env.SMTP_USER ? {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  } : undefined,
-});
-
 // POST /api/users/forgot-password — send reset link
 router.post('/forgot-password', resetLimiter, async (req: Request, res: Response) => {
   try {
@@ -354,9 +340,8 @@ router.post('/forgot-password', resetLimiter, async (req: Request, res: Response
     }
     const normalizedEmail = email.toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    // Always return 200 to avoid email enumeration
     if (!user) {
-      return res.json({ ok: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
+      return res.status(404).json({ error: 'No encontramos una cuenta con ese correo electrónico.' });
     }
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 3600000); // 1 hour
@@ -375,12 +360,12 @@ router.post('/forgot-password', resetLimiter, async (req: Request, res: Response
         </div>
       </div>
     `;
-    await emailTransport.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@12porciento.cafe',
+    const sent = await sendMail({
       to: normalizedEmail,
       subject: 'Restablece tu contraseña — 12% Café',
       html,
     });
+    if (!sent) throw new Error('sendMail returned false');
     console.log(`[email] Password reset sent to ${normalizedEmail}`);
     res.json({ ok: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
   } catch (err) {

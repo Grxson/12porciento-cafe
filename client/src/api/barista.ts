@@ -20,4 +20,7 @@ export const baristaApi = {
 
   getUserBrews: (userId: string, params?: { recipeId?: string; limit?: string; page?: string }) =>
     api.get(`/barista/${userId}/brews`, { params }),
+
+  getStats: (userId: string) =>
+    api.get(`/barista/${userId}/stats`),
 };

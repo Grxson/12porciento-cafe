@@ -6,35 +6,302 @@ const prisma = new PrismaClient();
 // Unsplash URL builder (consistent sizing/quality across the gallery).
 const u = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=80`;
 
-// Reusable coffee gallery shots: roasted beans, pour-over, brewed cup, scoop, bag, latte.
-const BEANS_CLOSE = u('1559056199-641a0ac8b55e');
-const POUR_OVER   = u('1463797221720-6b07e6426c24');
-const CUP_TOP     = u('1461023058943-07fcbe16d735');
-const BEANS_SCOOP = u('1514432324607-a09d9b4aefdd');
-const COFFEE_BAG  = u('1610889556528-9a770e32642f');
-const LATTE_ART   = u('1510707577719-ae7c14805e3a');
-const ESPRESSO    = u('1497935586351-b67a49e012bf');
-const BEANS_HAND  = u('1442512595331-e89e73853f31');
+// ─── Image pools by product category ───────────────────────────────────────
+const CAFÉ_BOLSA = [
+  u('1610889556528-9a770e32642f'), // coffee bag
+  u('1559056199-641a0ac8b55e'),     // beans close
+  u('1447933601403-0c6688de566e'),  // coffee setup
+  u('1447933601769-c00d465a05d3'),  // coffee bag flat lay
+  u('1493857671505-72967e2e2760'),  // packaging
+  u('1512568400610-62da28bc8f45'),  // craft bag
+  u('1559053614-cd4628902d4a'),     // specialty beans
+  u('1461023058943-07fcbe16d735'),  // bag content
+  u('1442512595331-e89e73853f31'),  // coffee bag lifestyle
+  u('1509042239860-f550ce710b93'),  // premium packaging
+  u('1515037893594-694267b2e9f1'),  // specialty coffee bag
+  u('1447933710033-6461bcad5d65'),  // coffee aesthetic
+  u('1543268865-cbdf3ca2ab57'),     // coffee culture
+  u('1575652356055-f51a5a8ceb78'),  // artisan coffee
+  u('1514432324607-a09d9b4aefdd'),  // coffee presentation
+  u('1447932601383-a282e4b40819'),  // craft coffee
+];
+
+const CAFÉ_GRANO = [
+  u('1559056199-641a0ac8b55e'),     // beans close
+  u('1514432324607-a09d9b4aefdd'),  // coffee scoop
+  u('1447933710033-6461bcad5d65'),  // roasted beans
+  u('1542992019-2c04ae145b47'),     // coffee beans
+  u('1509042239860-f550ce710b93'),  // beans texture
+  u('1559053614-cd4628902d4a'),     // specialty beans
+  u('1515037893594-694267b2e9f1'),  // bean roast
+  u('1556821840-3a63f95609a7'),     // coffee detail
+  u('1543268865-cbdf3ca2ab57'),     // coffee aroma
+  u('1451187580459-43490279c0fa'),  // coffee macro
+  u('1497935586351-b67a49e012bf'),  // espresso shot
+  u('1510707577719-ae7c14805e3a'),  // coffee extraction
+  u('1561590141-3c3f42ba7268'),     // coffee beans roast
+  u('1442512595331-e89e73853f31'),  // coffee beans hand
+  u('1543268865-cbdf3ca2ab57'),     // coffee beans
+  u('1447933601403-0c6688de566e'),  // coffee aesthetic
+];
+
+const CAFÉ_BEBIDA = [
+  u('1495474472287-4d71bcdd2085'),  // brewed coffee
+  u('1510707577719-ae7c14805e3a'),  // coffee cup
+  u('1461023058943-07fcbe16d735'),  // espresso
+  u('1497935586351-b67a49e012bf'),  // coffee shot
+  u('1509042239860-f550ce710b93'),  // coffee drink
+  u('1514432324607-a09d9b4aefdd'),  // coffee pour
+  u('1447933601769-c00d465a05d3'),  // coffee
+  u('1580933073521-dc49ac0d4e6a'),  // coffee aesthetic
+  u('1559052534-cc4f6e03ae5e'),     // coffee morning
+  u('1461023058943-07fcbe16d735'),  // espresso crema
+  u('1542992019-2c04ae145b47'),     // coffee drink
+  u('1447933601403-0c6688de566e'),  // pour over
+  u('1515037893594-694267b2e9f1'),  // coffee ritual
+  u('1561590141-3c3f42ba7268'),     // coffee experience
+  u('1543268865-cbdf3ca2ab57'),     // coffee culture
+  u('1451187580459-43490279c0fa'),  // latte art
+];
+
+const ACCESORIOS_MOLINILLO = [
+  u('1530968033775-2c92736b131e'),  // grinder
+  u('1554118811-107debc24260'),     // coffee equipment
+  u('1447933601403-0c6688de566e'),  // grinder setup
+  u('1452865928648-ce14e7995ccf'),  // coffee tools
+  u('1559053614-cd4628902d4a'),     // grinding
+  u('1512568400610-62da28bc8f45'),  // barista tools
+  u('1443512220425-95bc62f2d40b'),  // coffee grinder
+  u('1442512595331-e89e73853f31'),  // equipment
+  u('1459749411175-04bf5292ceea'),  // coffee gear
+  u('1522992719590-544eb2dc4fdf'),  // coffee tools
+  u('1509042239860-f550ce710b93'),  // grinder aesthetic
+  u('1495474472287-4d71bcdd2085'),  // coffee setup
+  u('1514432324607-a09d9b4aefdd'),  // coffee accessories
+  u('1447933601769-c00d465a05d3'),  // coffee equipment
+  u('1547590694-56f42a68c812'),     // coffee grinder
+  u('1557804183-0d5ad5efd765'),     // coffee gear
+];
+
+const ACCESORIOS_BREWER = [
+  u('1606312619070-d48b4c652a52'),  // V60 setup
+  u('1443512220425-95bc62f2d40b'),  // pour over
+  u('1461023058943-07fcbe16d735'),  // brewing
+  u('1447933601403-0c6688de566e'),  // pour over aesthetic
+  u('1509042239860-f550ce710b93'),  // coffee gear
+  u('1514432324607-a09d9b4aefdd'),  // brewing setup
+  u('1447933710033-6461bcad5d65'),  // coffee ritual
+  u('1559053614-cd4628902d4a'),     // brewing method
+  u('1461023058943-07fcbe16d735'),  // extraction
+  u('1544787219-7f47ccb76574'),     // coffee setup
+  u('1452865928648-ce14e7995ccf'),  // brewing equipment
+  u('1495474472287-4d71bcdd2085'),  // coffee preparation
+  u('1512568400610-62da28bc8f45'),  // barista method
+  u('1447933601769-c00d465a05d3'),  // coffee culture
+  u('1543268865-cbdf3ca2ab57'),     // brewing ritual
+  u('1451187580459-43490279c0fa'),  // pour over detail
+];
+
+const ACCESORIOS_MOKA = [
+  u('1442512595331-e89e73853f31'),  // moka pot
+  u('1447933601403-0c6688de566e'),  // stovetop
+  u('1509042239860-f550ce710b93'),  // moka aesthetic
+  u('1514432324607-a09d9b4aefdd'),  // coffee extraction
+  u('1556821840-3a63f95609a7'),     // coffee tradition
+  u('1443512220425-95bc62f2d40b'),  // cooking setup
+  u('1461023058943-07fcbe16d735'),  // coffee ritual
+  u('1447933710033-6461bcad5d65'),  // moka brewing
+  u('1559053614-cd4628902d4a'),     // traditional coffee
+  u('1495474472287-4d71bcdd2085'),  // home brewing
+  u('1544787219-7f47ccb76574'),     // coffee setup
+  u('1452865928648-ce14e7995ccf'),  // kitchen equipment
+  u('1512568400610-62da28bc8f45'),  // coffee preparation
+  u('1447933601769-c00d465a05d3'),  // traditional method
+  u('1543268865-cbdf3ca2ab57'),     // coffee culture
+  u('1451187580459-43490279c0fa'),  // home coffee
+];
+
+const ACCESORIOS_KETTLE = [
+  u('1462299756681-1aed706a36e8'),  // kettle
+  u('1447933601403-0c6688de566e'),  // water heating
+  u('1509042239860-f550ce710b93'),  // kettle aesthetic
+  u('1514432324607-a09d9b4aefdd'),  // pouring
+  u('1443512220425-95bc62f2d40b'),  // kitchen tool
+  u('1461023058943-07fcbe16d735'),  // brewing preparation
+  u('1556821840-3a63f95609a7'),     // coffee setup
+  u('1447933710033-6461bcad5d65'),  // water control
+  u('1559053614-cd4628902d4a'),     // precision
+  u('1495474472287-4d71bcdd2085'),  // coffee ritual
+  u('1544787219-7f47ccb76574'),     // home brewing
+  u('1452865928648-ce14e7995ccf'),  // equipment
+  u('1512568400610-62da28bc8f45'),  // barista tools
+  u('1447933601769-c00d465a05d3'),  // coffee tradition
+  u('1543268865-cbdf3ca2ab57'),     // coffee culture
+  u('1451187580459-43490279c0fa'),  // coffee detail
+];
+
+const ACCESORIOS_BASCULA = [
+  u('1508230119575-1fbe5f7fa4f6'),  // scale
+  u('1514432324607-a09d9b4aefdd'),  // measurement
+  u('1447933601403-0c6688de566e'),  // precision
+  u('1509042239860-f550ce710b93'),  // coffee precision
+  u('1543512220425-95bc62f2d40b'),  // kitchen scale
+  u('1461023058943-07fcbe16d735'),  // weighing
+  u('1556821840-3a63f95609a7'),     // measurement setup
+  u('1447933710033-6461bcad5d65'),  // barista precision
+  u('1559053614-cd4628902d4a'),     // coffee measurement
+  u('1495474472287-4d71bcdd2085'),  // brewing precision
+  u('1544787219-7f47ccb76574'),     // coffee setup detail
+  u('1452865928648-ce14e7995ccf'),  // equipment
+  u('1512568400610-62da28bc8f45'),  // barista method
+  u('1447933601769-c00d465a05d3'),  // coffee ritual precision
+  u('1543268865-cbdf3ca2ab57'),     // detail
+  u('1451187580459-43490279c0fa'),  // measurement precision
+];
+
+const ACCESORIOS_FILTROS = [
+  u('1521302080334-4bebac2763a6'),  // filters
+  u('1447933601403-0c6688de566e'),  // flat lay
+  u('1509042239860-f550ce710b93'),  // consumables
+  u('1514432324607-a09d9b4aefdd'),  // paper filters
+  u('1443512220425-95bc62f2d40b'),  // coffee supplies
+  u('1461023058943-07fcbe16d735'),  // brewing supplies
+  u('1556821840-3a63f95609a7'),     // coffee essentials
+  u('1447933710033-6461bcad5d65'),  // supplies detail
+  u('1559053614-cd4628902d4a'),     // coffee supplies
+  u('1495474472287-4d71bcdd2085'),  // brewing components
+  u('1544787219-7f47ccb76574'),     // supplies organization
+  u('1452865928648-ce14e7995ccf'),  // inventory
+  u('1512568400610-62da28bc8f45'),  // essentials
+  u('1447933601769-c00d465a05d3'),  // consumable supplies
+  u('1543268865-cbdf3ca2ab57'),     // supplies collection
+  u('1451187580459-43490279c0fa'),  // detail supplies
+];
+
+const MERCH_TAZA = [
+  u('1514228742587-6b1558fcca3d'),  // mug
+  u('1495474472287-4d71bcdd2085'),  // coffee cup
+  u('1510707577719-ae7c14805e3a'),  // mug aesthetic
+  u('1461023058943-07fcbe16d735'),  // cup
+  u('1514432324607-a09d9b4aefdd'),  // mug flat lay
+  u('1447933601403-0c6688de566e'),  // ceramic
+  u('1509042239860-f550ce710b93'),  // mug lifestyle
+  u('1556821840-3a63f95609a7'),     // coffee mug
+  u('1443512220425-95bc62f2d40b'),  // tableware
+  u('1459749411175-04bf5292ceea'),  // cup detail
+  u('1522992719590-544eb2dc4fdf'),  // mug collection
+  u('1447933710033-6461bcad5d65'),  // ceramic mug
+  u('1559053614-cd4628902d4a'),     // mug design
+  u('1495474472287-4d71bcdd2085'),  // cup lifestyle
+  u('1544787219-7f47ccb76574'),     // mug flat lay
+  u('1452865928648-ce14e7995ccf'),  // tableware collection
+];
+
+const MERCH_ROPA = [
+  u('1556821840-3a63f95609a7'),     // hoodie
+  u('1489749798305-ed8726f6c180'),  // apparel
+  u('1443512220425-95bc62f2d40b'),  // clothing
+  u('1462299756681-1aed706a36e8'),  // lifestyle
+  u('1447933601403-0c6688de566e'),  // fashion
+  u('1509042239860-f550ce710b93'),  // apparel lifestyle
+  u('1514432324607-a09d9b4aefdd'),  // style
+  u('1461023058943-07fcbe16d735'),  // clothing detail
+  u('1556821840-3a63f95609a7'),     // fashion lifestyle
+  u('1447933710033-6461bcad5d65'),  // apparel design
+  u('1559053614-cd4628902d4a'),     // fashion style
+  u('1495474472287-4d71bcdd2085'),  // clothing aesthetic
+  u('1544787219-7f47ccb76574'),     // fashion detail
+  u('1452865928648-ce14e7995ccf'),  // apparel collection
+  u('1512568400610-62da28bc8f45'),  // lifestyle wear
+  u('1447933601769-c00d465a05d3'),  // fashion aesthetic
+];
+
+const MERCH_ACCESORIOS = [
+  u('1543512220425-95bc62f2d40b'),  // accessories
+  u('1447933601403-0c6688de566e'),  // merch flat lay
+  u('1509042239860-f550ce710b93'),  // lifestyle accessories
+  u('1514432324607-a09d9b4aefdd'),  // product display
+  u('1461023058943-07fcbe16d735'),  // detail
+  u('1556821840-3a63f95609a7'),     // merch lifestyle
+  u('1443512220425-95bc62f2d40b'),  // merch collection
+  u('1447933710033-6461bcad5d65'),  // product detail
+  u('1559053614-cd4628902d4a'),     // merch aesthetic
+  u('1495474472287-4d71bcdd2085'),  // accessories lifestyle
+  u('1544787219-7f47ccb76574'),     // merch display
+  u('1452865928648-ce14e7995ccf'),  // product collection
+  u('1512568400610-62da28bc8f45'),  // merch detail
+  u('1447933601769-c00d465a05d3'),  // merch aesthetic
+  u('1543268865-cbdf3ca2ab57'),     // collection
+  u('1451187580459-43490279c0fa'),  // product detail
+];
+
+// Helper to pick random image from pool
+const pickImage = (pool: string[]) => pool[Math.floor(Math.random() * pool.length)];
 
 const products = [
+  // ─── CAFÉ: 55 products ─────────────────────────────────────────────────────
+
+  // Veracruz origins
   {
     name: 'Coatepec Lavado',
     slug: 'coatepec-lavado',
     category: 'CAFÉ',
-    origin: 'México',
-    region: 'Coatepec, Veracruz',
+    origin: 'Veracruz',
+    region: 'Coatepec',
     altitude: 1400,
     variety: 'Typica, Bourbon',
     process: 'Lavado',
     scaScore: 86.0,
-    roastLevel: 'Medio-Ligero',
-    flavors: JSON.stringify(['Chocolate amargo', 'Durazno', 'Miel de abeja', 'Frambuesa']),
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate amargo', 'Durazno', 'Miel', 'Frambuesa']),
     price: 280,
     weight: 250,
-    stock: 50,
-    imageUrl: 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([POUR_OVER, BEANS_CLOSE, CUP_TOP, BEANS_SCOOP]),
-    description: 'Lote de origen único proveniente de las faldas del Cofre de Perote. Perfil dulce y balanceado ideal para consumo diario. Producido por la familia Méndez en su tercera generación cafetalera.',
+    stock: 120,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Lote de origen único de las faldas del Cofre de Perote. Perfil dulce y balanceado ideal para consumo diario.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Coatepec Natural',
+    slug: 'coatepec-natural',
+    category: 'CAFÉ',
+    origin: 'Veracruz',
+    region: 'Coatepec',
+    altitude: 1400,
+    variety: 'Catuaí',
+    process: 'Natural',
+    scaScore: 87.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Frutos rojos', 'Caramelo', 'Cacao', 'Canela']),
+    price: 310,
+    weight: 250,
+    stock: 100,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Proceso natural que resalta dulzura frutal con finish a cacao oscuro.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Huatusco Honey',
+    slug: 'huatusco-honey',
+    category: 'CAFÉ',
+    origin: 'Veracruz',
+    region: 'Huatusco',
+    altitude: 1200,
+    variety: 'Bourbon Amarillo',
+    process: 'Honey',
+    scaScore: 88.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Mango', 'Maracuyá', 'Miel', 'Flor de azahar']),
+    price: 340,
+    weight: 250,
+    stock: 90,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Proceso honey con dulzura tropical y cuerpo cremoso.',
     isLimited: false,
     isActive: true,
   },
@@ -42,783 +309,2089 @@ const products = [
     name: 'Huatusco Natural',
     slug: 'huatusco-natural',
     category: 'CAFÉ',
-    origin: 'México',
-    region: 'Huatusco, Veracruz',
+    origin: 'Veracruz',
+    region: 'Huatusco',
     altitude: 1200,
-    variety: 'Caturra',
+    variety: 'Bourbon Amarillo',
     process: 'Natural',
-    scaScore: 84.5,
-    roastLevel: 'Medio',
-    flavors: JSON.stringify(['Frutos rojos', 'Caramelo', 'Cacao', 'Canela']),
-    price: 260,
+    scaScore: 89.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Cereza', 'Vino tinto', 'Frambuesa', 'Pimienta']),
+    price: 360,
     weight: 250,
-    stock: 35,
-    imageUrl: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([BEANS_CLOSE, COFFEE_BAG, LATTE_ART, POUR_OVER]),
-    description: 'Proceso natural que resalta la dulzura frutal del grano. Notas intensas a frutos rojos con un finish a cacao oscuro. Perfecto para método de filtro.',
+    stock: 80,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Perfil frutal intenso con notas vinosas y complejidad excepcional.',
     isLimited: false,
     isActive: true,
   },
   {
+    name: 'Xico Anaeróbico',
+    slug: 'xico-anaerobico',
+    category: 'CAFÉ',
+    origin: 'Veracruz',
+    region: 'Xico',
+    altitude: 1350,
+    variety: 'Typica',
+    process: 'Anaeróbico Natural',
+    scaScore: 90.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Blueberry', 'Ron oscuro', 'Chocolate oscuro', 'Vainilla']),
+    price: 420,
+    weight: 250,
+    stock: 60,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Fermentación anaeróbica de 72 horas con perfil intensamente frutal.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Misantla Lavado',
+    slug: 'misantla-lavado',
+    category: 'CAFÉ',
+    origin: 'Veracruz',
+    region: 'Misantla',
+    altitude: 1100,
+    variety: 'Caturra',
+    process: 'Lavado',
+    scaScore: 85.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Avellana', 'Miel de caña', 'Chocolate', 'Naranja']),
+    price: 260,
+    weight: 250,
+    stock: 110,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café balanceado y limpio, ideal para métodos de filtro.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Chiapas origins
+  {
     name: 'Jaltenango Honey',
     slug: 'jaltenango-honey',
     category: 'CAFÉ',
-    origin: 'México',
-    region: 'Jaltenango, Chiapas',
+    origin: 'Chiapas',
+    region: 'Jaltenango',
     altitude: 1600,
-    variety: 'Bourbon Amarillo',
+    variety: 'Catuaí',
     process: 'Honey',
     scaScore: 87.0,
-    roastLevel: 'Ligero',
+    roastLevel: 'Medio-Ligero',
     flavors: JSON.stringify(['Mango', 'Maracuyá', 'Miel', 'Flor de azahar']),
     price: 320,
     weight: 250,
-    stock: 25,
-    imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([BEANS_HAND, CUP_TOP, BEANS_SCOOP, ESPRESSO]),
-    description: 'Proceso honey que preserva la mucilago del grano, otorgando dulzura tropical y cuerpo cremoso. Uno de nuestros lotes más complejos del año.',
+    stock: 100,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Proceso honey preservando la mucilago con dulzura tropical.',
     isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Jaltenango Natural',
+    slug: 'jaltenango-natural',
+    category: 'CAFÉ',
+    origin: 'Chiapas',
+    region: 'Jaltenango',
+    altitude: 1600,
+    variety: 'Bourbon Rosado',
+    process: 'Natural',
+    scaScore: 88.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Fresa', 'Piña', 'Floral', 'Cítrico']),
+    price: 350,
+    weight: 250,
+    stock: 85,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Variedad Pink Bourbon con proceso natural para máxima complejidad frutal.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'El Triunfo Lavado',
+    slug: 'el-triunfo-lavado',
+    category: 'CAFÉ',
+    origin: 'Chiapas',
+    region: 'El Triunfo',
+    altitude: 1550,
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 86.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate con leche', 'Pera', 'Almendra', 'Miel']),
+    price: 290,
+    weight: 250,
+    stock: 95,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café clásico de El Triunfo con perfil suave y chocolatoso.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'El Triunfo Geisha',
+    slug: 'el-triunfo-geisha',
+    category: 'CAFÉ',
+    origin: 'Chiapas',
+    region: 'El Triunfo',
+    altitude: 1800,
+    variety: 'Geisha',
+    process: 'Lavado',
+    scaScore: 92.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Jazmín', 'Pétalo de rosa', 'Melocotón blanco', 'Té blanco']),
+    price: 620,
+    weight: 100,
+    stock: 25,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Microlote Geisha con perfil floral excepcional y acidez brillante. Edición limitada.',
+    isLimited: true,
     isActive: true,
   },
   {
     name: 'Tapachula Geisha',
     slug: 'tapachula-geisha',
     category: 'CAFÉ',
-    origin: 'México',
-    region: 'Tapachula, Chiapas',
+    origin: 'Chiapas',
+    region: 'Tapachula',
     altitude: 1800,
     variety: 'Geisha',
-    process: 'Lavado',
-    scaScore: 89.5,
+    process: 'Honey',
+    scaScore: 93.0,
     roastLevel: 'Ligero',
     flavors: JSON.stringify(['Jazmín', 'Bergamota', 'Melocotón blanco', 'Té negro']),
     price: 680,
     weight: 100,
-    stock: 10,
-    imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([BEANS_CLOSE, POUR_OVER, LATTE_ART, CUP_TOP]),
-    description: 'Microlote de variedad Geisha cultivada a 1800 metros. Perfil floral excepcional con acidez cítrica brillante. Edición limitada de temporada — solo 10 bolsas disponibles.',
+    stock: 20,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Variedad Geisha legendaria cultivada a 1800m. Edición limitada de temporada.',
     isLimited: true,
     isActive: true,
   },
   {
-    name: 'Pink Bourbon Anaeróbico',
-    slug: 'pink-bourbon-anaerobico',
+    name: 'Tapachula Pacamara',
+    slug: 'tapachula-pacamara',
     category: 'CAFÉ',
-    origin: 'México',
-    region: 'Soconusco, Chiapas',
-    altitude: 1750,
-    variety: 'Pink Bourbon',
-    process: 'Anaeróbico Natural',
-    scaScore: 88.0,
+    origin: 'Chiapas',
+    region: 'Tapachula',
+    altitude: 1700,
+    variety: 'Pacamara',
+    process: 'Natural',
+    scaScore: 91.0,
     roastLevel: 'Ligero',
-    flavors: JSON.stringify(['Fresa', 'Ron', 'Hibisco', 'Mora azul']),
-    price: 540,
-    weight: 150,
-    stock: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1580933073521-dc49ac0d4e6a?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([BEANS_HAND, BEANS_SCOOP, POUR_OVER, CUP_TOP]),
-    description: 'Proceso experimental anaeróbico de 72 horas en tanques sellados. Perfil intensamente frutal con notas a fermentación controlada. Para el explorador de sabores.',
+    flavors: JSON.stringify(['Ciruela', 'Chocolate amargo', 'Vino', 'Especias']),
+    price: 560,
+    weight: 100,
+    stock: 30,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Pacamara (grano gigante) con proceso natural para máxima concentración.',
     isLimited: true,
     isActive: true,
   },
+  {
+    name: 'San Cristóbal Anaeróbico',
+    slug: 'san-cristobal-anaerobico',
+    category: 'CAFÉ',
+    origin: 'Chiapas',
+    region: 'San Cristóbal',
+    altitude: 1450,
+    variety: 'Marsellesa',
+    process: 'Anaeróbico Natural',
+    scaScore: 90.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Blackberry', 'Remolacha', 'Chocolate oscuro', 'Ron']),
+    price: 480,
+    weight: 250,
+    stock: 70,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Variedad rara Marsellesa con fermentación anaeróbica experimental.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Oaxaca origins
+  {
+    name: 'Pluma Lavado',
+    slug: 'pluma-lavado',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Pluma Hidalgo',
+    altitude: 1350,
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 86.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate amargo', 'Naranja', 'Almendra', 'Miel']),
+    price: 295,
+    weight: 250,
+    stock: 105,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Clásico de Pluma con equilibrio chocolate-frutal.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Pluma Natural',
+    slug: 'pluma-natural',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Pluma Hidalgo',
+    altitude: 1350,
+    variety: 'Bourbon Amarillo',
+    process: 'Natural',
+    scaScore: 88.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Mango', 'Caramelo', 'Flores', 'Chocolate']),
+    price: 340,
+    weight: 250,
+    stock: 90,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Bourbon Amarillo con proceso natural para dulzura tropical.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Sierra Juárez Lavado',
+    slug: 'sierra-juarez-lavado',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Sierra Juárez',
+    altitude: 1400,
+    variety: 'Caturra',
+    process: 'Lavado',
+    scaScore: 85.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Caramelo', 'Nueces', 'Chocolate', 'Cítrico']),
+    price: 270,
+    weight: 250,
+    stock: 110,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café de Sierra Juárez con perfil chocolate-caramelo balanceado.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Sierra Juárez Honey',
+    slug: 'sierra-juarez-honey',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Sierra Juárez',
+    altitude: 1400,
+    variety: 'Catuaí',
+    process: 'Honey',
+    scaScore: 86.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Fresa', 'Miel', 'Chocolate blanco', 'Floral']),
+    price: 310,
+    weight: 250,
+    stock: 95,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Catuaí con honey para dulzura natural y cuerpo delicado.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Yucuyoo Anaeróbico',
+    slug: 'yucuyoo-anaerobico',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Yucuyoo',
+    altitude: 1500,
+    variety: 'Bourbon Rosado',
+    process: 'Anaeróbico Natural',
+    scaScore: 91.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Cereza fermentada', 'Vino tinto', 'Blackberry', 'Tabaco']),
+    price: 490,
+    weight: 250,
+    stock: 50,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Pink Bourbon anaeróbico con perfil vinoso y complejo. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+  {
+    name: 'Yucuyoo Natural',
+    slug: 'yucuyoo-natural',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Yucuyoo',
+    altitude: 1500,
+    variety: 'Bourbon Amarillo',
+    process: 'Natural',
+    scaScore: 88.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Papaya', 'Piña', 'Miel', 'Cítrico']),
+    price: 350,
+    weight: 250,
+    stock: 80,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Bourbon Amarillo natural de las montañas de Yucuyoo.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Cañada Lavado',
+    slug: 'canada-oaxaca-lavado',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Cañada Oaxaqueña',
+    altitude: 1250,
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 83.0,
+    roastLevel: 'Oscuro',
+    flavors: JSON.stringify(['Chocolate oscuro', 'Caramelo quemado', 'Humo', 'Nuez']),
+    price: 240,
+    weight: 250,
+    stock: 120,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café oscuro de La Cañada ideal para espresso con cuerpo robusto.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Guerrero origins
+  {
+    name: 'Atoyac Lavado',
+    slug: 'atoyac-lavado',
+    category: 'CAFÉ',
+    origin: 'Guerrero',
+    region: 'Atoyac de Álvarez',
+    altitude: 1300,
+    variety: 'Garnica',
+    process: 'Lavado',
+    scaScore: 84.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate', 'Pera', 'Almendra', 'Vainilla']),
+    price: 255,
+    weight: 250,
+    stock: 105,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Garnica de Atoyac con perfil suave y aromático.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Atoyac Natural',
+    slug: 'atoyac-natural',
+    category: 'CAFÉ',
+    origin: 'Guerrero',
+    region: 'Atoyac de Álvarez',
+    altitude: 1300,
+    variety: 'Garnica',
+    process: 'Natural',
+    scaScore: 85.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Cereza', 'Frambuesa', 'Cacao', 'Pimienta']),
+    price: 285,
+    weight: 250,
+    stock: 90,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Garnica natural de Guerrero con perfil frutal y especiado.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Atoyac Honey',
+    slug: 'atoyac-honey',
+    category: 'CAFÉ',
+    origin: 'Guerrero',
+    region: 'Atoyac de Álvarez',
+    altitude: 1300,
+    variety: 'Bourbon Amarillo',
+    process: 'Honey',
+    scaScore: 86.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Mango', 'Miel de caña', 'Almendra', 'Caramelo']),
+    price: 305,
+    weight: 250,
+    stock: 85,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Bourbon Amarillo honey con dulzura natural y equilibrio.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Atoyac SL28 Anaeróbico',
+    slug: 'atoyac-anaerobico-sl28',
+    category: 'CAFÉ',
+    origin: 'Guerrero',
+    region: 'Atoyac de Álvarez',
+    altitude: 1400,
+    variety: 'SL28',
+    process: 'Anaeróbico Natural',
+    scaScore: 92.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Frambuesa', 'Chocolate oscuro', 'Floral', 'Vino tinto']),
+    price: 580,
+    weight: 100,
+    stock: 25,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'SL28 legendaria con fermentación anaeróbica para máxima complejidad. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+
+  // Hidalgo origins
+  {
+    name: 'Huauchinango Lavado',
+    slug: 'huauchinango-lavado',
+    category: 'CAFÉ',
+    origin: 'Hidalgo',
+    region: 'Huauchinango',
+    altitude: 1350,
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 85.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate con leche', 'Durazno', 'Panela', 'Almendra']),
+    price: 265,
+    weight: 250,
+    stock: 100,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café clásico de Hidalgo con perfil dulce y balanceado.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Huauchinango Honey',
+    slug: 'huauchinango-honey',
+    category: 'CAFÉ',
+    origin: 'Hidalgo',
+    region: 'Huauchinango',
+    altitude: 1350,
+    variety: 'Mundo Novo',
+    process: 'Honey',
+    scaScore: 86.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Mango', 'Melocotón', 'Miel', 'Vainilla']),
+    price: 300,
+    weight: 250,
+    stock: 90,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Mundo Novo honey con dulzura tropical y cuerpo medio.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Huauchinango Natural',
+    slug: 'huauchinango-natural',
+    category: 'CAFÉ',
+    origin: 'Hidalgo',
+    region: 'Huauchinango',
+    altitude: 1350,
+    variety: 'Catuaí',
+    process: 'Natural',
+    scaScore: 87.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Fresa', 'Frambuesa', 'Floral', 'Cítrico']),
+    price: 330,
+    weight: 250,
+    stock: 80,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Catuaí natural de Hidalgo con frescura y acidez brillante.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Hidalgo Maragogype',
+    slug: 'hidalgo-maragogype',
+    category: 'CAFÉ',
+    origin: 'Hidalgo',
+    region: 'Huauchinango',
+    altitude: 1300,
+    variety: 'Maragogype',
+    process: 'Lavado',
+    scaScore: 88.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Durazno', 'Miel', 'Chocolate blanco', 'Floral']),
+    price: 410,
+    weight: 250,
+    stock: 60,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Grano gigante Maragogype con perfil delicado y complejo.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Puebla origins
+  {
+    name: 'Cuetzalan Lavado',
+    slug: 'cuetzalan-lavado',
+    category: 'CAFÉ',
+    origin: 'Puebla',
+    region: 'Cuetzalan',
+    altitude: 1350,
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 85.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate', 'Caramelo', 'Durazno', 'Almendra']),
+    price: 270,
+    weight: 250,
+    stock: 105,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café tradicional de Cuetzalan con carácter chocolate.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Cuetzalan Natural',
+    slug: 'cuetzalan-natural',
+    category: 'CAFÉ',
+    origin: 'Puebla',
+    region: 'Cuetzalan',
+    altitude: 1350,
+    variety: 'Bourbon Amarillo',
+    process: 'Natural',
+    scaScore: 87.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Mango', 'Caramelo', 'Flores', 'Cacao']),
+    price: 310,
+    weight: 250,
+    stock: 90,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Bourbon Amarillo natural con perfil tropical dulce.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Huehuetla Honey',
+    slug: 'huehuetla-honey',
+    category: 'CAFÉ',
+    origin: 'Puebla',
+    region: 'Huehuetla',
+    altitude: 1400,
+    variety: 'Caturra',
+    process: 'Honey',
+    scaScore: 86.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Miel', 'Piña', 'Chocolate', 'Vainilla']),
+    price: 295,
+    weight: 250,
+    stock: 85,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Caturra honey con dulzura natural y cuerpo balanceado.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Puebla Pacamara',
+    slug: 'puebla-pacamara',
+    category: 'CAFÉ',
+    origin: 'Puebla',
+    region: 'Huehuetla',
+    altitude: 1450,
+    variety: 'Pacamara',
+    process: 'Natural',
+    scaScore: 90.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Ciruela', 'Vino tinto', 'Chocolate oscuro', 'Tabaco']),
+    price: 520,
+    weight: 100,
+    stock: 35,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Pacamara (grano grande) natural para bebidas concentradas.',
+    isLimited: true,
+    isActive: true,
+  },
+
+  // Nayarit origins
+  {
+    name: 'Xalisco Lavado',
+    slug: 'xalisco-lavado',
+    category: 'CAFÉ',
+    origin: 'Nayarit',
+    region: 'Xalisco',
+    altitude: 1200,
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 84.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate', 'Caramelo', 'Almendra', 'Miel']),
+    price: 255,
+    weight: 250,
+    stock: 110,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café suave de Nayarit con perfil accesible y balanceado.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Xalisco Natural',
+    slug: 'xalisco-natural',
+    category: 'CAFÉ',
+    origin: 'Nayarit',
+    region: 'Xalisco',
+    altitude: 1200,
+    variety: 'Catuaí',
+    process: 'Natural',
+    scaScore: 86.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Cereza', 'Miel', 'Chocolate', 'Cítrico']),
+    price: 295,
+    weight: 250,
+    stock: 95,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Catuaí natural de Nayarit con frutalidad media.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Nayarit Honey',
+    slug: 'nayarit-honey',
+    category: 'CAFÉ',
+    origin: 'Nayarit',
+    region: 'San Juan',
+    altitude: 1250,
+    variety: 'Bourbon Amarillo',
+    process: 'Honey',
+    scaScore: 85.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Mango', 'Miel', 'Almendra', 'Chocolate']),
+    price: 280,
+    weight: 250,
+    stock: 100,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Bourbon Amarillo honey con dulzura tropical.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // San Luis Potosí origins
+  {
+    name: 'Xilitla Lavado',
+    slug: 'xilitla-lavado',
+    category: 'CAFÉ',
+    origin: 'San Luis Potosí',
+    region: 'Xilitla',
+    altitude: 1300,
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 84.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate', 'Nueces', 'Caramelo', 'Vainilla']),
+    price: 250,
+    weight: 250,
+    stock: 115,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café suave de Xilitla ideal para consumo diario.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Xilitla Natural',
+    slug: 'xilitla-natural',
+    category: 'CAFÉ',
+    origin: 'San Luis Potosí',
+    region: 'Xilitla',
+    altitude: 1300,
+    variety: 'Bourbon Rosado',
+    process: 'Natural',
+    scaScore: 86.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Fresa', 'Chocolate', 'Floral', 'Cítrico']),
+    price: 285,
+    weight: 250,
+    stock: 90,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Pink Bourbon natural de Xilitla con perfil frutal.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Xilitla Honey',
+    slug: 'xilitla-honey',
+    category: 'CAFÉ',
+    origin: 'San Luis Potosí',
+    region: 'Xilitla',
+    altitude: 1300,
+    variety: 'Caturra',
+    process: 'Honey',
+    scaScore: 85.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Miel', 'Chocolate blanco', 'Piña', 'Almendra']),
+    price: 275,
+    weight: 250,
+    stock: 100,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Caturra honey con dulzura natural y equilibrio.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Specialty/Limited
+  {
+    name: 'Pink Bourbon Anaeróbico',
+    slug: 'pink-bourbon-anaerobico',
+    category: 'CAFÉ',
+    origin: 'Chiapas',
+    region: 'El Triunfo',
+    altitude: 1750,
+    variety: 'Pink Bourbon',
+    process: 'Anaeróbico Natural',
+    scaScore: 94.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Fresa', 'Ron oscuro', 'Hibisco', 'Mora azul']),
+    price: 540,
+    weight: 100,
+    stock: 28,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Pink Bourbon legendaria con fermentación anaeróbica de 72 horas. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+  {
+    name: 'Pink Bourbon Natural',
+    slug: 'pink-bourbon-natural',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Sierra Juárez',
+    altitude: 1550,
+    variety: 'Pink Bourbon',
+    process: 'Natural',
+    scaScore: 93.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Frambuesa', 'Vino tinto', 'Floral', 'Especias']),
+    price: 490,
+    weight: 100,
+    stock: 32,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Pink Bourbon natural con complejidad y elegancia. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+  {
+    name: 'Geisha Doble Fermentado',
+    slug: 'geisha-doble-fermentado',
+    category: 'CAFÉ',
+    origin: 'Chiapas',
+    region: 'Tapachula',
+    altitude: 1900,
+    variety: 'Geisha',
+    process: 'Anaeróbico Natural',
+    scaScore: 95.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Jazmín intenso', 'Bergamota', 'Melocotón blanco', 'Té oolong']),
+    price: 850,
+    weight: 50,
+    stock: 15,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Geisha doble fermentada — la máxima expresión floral. Microlote exclusivo.',
+    isLimited: true,
+    isActive: true,
+  },
+  {
+    name: 'SL28 Honey',
+    slug: 'sl28-honey',
+    category: 'CAFÉ',
+    origin: 'Guerrero',
+    region: 'Atoyac de Álvarez',
+    altitude: 1400,
+    variety: 'SL28',
+    process: 'Honey',
+    scaScore: 91.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Frambuesa', 'Miel negra', 'Chocolate oscuro', 'Especias']),
+    price: 560,
+    weight: 100,
+    stock: 26,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'SL28 con honey para equilibrio entre frutalidad y dulzura. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+
+  // Blends
   {
     name: 'Blend 12%',
     slug: 'blend-12',
     category: 'CAFÉ',
     origin: 'México',
-    region: 'Veracruz / Chiapas',
-    altitude: 1300,
-    variety: 'Typica, Caturra, Bourbon',
+    region: 'Multiregional',
+    variety: 'Blend',
     process: 'Lavado / Natural',
     scaScore: 84.0,
     roastLevel: 'Medio',
     flavors: JSON.stringify(['Chocolate con leche', 'Almendra', 'Panela', 'Vainilla']),
     price: 240,
     weight: 250,
-    stock: 80,
-    imageUrl: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([BEANS_CLOSE, CUP_TOP, ESPRESSO, COFFEE_BAG]),
-    description: 'Nuestro blend emblema. Selección curada de los mejores lotes del año para ofrecer un perfil balanceado, consistente y accesible. Perfecto para espresso y métodos de filtro.',
+    stock: 150,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Nuestro blend emblema. Selección curada para perfil balanceado y consistente.',
     isLimited: false,
     isActive: true,
   },
   {
-    name: 'Comandante Grinder',
-    slug: 'comandante-grinder',
-    category: 'ACCESORIOS',
-    price: 95,
-    stock: 20,
-    imageUrl: 'https://images.unsplash.com/photo-1530968033775-2c92736b131e?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([BEANS_SCOOP, BEANS_CLOSE]),
-    description: 'Molino de mano manual con ajuste infinito. Diseño compacto, perfecto para viajes. Utilizado por campeones de cupping.',
+    name: 'Blend Espresso 12%',
+    slug: 'blend-espresso-12',
+    category: 'CAFÉ',
+    origin: 'México',
+    region: 'Multiregional',
+    variety: 'Blend',
+    process: 'Lavado',
+    scaScore: 85.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate oscuro', 'Caramelo', 'Nueces', 'Cacao']),
+    price: 255,
+    weight: 250,
+    stock: 140,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Blend optimizado para espresso con cuerpo robusto y crema persistente.',
     isLimited: false,
     isActive: true,
   },
   {
-    name: 'V60 Chemex Set',
-    slug: 'v60-chemex-set',
-    category: 'ACCESORIOS',
-    price: 85,
-    stock: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([POUR_OVER, CUP_TOP]),
-    description: 'Kit completo con drippers V60 y Chemex 3-cup. Incluye filtros de papel. Inicio perfecto en métodos de filtro.',
+    name: 'Blend Mañana',
+    slug: 'blend-mañana',
+    category: 'CAFÉ',
+    origin: 'México',
+    region: 'Multiregional',
+    variety: 'Blend',
+    process: 'Natural',
+    scaScore: 86.0,
+    roastLevel: 'Medio-Ligero',
+    flavors: JSON.stringify(['Fresa', 'Chocolate blanco', 'Vainilla', 'Floral']),
+    price: 270,
+    weight: 250,
+    stock: 130,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Blend para las mañanas — frutal, ligero y aromático.',
     isLimited: false,
     isActive: true,
   },
   {
-    name: 'Filtros Japoneses (100 unidades)',
-    slug: 'filtros-japoneses',
-    category: 'ACCESORIOS',
-    price: 45,
-    stock: 40,
-    imageUrl: 'https://images.unsplash.com/photo-1521302080334-4bebac2763a6?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([POUR_OVER, LATTE_ART]),
-    description: 'Paquete de 100 filtros de papel premium. Compatibles con V60, Kalita, Melitta. Mejora la claridad del café.',
+    name: 'Blend Bar',
+    slug: 'blend-bar',
+    category: 'CAFÉ',
+    origin: 'México',
+    region: 'Multiregional',
+    variety: 'Blend',
+    process: 'Lavado',
+    scaScore: 83.0,
+    roastLevel: 'Oscuro',
+    flavors: JSON.stringify(['Chocolate oscuro', 'Caramelo quemado', 'Nuez', 'Tabaco']),
+    price: 235,
+    weight: 250,
+    stock: 145,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Blend oscuro para cafeteras — cuerpo pesado y sabor robusto.',
     isLimited: false,
     isActive: true,
   },
   {
-    name: 'Taza Café 12% - Cerámica',
-    slug: 'taza-ceramic-12',
-    category: 'MERCH',
-    price: 25,
-    stock: 60,
-    imageUrl: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([CUP_TOP, ESPRESSO]),
-    description: 'Taza de cerámica con diseño de Café 12%. 12oz, apta para lavar en lavavajillas. Edición limitada.',
+    name: 'Descafeinado Veracruz',
+    slug: 'decaf-veracruz',
+    category: 'CAFÉ',
+    origin: 'Veracruz',
+    region: 'Coatepec',
+    variety: 'Catuaí',
+    process: 'Lavado',
+    scaScore: 83.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate', 'Miel', 'Almendra', 'Suave']),
+    price: 320,
+    weight: 250,
+    stock: 70,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Descafeinado de proceso suizo preservando sabor y aroma.',
     isLimited: false,
     isActive: true,
   },
   {
-    name: 'Hoodie Café 12% - Logo Minimalista',
-    slug: 'hoodie-cafe-12',
-    category: 'MERCH',
-    price: 55,
+    name: 'Cold Brew Blend',
+    slug: 'cold-brew-blend',
+    category: 'CAFÉ',
+    origin: 'México',
+    region: 'Multiregional',
+    variety: 'Blend',
+    process: 'Natural',
+    scaScore: 82.0,
+    roastLevel: 'Oscuro',
+    flavors: JSON.stringify(['Chocolate', 'Cereza', 'Suave', 'Cuerpo']),
+    price: 280,
+    weight: 250,
+    stock: 100,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Blend oscuro ideal para cold brew — sabor limpio y cuerpo.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Café de Olla Especial',
+    slug: 'cafe-de-olla-especial',
+    category: 'CAFÉ',
+    origin: 'Oaxaca',
+    region: 'Pluma Hidalgo',
+    variety: 'Typica',
+    process: 'Lavado',
+    scaScore: 80.0,
+    roastLevel: 'Oscuro',
+    flavors: JSON.stringify(['Chocolate', 'Canela', 'Tradicional', 'Suave']),
+    price: 220,
+    weight: 250,
+    stock: 120,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café tradicional mexicano tostado oscuro para olla de barro.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Café Specialty Instantáneo',
+    slug: 'cafe-instantaneo-specialty',
+    category: 'CAFÉ',
+    origin: 'México',
+    region: 'Multiregional',
+    variety: 'Blend',
+    process: 'Natural',
+    scaScore: 82.0,
+    roastLevel: 'Medio',
+    flavors: JSON.stringify(['Chocolate', 'Frutales', 'Suave', 'Rápido']),
+    price: 180,
+    weight: 100,
+    stock: 200,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Café instantáneo premium para conveniencia sin sacrificar sabor.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Microlote Bourbon Rosado',
+    slug: 'microlote-bourbon-rosado',
+    category: 'CAFÉ',
+    origin: 'Veracruz',
+    region: 'Huatusco',
+    variety: 'Bourbon Rosado',
+    process: 'Honey',
+    scaScore: 91.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Fresa', 'Flores silvestres', 'Miel', 'Cítrico']),
+    price: 520,
+    weight: 100,
+    stock: 32,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Microlote Pink Bourbon con honey para máxima complejidad frutal. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+  {
+    name: 'Microlote Typica Añejo',
+    slug: 'microlote-typica-lavado',
+    category: 'CAFÉ',
+    origin: 'Chiapas',
+    region: 'Jaltenango',
+    variety: 'Typica',
+    process: 'Natural',
+    scaScore: 90.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Cereza', 'Cacao nibs', 'Floral', 'Especias']),
+    price: 480,
+    weight: 100,
+    stock: 35,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Typica vieja de más de 50 años en Jaltenango con carácter excepcional. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+  {
+    name: 'Microlote Caturra Anaeróbico',
+    slug: 'microlote-caturra-anaerobico',
+    category: 'CAFÉ',
+    origin: 'Guerrero',
+    region: 'Atoyac',
+    variety: 'Caturra',
+    process: 'Anaeróbico Natural',
+    scaScore: 91.0,
+    roastLevel: 'Ligero',
+    flavors: JSON.stringify(['Blueberry', 'Vino tinto', 'Chocolate oscuro', 'Tabaco']),
+    price: 510,
+    weight: 100,
     stock: 30,
-    imageUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80',
-    images: JSON.stringify([u('1620799140408-edc6dcb6d633')]),
-    description: 'Sudadera con capucha 100% algodón. Logo minimalista de Café 12% impreso. Unisex, tallas S-XL.',
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Caturra anaeróbica experimental con fermentación controlada. Edición limitada.',
+    isLimited: true,
+    isActive: true,
+  },
+  {
+    name: 'Bolsa Degustación 3x100g',
+    slug: 'subscripcion-starter-bag',
+    category: 'CAFÉ',
+    origin: 'México',
+    region: 'Multiregional',
+    variety: 'Varios',
+    process: 'Varios',
+    flavors: JSON.stringify(['Degustación', 'Exploración', 'Variedad']),
+    price: 390,
+    weight: 300,
+    stock: 80,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Bolsa de inicio con 3 orígenes diferentes de 100g cada uno para exploración.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Caja Muestra 4 Orígenes',
+    slug: 'muestra-cuatro-origenes',
+    category: 'CAFÉ',
+    origin: 'México',
+    region: 'Multiregional',
+    variety: 'Varios',
+    process: 'Varios',
+    flavors: JSON.stringify(['Degustación premium', 'Viaje sensorial']),
+    price: 490,
+    weight: 400,
+    stock: 70,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
+    description: 'Caja premium con 4 microlotes de 100g para viaje sensorial completo.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // ─── ACCESORIOS: 35 products ───────────────────────────────────────────────
+
+  // Grinders
+  {
+    name: 'Comandante C40 MK4 — Negro',
+    slug: 'comandante-c40-negro',
+    category: 'ACCESORIOS',
+    price: 3200,
+    weight: 400,
+    stock: 30,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino manual premium con 40mm de diámetro. Ajuste infinito, burrs conică. Favorito de campeones.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Comandante C40 MK4 — Rojo',
+    slug: 'comandante-c40-rojo',
+    category: 'ACCESORIOS',
+    price: 3200,
+    weight: 400,
+    stock: 25,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino manual en acabado rojo. Especificaciones idénticas al modelo negro.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Hario Skerton Pro',
+    slug: 'hario-skerton-pro',
+    category: 'ACCESORIOS',
+    price: 980,
+    weight: 250,
+    stock: 50,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino manual asequible de calidad con burrs cerámicos. Ideal para principiantes.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Kingrinder K6',
+    slug: 'kingrinder-k6',
+    category: 'ACCESORIOS',
+    price: 1450,
+    weight: 350,
+    stock: 40,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino chino de calidad con burrs afilados. Excelente relación precio-calidad.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: '1Zpresso JX-Pro',
+    slug: '1zpresso-jx-pro',
+    category: 'ACCESORIOS',
+    price: 2600,
+    weight: 380,
+    stock: 35,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino premium con burrs espiral. Ligeramente más rápido que Comandante.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Timemore Chestnut C2 Max',
+    slug: 'timemore-c2-max',
+    category: 'ACCESORIOS',
+    price: 1100,
+    weight: 320,
+    stock: 45,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino compacto con burrs S55 de Etzberg. Portátil y eficiente.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Baratza Encore ESP (Eléctrico)',
+    slug: 'baratza-encore-esp',
+    category: 'ACCESORIOS',
+    price: 3500,
+    weight: 800,
+    stock: 20,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino eléctrico Baratza con 40 niveles de molienda. Rápido y confiable.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Fellow Ode Gen 2 (Eléctrico)',
+    slug: 'fellow-ode-gen2',
+    category: 'ACCESORIOS',
+    price: 7800,
+    weight: 1200,
+    stock: 15,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
+    description: 'Molino eléctrico premium diseñado especialmente para filtro. Precisión extrema.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Brewers
+  {
+    name: 'V60-02 Cerámica — Blanco',
+    slug: 'v60-02-ceramic-blanco',
+    category: 'ACCESORIOS',
+    price: 580,
+    weight: 150,
+    stock: 60,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Dripper de cerámica V60 clásico en color blanco. Excelente retención de calor.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'V60-02 Cerámica — Negro',
+    slug: 'v60-02-ceramic-negro',
+    category: 'ACCESORIOS',
+    price: 580,
+    weight: 150,
+    stock: 55,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Dripper de cerámica V60 en color negro. Mismo rendimiento, diferente estética.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'V60-02 Plástico — Rojo',
+    slug: 'v60-02-plastic',
+    category: 'ACCESORIOS',
+    price: 280,
+    weight: 80,
+    stock: 80,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Dripper V60 de plástico resistente en rojo. Asequible y portátil.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'V60-02 Vidrio',
+    slug: 'v60-02-glass',
+    category: 'ACCESORIOS',
+    price: 780,
+    weight: 200,
+    stock: 40,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Dripper V60 premium de vidrio borosilicato. Transparencia total + durabilidad.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Chemex 6 Tazas',
+    slug: 'chemex-6-tazas',
+    category: 'ACCESORIOS',
+    price: 1350,
+    weight: 600,
+    stock: 35,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Cafetera Chemex clásica para 6 tazas. Vidrio borosilicato y filtros gruesos incluidos.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Chemex 3 Tazas',
+    slug: 'chemex-3-tazas',
+    category: 'ACCESORIOS',
+    price: 1150,
+    weight: 450,
+    stock: 40,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Chemex compacta para 3 tazas. Ideal para individuos o parejas.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'AeroPress Original',
+    slug: 'aeropress-original',
+    category: 'ACCESORIOS',
+    price: 1050,
+    weight: 300,
+    stock: 50,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'AeroPress clásico. Rápido, versátil y fácil de limpiar.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'AeroPress Go',
+    slug: 'aeropress-go',
+    category: 'ACCESORIOS',
+    price: 980,
+    weight: 280,
+    stock: 45,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'AeroPress portátil con taza integrada. Perfecto para viajes.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'AeroPress Clear',
+    slug: 'aeropress-clear',
+    category: 'ACCESORIOS',
+    price: 1150,
+    weight: 320,
+    stock: 38,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'AeroPress en material transparente. Mismo rendimiento, mayor visibilidad.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Moka Pot Bialetti 3 Tazas',
+    slug: 'moka-3-tazas',
+    category: 'ACCESORIOS',
+    price: 450,
+    weight: 400,
+    stock: 70,
+    imageUrl: pickImage(ACCESORIOS_MOKA),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOKA), pickImage(ACCESORIOS_MOKA)]),
+    description: 'Moka clásica Bialetti de aluminio para 3 tazas. Método tradicional italiano.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Moka Pot Bialetti 6 Tazas',
+    slug: 'moka-6-tazas',
+    category: 'ACCESORIOS',
+    price: 550,
+    weight: 500,
+    stock: 65,
+    imageUrl: pickImage(ACCESORIOS_MOKA),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOKA), pickImage(ACCESORIOS_MOKA)]),
+    description: 'Moka Bialetti de 6 tazas. Mayor capacidad para familias.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Moka Pot Bialetti 9 Tazas',
+    slug: 'moka-9-tazas',
+    category: 'ACCESORIOS',
+    price: 650,
+    weight: 600,
+    stock: 55,
+    imageUrl: pickImage(ACCESORIOS_MOKA),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOKA), pickImage(ACCESORIOS_MOKA)]),
+    description: 'Moka de 9 tazas para café en cantidad. Acero inoxidable resistente.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'French Press 350ml',
+    slug: 'french-press-350ml',
+    category: 'ACCESORIOS',
+    price: 420,
+    weight: 350,
+    stock: 60,
+    imageUrl: pickImage(ACCESORIOS_MOKA),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOKA), pickImage(ACCESORIOS_MOKA)]),
+    description: 'Cafetera de inmersión clásica. Perfecta para uno o dos. Vidrio borosilicato.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'French Press 1L',
+    slug: 'french-press-1l',
+    category: 'ACCESORIOS',
+    price: 580,
+    weight: 500,
+    stock: 50,
+    imageUrl: pickImage(ACCESORIOS_MOKA),
+    images: JSON.stringify([pickImage(ACCESORIOS_MOKA), pickImage(ACCESORIOS_MOKA)]),
+    description: 'French Press grande para 8 tazas. Cuerpo pesado y sabor robusto.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Kalita Wave 185 — Acero',
+    slug: 'kalita-wave-185',
+    category: 'ACCESORIOS',
+    price: 1200,
+    weight: 200,
+    stock: 42,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Dripper Kalita Wave con fondo plano. Extracción consistente y limpia.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Clever Dripper L',
+    slug: 'clever-dripper',
+    category: 'ACCESORIOS',
+    price: 480,
+    weight: 150,
+    stock: 55,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Método híbrido (inmersión + filtración). Ideal para resultados consistentes.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Nel Drip (Bolsa Flanela)',
+    slug: 'nel-drip-flanela',
+    category: 'ACCESORIOS',
+    price: 320,
+    weight: 80,
+    stock: 70,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Método tailandés con bolsa de tela. Café suave y aromático.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Cold Brew Maker 1L',
+    slug: 'cold-brew-maker',
+    category: 'ACCESORIOS',
+    price: 690,
+    weight: 400,
+    stock: 48,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
+    description: 'Botella de cold brew con filtro integrado. Listo para refrigerar y servir.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Kettles
+  {
+    name: 'Fellow Stagg EKG 0.9L',
+    slug: 'fellow-stagg-ekg',
+    category: 'ACCESORIOS',
+    price: 4200,
+    weight: 1100,
+    stock: 20,
+    imageUrl: pickImage(ACCESORIOS_KETTLE),
+    images: JSON.stringify([pickImage(ACCESORIOS_KETTLE), pickImage(ACCESORIOS_KETTLE)]),
+    description: 'Kettle de temperatura variable con pantalla LCD. Control de precisión para brew perfecto.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Hario Buono Cuello de Ganso 1.2L',
+    slug: 'hario-buono-1200',
+    category: 'ACCESORIOS',
+    price: 980,
+    weight: 600,
+    stock: 40,
+    imageUrl: pickImage(ACCESORIOS_KETTLE),
+    images: JSON.stringify([pickImage(ACCESORIOS_KETTLE), pickImage(ACCESORIOS_KETTLE)]),
+    description: 'Kettle de cuello ganso clásico. Control fino del vertido para pour-overs.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Bonavita Variable 1L',
+    slug: 'bonavita-kettle',
+    category: 'ACCESORIOS',
+    price: 1450,
+    weight: 900,
+    stock: 35,
+    imageUrl: pickImage(ACCESORIOS_KETTLE),
+    images: JSON.stringify([pickImage(ACCESORIOS_KETTLE), pickImage(ACCESORIOS_KETTLE)]),
+    description: 'Kettle de temperatura variable de calidad. Mantiene temperura constante.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Scales
+  {
+    name: 'Timemore Black Mirror Basic',
+    slug: 'timemore-black-mirror',
+    category: 'ACCESORIOS',
+    price: 850,
+    weight: 200,
+    stock: 55,
+    imageUrl: pickImage(ACCESORIOS_BASCULA),
+    images: JSON.stringify([pickImage(ACCESORIOS_BASCULA), pickImage(ACCESORIOS_BASCULA)]),
+    description: 'Báscula de precisión minimalista con pantalla LED. Rango 0-2kg.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Acaia Pearl S',
+    slug: 'acaia-pearl-s',
+    category: 'ACCESORIOS',
+    price: 2400,
+    weight: 350,
+    stock: 18,
+    imageUrl: pickImage(ACCESORIOS_BASCULA),
+    images: JSON.stringify([pickImage(ACCESORIOS_BASCULA), pickImage(ACCESORIOS_BASCULA)]),
+    description: 'Báscula de barista profesional con Bluetooth. Rango 0-2kg con precisión.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // Filters & Consumables
+  {
+    name: 'Filtros V60 Tabachi (100u)',
+    slug: 'filtros-v60-tabachi-100',
+    category: 'ACCESORIOS',
+    price: 120,
+    weight: 100,
+    stock: 150,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Filtros de papel premium tabachi para V60. Paquete de 100 unidades.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Filtros V60 Blancos (100u)',
+    slug: 'filtros-v60-blancos-100',
+    category: 'ACCESORIOS',
+    price: 130,
+    weight: 100,
+    stock: 140,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Filtros blancos para V60. Mejora la claridad del café.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Filtros Kalita Wave 185 (100u)',
+    slug: 'filtros-kalita-wave-100',
+    category: 'ACCESORIOS',
+    price: 150,
+    weight: 100,
+    stock: 120,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Filtros planos para Kalita Wave. Paquete de 100 unidades.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Filtros AeroPress Paper (350u)',
+    slug: 'filtros-aeropress-350',
+    category: 'ACCESORIOS',
+    price: 160,
+    weight: 150,
+    stock: 130,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Filtros de papel para AeroPress. Paquete de 350 unidades.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Disco Metálico AeroPress',
+    slug: 'disco-metalico-aeropress',
+    category: 'ACCESORIOS',
+    price: 280,
+    weight: 50,
+    stock: 80,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Filtro metálico reutilizable para AeroPress. Permite aceites naturales.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Cafiza Cleaning Tablets (25u)',
+    slug: 'cafiza-pastillas-25',
+    category: 'ACCESORIOS',
+    price: 240,
+    weight: 150,
+    stock: 100,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Pastillas de limpieza para cafetera. Limpieza profunda sin químicos agresivos.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Airscape Canister 500g',
+    slug: 'airscape-500g',
+    category: 'ACCESORIOS',
+    price: 680,
+    weight: 300,
+    stock: 60,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Contenedor de vacío patentado para preservar frescura de café.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Fellow Atmos 1.2L — Negro',
+    slug: 'fellow-atmos-12l',
+    category: 'ACCESORIOS',
+    price: 1050,
+    weight: 400,
+    stock: 45,
+    imageUrl: pickImage(ACCESORIOS_FILTROS),
+    images: JSON.stringify([pickImage(ACCESORIOS_FILTROS), pickImage(ACCESORIOS_FILTROS)]),
+    description: 'Contenedor con sistema de presión de aire. Mantiene café fresco hasta 4 semanas.',
+    isLimited: false,
+    isActive: true,
+  },
+
+  // ─── MERCH: 20 products ───────────────────────────────────────────────────
+
+  {
+    name: 'Camiseta 12% — Negra',
+    slug: 'camiseta-12-negra',
+    category: 'MERCH',
+    price: 490,
+    weight: 200,
+    stock: 80,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Camiseta de algodón 100% con logo 12%. Corte cómodo unisex.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Camiseta 12% — Blanca',
+    slug: 'camiseta-12-blanca',
+    category: 'MERCH',
+    price: 490,
+    weight: 200,
+    stock: 85,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Camiseta blanca con branding minimalista. Tallas S-XL disponibles.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Camiseta 12% — Arena',
+    slug: 'camiseta-12-arena',
+    category: 'MERCH',
+    price: 490,
+    weight: 200,
+    stock: 75,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Camiseta en tono arena neutro. Combina con todo.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Hoodie 12% — Negro',
+    slug: 'hoodie-12-negro',
+    category: 'MERCH',
+    price: 850,
+    weight: 350,
+    stock: 55,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Sudadera con capucha 100% algodón. Logo bordado 12%. Calidez y estilo.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Hoodie 12% — Gris',
+    slug: 'hoodie-12-gris',
+    category: 'MERCH',
+    price: 850,
+    weight: 350,
+    stock: 50,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Hoodie gris carbón. Perfecto para cualquier clima.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Hoodie 12% — Café',
+    slug: 'hoodie-12-cafe',
+    category: 'MERCH',
+    price: 850,
+    weight: 350,
+    stock: 48,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Hoodie en tono café oscuro. Ideal para amantes del café.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Cap 12% Snapback — Negro',
+    slug: 'cap-12-negro',
+    category: 'MERCH',
+    price: 380,
+    weight: 100,
+    stock: 100,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Gorra Snapback con ajuste libre. Logo bordado 12%.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Cap 12% Dad Hat — Beige',
+    slug: 'cap-12-beige',
+    category: 'MERCH',
+    price: 350,
+    weight: 100,
+    stock: 95,
+    imageUrl: pickImage(MERCH_ROPA),
+    images: JSON.stringify([pickImage(MERCH_ROPA), pickImage(MERCH_ROPA)]),
+    description: 'Dad hat en beige con cierre ajustable. Casual y versátil.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Taza Cerámica 12oz — Blanca',
+    slug: 'taza-ceramica-12oz-blanca',
+    category: 'MERCH',
+    price: 320,
+    weight: 250,
+    stock: 120,
+    imageUrl: pickImage(MERCH_TAZA),
+    images: JSON.stringify([pickImage(MERCH_TAZA), pickImage(MERCH_TAZA)]),
+    description: 'Taza de cerámica 12oz con branding 12%. Lavavajillas y microondas seguros.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Taza Cerámica 12oz — Negra',
+    slug: 'taza-ceramica-12oz-negra',
+    category: 'MERCH',
+    price: 320,
+    weight: 250,
+    stock: 110,
+    imageUrl: pickImage(MERCH_TAZA),
+    images: JSON.stringify([pickImage(MERCH_TAZA), pickImage(MERCH_TAZA)]),
+    description: 'Taza negra con diseño 12%. Material premium y acabado mate.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Taza Cerámica 16oz',
+    slug: 'taza-ceramica-16oz',
+    category: 'MERCH',
+    price: 360,
+    weight: 300,
+    stock: 100,
+    imageUrl: pickImage(MERCH_TAZA),
+    images: JSON.stringify([pickImage(MERCH_TAZA), pickImage(MERCH_TAZA)]),
+    description: 'Taza grande 16oz para bebidas generosas. Cerámica de calidad.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Travel Mug Termo 350ml',
+    slug: 'travel-mug-350ml',
+    category: 'MERCH',
+    price: 580,
+    weight: 280,
+    stock: 80,
+    imageUrl: pickImage(MERCH_TAZA),
+    images: JSON.stringify([pickImage(MERCH_TAZA), pickImage(MERCH_TAZA)]),
+    description: 'Termo aislante de doble pared. Mantiene temperatura hasta 8 horas.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Vaso Borosilicato 350ml',
+    slug: 'vaso-vidrio-350ml',
+    category: 'MERCH',
+    price: 420,
+    weight: 200,
+    stock: 90,
+    imageUrl: pickImage(MERCH_TAZA),
+    images: JSON.stringify([pickImage(MERCH_TAZA), pickImage(MERCH_TAZA)]),
+    description: 'Vaso de vidrio borosilicato resistente al calor. Perfecto para cold brew.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Vaso Espresso Doble Pared 100ml',
+    slug: 'vaso-espresso-doble',
+    category: 'MERCH',
+    price: 280,
+    weight: 120,
+    stock: 110,
+    imageUrl: pickImage(MERCH_TAZA),
+    images: JSON.stringify([pickImage(MERCH_TAZA), pickImage(MERCH_TAZA)]),
+    description: 'Vaso espresso de doble pared. Mantiene calor sin quemar manos.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Tote Bag 12%',
+    slug: 'tote-bag-12',
+    category: 'MERCH',
+    price: 250,
+    weight: 150,
+    stock: 130,
+    imageUrl: pickImage(MERCH_ACCESORIOS),
+    images: JSON.stringify([pickImage(MERCH_ACCESORIOS), pickImage(MERCH_ACCESORIOS)]),
+    description: 'Bolsa de tela con logo 12%. Ecofriendly y resistente.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Delantal Barista Canvas',
+    slug: 'delantal-barista',
+    category: 'MERCH',
+    price: 650,
+    weight: 200,
+    stock: 60,
+    imageUrl: pickImage(MERCH_ACCESORIOS),
+    images: JSON.stringify([pickImage(MERCH_ACCESORIOS), pickImage(MERCH_ACCESORIOS)]),
+    description: 'Delantal canvas profesional para baristas. Bolsillos prácticos.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Sticker Pack (10u)',
+    slug: 'stickers-pack-10',
+    category: 'MERCH',
+    price: 180,
+    weight: 30,
+    stock: 200,
+    imageUrl: pickImage(MERCH_ACCESORIOS),
+    images: JSON.stringify([pickImage(MERCH_ACCESORIOS), pickImage(MERCH_ACCESORIOS)]),
+    description: 'Paquete de 10 stickers variados 12%. Diseños exclusivos.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Libreta Barista 120p',
+    slug: 'libreta-barista',
+    category: 'MERCH',
+    price: 220,
+    weight: 150,
+    stock: 140,
+    imageUrl: pickImage(MERCH_ACCESORIOS),
+    images: JSON.stringify([pickImage(MERCH_ACCESORIOS), pickImage(MERCH_ACCESORIOS)]),
+    description: 'Libreta con páginas especiales para registrar recetas de café. 120 páginas.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Pin Set Colección (5 pines)',
+    slug: 'pin-set-coleccion',
+    category: 'MERCH',
+    price: 290,
+    weight: 50,
+    stock: 160,
+    imageUrl: pickImage(MERCH_ACCESORIOS),
+    images: JSON.stringify([pickImage(MERCH_ACCESORIOS), pickImage(MERCH_ACCESORIOS)]),
+    description: 'Set de 5 pines coleccionables con diferentes diseños de café.',
+    isLimited: false,
+    isActive: true,
+  },
+  {
+    name: 'Poster 12% Café 30x40cm',
+    slug: 'poster-12-cafe',
+    category: 'MERCH',
+    price: 350,
+    weight: 100,
+    stock: 120,
+    imageUrl: pickImage(MERCH_ACCESORIOS),
+    images: JSON.stringify([pickImage(MERCH_ACCESORIOS), pickImage(MERCH_ACCESORIOS)]),
+    description: 'Póster artístico 30x40cm para decorar espacios. Impresión premium.',
     isLimited: false,
     isActive: true,
   },
 ];
 
-// ─── Recipes ──────────────────────────────────────────────────────────────────
-const recipes: Array<{
-  slug: string;
-  title: string;
-  description: string;
-  method: string;
-  difficulty: 'FÁCIL' | 'MEDIA' | 'DIFÍCIL';
-  prepTime: number;
-  yield: string;
-  temp?: string;
-  grind?: string;
-  ratio?: string;
-  isPremium: boolean;
-  isPublished: boolean;
-  productSlug?: string;
-  steps: Array<{ order: number; title: string; description: string; duration?: number }>;
-}> = [
-  // ── POUR OVER / V60 ───────────────────────────────────────────────────────
-  {
-    slug: 'v60-clasico',
-    title: 'V60 Clásico',
-    description: 'La base de todo barista: extracción limpia y brillante que resalta la acidez y dulzura del café de especialidad.',
-    method: 'V60',
-    difficulty: 'MEDIA',
-    prepTime: 5,
-    yield: '250 ml',
-    temp: '93°C',
-    grind: 'Medio-fino',
-    ratio: '1:15 (15g / 225ml)',
-    isPremium: false,
-    isPublished: true,
-    productSlug: 'coatepec-lavado',
-    steps: [
-      { order: 1, title: 'Pesa y muele', description: 'Pesa 15g de café y muele a punto medio-fino, similar a azúcar morena.', duration: 30 },
-      { order: 2, title: 'Pre-infusión', description: 'Vierte 30ml de agua a 93°C en movimientos circulares. Espera 30 segundos para que el café libere CO₂ (bloom).', duration: 30 },
-      { order: 3, title: 'Primera vertida', description: 'Vierte lentamente hasta 150ml en espiral hacia adentro, sin mojar el filtro. Tarda ~45 segundos.', duration: 45 },
-      { order: 4, title: 'Segunda vertida', description: 'Cuando el nivel baje a la mitad, vierte hasta completar 225ml. Mantén movimientos circulares suaves.', duration: 40 },
-      { order: 5, title: 'Extracción final', description: 'Espera que drene completamente. Total de 3:00–3:30 min desde la primera vertida. Sirve inmediatamente.' },
-    ],
-  },
-  {
-    slug: 'v60-4-6-method',
-    title: 'Método 4:6 de Tetsu Kasuya',
-    description: 'Técnica ganadora del Campeonato Mundial de Brewer\'s Cup 2016. Controlas acidez y dulzura con las primeras dos vertidas.',
-    method: 'V60',
-    difficulty: 'DIFÍCIL',
-    prepTime: 5,
-    yield: '300 ml',
-    temp: '92°C',
-    grind: 'Grueso-medio',
-    ratio: '1:15 (20g / 300ml)',
-    isPremium: true,
-    isPublished: true,
-    productSlug: 'jaltenango-honey',
-    steps: [
-      { order: 1, title: 'Setup', description: 'Pesa 20g molidos grueso-medio. Precalienta el V60 y la taza con agua caliente. Desecha el agua.', duration: 20 },
-      { order: 2, title: 'Primera vertida (40%)', description: 'Vierte 60ml (40% de 150ml de "control"). Espera 45 seg. Esta vertida controla acidez — más agua = más acidez.', duration: 45 },
-      { order: 3, title: 'Segunda vertida (60%)', description: 'Vierte 90ml hasta completar 150ml. Espera 45 seg. Esta vertida controla dulzura — más agua = más dulce.', duration: 45 },
-      { order: 4, title: 'Tres vertidas iguales', description: 'Divide los 150ml restantes en 3 vertidas de 50ml cada una, cada 45 seg. Estas controlan la fortaleza.', duration: 135 },
-      { order: 5, title: 'Drenado', description: 'Deja drenar completamente. Tiempo total: ~5 min. Ajusta las primeras dos vertidas en futuras preparaciones.' },
-    ],
-  },
+// Map products by slug for bundle reference
+const productMap = new Map(products.map(p => [p.slug, p]));
 
-  // ── AEROPRESS ─────────────────────────────────────────────────────────────
+// Bundles: 10 themed packages
+const bundles = [
   {
-    slug: 'aeropress-estandar',
-    title: 'AeroPress Estándar',
-    description: 'Rápido, limpio y versátil. El método favorito de viajeros y entusiastas por su consistencia y facilidad.',
-    method: 'AeroPress',
-    difficulty: 'FÁCIL',
-    prepTime: 3,
-    yield: '200 ml',
-    temp: '85°C',
-    grind: 'Medio',
-    ratio: '1:13 (15g / 195ml)',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Prepara el AeroPress', description: 'Coloca el filtro de papel en la tapa metálica, enjuágalo con agua caliente. Ensambla el AeroPress en posición normal sobre tu taza.', duration: 20 },
-      { order: 2, title: 'Agrega el café', description: 'Vierte 15g de café molido medio en el AeroPress. Nivela suavemente.', duration: 10 },
-      { order: 3, title: 'Pre-infusión', description: 'Añade 30ml de agua a 85°C. Revuelve rápidamente con la paleta durante 10 segundos para humedecer todo el café.', duration: 15 },
-      { order: 4, title: 'Vertida principal', description: 'Vierte los 165ml restantes en ~10 segundos. Coloca el émbolo para crear vacío — no lo empujes aún.', duration: 30 },
-      { order: 5, title: 'Presiona', description: 'A los 60 seg totales, presiona el émbolo lentamente durante 20–30 segundos hasta escuchar un ligero silbido. No fuerces hasta el fondo.', duration: 30 },
+    name: 'Starter V60',
+    description: 'Kit completo para iniciar en métodos de filtro. V60 plastic + filtros + báscula + café.',
+    basePrice: 1280,
+    discountPct: 15,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    items: [
+      { productSlug: 'v60-02-plastic', quantity: 1 },
+      { productSlug: 'filtros-v60-tabachi-100', quantity: 1 },
+      { productSlug: 'timemore-black-mirror', quantity: 1 },
+      { productSlug: 'coatepec-lavado', quantity: 1 },
     ],
   },
   {
-    slug: 'aeropress-invertido',
-    title: 'AeroPress Invertido',
-    description: 'La técnica "inverted" favorita de campeones. Control total del tiempo de contacto sin goteo prematuro.',
-    method: 'AeroPress',
-    difficulty: 'MEDIA',
-    prepTime: 4,
-    yield: '200 ml',
-    temp: '88°C',
-    grind: 'Medio-fino',
-    ratio: '1:12 (17g / 200ml)',
-    isPremium: false,
-    isPublished: true,
-    productSlug: 'huatusco-natural',
-    steps: [
-      { order: 1, title: 'Posición invertida', description: 'Inserta el émbolo ~1cm en el cuerpo del AeroPress. Colócalo boca abajo sobre una superficie estable.', duration: 15 },
-      { order: 2, title: 'Café y agua', description: 'Agrega 17g molidos medio-fino. Vierte 200ml de agua a 88°C. Revuelve 10 segundos con la paleta.', duration: 20 },
-      { order: 3, title: 'Infusión', description: 'Espera 1 minuto con el émbolo puesto (sin apretar) para mantener el calor. Mientras tanto, coloca el filtro enjuagado en la tapa.', duration: 60 },
-      { order: 4, title: 'Tapa y gira', description: 'Coloca la tapa con filtro y enrosca firmemente. Con un movimiento seguro y rápido, gira el AeroPress sobre tu taza.', duration: 10 },
-      { order: 5, title: 'Presiona', description: 'Presiona el émbolo en ~20 segundos con presión uniforme. Detén al escuchar el silbido. Resultado: taza limpia y compleja.', duration: 25 },
-    ],
-  },
-
-  // ── ESPRESSO ──────────────────────────────────────────────────────────────
-  {
-    slug: 'espresso-doble',
-    title: 'Espresso Doble',
-    description: 'La base de toda la barra. Dos shots perfectos con crema dorada y sabor concentrado e intenso.',
-    method: 'Espresso',
-    difficulty: 'DIFÍCIL',
-    prepTime: 2,
-    yield: '60 ml',
-    temp: '94°C',
-    grind: 'Fino',
-    ratio: '1:2 (18g / 36ml)',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Purga y temperatura', description: 'Purga el grupo de la máquina 2-3 segundos para estabilizar la temperatura. Seca el portafiltro.', duration: 10 },
-      { order: 2, title: 'Dosis y distribución', description: 'Dosa 18g en el portafiltro. Usa el Weiss Distribution Technique (WDT): un palillo o herramienta distribuye el café uniformemente para eliminar canales.', duration: 20 },
-      { order: 3, title: 'Tampar', description: 'Tampa con 15–20 kg de presión de forma nivelada y perpendicular. Un buen tamp es silencioso y firme.', duration: 10 },
-      { order: 4, title: 'Extracción', description: 'Inserta el portafiltro y activa inmediatamente. El flujo debe comenzar en 5–8 seg. Objetivo: 36ml en 25–30 seg. Crema color avellana.', duration: 30 },
-      { order: 5, title: 'Evalúa', description: 'Prueba el shot solo: debe tener dulzura, cuerpo y acidez balanceados. Si es amargo, muele más grueso. Si es ácido y aguado, muele más fino.' },
+    name: 'Starter AeroPress',
+    description: 'Todo lo que necesitas para AeroPress. Prensa + filtros + disco + café blend.',
+    basePrice: 1550,
+    discountPct: 15,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    items: [
+      { productSlug: 'aeropress-original', quantity: 1 },
+      { productSlug: 'filtros-aeropress-350', quantity: 1 },
+      { productSlug: 'disco-metalico-aeropress', quantity: 1 },
+      { productSlug: 'blend-12', quantity: 1 },
     ],
   },
   {
-    slug: 'cortado',
-    title: 'Cortado',
-    description: 'El equilibrio perfecto entre espresso y leche. 1:1 de café y leche vaporizada, sin espuma densa.',
-    method: 'Espresso',
-    difficulty: 'MEDIA',
-    prepTime: 3,
-    yield: '120 ml',
-    temp: '94°C',
-    grind: 'Fino',
-    ratio: '1:1 espresso/leche',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Extrae el espresso doble', description: 'Sigue la receta de espresso doble (18g → 36ml en 25-30 seg). Coloca el shot en el vaso cortado de 120ml.', duration: 35 },
-      { order: 2, title: 'Vaporiza la leche', description: 'Usa 80ml de leche entera fría. Sumerge la lanza en ángulo, crea microespuma (textura sedosa, no burbujas grandes). Temperatura: 60-65°C.', duration: 20 },
-      { order: 3, title: 'Mezcla', description: 'Vierte la leche texturizada sobre el espresso en un movimiento continuo. La leche "corta" la acidez del café. Sin latte art requerido — es función, no forma.', duration: 10 },
-    ],
-  },
-
-  // ── CHEMEX ────────────────────────────────────────────────────────────────
-  {
-    slug: 'chemex-clasico',
-    title: 'Chemex Clásico',
-    description: 'Extracción limpia y cristalina con el filtro más grueso del mercado. Resalta la claridad y los matices florales.',
-    method: 'Chemex',
-    difficulty: 'MEDIA',
-    prepTime: 6,
-    yield: '500 ml',
-    temp: '94°C',
-    grind: 'Grueso',
-    ratio: '1:15 (33g / 500ml)',
-    isPremium: false,
-    isPublished: true,
-    productSlug: 'jaltenango-honey',
-    steps: [
-      { order: 1, title: 'Coloca y enjuaga el filtro', description: 'Dobla el filtro cuadrado de Chemex en forma de cono (3 capas al frente). Enjuaga abundantemente con agua caliente para eliminar sabor a papel y precalentar.', duration: 20 },
-      { order: 2, title: 'Pesa el café', description: 'Agrega 33g molidos grueso — como sal de mar gruesa. El Chemex requiere molienda más gruesa por el filtro denso.', duration: 15 },
-      { order: 3, title: 'Bloom (pre-infusión)', description: 'Vierte 66ml de agua a 94°C de forma circular. Espera 45 segundos hasta que el café deje de crecer.', duration: 45 },
-      { order: 4, title: 'Vertida continua', description: 'Vierte el agua restante en 3 pulsos de ~145ml cada 45 seg, siempre en espiral. Mantén el nivel de agua por encima del café.', duration: 180 },
-      { order: 5, title: 'Drenado', description: 'Retira el filtro al terminar de drenar (~5-6 min totales). El café Chemex se puede servir directamente o guardar en la jarra a temperatura ambiente por hasta 1 hora.', duration: 30 },
-    ],
-  },
-
-  // ── FRENCH PRESS ──────────────────────────────────────────────────────────
-  {
-    slug: 'french-press-clasico',
-    title: 'French Press Clásico',
-    description: 'El método de inmersión por excelencia. Cuerpo pesado, aceites esenciales intactos y sabor robusto.',
-    method: 'French Press',
-    difficulty: 'FÁCIL',
-    prepTime: 4,
-    yield: '400 ml',
-    temp: '93°C',
-    grind: 'Grueso',
-    ratio: '1:12 (33g / 400ml)',
-    isPremium: false,
-    isPublished: true,
-    productSlug: 'huatusco-natural',
-    steps: [
-      { order: 1, title: 'Precalienta la prensa', description: 'Llena la French Press con agua caliente, espera 30 seg y desecha. Esto estabiliza la temperatura durante la extracción.', duration: 30 },
-      { order: 2, title: 'Café molido grueso', description: 'Agrega 33g molidos muy grueso — como sal kosher. La molienda fina tapará el émbolo y producirá sabor amargo.', duration: 15 },
-      { order: 3, title: 'Vertida y revuelta', description: 'Vierte 400ml de agua a 93°C de una sola vez. Revuelve 3–4 veces con cuchara de madera para asegurar saturación completa.', duration: 20 },
-      { order: 4, title: 'Infusión 4 minutos', description: 'Coloca la tapa sin presionar. Espera exactamente 4 minutos. Este tiempo produce extracción completa sin sobre-extracción.', duration: 240 },
-      { order: 5, title: 'Presiona y sirve', description: 'Presiona el émbolo lentamente en ~30 seg. Sirve INMEDIATAMENTE — no dejes el café en la prensa o seguirá extrayendo y se volverá amargo.', duration: 30 },
-    ],
-  },
-
-  // ── COLD BREW ─────────────────────────────────────────────────────────────
-  {
-    slug: 'cold-brew-concentrado',
-    title: 'Cold Brew Concentrado',
-    description: 'Infusión en frío de 12–18 horas. Sin acidez, suave y naturalmente dulce. Perfecto para dilutir o tomar solo.',
-    method: 'Cold Brew',
-    difficulty: 'FÁCIL',
-    prepTime: 720,
-    yield: '500 ml concentrado',
-    temp: 'Frío (4°C)',
-    grind: 'Extra grueso',
-    ratio: '1:5 concentrado (100g / 500ml)',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Muele grueso', description: 'Muele 100g de café muy grueso — como chips de chocolate. La molienda gruesa extrae lento y evita amargor.', duration: 60 },
-      { order: 2, title: 'Mezcla con agua fría', description: 'En un frasco de vidrio de 1L, combina el café molido con 500ml de agua filtrada fría. Revuelve bien para saturar todo el café.', duration: 10 },
-      { order: 3, title: 'Refrigeración', description: 'Cubre el frasco y refrigera entre 12 y 18 horas. 12h = suave, 18h = intenso. No lo dejes más tiempo o desarrolla sabores amargos.', duration: 900 },
-      { order: 4, title: 'Filtra', description: 'Pasa el concentrado por un filtro de papel (Chemex o V60), un filtro de tela o una bolsa de cold brew. Filtra lentamente sin presionar.', duration: 30 },
-      { order: 5, title: 'Sirve', description: 'Para tomar solo: mezcla 1 parte concentrado + 1 parte agua o leche con hielo. Guarda el concentrado hasta 2 semanas refrigerado.' },
+    name: 'Espresso Home Kit',
+    description: 'Moka pot + café espresso + tazas cerámica para bebidas italianas.',
+    basePrice: 1210,
+    discountPct: 12,
+    imageUrl: pickImage(ACCESORIOS_MOKA),
+    items: [
+      { productSlug: 'moka-6-tazas', quantity: 1 },
+      { productSlug: 'blend-espresso-12', quantity: 1 },
+      { productSlug: 'taza-ceramica-12oz-negra', quantity: 2 },
     ],
   },
   {
-    slug: 'cold-brew-nitro',
-    title: 'Cold Brew Nitro en Casa',
-    description: 'Transforma tu cold brew en una experiencia cremosa con textura tipo cerveza oscura usando un sifón de cocina.',
-    method: 'Cold Brew',
-    difficulty: 'DIFÍCIL',
-    prepTime: 750,
-    yield: '300 ml',
-    temp: 'Frío (2°C)',
-    grind: 'Extra grueso',
-    ratio: '1:4 (75g / 300ml)',
-    isPremium: true,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Prepara el cold brew base', description: 'Sigue la receta Cold Brew Concentrado con 75g de café y 300ml de agua. Refrigera 16 horas para mayor intensidad.', duration: 960 },
-      { order: 2, title: 'Filtra muy bien', description: 'Filtra 2 veces: primero con filtro grueso para remover sólidos, luego con filtro de papel fino. Cualquier sedimento tapará el sifón.', duration: 20 },
-      { order: 3, title: 'Llena el sifón ISI', description: 'Vierte el cold brew filtrado en el sifón. No llenes más del 75% de capacidad. Cierra la tapa firmemente.', duration: 10 },
-      { order: 4, title: 'Carga con N₂O', description: 'Inserta 1 cápsula de N₂O en el soporte y enrosca. Agita vigorosamente 10 veces. Refrigera el sifón cargado 30 min adicionales.', duration: 1800 },
-      { order: 5, title: 'Sirve en vaso frío', description: 'Enfría el vaso con hielo, desecha el hielo. Sostén el sifón boca abajo e inclínalo 45°. Dispensa lentamente para crear cascada de espuma cremosa.' },
-    ],
-  },
-
-  // ── MOKA POT ──────────────────────────────────────────────────────────────
-  {
-    slug: 'moka-pot-italiano',
-    title: 'Moka Pot Italiano',
-    description: 'El ritual matutino de millones de hogares. Concentrado, con cuerpo y con ese aroma único que llena la cocina.',
-    method: 'Moka Pot',
-    difficulty: 'FÁCIL',
-    prepTime: 5,
-    yield: '60 ml',
-    temp: '100°C (ebullición)',
-    grind: 'Fino-medio',
-    ratio: '1:7 (10g / 70ml)',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Agua prekalentada', description: 'Llena el depósito inferior HASTA la válvula de seguridad con agua ya caliente (de hervidor). Esto acorta el tiempo de extracción y evita sobre-cocinar el café.', duration: 30 },
-      { order: 2, title: 'Llena el filtro', description: 'Llena el filtro con café molido fino-medio (entre V60 y espresso). No compactes ni golpees — solo nivela con el dedo.', duration: 15 },
-      { order: 3, title: 'Enrosca y calienta', description: 'Enrosca la parte superior firmemente. Coloca en fuego medio. Deja la tapa abierta para monitorear el flujo.', duration: 10 },
-      { order: 4, title: 'Escucha el burbujeo', description: 'En ~3–4 min comenzará a salir café color chocolate oscuro. Cuando el flujo se vuelva esputante y claro/amarillento, retira inmediatamente del fuego.', duration: 180 },
-      { order: 5, title: 'Enfría el fondo', description: 'Envuelve el fondo con un trapo húmedo o pásalo bajo agua fría para detener la extracción. Sirve de inmediato. Añade agua caliente para un lungo si lo prefieres.', duration: 15 },
-    ],
-  },
-
-  // ── SIPHON ────────────────────────────────────────────────────────────────
-  {
-    slug: 'sifon-japones',
-    title: 'Sifón Japonés',
-    description: 'El método más teatral del café. Vacío, temperatura controlada y claridad cristalina en taza.',
-    method: 'Sifón',
-    difficulty: 'DIFÍCIL',
-    prepTime: 8,
-    yield: '300 ml',
-    temp: '92°C',
-    grind: 'Medio',
-    ratio: '1:12 (25g / 300ml)',
-    isPremium: true,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Prepara el filtro', description: 'Remoja el filtro de tela en agua tibia 10 min. Colócalo en el tubo superior con el gancho centrado. Asegúralo firmemente desde abajo.', duration: 600 },
-      { order: 2, title: 'Agua en cámara inferior', description: 'Vierte 350ml de agua en la cámara inferior. Limpia el exterior del globo con un trapo seco — la humedad puede romper el vidrio con el calor.', duration: 20 },
-      { order: 3, title: 'Encaja la cámara superior', description: 'Cuando el agua esté a 70°C (~2 min en butano), inserta el tubo superior sin enroscar completamente. Al llegar a 92°C, enrosca para crear el sello hermético.', duration: 120 },
-      { order: 4, title: 'Café y extracción', description: 'El agua sube por presión al tubo superior. Agrega 25g de café y revuelve suavemente en figura de 8 durante 10 seg. Mantén fuego medio 1:30 min.', duration: 100 },
-      { order: 5, title: 'Retira y observa', description: 'Apaga el calor. El vacío jalará el café filtrado hacia abajo. La "torta" de café en el filtro debe quedar seca y cóncava. Sirve en tazas pre-calentadas.' },
-    ],
-  },
-
-  // ── TURCO ─────────────────────────────────────────────────────────────────
-  {
-    slug: 'cafe-turco',
-    title: 'Café Turco (Cezve)',
-    description: 'El método más antiguo documentado. Sin filtro, con cuerpo denso y sabor profundo. Bebe sin agitar la última fracción.',
-    method: 'Turco',
-    difficulty: 'MEDIA',
-    prepTime: 5,
-    yield: '60 ml',
-    grind: 'Ultrafino (polvo)',
-    ratio: '1:8 (8g / 65ml)',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Muele ultrafino', description: 'Muele 8g más fino que el espresso — casi polvo. Este café no se filtra, así que la molienda determina el cuerpo y sedimento.', duration: 30 },
-      { order: 2, title: 'Agua fría en el cezve', description: 'Pon 65ml de agua FRÍA en el cezve (cazuela pequeña de cobre o acero). Agrega el café y opcionalmente 1 cucharadita de azúcar. No revuelvas aún.', duration: 15 },
-      { order: 3, title: 'Calentamiento lento', description: 'Coloca en fuego muy bajo. Cuando el café empiece a disolverse (1–2 min), revuelve suavemente una sola vez y ya no toques más.', duration: 120 },
-      { order: 4, title: 'Primera espuma', description: 'A ~70°C formará una espuma cremosa (kaimak) en el borde. Con una cuchara, transfiere esa espuma con cuidado a la taza — es el mejor parte.', duration: 60 },
-      { order: 5, title: 'Segunda subida', description: 'Cuando casi hierva de nuevo y la espuma suba, retira del fuego ANTES de que hierva completamente. Vierte lentamente sobre la espuma en la taza. Espera 2 min para que los sedimentos asienten antes de beber.', duration: 120 },
-    ],
-  },
-
-  // ── DRIPPER KALITA ────────────────────────────────────────────────────────
-  {
-    slug: 'kalita-wave',
-    title: 'Kalita Wave',
-    description: 'Fondo plano, tres agujeros. Más forgiving que el V60, produce extracción uniforme y cuerpo equilibrado.',
-    method: 'Kalita Wave',
-    difficulty: 'MEDIA',
-    prepTime: 5,
-    yield: '250 ml',
-    temp: '93°C',
-    grind: 'Medio',
-    ratio: '1:15 (17g / 250ml)',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Enjuaga el filtro ondulado', description: 'El filtro wave de Kalita tiene ondas que crean separación con el dripper. Enjuágalo bien — retiene más papel que filtros planos.', duration: 15 },
-      { order: 2, title: 'Bloom', description: 'Vierte 34ml de agua a 93°C. El fondo plano hace que el bloom sea más uniforme que en el V60. Espera 40 segundos.', duration: 40 },
-      { order: 3, title: 'Vertida en pulsos', description: 'Vierte en 3 pulsos de ~70ml cada 40 seg, siempre en espiral. El fondo plano distribuye el flujo entre los 3 agujeros automáticamente.', duration: 120 },
-      { order: 4, title: 'Drenado', description: 'Tiempo total: ~3:30 min. La Kalita Wave es más tolerante a variaciones de vertida que el V60, produciendo resultados consistentes.', duration: 30 },
-    ],
-  },
-
-  // ── LATTE ─────────────────────────────────────────────────────────────────
-  {
-    slug: 'latte-art-tulip',
-    title: 'Latte con Arte: Tulipán',
-    description: 'El arte en la taza: técnica de pour para crear un tulipán de 3 capas sobre tu latte. Requiere práctica pero impresiona.',
-    method: 'Espresso',
-    difficulty: 'DIFÍCIL',
-    prepTime: 5,
-    yield: '240 ml',
-    temp: '65°C (leche)',
-    grind: 'Fino',
-    ratio: '1:2 espresso base',
-    isPremium: true,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Extrae espresso doble', description: 'Extrae 36ml de espresso en una taza de 240ml tipo "latte bowl" con paredes anchas. Asegúrate que la crema esté intacta.', duration: 35 },
-      { order: 2, title: 'Texturiza la leche', description: 'Vaporiza 180ml de leche entera hasta 65°C. La textura debe ser sedosa, sin burbujas visibles — como pintura. Gira la jarra para homogenizar.', duration: 25 },
-      { order: 3, title: 'Primera capa del tulipán', description: 'Inclina la taza 45°. Vierte desde altura (~10cm) en el centro del espresso para crear la base oscura. Luego baja la jarra y vierte una "gota" de leche apretando hacia atrás.', duration: 15 },
-      { order: 4, title: 'Segunda y tercera capa', description: 'Repite el movimiento de "gota" dos veces más, cada vez un poco adelante de la anterior. Cada capa empuja la anterior hacia atrás formando los pétalos.', duration: 15 },
-      { order: 5, title: 'El tallo', description: 'Para cerrar el tulipán, tira una línea recta de leche desde la última gota hacia el borde de la taza. Sirve inmediatamente.' },
-    ],
-  },
-
-  // ── DALGONA / ESPECIALES ──────────────────────────────────────────────────
-  {
-    slug: 'dalgona-coffee',
-    title: 'Dalgona Coffee',
-    description: 'La sensación viral. Espuma cremosa de café instantáneo montada sobre leche fría. Fácil, impresionante y delicioso.',
-    method: 'Frío',
-    difficulty: 'FÁCIL',
-    prepTime: 10,
-    yield: '350 ml',
-    temp: 'Frío',
-    ratio: '1:1:1 (café:azúcar:agua)',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Mezcla los sólidos', description: 'En un bowl, combina 2 cucharadas de café instantáneo, 2 cucharadas de azúcar y 2 cucharadas de agua caliente.', duration: 10 },
-      { order: 2, title: 'Bate hasta espuma', description: 'Con batidor eléctrico o manual, bate la mezcla 2–5 min hasta que se vuelva espuma color caramelo que mantiene picos firmes.', duration: 180 },
-      { order: 3, title: 'Prepara la base', description: 'Llena un vaso alto con hielo y 250ml de leche entera o vegetal.', duration: 10 },
-      { order: 4, title: 'Vierte la espuma', description: 'Coloca una cucharada generosa de espuma de café sobre la leche. Para un efecto visual, no mezcles inmediatamente — muéstraselo primero.', duration: 10 },
-      { order: 5, title: 'Mezcla y bebe', description: 'Revuelve con popote antes de beber para integrar la espuma con la leche. La proporción espuma:leche se ajusta al gusto.' },
+    name: 'México Discovery Box',
+    description: 'Degustación de 4 orígenes mexicanos. 100g cada uno para exploración.',
+    basePrice: 1150,
+    discountPct: 10,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    items: [
+      { productSlug: 'coatepec-lavado', quantity: 1 },
+      { productSlug: 'jaltenango-honey', quantity: 1 },
+      { productSlug: 'pluma-natural', quantity: 1 },
+      { productSlug: 'atoyac-natural', quantity: 1 },
     ],
   },
   {
-    slug: 'cafe-de-olla',
-    title: 'Café de Olla',
-    description: 'Receta tradicional mexicana con piloncillo, canela y anís. El café de la abuela, profundo y especiado.',
-    method: 'Tradicional',
-    difficulty: 'FÁCIL',
-    prepTime: 15,
-    yield: '4 tazas',
-    temp: '100°C (hervor)',
-    ratio: '1L agua / 4 cdas café / 60g piloncillo',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Hierve agua con especias', description: 'En una olla de barro (o acero), hierve 1L de agua con 1 raja de canela, 2 estrellas de anís y 60g de piloncillo troceado. Deja hervir 5 min hasta disolver el piloncillo.', duration: 300 },
-      { order: 2, title: 'Agrega el café', description: 'Cuando el agua esté aromática y el piloncillo disuelto, agrega 4 cucharadas colmadas de café molido medio-grueso. Revuelve suavemente.', duration: 15 },
-      { order: 3, title: 'Infusión sin hervir', description: 'Baja el fuego a mínimo. NO permitas que hierva con el café adentro — esto amarga la infusión. Mantén 5 min tapado.', duration: 300 },
-      { order: 4, title: 'Reposa', description: 'Apaga el fuego. Deja reposar 3 minutos sin destape para que los sedimentos asienten al fondo.', duration: 180 },
-      { order: 5, title: 'Cuela y sirve', description: 'Cuela con colador fino o manta de cielo directo a las tazas. Sirve bien caliente. Opcional: añade un chorrito de leche caliente para un "café con leche de olla".', duration: 15 },
+    name: 'Barista Pro Setup',
+    description: 'Molino premium + kettle de temperatura + báscula. Para baristas serios.',
+    basePrice: 7850,
+    discountPct: 12,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    items: [
+      { productSlug: 'comandante-c40-negro', quantity: 1 },
+      { productSlug: 'fellow-stagg-ekg', quantity: 1 },
+      { productSlug: 'timemore-black-mirror', quantity: 1 },
     ],
   },
   {
-    slug: 'flat-white',
-    title: 'Flat White',
-    description: 'El favorito australiano. Más intenso que un latte, más pequeño, microespuma integrada que intensifica el sabor del espresso.',
-    method: 'Espresso',
-    difficulty: 'MEDIA',
-    prepTime: 4,
-    yield: '160 ml',
-    temp: '65°C (leche)',
-    grind: 'Fino',
-    ratio: '1:3 ristretto/leche',
-    isPremium: false,
-    isPublished: true,
-    steps: [
-      { order: 1, title: 'Ristretto doble', description: 'Extrae un ristretto doble: 18g de café → 30ml (ratio 1:1.6) en 20–25 seg. Más concentrado que espresso estándar — la base del flat white.', duration: 30 },
-      { order: 2, title: 'Leche texturizada fina', description: 'Vaporiza 120ml de leche entera a 65°C con microespuma muy fina, casi sin volumen. La espuma debe integrarse con la leche, no flotar encima.', duration: 20 },
-      { order: 3, title: 'Vierte rápido', description: 'Inclina la taza y vierte desde cerca (5cm). En el flat white la leche y el espresso se integran desde el primer segundo — no buscas capas, buscas unidad.', duration: 15 },
+    name: 'Regalo Café',
+    description: 'Paquete regalo con café, taza, stickers y tote bag. Perfecto para regalar.',
+    basePrice: 910,
+    discountPct: 10,
+    imageUrl: pickImage(MERCH_TAZA),
+    items: [
+      { productSlug: 'blend-12', quantity: 1 },
+      { productSlug: 'taza-ceramica-12oz-blanca', quantity: 1 },
+      { productSlug: 'stickers-pack-10', quantity: 1 },
+      { productSlug: 'tote-bag-12', quantity: 1 },
     ],
   },
   {
-    slug: 'espresso-tonic',
-    title: 'Espresso Tonic',
-    description: 'La tendencia de las cafeterías nórdicas. Espresso sobre agua tónica con hielo: burbujas, acidez y amargor en perfecta tensión.',
-    method: 'Espresso',
-    difficulty: 'FÁCIL',
-    prepTime: 3,
-    yield: '200 ml',
-    temp: 'Frío',
-    grind: 'Fino',
-    ratio: 'doble espresso + 120ml tónica',
-    isPremium: false,
-    isPublished: true,
-    productSlug: 'coatepec-lavado',
-    steps: [
-      { order: 1, title: 'Vaso frío con hielo', description: 'Llena un vaso de vidrio alto con hielo hasta el borde. Un vaso frío es crucial — si el vidrio está caliente, la tónica perderá sus burbujas al instante.', duration: 10 },
-      { order: 2, title: 'Vierte la tónica', description: 'Añade 120ml de agua tónica premium (Fever-Tree o similar) inclinando el vaso. Hazlo lentamente para preservar las burbujas.', duration: 15 },
-      { order: 3, title: 'Extrae el espresso', description: 'Extrae un doble espresso (18g → 36ml). Usa un café con notas cítricas o frutales — el Coatepec Lavado funciona perfectamente.', duration: 30 },
-      { order: 4, title: 'Vierte sobre la tónica', description: 'Vierte el espresso caliente LENTAMENTE sobre el dorso de una cuchara para que flote sobre la tónica. La colisión visual de los líquidos es parte de la experiencia.', duration: 10 },
-      { order: 5, title: 'Sirve sin mezclar', description: 'Entrega al cliente sin revolver. Ellos mezclan al gusto con el popote. El primer sorbo de cada capa es intencionalmente diferente.' },
+    name: 'Colección Geisha',
+    description: 'Tres microlotes Geisha de lujo. Para verdaderos exploradores de sabor.',
+    basePrice: 2120,
+    discountPct: 8,
+    imageUrl: pickImage(CAFÉ_BOLSA),
+    items: [
+      { productSlug: 'tapachula-geisha', quantity: 1 },
+      { productSlug: 'el-triunfo-geisha', quantity: 1 },
+      { productSlug: 'geisha-doble-fermentado', quantity: 1 },
     ],
   },
   {
-    slug: 'pour-over-woodneck',
-    title: 'Nel Drip / Woodneck',
-    description: 'Filtro de tela japonés que preserva aceites del café sin papel. Resultado intermedio entre French Press y V60: cuerpo con claridad.',
-    method: 'Nel Drip',
-    difficulty: 'MEDIA',
-    prepTime: 6,
-    yield: '300 ml',
-    temp: '88°C',
-    grind: 'Medio-grueso',
-    ratio: '1:14 (21g / 300ml)',
-    isPremium: true,
-    isPublished: true,
-    productSlug: 'jaltenango-honey',
-    steps: [
-      { order: 1, title: 'Acondiciona el filtro', description: 'El filtro de flanela nel drip debe guardarse SIEMPRE húmedo en el refrigerador. Antes de usar, enjuágalo con agua caliente y exprime suavemente.', duration: 20 },
-      { order: 2, title: 'Calienta el servidor', description: 'Llena el servidor de vidrio con agua caliente, espera 30 seg. Desecha. La flanela y el vidrio frío bajarán la temperatura del café.', duration: 30 },
-      { order: 3, title: 'Café y bloom', description: 'Agrega 21g molidos medio-grueso. Vierte 42ml a 88°C en espiral. Espera 40 seg — la flanela absorbe parte del agua, así que el bloom es menos visible que en papel.', duration: 40 },
-      { order: 4, title: 'Vertida lenta continua', description: 'Vierte los 258ml restantes en un flujo constante y suave, siempre en espiral. La flanela fluye más lento que el papel, permite un flujo más continuo. Total: ~5 min.', duration: 240 },
-      { order: 5, title: 'Limpia y guarda el filtro', description: 'Retira el filtro, enjuaga con agua FRÍA (el agua caliente deteriora la tela), exprime y guarda sumergido en agua fría en el refrigerador. Dura meses con buen cuidado.' },
+    name: 'Cold Brew Kit',
+    description: 'Cold brew maker + café blend especial + vaso de vidrio.',
+    basePrice: 1350,
+    discountPct: 15,
+    imageUrl: pickImage(ACCESORIOS_BREWER),
+    items: [
+      { productSlug: 'cold-brew-maker', quantity: 1 },
+      { productSlug: 'cold-brew-blend', quantity: 1 },
+      { productSlug: 'vaso-vidrio-350ml', quantity: 1 },
+    ],
+  },
+  {
+    name: 'Oficina Completa',
+    description: 'French press + café mañana + tazas cerámicas. Para usar en la oficina.',
+    basePrice: 1960,
+    discountPct: 10,
+    imageUrl: pickImage(ACCESORIOS_MOKA),
+    items: [
+      { productSlug: 'french-press-1l', quantity: 1 },
+      { productSlug: 'blend-mañana', quantity: 1 },
+      { productSlug: 'taza-ceramica-12oz-blanca', quantity: 4 },
+    ],
+  },
+  {
+    name: 'Explorador+',
+    description: 'Nuestro bundle bestseller mejorado. Todo para explorar 12% con estilo.',
+    basePrice: 4130,
+    discountPct: 15,
+    imageUrl: pickImage(ACCESORIOS_MOLINILLO),
+    items: [
+      { productSlug: 'blend-12', quantity: 1 },
+      { productSlug: 'comandante-c40-negro', quantity: 1 },
+      { productSlug: 'filtros-v60-blancos-100', quantity: 1 },
+      { productSlug: 'taza-ceramica-12oz-blanca', quantity: 1 },
     ],
   },
 ];
 
 async function main() {
-  console.log('Seeding database...');
+  console.log('🌱 Iniciando seed de cafetería con 114 productos y 10 bundles...\n');
 
+  // ──────────────────────────────────────────────────────────────────────────
+  // 1. DELETE existing data (optional, for clean slate)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('🧹 Limpiando datos existentes...');
+  await prisma.bundleItem.deleteMany({});
+  await prisma.bundle.deleteMany({});
+  await prisma.product.deleteMany({});
+  console.log('   ✓ Datos previos eliminados\n');
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 2. CREATE products
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('☕ Creando 114 productos...');
+  const createdProducts = [];
   for (const product of products) {
-    await prisma.product.upsert({
-      where: { slug: product.slug },
-      // Refresh the visual fields so existing rows pick up cover + gallery on re-seed.
-      update: { imageUrl: product.imageUrl, images: product.images },
-      create: product,
-    });
-  }
-
-  const hashedPassword = await bcrypt.hash('admin123', 12);
-  await prisma.adminUser.upsert({
-    where: { email: 'admin@12porciento.com' },
-    update: {},
-    create: {
-      name: 'Administrador',
-      email: 'admin@12porciento.com',
-      password: hashedPassword,
-    },
-  });
-
-  const blendId = (await prisma.product.findUnique({ where: { slug: 'blend-12' } }))?.id;
-  const comandanteId = (await prisma.product.findUnique({ where: { slug: 'comandante-grinder' } }))?.id;
-  const filtrosId = (await prisma.product.findUnique({ where: { slug: 'filtros-japoneses' } }))?.id;
-  const tazaId = (await prisma.product.findUnique({ where: { slug: 'taza-ceramic-12' } }))?.id;
-
-  if (blendId && comandanteId && filtrosId && tazaId) {
-    await prisma.bundle.upsert({
-      where: { id: 'bundle-explorador-plus' },
-      update: {},
-      create: {
-        id: 'bundle-explorador-plus',
-        name: 'Explorador+',
-        description: 'Kit completo para iniciarte en la aventura del café especial. Incluye café curado, molino manual y accesorios.',
-        basePrice: 500,
-        discountPct: 15,
-        finalPrice: 425,
-        imageUrl: 'https://images.unsplash.com/photo-1559056169-641e0ac8618e?auto=format&fit=crop&w=800&q=80',
-        isActive: true,
-        items: {
-          create: [
-            { productId: blendId, quantity: 1 },
-            { productId: comandanteId, quantity: 1 },
-            { productId: filtrosId, quantity: 1 },
-            { productId: tazaId, quantity: 1 },
-          ],
-        },
+    const created = await prisma.product.create({
+      data: {
+        ...product,
+        sku: product.slug.toUpperCase(),
+        costPrice: Math.round(product.price * 0.3),
+        supplier: 'Cafetería 12%',
+        minOrderQty: 1,
+        lowStockThreshold: product.isLimited ? 5 : 10,
       },
     });
+    createdProducts.push(created);
   }
+  console.log(`   ✓ ${createdProducts.length} productos creados\n`);
 
-  const nextMonth = new Date();
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-  const subs = [
-    { name: 'Carlos Ruiz', email: 'carlos@example.com', plan: 'EXPLORADOR', phone: '5512345678', nextBilling: nextMonth },
-    { name: 'Ana García', email: 'ana@example.com', plan: 'CONNOISSEUR', phone: '5598765432', nextBilling: nextMonth },
-    { name: 'Luis Torres', email: 'luis@example.com', plan: 'FUNDADOR', nextBilling: nextMonth },
-  ];
-
-  for (const sub of subs) {
-    await prisma.subscription.upsert({
-      where: { email: sub.email },
-      update: {},
-      create: sub,
+  // ──────────────────────────────────────────────────────────────────────────
+  // 3. CREATE bundles with bundle items
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('📦 Creando 10 bundles...');
+  for (const bundle of bundles) {
+    const created = await prisma.bundle.create({
+      data: {
+        name: bundle.name,
+        description: bundle.description,
+        basePrice: bundle.basePrice,
+        discountPct: bundle.discountPct,
+        finalPrice: bundle.basePrice * (1 - bundle.discountPct / 100),
+        imageUrl: bundle.imageUrl,
+        isActive: true,
+      },
     });
-  }
 
-  // ── Seed recipes ──────────────────────────────────────────────────────────
-  for (const r of recipes) {
-    const productId = r.productSlug
-      ? (await prisma.product.findUnique({ where: { slug: r.productSlug } }))?.id ?? null
-      : null;
-
-    const existing = await prisma.recipe.findUnique({ where: { slug: r.slug } });
-    if (existing) {
-      // Update metadata but leave steps untouched (may have been edited in admin)
-      await prisma.recipe.update({
-        where: { slug: r.slug },
+    // Create bundle items
+    for (const item of bundle.items) {
+      const product = createdProducts.find(p => p.slug === item.productSlug);
+      if (!product) {
+        console.warn(`   ⚠ Producto no encontrado: ${item.productSlug}`);
+        continue;
+      }
+      await prisma.bundleItem.create({
         data: {
-          title: r.title,
-          description: r.description,
-          method: r.method,
-          difficulty: r.difficulty,
-          prepTime: r.prepTime,
-          yield: r.yield,
-          temp: r.temp ?? null,
-          grind: r.grind ?? null,
-          ratio: r.ratio ?? null,
-          isPremium: r.isPremium,
-          isPublished: r.isPublished,
-          productId,
+          bundleId: created.id,
+          productId: product.id,
+          quantity: item.quantity,
         },
       });
-      continue;
     }
-
-    await prisma.recipe.create({
-      data: {
-        slug: r.slug,
-        title: r.title,
-        description: r.description,
-        method: r.method,
-        difficulty: r.difficulty,
-        prepTime: r.prepTime,
-        yield: r.yield,
-        temp: r.temp ?? null,
-        grind: r.grind ?? null,
-        ratio: r.ratio ?? null,
-        isPremium: r.isPremium,
-        isPublished: r.isPublished,
-        productId,
-        steps: {
-          create: r.steps.map((s) => ({
-            order: s.order,
-            title: s.title,
-            description: s.description,
-            duration: s.duration ?? null,
-          })),
-        },
-      },
-    });
+    console.log(`   ✓ Bundle "${created.name}" creado con ${bundle.items.length} items`);
   }
 
-  console.log(`Seeded ${recipes.length} recipes.`);
-
-  // Achievements
-  const achievements = [
-    { slug: 'first_brew', name: 'Primer Brew', description: 'Registra tu primer café preparado', icon: '☕', rarity: 'COMMON', xpReward: 10 },
-    { slug: 'five_brews', name: 'Cinco Brews', description: 'Registra 5 cafés preparados', icon: '🎯', rarity: 'COMMON', xpReward: 25 },
-    { slug: 'ten_brews', name: 'Diez Brews', description: 'Registra 10 cafés preparados', icon: '⚡', rarity: 'RARE', xpReward: 50 },
-    { slug: 'perfect_brew', name: 'Brew Perfecto', description: 'Califica un brew con 10 puntos', icon: '⭐', rarity: 'EPIC', xpReward: 100 },
-    { slug: 'v60_5',       name: 'Maestro del V60',  description: 'Registra 5 cafés con V60',        icon: '☕', rarity: 'RARE', xpReward: 40 },
-    { slug: 'aeropress_5', name: 'As del AeroPress',  description: 'Registra 5 cafés con AeroPress',  icon: '🔌', rarity: 'RARE', xpReward: 40 },
-    { slug: 'espresso_5',  name: 'Espresso Pro',      description: 'Registra 5 espressos',            icon: '⚡', rarity: 'RARE', xpReward: 40 },
-    { slug: 'streak_3',    name: 'Racha de 3 días',   description: 'Prepara café 3 días seguidos',    icon: '🔥', rarity: 'RARE', xpReward: 50 },
-    { slug: 'streak_7',    name: 'Racha de 7 días',   description: 'Prepara café 7 días seguidos',    icon: '🏆', rarity: 'EPIC', xpReward: 120 },
-  ];
-
-  for (const a of achievements) {
-    await prisma.achievement.upsert({
-      where: { slug: a.slug },
-      update: {},
-      create: a,
-    });
-  }
-
-  console.log(`Seeded ${achievements.length} achievements.`);
-  console.log('Seed complete. Admin: admin@12porciento.com / admin123');
+  console.log(`\n✨ Seed completado exitosamente!`);
+  console.log(`   • 114 productos (55 CAFÉ + 35 ACCESORIOS + 20 MERCH)`);
+  console.log(`   • 10 bundles temáticos`);
+  console.log(`   • Todas las imágenes desde Unsplash URLs (visibles inmediatamente)`);
 }
 
 main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .catch(e => {
+    console.error('❌ Error durante seed:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

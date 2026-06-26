@@ -129,7 +129,11 @@
       "Bash(.specify/scripts/bash/setup-tasks.sh *)",
       "Bash(.specify/scripts/bash/check-prerequisites.sh *)",
       "Bash(grep -n \"^  {$\\\\|slug:\" /home/grxson/github/12porciento-cafe/server/prisma/seed.ts)",
-      "Bash(pkill -f \"pnpm.*dev\")"
+      "Bash(pkill -f \"pnpm.*dev\")",
+      "Bash(railway link *)",
+      "Bash(railway list *)",
+      "Bash(railway variables *)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:FlDyqWTuuQczCxXEGjXyjpgCoCbPaIUs@metro.proxy.rlwy.net:18743/railway\" npx prisma db seed)"
     ]
   }
 }

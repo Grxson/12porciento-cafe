@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Zap, Coffee, Flame } from 'lucide-react';
+import { Trophy, Zap, Coffee, Flame, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useBarista } from '../hooks/useBarista';
 import PushPermissionBanner from '../components/PushPermissionBanner';
 import { useUser } from '../context/UserContext';
@@ -8,12 +9,34 @@ import StreakHeatmap from '../components/StreakHeatmap';
 import RankBadge from '../components/RankBadge';
 import StreakWidget from '../components/StreakWidget';
 import { PageMeta } from '../hooks/usePageMeta';
+import { baristaApi } from '../api/barista';
+
+interface UserStats {
+  favoriteMethod: string | null;
+  favMethodEmoji: string | null;
+  avgRating: number;
+  totalBrews: number;
+  brewsPerMethod: Record<string, number>;
+  xpPerWeek: Array<{ week: string; xp: number }>;
+}
 
 export default function BaristaProfile() {
   const { userId } = useParams<{ userId: string }>();
   const { profile, loading, error } = useBarista(userId);
   const currentUser = useUser((s) => s.user);
   const isOwnProfile = currentUser?.id === userId;
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    setStatsLoading(true);
+    baristaApi
+      .getStats(userId)
+      .then((res) => setStats(res.data.data))
+      .catch((err) => console.error('Error fetching stats:', err))
+      .finally(() => setStatsLoading(false));
+  }, [userId]);
 
   if (loading) {
     return (
@@ -152,12 +175,19 @@ export default function BaristaProfile() {
           <p className="text-xs text-coffee-500 mt-2">{xpToNext} XP para el siguiente nivel</p>
         </div>
 
-        {/* Achievements */}
+        {/* G6: Tus Logros (Achievement Showcase) */}
         {profile.achievements.length > 0 && (
           <div className="mb-8">
-            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Logros</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Tus Logros</h2>
+              {profile.achievements.length > 4 && (
+                <Link to={`/logros`} className="text-xs text-gold-500 hover:text-gold-400 transition-colors">
+                  Ver todos ({profile.achievements.length})
+                </Link>
+              )}
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {profile.achievements.map((unlock) => (
+              {profile.achievements.slice(0, 4).map((unlock) => (
                 <div
                   key={unlock.id}
                   className="bg-white dark:bg-coffee-900 border border-gold-500/30 p-3 text-center hover:border-gold-500 transition-colors"
@@ -168,6 +198,85 @@ export default function BaristaProfile() {
                   <p className="text-[10px] text-gold-500 mt-0.5">+{unlock.achievement.xpReward} XP</p>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* G8: Tus Stats */}
+        {!statsLoading && stats && (
+          <div className="mb-8">
+            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Tus Stats</h2>
+            <div className="space-y-4">
+              {/* Favorite Method */}
+              {stats.favoriteMethod && (
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                  <p className="text-xs text-coffee-500 uppercase mb-2">Método Favorito</p>
+                  <p className="text-xl font-semibold text-coffee-900 dark:text-cream">
+                    {stats.favMethodEmoji} {stats.favoriteMethod}
+                  </p>
+                  <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-1">
+                    {stats.brewsPerMethod[stats.favoriteMethod] || 0} brews
+                  </p>
+                </div>
+              )}
+
+              {/* Average Rating */}
+              {stats.totalBrews > 0 && (
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                  <p className="text-xs text-coffee-500 uppercase mb-2">Calificación Promedio</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl font-bold text-gold-500">{stats.avgRating}</p>
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < Math.round(stats.avgRating)
+                              ? 'fill-gold-500 text-gold-500'
+                              : 'text-coffee-300 dark:text-coffee-700'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Brews Per Method */}
+              {Object.keys(stats.brewsPerMethod).length > 0 && (
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                  <p className="text-xs text-coffee-500 uppercase mb-3">Brews por Método</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(stats.brewsPerMethod).map(([method, count]) => (
+                      <div key={method} className="bg-coffee-50 dark:bg-coffee-800 p-2 text-center rounded">
+                        <p className="text-xs text-coffee-600 dark:text-coffee-300">{method}</p>
+                        <p className="text-lg font-bold text-coffee-900 dark:text-cream">{count}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* XP Per Week */}
+              {stats.xpPerWeek.length > 0 && (
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                  <p className="text-xs text-coffee-500 uppercase mb-3">XP/Semana (Últimas 8)</p>
+                  <div className="flex items-end gap-1 h-24">
+                    {stats.xpPerWeek.map((week, i) => {
+                      const maxXp = Math.max(...stats.xpPerWeek.map((w) => w.xp));
+                      const height = maxXp > 0 ? (week.xp / maxXp) * 100 : 0;
+                      return (
+                        <div
+                          key={i}
+                          className="flex-1 bg-gold-500 rounded-t hover:bg-gold-400 transition-colors"
+                          style={{ height: `${Math.max(height, 5)}%` }}
+                          title={`${week.week}: ${week.xp} XP`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

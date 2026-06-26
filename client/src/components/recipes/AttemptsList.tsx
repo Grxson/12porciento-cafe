@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { baristaApi } from '../../api';
 
 interface BrewAttempt {
@@ -12,7 +13,7 @@ interface BrewAttempt {
 
 interface AttemptsListProps {
   recipeId: string;
-  userId: string;
+  userId?: string;
 }
 
 export default function AttemptsList({ recipeId, userId }: AttemptsListProps) {
@@ -20,11 +21,32 @@ export default function AttemptsList({ recipeId, userId }: AttemptsListProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!userId) { setLoading(false); return; }
     baristaApi.getUserBrews(userId, { recipeId, limit: '20' })
       .then((res) => setBrews(res.data.data ?? []))
       .catch((err) => { console.error(err); })
       .finally(() => setLoading(false));
   }, [userId, recipeId]);
+
+  // R11: If no userId, user is not logged in
+  if (!userId) {
+    return (
+      <div className="mt-6 border-t border-coffee-200/50 dark:border-coffee-800/50 pt-4">
+        <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">Tus Intentos</h3>
+        <div className="flex flex-col items-center gap-3 py-6">
+          <p className="text-xs text-coffee-600 dark:text-coffee-400">
+            Inicia sesión para ver tu historial de brews
+          </p>
+          <Link
+            to="/login"
+            className="px-4 py-2 bg-gold-500/10 border border-gold-500/40 text-gold-600 dark:text-gold-400 text-xs font-semibold hover:bg-gold-500/20 transition-colors"
+          >
+            Inicia sesión
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return (
     <div className="text-xs text-coffee-600 dark:text-coffee-400 mt-4">Cargando intentos...</div>

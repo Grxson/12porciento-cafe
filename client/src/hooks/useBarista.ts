@@ -76,6 +76,7 @@ export function useBarista(userId?: string): UseBaristaResult {
         const uploadRes = await uploadsApi.upload(file);
         photoUrl = uploadRes.data.data.url;
       }
+      const oldLevel = profile?.level ?? 1;
       const res = await baristaApi.submitBrewLog({
         recipeId: data.recipeId,
         rating: data.rating,
@@ -83,7 +84,24 @@ export function useBarista(userId?: string): UseBaristaResult {
         photoUrl,
         clientBrewId,
       });
-      setProfile(res.data.data.profile);
+      const newProfile = res.data.data.profile;
+      setProfile(newProfile);
+
+      // G7: Milestone celebrations
+      if (newProfile) {
+        const newLevel = newProfile.level;
+        if (newLevel > oldLevel && (newLevel % 10 === 0 || newLevel === 25 || newLevel === 50)) {
+          const toastModule = await import('../context/ToastContext');
+          setTimeout(
+            () =>
+              toastModule.useToast
+                .getState()
+                .add(`🎉 ¡Felicitaciones! Alcanzaste Nivel ${newLevel}!`, 'success'),
+            500
+          );
+        }
+      }
+
       return { newAchievements: res.data.data.newAchievements ?? [] };
     } catch (err: any) {
       if (err.response?.status === 409) return { newAchievements: [] }; // duplicate, already synced

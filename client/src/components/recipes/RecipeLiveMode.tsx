@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Clock, Wifi } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Recipe } from '../../types';
 import type { RecipeDraft, StepDraft } from '../../types';
@@ -15,22 +15,6 @@ import GestureHints from './GestureHints';
 interface RecipeLiveModeProps {
   recipe: Recipe;
   onClose: () => void;
-}
-
-// R10: Helper function for relative time display
-function getRelativeTime(dateString: string): string {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now.getTime() - date.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) return 'hace unos segundos';
-  if (diffMins < 60) return `hace ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}`;
-  if (diffHours < 24) return `hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
-  return `hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
 }
 
 export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps) {
@@ -499,6 +483,21 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
                         ))}
                       </div>
                     </div>
+                  )}
+
+                  {/* G9: Brew sharing button */}
+                  {user && (
+                    <button
+                      onClick={() => {
+                        const profileUrl = `${window.location.origin}/perfil/barista/${user.id}`;
+                        navigator.clipboard.writeText(profileUrl);
+                        const { useToast } = require('../context/ToastContext');
+                        useToast.getState().add('🔗 Link copiado al portapapeles', 'success');
+                      }}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors mt-2"
+                    >
+                      🔗 Compartir
+                    </button>
                   )}
 
                   <button

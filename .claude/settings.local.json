@@ -133,7 +133,8 @@
       "Bash(railway link *)",
       "Bash(railway list *)",
       "Bash(railway variables *)",
-      "Bash(DATABASE_URL=\"postgresql://postgres:FlDyqWTuuQczCxXEGjXyjpgCoCbPaIUs@metro.proxy.rlwy.net:18743/railway\" npx prisma db seed)"
+      "Bash(DATABASE_URL=\"postgresql://postgres:FlDyqWTuuQczCxXEGjXyjpgCoCbPaIUs@metro.proxy.rlwy.net:18743/railway\" npx prisma db seed)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:FlDyqWTuuQczCxXEGjXyjpgCoCbPaIUs@metro.proxy.rlwy.net:18743/railway\" npx prisma *)"
     ]
   }
 }

@@ -2323,6 +2323,7 @@ async function main() {
   console.log('🧹 Limpiando datos existentes...');
   await prisma.bundleItem.deleteMany({});
   await prisma.bundle.deleteMany({});
+  await prisma.subscriptionItem.deleteMany({});
   await prisma.product.deleteMany({});
   console.log('   ✓ Datos previos eliminados\n');
 

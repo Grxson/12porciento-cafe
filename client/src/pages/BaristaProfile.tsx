@@ -5,6 +5,8 @@ import PushPermissionBanner from '../components/PushPermissionBanner';
 import { useUser } from '../context/UserContext';
 import BrewComparator from '../components/barista/BrewComparator';
 import StreakHeatmap from '../components/StreakHeatmap';
+import RankBadge from '../components/RankBadge';
+import StreakWidget from '../components/StreakWidget';
 import { PageMeta } from '../hooks/usePageMeta';
 
 export default function BaristaProfile() {
@@ -82,6 +84,12 @@ export default function BaristaProfile() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Perfil Barista</p>
+
+          {/* Rank Badge */}
+          <div className="flex justify-center mb-4">
+            <RankBadge level={profile.level} size="lg" />
+          </div>
+
           {profile.user && (
             <p className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">{profile.user.name}</p>
           )}
@@ -94,6 +102,13 @@ export default function BaristaProfile() {
 
         {/* Permission prompt — only on own profile */}
         {isOwnProfile && <PushPermissionBanner />}
+
+        {/* Streak Widget */}
+        {profile.currentStreak !== undefined && (
+          <div className="mb-8">
+            <StreakWidget currentStreak={profile.currentStreak} isActive={profile.currentStreak > 0} />
+          </div>
+        )}
 
         {/* Streak Heatmap */}
         {profile.streakData && profile.streakData.length > 0 && (

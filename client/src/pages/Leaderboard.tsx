@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy } from 'lucide-react';
+import { Trophy, Flame } from 'lucide-react';
 import { baristaApi } from '../api';
+import RankBadge from '../components/RankBadge';
 import { PageMeta } from '../hooks/usePageMeta';
 
 interface LeaderboardEntry {
@@ -12,21 +13,32 @@ interface LeaderboardEntry {
   totalBrews: number;
   favoriteMethod: string | null;
   user: { id: string; name: string };
+  currentStreak?: number;
 }
+
+type Period = 'all-time' | 'this-month' | 'this-week';
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [period, setPeriod] = useState<Period>('all-time');
 
   useEffect(() => {
-    baristaApi.getLeaderboard(50)
+    setLoading(true);
+    baristaApi.getLeaderboard(50, period)
       .then((res) => setEntries(res.data.data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [period]);
 
   const medals = ['🥇', '🥈', '🥉'];
+
+  const periodLabels: Record<Period, string> = {
+    'all-time': 'Todo el tiempo',
+    'this-month': 'Este mes',
+    'this-week': 'Esta semana',
+  };
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 pb-24">
@@ -36,6 +48,23 @@ export default function Leaderboard() {
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Clasificación</p>
           <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-2">Mejores Baristas</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm">Top 50 por experiencia acumulada</p>
+
+          {/* Period Filter Tabs */}
+          <div className="flex justify-center gap-2 mt-6 flex-wrap">
+            {(['all-time', 'this-month', 'this-week'] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${
+                  period === p
+                    ? 'bg-gold-500 text-coffee-900'
+                    : 'bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream hover:border-gold-400'
+                }`}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading && (
@@ -95,12 +124,27 @@ export default function Leaderboard() {
                 <span className="text-xl w-8 text-center shrink-0">
                   {medals[idx] ?? <span className="text-coffee-500 dark:text-coffee-600 text-sm font-mono">{idx + 1}</span>}
                 </span>
+
+                {/* Rank Badge */}
+                <div className="shrink-0">
+                  <RankBadge level={entry.level} size="sm" />
+                </div>
+
                 <div className="flex-1 min-w-0">
                   <p className="text-coffee-900 dark:text-cream font-medium truncate">{entry.user.name}</p>
-                  {entry.favoriteMethod && (
-                    <p className="text-xs text-coffee-500 truncate">{entry.favoriteMethod}</p>
-                  )}
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {entry.favoriteMethod && (
+                      <p className="text-xs text-coffee-500">{entry.favoriteMethod}</p>
+                    )}
+                    {entry.currentStreak && entry.currentStreak > 0 && (
+                      <p className="text-xs flex items-center gap-1">
+                        <Flame className="w-3 h-3 text-red-500" />
+                        <span className="text-red-600 dark:text-red-400">{entry.currentStreak}d</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
+
                 <div className="text-right shrink-0">
                   <p className="text-gold-400 font-bold">Nv. {entry.level}</p>
                   <p className="text-xs text-coffee-500">{entry.totalXp} XP · {entry.totalBrews} brews</p>

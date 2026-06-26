@@ -12,8 +12,8 @@ export const baristaApi = {
     clientBrewId?: string;
   }) => api.post('/barista/brew-logs', data),
 
-  getLeaderboard: (limit = 50) =>
-    api.get('/barista/leaderboard', { params: { limit } }),
+  getLeaderboard: (limit = 50, period = 'all-time') =>
+    api.get('/barista/leaderboard', { params: { limit, period } }),
 
   getAchievements: () =>
     api.get('/barista/achievements'),

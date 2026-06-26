@@ -31,6 +31,10 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null); // R8: Auto-advance timer
+  const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]); // R9: Post-brew related recipes
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const objectUrlRef = useRef<string | null>(null);
 
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);

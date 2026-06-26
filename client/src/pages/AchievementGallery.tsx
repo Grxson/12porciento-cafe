@@ -3,6 +3,7 @@ import { Lock, Trophy } from 'lucide-react';
 import { baristaApi } from '../api';
 import type { AchievementWithUnlock } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
+import { useUser } from '../context/UserContext';
 
 const rarityConfig: Record<string, { label: string; color: string }> = {
   COMMON:    { label: 'Común',      color: 'text-coffee-600 dark:text-coffee-400 bg-coffee-100 dark:bg-coffee-800/60' },
@@ -21,6 +22,17 @@ const unlockHints: Record<string, string> = {
   'espresso_5':    'Registra 5 preparaciones con Espresso',
   'streak_3':      'Registra preparaciones 3 días seguidos',
   'streak_7':      'Registra preparaciones 7 días seguidos',
+};
+
+// Progress targets for method-specific achievements
+const progressTargets: Record<string, number> = {
+  'v60_5': 5,
+  'aeropress_5': 5,
+  'espresso_5': 5,
+  'five_brews': 5,
+  'ten_brews': 10,
+  'streak_3': 3,
+  'streak_7': 7,
 };
 
 function AchievementSkeleton() {
@@ -42,13 +54,59 @@ export default function AchievementGallery() {
   const [achievements, setAchievements] = useState<AchievementWithUnlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [progressData, setProgressData] = useState<Record<string, { current: number; target: number }>>({});
+  const currentUser = useUser((s) => s.user);
 
   useEffect(() => {
-    baristaApi.getAchievements()
-      .then((res) => setAchievements(res.data.achievements))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
+    const loadData = async () => {
+      try {
+        const [achievementsRes, profileRes] = await Promise.all([
+          baristaApi.getAchievements(),
+          currentUser ? baristaApi.getProfile(currentUser.id) : Promise.resolve(null),
+        ]);
+
+        setAchievements(achievementsRes.data.achievements);
+
+        // Build progress data from profile
+        if (profileRes) {
+          const profile = profileRes.data.data;
+          const progress: Record<string, { current: number; target: number }> = {};
+
+          // Count brews
+          const totalBrews = profile.totalBrews || 0;
+          progress['five_brews'] = { current: Math.min(totalBrews, 5), target: 5 };
+          progress['ten_brews'] = { current: Math.min(totalBrews, 10), target: 10 };
+
+          // Count method-specific brews
+          if (profile.brewLogs) {
+            const methodCounts: Record<string, number> = {};
+            profile.brewLogs.forEach((log: any) => {
+              const method = log.recipe?.method;
+              if (method) methodCounts[method] = (methodCounts[method] || 0) + 1;
+            });
+            progress['v60_5'] = { current: Math.min(methodCounts['V60'] || 0, 5), target: 5 };
+            progress['aeropress_5'] = { current: Math.min(methodCounts['AeroPress'] || 0, 5), target: 5 };
+            progress['espresso_5'] = { current: Math.min(methodCounts['Espresso'] || 0, 5), target: 5 };
+          }
+
+          // Streak data
+          if (profile.currentStreak !== undefined) {
+            progress['streak_3'] = { current: Math.min(profile.currentStreak, 3), target: 3 };
+            progress['streak_7'] = { current: Math.min(profile.currentStreak, 7), target: 7 };
+          }
+
+          setProgressData(progress);
+        }
+      } catch (err) {
+        console.error('Error loading achievement data:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [currentUser]);
 
   const unlocked = achievements.filter((a) => a.unlockedAt !== null).length;
 
@@ -115,6 +173,24 @@ export default function AchievementGallery() {
                     {a.name}
                   </h3>
                   <p className="text-coffee-500 text-xs leading-relaxed">{a.description}</p>
+
+                  {/* Progress bar for locked achievements */}
+                  {!isUnlocked && progressData[a.slug] && (
+                    <div className="mt-2 mb-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] font-medium">
+                          {progressData[a.slug].current} de {progressData[a.slug].target}
+                        </p>
+                      </div>
+                      <div className="w-full h-1.5 bg-coffee-200 dark:bg-coffee-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gold-400 transition-all duration-300"
+                          style={{ width: `${(progressData[a.slug].current / progressData[a.slug].target) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {!isUnlocked && unlockHints[a.slug] && (
                     <p className="text-coffee-400 dark:text-coffee-500 text-[10px] italic mt-1 mb-3">
                       {unlockHints[a.slug]}

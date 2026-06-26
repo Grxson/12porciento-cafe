@@ -16,8 +16,8 @@ const brewLogLimiter = rateLimit({
 });
 
 function calculateXp(recipeDifficulty: string, rating: number): number {
-  const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
-  return (baseXp[recipeDifficulty] ?? 20) + (rating - 1) * 5;
+  const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 25, 'DIFÍCIL': 50 };
+  return (baseXp[recipeDifficulty] ?? 25) + (rating - 1) * 5;
 }
 
 async function checkAndUnlockAchievements(userId: string): Promise<{ id: string; name: string; icon: string; xpReward: number }[]> {
@@ -58,6 +58,9 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
       }
     }
   }
+
+  // Determine if streak is active (includes today or yesterday)
+  const streakActive = uniqueDates.length > 0 && (uniqueDates[0] === today || uniqueDates[0] === yesterday);
 
   const candidates = [
     { slug: 'first_brew',    met: brewCount >= 1 },
@@ -103,11 +106,35 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
 router.get('/leaderboard', async (req: Request, res: Response) => {
   try {
     const limit = Math.min(Math.max(1, parseInt((req.query.limit as string) || '50') || 50), 100);
-    const leaderboard = await prisma.baristaProfile.findMany({
+    const period = (req.query.period as string || 'all-time').toLowerCase();
+
+    // Calculate cutoff date based on period
+    let dateFilter: any = undefined;
+    if (period === 'this-week') {
+      dateFilter = { gte: new Date(Date.now() - 7 * 86400000) };
+    } else if (period === 'this-month') {
+      dateFilter = { gte: new Date(Date.now() - 30 * 86400000) };
+    }
+
+    // For period-based filtering, we need to compute XP earned in that period
+    let leaderboard = await prisma.baristaProfile.findMany({
       orderBy: [{ totalXp: 'desc' }, { createdAt: 'asc' }],
       take: limit,
-      include: { user: { select: { id: true, name: true } } },
+      include: {
+        user: { select: { id: true, name: true } },
+        brewLogs: dateFilter ? { where: { createdAt: dateFilter }, select: { xpEarned: true } } : false,
+      },
     });
+
+    // If period filter, recompute XP from brewLogs in that period and re-sort
+    if (dateFilter) {
+      leaderboard = leaderboard.map((entry: any) => ({
+        ...entry,
+        totalXp: entry.brewLogs ? entry.brewLogs.reduce((sum: number, log: { xpEarned: number }) => sum + log.xpEarned, 0) : 0,
+      }));
+      leaderboard.sort((a: any, b: any) => b.totalXp - a.totalXp || (a.createdAt.getTime() - b.createdAt.getTime()));
+    }
+
     res.json({ data: leaderboard });
   } catch (err) {
     console.error(err);
@@ -328,11 +355,32 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
       } as any;
     }
 
+    // Recompute current streak for profile response
+    const ninetyDaysAgoBrews = rawBrews;
+    const uniqueDatesProfile = Array.from(
+      new Set(ninetyDaysAgoBrews.map((b: { createdAt: Date }) => b.createdAt.toISOString().split('T')[0]))
+    ).sort().reverse();
+
+    let currentStreak = 0;
+    if (uniqueDatesProfile.length > 0) {
+      const firstDate = uniqueDatesProfile[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (firstDate === todayStr || firstDate === yesterday) {
+        for (let i = 0; i < uniqueDatesProfile.length; i++) {
+          const expected = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
+          if (uniqueDatesProfile[i] === expected) currentStreak++;
+          else break;
+        }
+      }
+    }
+
     res.json({
       data: {
         ...profile,
         rankTitle: getRankTitle(profile!.level),
         streakData,
+        currentStreak,
       },
     });
   } catch (err) {

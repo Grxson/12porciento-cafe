@@ -12,8 +12,8 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; bg: stri
   PENDING:    { label: 'Pendiente',   color: 'text-yellow-400', bg: 'bg-yellow-900/20' },
   PROCESSING: { label: 'Procesando',  color: 'text-blue-400',   bg: 'bg-blue-900/20' },
   SHIPPED:    { label: 'Enviado',     color: 'text-purple-400', bg: 'bg-purple-900/20' },
-  DELIVERED:  { label: 'Entregado',   color: 'text-green-400',  bg: 'bg-green-900/20' },
-  CANCELLED:  { label: 'Cancelado',   color: 'text-red-400',    bg: 'bg-red-900/20' },
+  DELIVERED:  { label: 'Entregado',   color: 'text-green-600 dark:text-green-400',  bg: 'bg-green-100 dark:bg-green-900/20' },
+  CANCELLED:  { label: 'Cancelado',   color: 'text-red-600 dark:text-red-400',    bg: 'bg-red-100 dark:bg-red-900/20' },
 };
 
 const allStatuses = Object.keys(statusConfig) as OrderStatus[];

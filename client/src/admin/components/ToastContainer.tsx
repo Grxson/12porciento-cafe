@@ -17,7 +17,7 @@ export default function ToastContainer() {
             exit={{ opacity: 0, y: -20 }}
             className={`flex items-center gap-3 px-4 py-3 border shadow-lg ${
               toast.type === 'success'
-                ? 'bg-green-900/90 border-green-700 text-green-300'
+                ? 'bg-green-800/90 dark:bg-green-900/90 border-green-600 dark:border-green-700 text-green-200 dark:text-green-300'
                 : toast.type === 'error'
                 ? 'bg-red-900/90 border-red-700 text-red-300'
                 : 'bg-blue-900/90 border-blue-700 text-blue-300'

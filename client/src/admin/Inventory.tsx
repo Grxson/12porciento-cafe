@@ -33,8 +33,8 @@ interface Movement {
 // ── Constants ─────────────────────────────────────────────────────────────
 
 const MOVEMENT_TYPES: Record<string, { label: string; color: string; icon: React.FC<any> }> = {
-  SALE:       { label: 'Venta',      color: 'text-red-400',    icon: ArrowDownCircle },
-  RESTOCK:    { label: 'Reabasto',   color: 'text-green-400',  icon: ArrowUpCircle },
+  SALE:       { label: 'Venta',      color: 'text-red-600 dark:text-red-400',    icon: ArrowDownCircle },
+  RESTOCK:    { label: 'Reabasto',   color: 'text-green-600 dark:text-green-400',  icon: ArrowUpCircle },
   ADJUSTMENT: { label: 'Ajuste',     color: 'text-blue-400',   icon: SlidersHorizontal },
   LOSS:       { label: 'Merma',      color: 'text-orange-400', icon: TrendingDown },
   RETURN:     { label: 'Devolución', color: 'text-purple-400', icon: TrendingUp },
@@ -42,9 +42,9 @@ const MOVEMENT_TYPES: Record<string, { label: string; color: string; icon: React
 };
 
 const STATUS_CONFIG = {
-  OK:  { label: 'OK',     cls: 'text-green-400 bg-green-900/20 border-green-500/30' },
+  OK:  { label: 'OK',     cls: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-500/30' },
   LOW: { label: 'Bajo',   cls: 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30' },
-  OUT: { label: 'Agotado', cls: 'text-red-400 bg-red-900/20 border-red-500/30' },
+  OUT: { label: 'Agotado', cls: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-500/30' },
 };
 
 // ── Main Component ────────────────────────────────────────────────────────
@@ -207,7 +207,7 @@ export default function Inventory() {
             { label: 'Unidades totales', value: fmt(summary.totalUnits), icon: TrendingUp, color: 'text-blue-400' },
             { label: 'Valor inventario', value: fmtCurrency(summary.totalValue), icon: TrendingUp, color: 'text-gold-500' },
             { label: 'Stock bajo', value: summary.lowStockCount, icon: AlertTriangle, color: 'text-yellow-400', alert: summary.lowStockCount > 0 },
-            { label: 'Sin stock', value: summary.outOfStockCount, icon: XCircle, color: 'text-red-400', alert: summary.outOfStockCount > 0 },
+            { label: 'Sin stock', value: summary.outOfStockCount, icon: XCircle, color: 'text-red-600 dark:text-red-400', alert: summary.outOfStockCount > 0 },
           ].map(({ label, value, sub, icon: Icon, color, alert }) => (
             <div key={label} className={`bg-coffee-100 dark:bg-coffee-900 border p-4 ${alert ? 'border-yellow-500/30' : 'border-coffee-200 dark:border-coffee-800'}`}>
               <div className="flex items-center justify-between mb-2">
@@ -292,7 +292,7 @@ export default function Inventory() {
                           </td>
                           <td className="px-4 py-3">
                             <span className={`text-lg font-bold font-serif ${
-                              p.status === 'OUT' ? 'text-red-400' : p.status === 'LOW' ? 'text-yellow-400' : 'text-coffee-900 dark:text-cream'
+                              p.status === 'OUT' ? 'text-red-600 dark:text-red-400' : p.status === 'LOW' ? 'text-yellow-600 dark:text-yellow-400' : 'text-coffee-900 dark:text-cream'
                             }`}>{p.stock}</span>
                             <span className="text-coffee-600 dark:text-coffee-400 text-xs ml-1">uds.</span>
                           </td>
@@ -409,7 +409,7 @@ export default function Inventory() {
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <span className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              <span className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                 {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
                               </span>
                             </td>
@@ -470,7 +470,7 @@ export default function Inventory() {
               <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Tipo de movimiento *</label>
               <div className="grid grid-cols-2 gap-2">
                 {([
-                  { value: 'RESTOCK',    label: 'Reabasto',   desc: 'Entrada de mercancía',  color: 'text-green-400', icon: ArrowUpCircle },
+                  { value: 'RESTOCK',    label: 'Reabasto',   desc: 'Entrada de mercancía',  color: 'text-green-600 dark:text-green-400', icon: ArrowUpCircle },
                   { value: 'LOSS',       label: 'Merma',      desc: 'Pérdida / vencimiento', color: 'text-orange-400', icon: TrendingDown },
                   { value: 'RETURN',     label: 'Devolución', desc: 'Regreso de cliente',    color: 'text-purple-400', icon: TrendingUp },
                   { value: 'ADJUSTMENT', label: 'Ajuste',     desc: 'Corrección de conteo',  color: 'text-blue-400', icon: SlidersHorizontal },
@@ -508,7 +508,7 @@ export default function Inventory() {
                               adjType === 'LOSS' ? -Math.abs(parseInt(adjQty)) : parseInt(adjQty);
                 const newStock = p.stock + (isNaN(delta) ? 0 : delta);
                 return (
-                  <p className={`text-xs mt-1 ${newStock < 0 ? 'text-red-400' : 'text-coffee-600 dark:text-coffee-400'}`}>
+                  <p className={`text-xs mt-1 ${newStock < 0 ? 'text-red-600 dark:text-red-400' : 'text-coffee-600 dark:text-coffee-400'}`}>
                     Stock actual: {p.stock} → resultado: <strong>{newStock < 0 ? 'insuficiente' : newStock}</strong>
                   </p>
                 );
@@ -564,7 +564,7 @@ export default function Inventory() {
           <div className="space-y-6">
             {alerts.outOfStock.length > 0 && (
               <div>
-                <h3 className="text-xs text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <h3 className="text-xs text-red-600 dark:text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                   <XCircle className="w-4 h-4" /> Agotados ({alerts.outOfStock.length})
                 </h3>
                 <div className="space-y-2">
@@ -577,7 +577,7 @@ export default function Inventory() {
                           {p.sku && <p className="text-coffee-500 dark:text-coffee-400 text-xs">SKU: {p.sku}</p>}
                         </div>
                       </div>
-                      <span className="text-red-400 text-xs font-medium">Stock: 0</span>
+                      <span className="text-red-600 dark:text-red-400 text-xs font-medium">Stock: 0</span>
                     </div>
                   ))}
                 </div>
@@ -699,7 +699,7 @@ export default function Inventory() {
                             </div>
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            <span className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                               {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
                             </span>
                           </td>

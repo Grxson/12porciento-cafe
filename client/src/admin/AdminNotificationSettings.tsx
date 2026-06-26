@@ -101,7 +101,7 @@ export default function AdminNotificationSettings() {
             <span className={`flex-1 text-sm ${preferences[value] !== false ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-500'}`}>
               {label}
             </span>
-            {preferences[value] !== false && <span className="w-3.5 h-3.5 rounded-full bg-green-500" />}
+            {preferences[value] !== false && <span className="w-3.5 h-3.5 rounded-full bg-green-500 dark:bg-green-400" />}
           </label>
         ))}
       </div>
@@ -138,7 +138,7 @@ export default function AdminNotificationSettings() {
         </button>
 
         {testResult && (
-          <div className={`mt-3 text-sm flex items-center gap-2 ${testResult.failed > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
+          <div className={`mt-3 text-sm flex items-center gap-2 ${testResult.failed > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-700 dark:text-green-400'}`}>
             <span>Enviada: {testResult.sent}</span>
             {testResult.failed > 0 && <span>· Falló: {testResult.failed}</span>}
           </div>

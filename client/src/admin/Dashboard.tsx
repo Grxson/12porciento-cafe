@@ -56,8 +56,8 @@ const statusConfig: Record<string, { label: string; color: string; hex: string }
   PENDING:    { label: 'Pendiente',  color: 'text-yellow-400', hex: '#eab308' },
   PROCESSING: { label: 'Procesando', color: 'text-blue-400',   hex: '#3b82f6' },
   SHIPPED:    { label: 'Enviado',    color: 'text-purple-400', hex: '#a855f7' },
-  DELIVERED:  { label: 'Entregado',  color: 'text-green-400',  hex: '#22c55e' },
-  CANCELLED:  { label: 'Cancelado',  color: 'text-red-400',    hex: '#ef4444' },
+  DELIVERED:  { label: 'Entregado',  color: 'text-green-600 dark:text-green-400',  hex: '#22c55e' },
+  CANCELLED:  { label: 'Cancelado',  color: 'text-red-600 dark:text-red-400',    hex: '#ef4444' },
 };
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -232,7 +232,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mt-2">
               <p className="text-coffee-500 dark:text-coffee-400 text-xs">{card.sub}</p>
               {card.trend && (
-                <span className="flex items-center gap-0.5 text-green-400 text-xs font-medium">
+                <span className="flex items-center gap-0.5 text-green-600 dark:text-green-400 text-xs font-medium">
                   <ArrowUpRight className="w-3 h-3" />
                   {card.trend}
                 </span>

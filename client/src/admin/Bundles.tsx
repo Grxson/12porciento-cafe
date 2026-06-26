@@ -64,7 +64,10 @@ export default function AdminBundles() {
   useEffect(() => {
     productsApi
       .adminList()
-      .then((res) => setProducts((res.data as Product[]) || []))
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : (res.data as any)?.data ?? [];
+        setProducts(list);
+      })
       .catch(() => addToast('No se pudieron cargar los productos', 'error'));
   }, []);
 
@@ -322,7 +325,7 @@ export default function AdminBundles() {
                     ${bundle.finalPrice.toLocaleString()}
                   </p>
                 </div>
-                <div className="text-xs text-green-400">
+                <div className="text-xs text-green-600 dark:text-green-400">
                   Ahorro: ${(bundle.basePrice - bundle.finalPrice).toLocaleString()}
                 </div>
               </div>

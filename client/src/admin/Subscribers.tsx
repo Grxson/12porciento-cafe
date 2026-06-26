@@ -13,7 +13,7 @@ function FulfillmentBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     PENDIENTE:  'text-yellow-400 bg-yellow-900/20 border-yellow-500/30',
     PREPARANDO: 'text-blue-400 bg-blue-900/20 border-blue-500/30',
-    ENVIADO:    'text-green-400 bg-green-900/20 border-green-500/30',
+    ENVIADO:    'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-500/30',
     ENTREGADO:  'text-coffee-300 bg-coffee-800/40 border-coffee-700',
   };
   const labels: Record<string, string> = {
@@ -27,9 +27,9 @@ function FulfillmentBadge({ status }: { status: string }) {
 }
 
 const statusConfig: Record<SubscriptionStatus, { label: string; color: string }> = {
-  ACTIVE:    { label: 'Activa',     color: 'text-green-400' },
+  ACTIVE:    { label: 'Activa',     color: 'text-green-600 dark:text-green-400' },
   PAUSED:    { label: 'Pausada',    color: 'text-yellow-400' },
-  CANCELLED: { label: 'Cancelada',  color: 'text-red-400' },
+  CANCELLED: { label: 'Cancelada',  color: 'text-red-600 dark:text-red-400' },
 };
 
 const planLabels: Record<string, string> = {
@@ -438,7 +438,7 @@ export default function AdminSubscribers() {
                             {sub.status !== 'ACTIVE' && (
                               <button
                                 onClick={() => updateStatus(sub.id, 'ACTIVE')}
-                                className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                                className="text-xs text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 transition-colors"
                               >
                                 Activar
                               </button>

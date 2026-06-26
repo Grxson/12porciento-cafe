@@ -146,7 +146,7 @@ export default function AdminReviews() {
             <button
               onClick={approveSelected}
               disabled={bulkBusy}
-              className="px-3 py-1 text-xs bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+              className="px-3 py-1 text-xs bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-400 transition-colors disabled:opacity-50 flex items-center gap-1"
             >
               <Check size={12} /> Aprobar seleccionadas
             </button>
@@ -236,7 +236,7 @@ export default function AdminReviews() {
                     {!r.isApproved && (
                       <button
                         onClick={() => approve(r.id)}
-                        className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-green-400 transition-colors"
+                        className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                         title="Aprobar"
                       >
                         <Check className="w-4 h-4" />

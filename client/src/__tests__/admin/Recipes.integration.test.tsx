@@ -40,7 +40,7 @@ vi.mock('../../api', () => {
     },
     productsApi: {
       list: vi.fn().mockResolvedValue({ data: { data: [] } }),
-      adminList: vi.fn().mockResolvedValue({ data: [] }),
+      adminList: vi.fn().mockResolvedValue({ data: { data: [], total: 0, page: 1, pageSize: 50, totalPages: 0 } }),
     },
   };
 });

@@ -206,7 +206,7 @@ export default function AdminProducts() {
       {selected.size > 0 && (
         <div className="flex items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
           <span className="text-sm text-coffee-700 dark:text-coffee-300">{selected.size} seleccionado{selected.size !== 1 ? 's' : ''}</span>
-          <button onClick={() => handleBulkActive(true)} disabled={bulkBusy} className="text-xs bg-green-600 text-white px-3 py-1 hover:bg-green-500 disabled:opacity-50">
+          <button onClick={() => handleBulkActive(true)} disabled={bulkBusy} className="text-xs bg-green-600 dark:bg-green-500 text-white px-3 py-1 hover:bg-green-500 dark:hover:bg-green-400 disabled:opacity-50">
             Activar
           </button>
           <button onClick={() => handleBulkActive(false)} disabled={bulkBusy} className="text-xs bg-red-600 text-white px-3 py-1 hover:bg-red-500 disabled:opacity-50">
@@ -269,13 +269,13 @@ export default function AdminProducts() {
                       </td>
                       <td className="px-4 py-3 text-gold-500 font-medium">${p.price}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-sm font-medium ${p.stock <= 5 ? 'text-red-400' : p.stock <= 15 ? 'text-yellow-400' : 'text-green-400'}`}>
+                        <span className={`text-sm font-medium ${p.stock <= 5 ? 'text-red-600 dark:text-red-400' : p.stock <= 15 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
                           {p.stock}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <button onClick={() => toggleActive(p)} className="transition-colors">
-                          {p.isActive ? <ToggleRight className="w-5 h-5 text-green-400" /> : <ToggleLeft className="w-5 h-5 text-coffee-600 dark:text-coffee-400" />}
+                          {p.isActive ? <ToggleRight className="w-5 h-5 text-green-600 dark:text-green-400" /> : <ToggleLeft className="w-5 h-5 text-coffee-600 dark:text-coffee-400" />}
                         </button>
                       </td>
                       <td className="px-4 py-3">

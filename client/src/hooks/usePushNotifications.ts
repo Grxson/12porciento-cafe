@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import api from '../api';
 import { urlBase64ToUint8Array } from '../utils/base64';
 import { useToast } from '../context/ToastContext';
+import { useUser } from '../context/UserContext';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY ?? '';
 
@@ -20,6 +21,8 @@ export function usePushNotifications() {
     loading: true,
   }));
   const { add: addToast } = useToast();
+  const user = useUser((s) => s.user);
+  const prevUserRef = useRef(user);
 
   // Check support + existing subscription on mount
   useEffect(() => {
@@ -53,6 +56,26 @@ export function usePushNotifications() {
         setState((s) => ({ ...s, loading: false }));
       });
   }, []);
+
+  // Auto-subscribe on login if permission already granted
+  // Auto-unsubscribe on logout
+  useEffect(() => {
+    const prevUser = prevUserRef.current;
+    prevUserRef.current = user;
+
+    if (!state.supported) return;
+
+    // Login detected: null → non-null
+    if (!prevUser && user && state.permission === 'granted' && !state.subscribed) {
+      subscribe();
+      return;
+    }
+
+    // Logout detected: non-null → null
+    if (prevUser && !user && state.subscribed) {
+      unsubscribe();
+    }
+  }, [user]);
 
   const requestPermission = useCallback(async () => {
     try {

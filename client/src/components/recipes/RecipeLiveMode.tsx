@@ -540,8 +540,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
                       onClick={() => {
                         const profileUrl = `${window.location.origin}/perfil/barista/${user.id}`;
                         navigator.clipboard.writeText(profileUrl);
-                        const { useToast } = require('../context/ToastContext');
-                        useToast.getState().add('🔗 Link copiado al portapapeles', 'success');
+                        addToast('🔗 Link copiado al portapapeles', 'success');
                       }}
                       className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors mt-2"
                     >

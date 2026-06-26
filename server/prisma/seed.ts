@@ -2315,7 +2315,33 @@ const bundles = [
 ];
 
 async function main() {
-  console.log('🌱 Iniciando seed de cafetería con 114 productos y 10 bundles...\n');
+  console.log('🌱 Iniciando seed de cafetería con 114 productos, 10 bundles y 11 achievements...\n');
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 0. SEED achievements
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('🏆 Creando logros...');
+  const achievements = [
+    { name: 'Primer Brew', slug: 'first_brew', icon: '☕', description: 'Registra tu primer brew', rarity: 'COMMON', xpReward: 10 },
+    { name: 'Cinco Brews', slug: 'five_brews', icon: '🎯', description: '5 brews registrados', rarity: 'UNCOMMON', xpReward: 25 },
+    { name: 'Diez Brews', slug: 'ten_brews', icon: '⚡', description: '10 brews registrados', rarity: 'UNCOMMON', xpReward: 40 },
+    { name: 'Brew Perfecto', slug: 'perfect_brew', icon: '⭐', description: 'Brew con calificación 10/10', rarity: 'RARE', xpReward: 50 },
+    { name: 'Café Connoisseur', slug: 'coffee_connoisseur', icon: '🎓', description: '50 brews registrados', rarity: 'UNCOMMON', xpReward: 50 },
+    { name: 'Racha Perfecta 30', slug: 'perfect_streak_30', icon: '🔥', description: '30 días consecutivos preparando café', rarity: 'RARE', xpReward: 75 },
+    { name: 'Coleccionista de Métodos', slug: 'method_collector', icon: '🎯', description: '5+ brews de 3 métodos diferentes', rarity: 'UNCOMMON', xpReward: 40 },
+    { name: 'Maestro Catador', slug: 'master_taster', icon: '⭐', description: 'Promedio de calificación ≥ 8', rarity: 'RARE', xpReward: 60 },
+    { name: 'Madrugador', slug: 'early_bird', icon: '🌅', description: '5 brews antes de las 8am', rarity: 'UNCOMMON', xpReward: 30 },
+    { name: 'Búho Nocturno', slug: 'night_owl', icon: '🌙', description: '5 brews después de las 9pm', rarity: 'UNCOMMON', xpReward: 30 },
+    { name: 'Guerrero del Fin de Semana', slug: 'weekend_warrior', icon: '⚔️', description: '10 brews durante fines de semana', rarity: 'UNCOMMON', xpReward: 45 },
+  ];
+
+  for (const ach of achievements) {
+    const existing = await prisma.achievement.findUnique({ where: { slug: ach.slug } });
+    if (!existing) {
+      await prisma.achievement.create({ data: ach });
+    }
+  }
+  console.log(`   ✓ ${achievements.length} logros creados\n`);
 
   // ──────────────────────────────────────────────────────────────────────────
   // 1. DELETE existing data (optional, for clean slate)
@@ -2383,9 +2409,9 @@ async function main() {
   }
 
   console.log(`\n✨ Seed completado exitosamente!`);
+  console.log(`   • 11 achievements`);
   console.log(`   • 114 productos (55 CAFÉ + 35 ACCESORIOS + 20 MERCH)`);
   console.log(`   • 10 bundles temáticos`);
-  console.log(`   • Todas las imágenes desde Unsplash URLs (visibles inmediatamente)`);
 }
 
 main()

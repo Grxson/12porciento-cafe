@@ -167,25 +167,25 @@ function scoreProduct(product: Product, answers: Answers): number {
 }
 
 async function fetchRecommendations(answers: Answers): Promise<ScoredProduct[]> {
-  // Fetch a broad set of products (no roast filter — score all against user profile)
+  // Fetch a broad set of CAFÉ products only (no roast filter — score all against user profile)
   let products: Product[] = [];
   try {
-    const res = await productsApi.list({ pageSize: '20' });
+    const res = await productsApi.list({ category: 'CAFÉ', pageSize: '30' });
     products = res.data.data;
   } catch { /* fallback below */ }
 
   // Broaden if too few results
   if (products.length < 6) {
     try {
-      const res = await productsApi.list({ pageSize: '20', page: '2' });
+      const res = await productsApi.list({ category: 'CAFÉ', pageSize: '30', page: '2' });
       products = [...products, ...res.data.data];
     } catch { /* ignore */ }
   }
 
-  // Ultimate fallback: top SCA
+  // Ultimate fallback: top SCA CAFÉ only
   if (products.length < 6) {
     try {
-      const res = await productsApi.list({ sort: 'sca', pageSize: '12' });
+      const res = await productsApi.list({ category: 'CAFÉ', sort: 'sca', pageSize: '20' });
       products = res.data.data;
     } catch { /* ignore */ }
   }

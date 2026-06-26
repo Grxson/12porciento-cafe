@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, X, ChevronDown, Search, ChevronLeft, ChevronRight as ChevronRightIcon, SearchX } from 'lucide-react';
@@ -6,7 +6,7 @@ import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import type { Product } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
-import { groupFlavorsByProfile, FLAVOR_PROFILES, PROFILE_ORDER } from '../constants/flavorProfiles';
+
 
 const PAGE_SIZE = 12;
 
@@ -54,7 +54,7 @@ export default function Shop() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [availableFlavors, setAvailableFlavors] = useState<string[]>([]);
-  const [expandedProfiles, setExpandedProfiles] = useState<Record<string, boolean>>({});
+  const [flavorSearch, setFlavorSearch] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const location = useLocation();
 
@@ -117,11 +117,9 @@ export default function Shop() {
     setPage(1);
   };
 
-  const toggleProfile = (profile: string) => {
-    setExpandedProfiles((prev) => ({ ...prev, [profile]: !prev[profile] }));
-  };
-
-  const groupedFlavors = useMemo(() => groupFlavorsByProfile(availableFlavors), [availableFlavors]);
+  const filteredFlavors = flavorSearch
+    ? availableFlavors.filter((f) => f.toLowerCase().includes(flavorSearch.toLowerCase()))
+    : [];
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
@@ -232,44 +230,43 @@ export default function Shop() {
                 {availableFlavors.length > 0 && (
                   <div className="w-full border-t border-coffee-200 dark:border-coffee-800 pt-3 mt-1">
                     <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest block mb-2">Notas de Cata</span>
-                    <div className="flex flex-wrap gap-x-6 gap-y-1">
-                      {PROFILE_ORDER.map((key) => {
-                        const flavors = groupedFlavors[key];
-                        if (!flavors?.length) return null;
-                        const profile = FLAVOR_PROFILES[key];
-                        const isExpanded = expandedProfiles[key] ?? true;
-                        return (
-                          <div key={key}>
-                            <button
-                              onClick={() => toggleProfile(key)}
-                              className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-coffee-500 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-cream transition-colors cursor-pointer mb-1"
-                            >
-                              <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? '' : '-rotate-90'}`} />
-                              {profile.label}
-                              <span className="text-coffee-400 dark:text-coffee-500">({flavors.length})</span>
-                            </button>
-                            {isExpanded && (
-                              <div className="flex flex-wrap gap-1">
-                                {flavors.map((f) => (
-                                  <button
-                                    key={f}
-                                    onClick={() => toggleFlavor(f)}
-                                    aria-pressed={selectedFlavors.includes(f)}
-                                    className={`text-[11px] px-2 py-0.5 border transition-all duration-150 cursor-pointer ${
-                                      selectedFlavors.includes(f)
-                                        ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium'
-                                        : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                                    }`}
-                                  >
-                                    {f}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div className="relative mb-2 max-w-xs">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-coffee-400 pointer-events-none" />
+                      <input
+                        value={flavorSearch}
+                        onChange={(e) => setFlavorSearch(e.target.value)}
+                        placeholder="Buscar nota de cata…"
+                        className="w-full bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream pl-8 pr-3 py-1.5 text-xs focus:border-gold-500 focus:outline-none placeholder:text-coffee-400"
+                      />
+                      {flavorSearch && (
+                        <button
+                          onClick={() => setFlavorSearch('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-700"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
+                    {flavorSearch && filteredFlavors.length === 0 ? (
+                      <p className="text-xs text-coffee-500 italic">Sin coincidencias</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {filteredFlavors.map((f) => (
+                          <button
+                            key={f}
+                            onClick={() => toggleFlavor(f)}
+                            aria-pressed={selectedFlavors.includes(f)}
+                            className={`text-[11px] px-2 py-0.5 border transition-all duration-150 cursor-pointer ${
+                              selectedFlavors.includes(f)
+                                ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium'
+                                : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
+                            }`}
+                          >
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -428,44 +425,43 @@ export default function Shop() {
                 {availableFlavors.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Notas de Cata</span>
-                    <div className="space-y-1">
-                      {PROFILE_ORDER.map((key) => {
-                        const flavors = groupedFlavors[key];
-                        if (!flavors?.length) return null;
-                        const profile = FLAVOR_PROFILES[key];
-                        const isExpanded = expandedProfiles[key] ?? true;
-                        return (
-                          <div key={key}>
-                            <button
-                              onClick={() => toggleProfile(key)}
-                              className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-cream transition-colors cursor-pointer w-full text-left py-1"
-                            >
-                              <ChevronDown className={`w-3.5 h-3.5 transition-transform shrink-0 ${isExpanded ? '' : '-rotate-90'}`} />
-                              <span className="font-medium">{profile.label}</span>
-                              <span className="text-coffee-400 dark:text-coffee-500">({flavors.length})</span>
-                            </button>
-                            {isExpanded && (
-                              <div className="flex flex-wrap gap-1.5 pl-5 mt-0.5">
-                                {flavors.map((f) => (
-                                  <button
-                                    key={f}
-                                    onClick={() => toggleFlavor(f)}
-                                    aria-pressed={selectedFlavors.includes(f)}
-                                    className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
-                                      selectedFlavors.includes(f)
-                                        ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
-                                        : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                                    }`}
-                                  >
-                                    {f}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 pointer-events-none" />
+                      <input
+                        value={flavorSearch}
+                        onChange={(e) => setFlavorSearch(e.target.value)}
+                        placeholder="Buscar nota de cata…"
+                        className="w-full bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream pl-9 pr-3 py-2 text-sm focus:border-gold-500 focus:outline-none placeholder:text-coffee-400"
+                      />
+                      {flavorSearch && (
+                        <button
+                          onClick={() => setFlavorSearch('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-700"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
+                    {flavorSearch && filteredFlavors.length === 0 ? (
+                      <p className="text-xs text-coffee-500 italic">Sin coincidencias</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {filteredFlavors.map((f) => (
+                          <button
+                            key={f}
+                            onClick={() => toggleFlavor(f)}
+                            aria-pressed={selectedFlavors.includes(f)}
+                            className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                              selectedFlavors.includes(f)
+                                ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                                : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
+                            }`}
+                          >
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

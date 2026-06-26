@@ -180,7 +180,7 @@ export default function App() {
       <ToastContainer />
       <PWAUpdateManager />
       <ScrollToTop />
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.div
           key={location.pathname}
           initial={{ opacity: 0, y: 8 }}
@@ -188,7 +188,7 @@ export default function App() {
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2 }}
         >
-          <Routes>
+          <Routes location={location}>
             <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
             <Route path="/tienda" element={<PublicLayout><Shop /></PublicLayout>} />
             <Route path="/tienda/:slug" element={<PublicLayout><ProductDetail /></PublicLayout>} />

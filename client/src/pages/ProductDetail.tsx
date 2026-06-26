@@ -38,6 +38,10 @@ export default function ProductDetail() {
   const [brewingOpen, setBrewingOpen] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
+
+  useEffect(() => {
     if (loggedUser) setReviewForm((f) => ({ ...f, name: loggedUser.name, email: loggedUser.email }));
   }, [loggedUser?.id]);
 

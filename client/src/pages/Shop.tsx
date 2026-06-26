@@ -57,6 +57,10 @@ export default function Shop() {
   const location = useLocation();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     const flavorParam = params.get('flavors');
     if (flavorParam) {

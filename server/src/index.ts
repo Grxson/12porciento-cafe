@@ -30,6 +30,8 @@ import http from 'http';
 import { initSocket } from './socket';
 import webpush from 'web-push';
 
+dotenv.config();
+
 // Initialize web-push VAPID for PWA push notifications
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
@@ -46,8 +48,6 @@ const adminLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Demasiadas solicitudes. Intenta en 15 minutos.' },
 });
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;

@@ -3,6 +3,9 @@ import { Search, Users, ShoppingBag, ChevronRight, Download } from 'lucide-react
 import { customersApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import { exportToCsv } from './utils/csvExport';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
+import Pagination from './components/Pagination';
 
 interface CustomerSummary {
   id: string;
@@ -27,14 +30,21 @@ export default function AdminCustomers() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<CustomerDetail | null>(null);
   const { addToast } = useModuleToast();
+  const [loadError, setLoadError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const load = (q?: string) => {
+  const load = (q?: string, overridePage?: number) => {
     setLoading(true);
-    const params = q ? { search: q } : undefined;
+    setLoadError('');
+    const currentPage = overridePage ?? page;
+    const params: Record<string, string> = {};
+    if (q) params.search = q;
+    params.page = String(currentPage);
     customersApi
       .list(params)
-      .then((r) => { setCustomers(r.data.data); setLoading(false); })
-      .catch(() => { setLoading(false); addToast('Error al cargar clientes', 'error'); });
+      .then((r) => { setCustomers(r.data.data); setTotalPages(r.data.totalPages ?? 1); setPage(currentPage); setLoading(false); })
+      .catch(() => { setLoadError('Error al cargar clientes. Intenta de nuevo.'); setLoading(false); });
   };
 
   useEffect(() => { load(); }, []);
@@ -50,7 +60,7 @@ export default function AdminCustomers() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    load(search || undefined);
+    load(search || undefined, 1);
   };
 
   if (selected) {
@@ -69,7 +79,7 @@ export default function AdminCustomers() {
             <p className="text-coffee-600 dark:text-coffee-400 text-sm">{selected.email}</p>
             {selected.phone && <p className="text-coffee-600 dark:text-coffee-400 text-sm">{selected.phone}</p>}
             {selected.city && <p className="text-coffee-500 text-sm mt-1">{selected.city}, {selected.state}</p>}
-            <p className="text-coffee-600 text-xs mt-3">Cliente desde {new Date(selected.createdAt).toLocaleDateString('es-MX')}</p>
+            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-3">Cliente desde {new Date(selected.createdAt).toLocaleDateString('es-MX')}</p>
             <div className="flex gap-6 mt-4 pt-4 border-t border-coffee-200 dark:border-coffee-800">
               <div className="text-center">
                 <p className="text-coffee-900 dark:text-cream font-bold text-xl">{selected._count?.orders ?? selected.orders?.length ?? 0}</p>
@@ -92,7 +102,7 @@ export default function AdminCustomers() {
                 <ShoppingBag className="w-3.5 h-3.5" /> Pedidos recientes
               </p>
               {selected.orders.length === 0 ? (
-                <p className="text-coffee-600 text-sm">Sin pedidos.</p>
+                <p className="text-coffee-600 dark:text-coffee-400 text-sm">Sin pedidos.</p>
               ) : (
                 <div className="space-y-2">
                   {selected.orders.map((o: any) => (
@@ -114,7 +124,7 @@ export default function AdminCustomers() {
             <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
               <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-wider mb-3">Reseñas</p>
               {!selected.reviews || selected.reviews.length === 0 ? (
-                <p className="text-coffee-600 text-sm">Sin reseñas.</p>
+                <p className="text-coffee-600 dark:text-coffee-400 text-sm">Sin reseñas.</p>
               ) : (
                 <div className="space-y-3">
                   {selected.reviews.map((r: any) => (
@@ -155,7 +165,7 @@ export default function AdminCustomers() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nombre o email..."
-            className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2.5 focus:outline-none focus:border-gold-500/50"
+            className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2.5 focus:outline-none focus:border-gold-500/50"
           />
         </div>
         <button type="submit" className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors">
@@ -181,38 +191,41 @@ export default function AdminCustomers() {
       </form>
 
       {loading ? (
-        <div className="flex justify-center py-10">
-          <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-        </div>
+        <AdminSkeleton rows={4} />
+      ) : loadError ? (
+        <AdminErrorState error={loadError} onRetry={() => load(search || undefined)} />
       ) : customers.length === 0 ? (
         <p className="text-center text-coffee-500 py-10">No se encontraron clientes.</p>
       ) : (
-        <div className="space-y-1">
-          {customers.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => openDetail(c.id)}
-              className="w-full flex items-center justify-between px-5 py-4 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/40 dark:hover:bg-coffee-800/40 transition-colors text-left"
-            >
-              <div className="flex items-center gap-6">
-                <div>
-                  <p className="text-coffee-900 dark:text-cream font-medium">{c.name}</p>
-                  <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{c.email}</p>
+        <>
+          <div className="space-y-1">
+            {customers.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => openDetail(c.id)}
+                className="w-full flex items-center justify-between px-5 py-4 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/40 dark:hover:bg-coffee-800/40 transition-colors text-left"
+              >
+                <div className="flex items-center gap-6">
+                  <div>
+                    <p className="text-coffee-900 dark:text-cream font-medium">{c.name}</p>
+                    <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{c.email}</p>
+                  </div>
+                  {c.city && <p className="text-coffee-500 text-sm hidden sm:block">{c.city}, {c.state}</p>}
                 </div>
-                {c.city && <p className="text-coffee-500 text-sm hidden sm:block">{c.city}, {c.state}</p>}
-              </div>
-              <div className="flex items-center gap-6">
-                <div className="text-right hidden md:block">
-                  <p className="text-coffee-700 dark:text-coffee-300 text-sm">{c._count.orders} pedidos</p>
-                  {c._count.subscriptions > 0 && (
-                    <p className="text-gold-500/70 text-xs">{c._count.subscriptions} suscripción</p>
-                  )}
+                <div className="flex items-center gap-6">
+                  <div className="text-right hidden md:block">
+                    <p className="text-coffee-700 dark:text-coffee-300 text-sm">{c._count.orders} pedidos</p>
+                    {c._count.subscriptions > 0 && (
+                      <p className="text-gold-500/70 text-xs">{c._count.subscriptions} suscripción</p>
+                    )}
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-coffee-600 dark:text-coffee-400" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-coffee-600" />
-              </div>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} onChange={(p) => load(search || undefined, p)} />
+        </>
       )}
     </div>
   );

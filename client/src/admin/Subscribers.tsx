@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
 import { subscriptionsApi, productsApi } from '../api';
-import ConfirmDialog from '../components/ConfirmDialog';
+import ConfirmDialog from './components/ConfirmDialog';
+import AdminModal from './components/AdminModal';
 import type { Subscription, SubscriptionStatus } from '../types';
 import { useModuleToast } from './context/ModuleContext';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
+import Pagination from './components/Pagination';
 
 function FulfillmentBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
@@ -127,111 +132,9 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Editar suscripción</h2>
-            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{sub.name} · {sub.email}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors text-xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {/* Plan */}
-          <div>
-            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
-            <select value={plan} onChange={(e) => setPlan(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
-              {Object.entries(planLabels).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Frequency */}
-          <div>
-            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
-            <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
-              <option value="monthly">Mensual</option>
-              <option value="bimonthly">Bimestral</option>
-            </select>
-          </div>
-
-          {/* Grind */}
-          <div>
-            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
-            <select value={grindPreference} onChange={(e) => setGrindPreference(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
-              <option value="GRANO">Grano</option>
-              <option value="MOLIDO">Molido</option>
-            </select>
-          </div>
-
-          {/* Coffee items */}
-          <div>
-            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Cafés seleccionados</label>
-
-            {/* Slot hint */}
-            <p className={`text-xs mb-2 ${countValid ? 'text-coffee-600 dark:text-coffee-400' : 'text-red-400'}`}>
-              El plan {planLabels[plan] ?? plan} requiere entre {slots.min} y {slots.max} cafés
-              {' '}— actualmente {selectedItemIds.length}
-            </p>
-
-            {/* Selected chips */}
-            {selectedItemIds.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {selectedItemIds.map((pid) => (
-                  <span key={pid} className="flex items-center gap-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-2 py-0.5 text-xs text-coffee-900 dark:text-cream">
-                    {getProductName(pid)}
-                    <button
-                      onClick={() => removeProduct(pid)}
-                      className="text-coffee-500 hover:text-red-400 transition-colors ml-1 leading-none"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Add product row */}
-            {loadingProducts ? (
-              <p className="text-xs text-coffee-500">Cargando productos…</p>
-            ) : (
-              <div className="flex gap-2">
-                <select
-                  value={productToAdd}
-                  onChange={(e) => setProductToAdd(e.target.value)}
-                  className={`flex-1 ${SELECT_CLASS}`}
-                >
-                  {products
-                    .filter((p: any) => !selectedItemIds.includes(p.id))
-                    .map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                </select>
-                <button
-                  onClick={addProduct}
-                  disabled={!productToAdd || products.filter((p: any) => !selectedItemIds.includes(p.id)).length === 0}
-                  className="px-3 py-2 text-xs bg-coffee-200 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-gold-500 hover:border-gold-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Agregar
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer actions */}
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-coffee-200 dark:border-coffee-800">
+    <AdminModal open title="Editar suscripción" onClose={onClose}
+      footer={
+        <div className="flex justify-end gap-3 flex-1">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream border border-coffee-200 dark:border-coffee-700 hover:border-coffee-400 dark:hover:border-coffee-600 transition-colors"
@@ -246,8 +149,93 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
             {saving ? 'Guardando…' : 'Guardar cambios'}
           </button>
         </div>
+      }
+    >
+      <p className="text-coffee-600 dark:text-coffee-400 text-xs mb-4">{sub.name} · {sub.email}</p>
+      <div className="space-y-4">
+        {/* Plan */}
+        <div>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
+          <select value={plan} onChange={(e) => setPlan(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+            {Object.entries(planLabels).map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Frequency */}
+        <div>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
+          <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+            <option value="monthly">Mensual</option>
+            <option value="bimonthly">Bimestral</option>
+          </select>
+        </div>
+
+        {/* Grind */}
+        <div>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
+          <select value={grindPreference} onChange={(e) => setGrindPreference(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+            <option value="GRANO">Grano</option>
+            <option value="MOLIDO">Molido</option>
+          </select>
+        </div>
+
+        {/* Coffee items */}
+        <div>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Cafés seleccionados</label>
+
+          {/* Slot hint */}
+          <p className={`text-xs mb-2 ${countValid ? 'text-coffee-600 dark:text-coffee-400' : 'text-red-400'}`}>
+            El plan {planLabels[plan] ?? plan} requiere entre {slots.min} y {slots.max} cafés
+            {' '}— actualmente {selectedItemIds.length}
+          </p>
+
+          {/* Selected chips */}
+          {selectedItemIds.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {selectedItemIds.map((pid) => (
+                <span key={pid} className="flex items-center gap-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-2 py-0.5 text-xs text-coffee-900 dark:text-cream">
+                  {getProductName(pid)}
+                  <button
+                    onClick={() => removeProduct(pid)}
+                    className="text-coffee-500 dark:text-coffee-400 hover:text-red-400 transition-colors ml-1 leading-none"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Add product row */}
+          {loadingProducts ? (
+            <p className="text-xs text-coffee-500 dark:text-coffee-400">Cargando productos…</p>
+          ) : (
+            <div className="flex gap-2">
+              <select
+                value={productToAdd}
+                onChange={(e) => setProductToAdd(e.target.value)}
+                className={`flex-1 ${SELECT_CLASS}`}
+              >
+                {products
+                  .filter((p: any) => !selectedItemIds.includes(p.id))
+                  .map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+              </select>
+              <button
+                onClick={addProduct}
+                disabled={!productToAdd || products.filter((p: any) => !selectedItemIds.includes(p.id)).length === 0}
+                className="px-3 py-2 text-xs bg-coffee-200 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-gold-500 hover:border-gold-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Agregar
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </AdminModal>
   );
 }
 
@@ -257,17 +245,23 @@ export default function AdminSubscribers() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState('');
+  const [search, setSearch] = useState('');
   const [cancelConfirm, setCancelConfirm] = useState<{ id: string; name: string } | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
 
-  const load = () => {
+  const load = (overridePage?: number) => {
     setLoading(true);
     setLoadError('');
-    const params: Record<string, string> | undefined = filter ? { status: filter } : undefined;
+    const currentPage = overridePage ?? page;
+    const params: Record<string, string> = {};
+    if (filter) params.status = filter;
+    params.page = String(currentPage);
     subscriptionsApi.list(params)
-      .then((r) => { setSubs(r.data); })
+      .then((r) => { setSubs(r.data.data); setTotalPages(r.data.totalPages ?? 1); setPage(currentPage); })
       .catch(() => { setLoadError('Error al cargar suscriptores. Intenta de nuevo.'); })
       .finally(() => setLoading(false));
   };
@@ -313,6 +307,12 @@ export default function AdminSubscribers() {
   const active = subs.filter((s) => s.status === 'ACTIVE').length;
   const paused = subs.filter((s) => s.status === 'PAUSED').length;
 
+  const filtered = subs.filter((s) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
+  });
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
@@ -325,7 +325,7 @@ export default function AdminSubscribers() {
 
         <select
           value={filter}
-          onChange={(e) => { setFilter(e.target.value); setLoading(true); }}
+          onChange={(e) => { setFilter(e.target.value); setPage(1); setLoading(true); }}
           className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
         >
           <option value="">Todas</option>
@@ -335,135 +335,141 @@ export default function AdminSubscribers() {
         </select>
       </div>
 
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre o email..."
+          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2.5 focus:outline-none focus:border-gold-500/50"
+        />
+      </div>
+
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-        </div>
+        <AdminSkeleton rows={5} />
       ) : loadError ? (
-        <div className="text-center py-20">
-          <p className="text-red-400 mb-4">{loadError}</p>
-          <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
-            Reintentar
-          </button>
-        </div>
-      ) : subs.length === 0 ? (
+        <AdminErrorState error={loadError} onRetry={load} />
+      ) : filtered.length === 0 ? (
         <div className="text-center py-20 text-coffee-500">No hay suscriptores con ese filtro.</div>
       ) : (
-        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-sm">
-              <thead>
-                <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Nombre</th>
-                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Email</th>
-                  <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Plan</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Molienda</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Frecuencia</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Próximo cobro</th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Estado</th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Entrega</th>
-                  <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Cafés</th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subs.map((sub) => {
-                  const cfg = statusConfig[sub.status as SubscriptionStatus] ?? statusConfig.ACTIVE;
-                  return (
-                    <tr key={sub.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors">
-                      <td className="px-4 py-3">
-                        <p className="text-coffee-900 dark:text-cream font-medium">{sub.name}</p>
-                        {sub.phone && <p className="text-coffee-500 text-xs">{sub.phone}</p>}
-                      </td>
-                      <td className="hidden sm:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">{sub.email}</td>
-                      <td className="hidden sm:table-cell px-4 py-3">
-                        <span className="text-gold-500 text-xs font-medium uppercase tracking-wider">
-                          {planLabels[sub.plan] ?? sub.plan}
-                        </span>
-                      </td>
-                      <td className="hidden lg:table-cell px-4 py-3">
-                        <span className="text-[10px] px-2 py-0.5 border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-800/40 text-coffee-700 dark:text-coffee-300 rounded-sm uppercase tracking-wider">
-                          {sub.grindPreference || 'GRANO'}
-                        </span>
-                      </td>
-                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300 capitalize">
-                        {sub.frequency === 'monthly' ? 'Mensual' : 'Bimestral'}
-                      </td>
-                      <td className="hidden lg:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">
-                        {new Date(sub.nextBilling).toLocaleDateString('es-MX')}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col gap-1">
-                          <FulfillmentBadge status={sub.fulfillmentStatus ?? 'PENDIENTE'} />
-                          <select
-                            value={sub.fulfillmentStatus ?? 'PENDIENTE'}
-                            onChange={async (e) => {
-                              await updateFulfillment(sub.id, e.target.value);
-                            }}
-                            className="text-xs bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-2 py-1 focus:outline-none focus:border-gold-500"
-                          >
-                            {['PENDIENTE','PREPARANDO','ENVIADO','ENTREGADO'].map((s) => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </td>
-                      <td className="hidden lg:table-cell px-4 py-3">
-                        {sub.items && sub.items.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {sub.items.map((item: any) => (
-                              <div key={item.id} className="flex items-center gap-1 bg-coffee-200 dark:bg-coffee-800 px-2 py-0.5">
-                                <img src={item.product?.imageUrl} className="w-4 h-4 object-cover" alt="" />
-                                <span className="text-[10px] text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
-                              </div>
-                            ))}
+        <>
+          <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
+                <thead>
+                  <tr className="border-b border-coffee-200 dark:border-coffee-800">
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Nombre</th>
+                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Email</th>
+                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Plan</th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Molienda</th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Frecuencia</th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Próximo cobro</th>
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Estado</th>
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Entrega</th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Cafés</th>
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((sub) => {
+                    const cfg = statusConfig[sub.status as SubscriptionStatus] ?? statusConfig.ACTIVE;
+                    return (
+                      <tr key={sub.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors">
+                        <td className="px-4 py-3">
+                          <p className="text-coffee-900 dark:text-cream font-medium">{sub.name}</p>
+                          {sub.phone && <p className="text-coffee-500 text-xs">{sub.phone}</p>}
+                        </td>
+                        <td className="hidden sm:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">{sub.email}</td>
+                        <td className="hidden sm:table-cell px-4 py-3">
+                          <span className="text-gold-500 text-xs font-medium uppercase tracking-wider">
+                            {planLabels[sub.plan] ?? sub.plan}
+                          </span>
+                        </td>
+                        <td className="hidden lg:table-cell px-4 py-3">
+                          <span className="text-[10px] px-2 py-0.5 border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-800/40 text-coffee-700 dark:text-coffee-300 rounded-sm uppercase tracking-wider">
+                            {sub.grindPreference || 'GRANO'}
+                          </span>
+                        </td>
+                        <td className="hidden lg:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300 capitalize">
+                          {sub.frequency === 'monthly' ? 'Mensual' : 'Bimestral'}
+                        </td>
+                        <td className="hidden lg:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">
+                          {new Date(sub.nextBilling).toLocaleDateString('es-MX')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col gap-1">
+                            <FulfillmentBadge status={sub.fulfillmentStatus ?? 'PENDIENTE'} />
+                            <select
+                              value={sub.fulfillmentStatus ?? 'PENDIENTE'}
+                              onChange={async (e) => {
+                                await updateFulfillment(sub.id, e.target.value);
+                              }}
+                              className="text-xs bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-2 py-1 focus:outline-none focus:border-gold-500"
+                            >
+                              {['PENDIENTE','PREPARANDO','ENVIADO','ENTREGADO'].map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
                           </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2 flex-wrap">
-                          <button
-                            onClick={() => setEditingSub(sub)}
-                            className="text-xs text-gold-400 hover:text-gold-300 transition-colors"
-                          >
-                            Editar
-                          </button>
-                          {sub.status !== 'ACTIVE' && (
-                            <button
-                              onClick={() => updateStatus(sub.id, 'ACTIVE')}
-                              className="text-xs text-green-400 hover:text-green-300 transition-colors"
-                            >
-                              Activar
-                            </button>
+                        </td>
+                        <td className="hidden lg:table-cell px-4 py-3">
+                          {sub.items && sub.items.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {sub.items.map((item: any) => (
+                                <div key={item.id} className="flex items-center gap-1 bg-coffee-200 dark:bg-coffee-800 px-2 py-0.5">
+                                  <img src={item.product?.imageUrl} className="w-4 h-4 object-cover" alt="" />
+                                  <span className="text-[10px] text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
+                                </div>
+                              ))}
+                            </div>
                           )}
-                          {sub.status === 'ACTIVE' && (
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2 flex-wrap">
                             <button
-                              onClick={() => updateStatus(sub.id, 'PAUSED')}
-                              className="text-xs text-yellow-400 hover:text-yellow-300 transition-colors"
+                              onClick={() => setEditingSub(sub)}
+                              className="text-xs text-gold-400 hover:text-gold-300 transition-colors"
                             >
-                              Pausar
+                              Editar
                             </button>
-                          )}
-                          {sub.status !== 'CANCELLED' && (
-                            <button
-                              onClick={() => setCancelConfirm({ id: sub.id, name: sub.name })}
-                              className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                            >
-                              Cancelar
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {sub.status !== 'ACTIVE' && (
+                              <button
+                                onClick={() => updateStatus(sub.id, 'ACTIVE')}
+                                className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                              >
+                                Activar
+                              </button>
+                            )}
+                            {sub.status === 'ACTIVE' && (
+                              <button
+                                onClick={() => updateStatus(sub.id, 'PAUSED')}
+                                className="text-xs text-yellow-400 hover:text-yellow-300 transition-colors"
+                              >
+                                Pausar
+                              </button>
+                            )}
+                            {sub.status !== 'CANCELLED' && (
+                              <button
+                                onClick={() => setCancelConfirm({ id: sub.id, name: sub.name })}
+                                className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                              >
+                                Cancelar
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+          <Pagination page={page} totalPages={totalPages} onChange={(p) => load(p)} />
+        </>
       )}
 
       {editingSub && (
@@ -477,9 +483,9 @@ export default function AdminSubscribers() {
       <ConfirmDialog
         open={!!cancelConfirm}
         title="Cancelar suscripción"
-        description={`¿Cancelar la suscripción de ${cancelConfirm?.name}? El suscriptor perderá acceso al siguiente envío.`}
-        confirmLabel="Sí, cancelar"
-        confirmVariant="danger"
+        message={`¿Cancelar la suscripción de ${cancelConfirm?.name}? El suscriptor perderá acceso al siguiente envío.`}
+        confirmText="Sí, cancelar"
+        isDangerous
         loading={cancelling}
         onConfirm={confirmCancel}
         onCancel={() => setCancelConfirm(null)}

@@ -161,11 +161,14 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
   try {
     const includeInactive = req.query.includeInactive === 'true';
     const where = includeInactive ? {} : { isActive: true };
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json(products.map(parseProduct));
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
+    const skip = (page - 1) * pageSize;
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({ where, skip, take: pageSize, orderBy: { createdAt: 'desc' } }),
+      prisma.product.count({ where }),
+    ]);
+    res.json({ data: products.map(parseProduct), total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
   } catch {
     res.status(500).json({ error: 'Error al obtener productos' });
   }

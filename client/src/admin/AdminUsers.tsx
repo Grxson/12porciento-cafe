@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Shield, Plus, Trash2 } from 'lucide-react';
+import { Shield, Plus, Trash2, Users } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
 import { adminUsersApi } from '../api';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -60,6 +60,8 @@ export default function AdminUsers() {
   const validateForm = (): string | null => {
     if (!form.name.trim()) return 'El nombre es requerido';
     if (!form.email.trim()) return 'El email es requerido';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) return 'Email inválido';
     if (!form.password) return 'La contraseña es requerida';
     if (form.password.length < 6) return 'La contraseña debe tener al menos 6 caracteres';
     return null;
@@ -146,7 +148,10 @@ export default function AdminUsers() {
       ) : listError ? (
         <AdminErrorState error={listError} onRetry={load} />
       ) : users.length === 0 ? (
-        <p className="text-center text-coffee-500 py-10">No hay usuarios admin registrados.</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Users className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
+          <p className="text-coffee-500 dark:text-coffee-400">No hay usuarios admin registrados.</p>
+        </div>
       ) : (
         <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
           <table className="w-full text-sm">
@@ -171,7 +176,7 @@ export default function AdminUsers() {
                     {u.email !== currentEmail && (
                       <button
                         onClick={() => setConfirmDelete(u.id)}
-                        className="text-coffee-600 hover:text-red-400 transition-colors"
+                        className="text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors"
                         aria-label="Eliminar usuario admin"
                       >
                         <Trash2 className="w-4 h-4" />

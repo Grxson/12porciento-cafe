@@ -13,10 +13,16 @@ const validateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
+router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const codes = await prisma.promoCode.findMany({ orderBy: { createdAt: 'desc' } });
-    res.json({ data: codes });
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
+    const skip = (page - 1) * pageSize;
+    const [codes, total] = await Promise.all([
+      prisma.promoCode.findMany({ skip, take: pageSize, orderBy: { createdAt: 'desc' } }),
+      prisma.promoCode.count(),
+    ]);
+    res.json({ data: codes, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
   } catch {
     res.status(500).json({ error: 'Error al obtener códigos' });
   }

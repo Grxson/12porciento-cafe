@@ -338,17 +338,24 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const { status } = req.query;
     const where: any = {};
     if (status) where.status = status;
-
-    const subscriptions = await prisma.subscription.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        items: {
-          include: { product: { select: { id: true, name: true, slug: true, imageUrl: true } } },
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
+    const skip = (page - 1) * pageSize;
+    const [subscriptions, total] = await Promise.all([
+      prisma.subscription.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          items: {
+            include: { product: { select: { id: true, name: true, slug: true, imageUrl: true } } },
+          },
         },
-      },
-    });
-    res.json(subscriptions);
+      }),
+      prisma.subscription.count({ where }),
+    ]);
+    res.json({ data: subscriptions, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
   } catch {
     res.status(500).json({ error: 'Error al obtener suscripciones' });
   }

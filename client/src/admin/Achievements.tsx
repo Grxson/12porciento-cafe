@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Award, Edit3, Plus, Trash2 } from 'lucide-react';
+import { Award, Edit3, Plus, Search, Trash2 } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
 import { achievementsApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
@@ -49,7 +49,7 @@ const rarityBadge = (rarity: string) => {
 };
 
 const slugFrom = (name: string) =>
-  name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+  name.toLowerCase().replace(/ñ/g, 'n').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]/g, '');
 
 export default function Achievements() {
   const { addToast } = useModuleToast();
@@ -62,6 +62,7 @@ export default function Achievements() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   const [deleting, setDeleting] = useState(false);
   const slugEdited = useRef(false);
 
@@ -171,6 +172,10 @@ export default function Achievements() {
     }
   };
 
+  const filtered = achievements.filter((a) =>
+    !search || a.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="p-8">
       <PageMeta title="Logros" noSuffix />
@@ -187,12 +192,25 @@ export default function Achievements() {
         Crear Logro
       </button>
 
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar logro..."
+          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2.5 focus:outline-none focus:border-gold-500/50"
+        />
+      </div>
+
       {loading ? (
         <AdminSkeleton rows={4} />
       ) : listError ? (
         <AdminErrorState error={listError} onRetry={load} />
-      ) : achievements.length === 0 ? (
-        <p className="text-center text-coffee-500 py-10">No hay logros creados.</p>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Award className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
+          <p className="text-coffee-500 dark:text-coffee-400">No hay logros creados.</p>
+        </div>
       ) : (
         <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
           <table className="w-full text-sm">
@@ -207,7 +225,7 @@ export default function Achievements() {
               </tr>
             </thead>
             <tbody>
-              {achievements.map((a) => (
+              {filtered.map((a) => (
                 <tr key={a.id} className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30">
                   <td className="px-4 py-3 text-xl">{a.icon || '🏆'}</td>
                   <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">{a.name}</td>
@@ -223,7 +241,7 @@ export default function Achievements() {
                       <button onClick={() => openEdit(a)} className="text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors" aria-label="Editar">
                         <Edit3 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => setConfirmDelete(a.id)} className="text-coffee-600 hover:text-red-400 transition-colors" aria-label="Eliminar">
+                      <button onClick={() => setConfirmDelete(a.id)} className="text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors" aria-label="Eliminar">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

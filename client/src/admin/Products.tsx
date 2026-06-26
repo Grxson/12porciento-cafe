@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
+import { Search, ShoppingBag, Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
 import { productsApi } from '../api';
-import ConfirmDialog from '../components/ConfirmDialog';
+import ConfirmDialog from './components/ConfirmDialog';
 import ImageUploader from './components/ImageUploader';
 import GalleryUploader from './components/GalleryUploader';
 import { resolveImageUrl } from './utils/imageUrl';
 import { useModuleToast } from './context/ModuleContext';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
+import Pagination from './components/Pagination';
 import type { Product } from '../types';
 
 const emptyForm = {
@@ -26,6 +29,8 @@ export default function AdminProducts() {
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [catFilter, setCatFilter] = useState('TODOS');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -33,17 +38,25 @@ export default function AdminProducts() {
 
   const [loadError, setLoadError] = useState('');
   const [formError, setFormError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const load = () => {
+  const load = (overridePage?: number) => {
     setLoading(true);
     setLoadError('');
-    productsApi.adminList()
-      .then((r) => { setProducts(r.data); })
+    const currentPage = overridePage ?? page;
+    productsApi.adminList({ page: String(currentPage), pageSize: '50' })
+      .then((r) => { setProducts(r.data.data); setTotalPages(r.data.totalPages ?? 1); setPage(currentPage); })
       .catch(() => { setLoadError('Error al cargar productos. Intenta de nuevo.'); })
       .finally(() => setLoading(false));
   };
 
   useEffect(load, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const openAdd = () => { setForm(emptyForm); setEditId(null); setModal('add'); };
 
@@ -55,7 +68,7 @@ export default function AdminProducts() {
       scaScore: p.scaScore ?? '',
       weight: p.weight ?? '',
       images: p.images ?? [],
-    } as any);
+    } as typeof emptyForm);
     setEditId(p.id);
     setModal('edit');
   };
@@ -103,8 +116,13 @@ export default function AdminProducts() {
   };
 
   const toggleActive = async (p: Product) => {
-    await productsApi.update(p.id, { isActive: !p.isActive });
-    load();
+    try {
+      await productsApi.update(p.id, { isActive: !p.isActive });
+      addToast(`${p.name} ${!p.isActive ? 'activado' : 'desactivado'}`, 'success');
+      load();
+    } catch {
+      addToast('Error al cambiar estado', 'error');
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -141,7 +159,11 @@ export default function AdminProducts() {
   };
 
   const isCafe = form.category === 'CAFÉ';
-  const filtered = catFilter === 'TODOS' ? products : products.filter((p) => p.category === catFilter);
+  const filtered = (catFilter === 'TODOS' ? products : products.filter((p) => p.category === catFilter))
+    .filter((p) =>
+      !debouncedSearch || p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (p.region && p.region.toLowerCase().includes(debouncedSearch.toLowerCase()))
+    );
 
   return (
     <div className="p-8">
@@ -150,9 +172,20 @@ export default function AdminProducts() {
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Productos</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{products.length} en catálogo</p>
         </div>
-        <button onClick={openAdd} className="btn-primary flex items-center gap-2">
+        <button onClick={openAdd} className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 flex items-center gap-2">
           <Plus className="w-4 h-4" /> Agregar
         </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar producto..."
+          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2.5 focus:outline-none focus:border-gold-500/50"
+        />
       </div>
 
       {/* Category filter */}
@@ -160,7 +193,7 @@ export default function AdminProducts() {
         {['TODOS', 'CAFÉ', 'ACCESORIOS', 'MERCH'].map((cat) => (
           <button
             key={cat}
-            onClick={() => setCatFilter(cat)}
+            onClick={() => { setCatFilter(cat); setPage(1); }}
             className={`text-xs px-3 py-1.5 border transition-all ${
               catFilter === cat ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
             }`}
@@ -184,88 +217,89 @@ export default function AdminProducts() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-        </div>
+        <AdminSkeleton rows={4} />
       ) : loadError ? (
-        <div className="text-center py-20">
-          <p className="text-red-400 mb-4">{loadError}</p>
-          <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
-            Reintentar
-          </button>
+        <AdminErrorState error={loadError} onRetry={load} />
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
+          <p className="text-coffee-500 dark:text-coffee-400">No hay productos con este filtro.</p>
         </div>
       ) : (
-        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                  <th className="w-8 px-4 py-3">
-                    <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === filtered.length && filtered.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
-                  </th>
-                  {['Producto', 'Categoría', 'Info', 'Precio', 'Stock', 'Estado', ''].map((h) => (
-                    <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                  {filtered.map((p) => (
-                    <tr key={p.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+        <>
+          <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-coffee-200 dark:border-coffee-800">
+                    <th className="w-8 px-4 py-3">
+                      <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === filtered.length && filtered.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+                    </th>
+                    {['Producto', 'Categoría', 'Info', 'Precio', 'Stock', 'Estado', ''].map((h) => (
+                      <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                    {filtered.map((p) => (
+                      <tr key={p.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+                        </td>
+                        <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img src={resolveImageUrl(p.imageUrl)} alt={p.name} className="w-10 h-10 object-cover shrink-0" />
+                          <div>
+                            <p className="text-coffee-900 dark:text-cream font-medium">{p.name}</p>
+                            {p.isLimited && <span className="text-xs text-red-400">Limitado</span>}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <img src={resolveImageUrl(p.imageUrl)} alt={p.name} className="w-10 h-10 object-cover shrink-0" />
-                        <div>
-                          <p className="text-coffee-900 dark:text-cream font-medium">{p.name}</p>
-                          {p.isLimited && <span className="text-xs text-red-400">Limitado</span>}
+                        <span className="text-xs border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 px-2 py-0.5">
+                          {categoryLabels[p.category] ?? p.category}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-coffee-700 dark:text-coffee-300 text-xs">
+                        {p.category === 'CAFÉ' && p.scaScore ? (
+                          <span className="sca-badge"><Star className="w-3 h-3 fill-gold-500 text-gold-500" /> {p.scaScore}</span>
+                        ) : (
+                          <span className="text-coffee-500">{p.region || '—'}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gold-500 font-medium">${p.price}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-sm font-medium ${p.stock <= 5 ? 'text-red-400' : p.stock <= 15 ? 'text-yellow-400' : 'text-green-400'}`}>
+                          {p.stock}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => toggleActive(p)} className="transition-colors">
+                          {p.isActive ? <ToggleRight className="w-5 h-5 text-green-400" /> : <ToggleLeft className="w-5 h-5 text-coffee-600 dark:text-coffee-400" />}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => openEdit(p)} className="text-coffee-400 dark:text-coffee-500 hover:text-gold-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete(p.id, p.name)} className="text-coffee-400 dark:text-coffee-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 px-2 py-0.5">
-                        {categoryLabels[p.category] ?? p.category}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-coffee-700 dark:text-coffee-300 text-xs">
-                      {p.category === 'CAFÉ' && p.scaScore ? (
-                        <span className="sca-badge"><Star className="w-3 h-3 fill-gold-500 text-gold-500" /> {p.scaScore}</span>
-                      ) : (
-                        <span className="text-coffee-500">{p.region || '—'}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-gold-500 font-medium">${p.price}</td>
-                    <td className="px-4 py-3">
-                      <span className={`text-sm font-medium ${p.stock <= 5 ? 'text-red-400' : p.stock <= 15 ? 'text-yellow-400' : 'text-green-400'}`}>
-                        {p.stock}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <button onClick={() => toggleActive(p)} className="transition-colors">
-                        {p.isActive ? <ToggleRight className="w-5 h-5 text-green-400" /> : <ToggleLeft className="w-5 h-5 text-coffee-600" />}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => openEdit(p)} className="text-coffee-400 hover:text-gold-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(p.id, p.name)} className="text-coffee-400 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+          <Pagination page={page} totalPages={totalPages} onChange={(p) => load(p)} />
+        </>
       )}
 
       <ConfirmDialog
         open={!!deleteConfirm}
         title="Eliminar producto"
-        description={`¿Eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
-        confirmLabel="Eliminar"
-        confirmVariant="danger"
+        message={`¿Eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        isDangerous
         loading={deleting}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirm(null)}
@@ -290,7 +324,7 @@ export default function AdminProducts() {
                 <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream">
                   {modal === 'add' ? 'Agregar producto' : 'Editar producto'}
                 </h2>
-                <button onClick={() => setModal(null)} className="text-coffee-400 hover:text-cream transition-colors">
+                <button onClick={() => setModal(null)} className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -431,10 +465,10 @@ export default function AdminProducts() {
                 {formError && <p className="text-red-400 text-sm">{formError}</p>}
 
                 <div className="flex gap-3 pt-2">
-                  <button type="submit" disabled={saving} className="btn-primary disabled:opacity-50">
+                  <button type="submit" disabled={saving} className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50">
                     {saving ? 'Guardando...' : modal === 'add' ? 'Agregar producto' : 'Guardar cambios'}
                   </button>
-                  <button type="button" onClick={() => setModal(null)} className="btn-outline-dark">Cancelar</button>
+                  <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:bg-coffee-200 dark:hover:bg-coffee-800 transition-colors">Cancelar</button>
                 </div>
               </form>
             </motion.div>

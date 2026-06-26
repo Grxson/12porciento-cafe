@@ -3,6 +3,9 @@ import { Star, Check, Trash2, MessageSquare, X } from 'lucide-react';
 import { reviewsApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
+import Pagination from './components/Pagination';
 import type { Review } from '../types';
 
 type ReviewWithResponse = Review & { adminResponse?: string };
@@ -11,6 +14,9 @@ export default function AdminReviews() {
   const { addToast } = useModuleToast();
   const [reviews, setReviews] = useState<ReviewWithResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('pending');
   const [responding, setResponding] = useState<string | null>(null);
   const [responseText, setResponseText] = useState('');
@@ -18,11 +24,15 @@ export default function AdminReviews() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmBulkApprove, setConfirmBulkApprove] = useState(false);
 
-  const load = () => {
-    reviewsApi.adminList()
-      .then((r) => { setReviews(r.data.data); })
-      .catch(() => addToast('Error al cargar reseñas', 'error'))
+  const load = (overridePage?: number) => {
+    setLoading(true);
+    setLoadError('');
+    const currentPage = overridePage ?? page;
+    reviewsApi.adminList({ page: String(currentPage), pageSize: '50' })
+      .then((r) => { setReviews(r.data.data); setTotalPages(r.data.totalPages ?? 1); setPage(currentPage); })
+      .catch(() => setLoadError('Error al cargar reseñas. Intenta de nuevo.'))
       .finally(() => setLoading(false));
   };
 
@@ -74,7 +84,12 @@ export default function AdminReviews() {
     });
   };
 
-  const approveSelected = async () => {
+  const approveSelected = () => {
+    if (selected.size === 0) return;
+    setConfirmBulkApprove(true);
+  };
+
+  const doApproveSelected = async () => {
     setBulkBusy(true);
     let ok = 0;
     for (const id of Array.from(selected)) {
@@ -82,6 +97,7 @@ export default function AdminReviews() {
     }
     setBulkBusy(false);
     setSelected(new Set());
+    setConfirmBulkApprove(false);
     addToast(`${ok} reseña(s) aprobada(s)`, ok > 0 ? 'success' : 'error');
     load();
   };
@@ -105,7 +121,7 @@ export default function AdminReviews() {
           {(['all', 'pending', 'approved'] as const).map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => { setFilter(f); setPage(1); }}
               className={`text-xs px-3 py-1.5 tracking-wider uppercase transition-all ${
                 filter === f ? 'bg-gold-500 text-coffee-950' : 'border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
               }`}
@@ -139,105 +155,118 @@ export default function AdminReviews() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-10">
-          <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-        </div>
+        <AdminSkeleton rows={3} />
+      ) : loadError ? (
+        <AdminErrorState error={loadError} onRetry={load} />
       ) : filtered.length === 0 ? (
         <p className="text-center text-coffee-500 py-10">No hay reseñas.</p>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((r) => (
-            <div key={r.id} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">
-              <div className="flex items-start justify-between gap-4">
-                {!r.isApproved && (
-                  <input
-                    type="checkbox"
-                    checked={selected.has(r.id)}
-                    onChange={() => toggleSelect(r.id)}
-                    className="w-4 h-4 accent-gold-500 mt-1 shrink-0"
-                    aria-label="Seleccionar reseña"
-                  />
-                )}
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? 'fill-gold-500 text-gold-500' : 'text-coffee-700'}`} />
-                      ))}
+        <>
+          <div className="space-y-3">
+            {filtered.map((r) => (
+              <div key={r.id} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  {!r.isApproved && (
+                    <input
+                      type="checkbox"
+                      checked={selected.has(r.id)}
+                      onChange={() => toggleSelect(r.id)}
+                      className="w-4 h-4 accent-gold-500 mt-1 shrink-0"
+                      aria-label="Seleccionar reseña"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? 'fill-gold-500 text-gold-500' : 'text-coffee-700 dark:text-coffee-500'}`} />
+                        ))}
+                      </div>
+                      <span className="text-coffee-900 dark:text-cream text-sm font-medium">{r.name}</span>
+                      <span className="text-coffee-500 text-xs">{r.email}</span>
+                      {r.product && <span className="text-coffee-600 dark:text-coffee-400 text-xs">· {r.product.name}</span>}
+                      {!r.isApproved && (
+                        <span className="text-xs px-2 py-0.5 bg-yellow-900/30 text-yellow-400">Pendiente</span>
+                      )}
                     </div>
-                    <span className="text-coffee-900 dark:text-cream text-sm font-medium">{r.name}</span>
-                    <span className="text-coffee-500 text-xs">{r.email}</span>
-                    {r.product && <span className="text-coffee-600 dark:text-coffee-400 text-xs">· {r.product.name}</span>}
-                    {!r.isApproved && (
-                      <span className="text-xs px-2 py-0.5 bg-yellow-900/30 text-yellow-400">Pendiente</span>
+                    <p className="text-coffee-800 dark:text-coffee-200 text-sm leading-relaxed">{r.comment}</p>
+
+                    {r.adminResponse && (
+                      <div className="mt-3 pl-4 border-l-2 border-gold-500/30">
+                        <p className="text-coffee-500 text-xs uppercase tracking-wider mb-1">Respuesta del equipo</p>
+                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">{r.adminResponse}</p>
+                      </div>
+                    )}
+
+                    {responding === r.id && (
+                      <div className="mt-3 flex gap-2">
+                        <textarea
+                          value={responseText}
+                          onChange={(e) => setResponseText(e.target.value)}
+                          placeholder="Escribe tu respuesta..."
+                          rows={2}
+                          className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none resize-none"
+                        />
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => submitResponse(r.id)}
+                            className="px-3 py-2 bg-gold-500 text-coffee-950 text-sm hover:bg-gold-400 transition-colors"
+                          >
+                            Enviar
+                          </button>
+                          <button
+                            onClick={() => { setResponding(null); setResponseText(''); }}
+                            className="px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <p className="text-coffee-800 dark:text-coffee-200 text-sm leading-relaxed">{r.comment}</p>
 
-                  {r.adminResponse && (
-                    <div className="mt-3 pl-4 border-l-2 border-gold-500/30">
-                      <p className="text-coffee-500 text-xs uppercase tracking-wider mb-1">Respuesta del equipo</p>
-                      <p className="text-coffee-700 dark:text-coffee-300 text-sm">{r.adminResponse}</p>
-                    </div>
-                  )}
-
-                  {responding === r.id && (
-                    <div className="mt-3 flex gap-2">
-                      <textarea
-                        value={responseText}
-                        onChange={(e) => setResponseText(e.target.value)}
-                        placeholder="Escribe tu respuesta..."
-                        rows={2}
-                        className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none resize-none"
-                      />
-                      <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => submitResponse(r.id)}
-                          className="px-3 py-2 bg-gold-500 text-coffee-950 text-sm hover:bg-gold-400 transition-colors"
-                        >
-                          Enviar
-                        </button>
-                        <button
-                          onClick={() => { setResponding(null); setResponseText(''); }}
-                          className="px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => { setResponding(r.id); setResponseText(''); }}
-                    className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors"
-                    title="Responder"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
-                  {!r.isApproved && (
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
-                      onClick={() => approve(r.id)}
-                      className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-green-400 transition-colors"
-                      title="Aprobar"
+                      onClick={() => { setResponding(r.id); setResponseText(''); }}
+                      className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors"
+                      title="Responder"
                     >
-                      <Check className="w-4 h-4" />
+                      <MessageSquare className="w-4 h-4" />
                     </button>
-                  )}
-                  <button
-                    onClick={() => setConfirmDelete(r.id)}
-                    className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    {!r.isApproved && (
+                      <button
+                        onClick={() => approve(r.id)}
+                        className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-green-400 transition-colors"
+                        title="Aprobar"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setConfirmDelete(r.id)}
+                      className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} onChange={(p) => load(p)} />
+        </>
       )}
+
+      <ConfirmDialog
+        open={confirmBulkApprove}
+        title="Aprobar reseñas"
+        message={`¿Aprobar ${selected.size} reseña(s) seleccionada(s)?`}
+        confirmText="Aprobar"
+        loading={bulkBusy}
+        onConfirm={doApproveSelected}
+        onCancel={() => setConfirmBulkApprove(false)}
+      />
 
       <ConfirmDialog
         open={!!confirmDelete}

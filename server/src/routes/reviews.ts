@@ -106,13 +106,21 @@ router.post('/product/:productId', reviewLimiter, async (req: Request, res: Resp
   }
 });
 
-router.get('/admin/all', requireAuth, async (_req: AuthRequest, res: Response) => {
+router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const reviews = await prisma.review.findMany({
-      include: { product: { select: { name: true, slug: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json({ data: reviews });
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
+    const skip = (page - 1) * pageSize;
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        skip,
+        take: pageSize,
+        include: { product: { select: { name: true, slug: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.review.count(),
+    ]);
+    res.json({ data: reviews, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
   } catch {
     res.status(500).json({ error: 'Error al obtener reseñas' });
   }

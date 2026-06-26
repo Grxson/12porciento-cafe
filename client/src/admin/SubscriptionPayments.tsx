@@ -83,7 +83,10 @@ export default function SubscriptionPayments() {
       ) : listError ? (
         <AdminErrorState error={listError} onRetry={() => loadPage(pagination.page)} />
       ) : payments.length === 0 ? (
-        <p className="text-center text-coffee-500 py-10">Sin pagos registrados</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <CreditCard className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
+          <p className="text-coffee-500 dark:text-coffee-400">Sin pagos registrados</p>
+        </div>
       ) : (
         <>
           <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
@@ -91,22 +94,22 @@ export default function SubscriptionPayments() {
               <table className="w-full min-w-[700px] text-sm">
                 <thead>
                   <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Suscriptor</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Plan</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Monto</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Fecha</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Estado</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Factura</th>
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Suscriptor</th>
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Plan</th>
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Monto</th>
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Fecha</th>
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Estado</th>
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Factura</th>
                   </tr>
                 </thead>
                 <tbody>
                   {payments.map((p) => {
-                    const badge = statusBadge[p.status] ?? { label: p.status, color: 'text-coffee-500 bg-coffee-800/20 border-coffee-700/30' };
+                    const badge = statusBadge[p.status] ?? { label: p.status, color: 'text-coffee-500 dark:text-coffee-400 bg-coffee-800/20 border-coffee-700/30' };
                     return (
                       <tr key={p.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors">
                         <td className="px-4 py-3">
                           <p className="text-coffee-900 dark:text-cream font-medium">{p.subscription.name}</p>
-                          <p className="text-coffee-500 text-xs">{p.subscription.email}</p>
+                          <p className="text-coffee-500 dark:text-coffee-400 text-xs">{p.subscription.email}</p>
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-gold-500 text-xs font-medium uppercase tracking-wider">

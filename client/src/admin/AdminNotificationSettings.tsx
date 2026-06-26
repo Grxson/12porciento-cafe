@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, BellOff, Loader2, Send, Check } from 'lucide-react';
+import { Bell, Loader2, Send } from 'lucide-react';
 import api from '../api';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
 
 const EVENT_TYPES = [
   { value: 'new_order', label: 'Nuevo pedido' },
@@ -16,7 +18,8 @@ const EVENT_TYPES = [
 export default function AdminNotificationSettings() {
   const [preferences, setPreferences] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState<{ sent: number; failed: number } | null>(null);
   const [error, setError] = useState('');
@@ -29,19 +32,26 @@ export default function AdminNotificationSettings() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleToggle = useCallback(async (eventType: string) => {
-    const newEnabled = !preferences[eventType];
-    setSaving(eventType);
-    setPreferences((p) => ({ ...p, [eventType]: newEnabled }));
+  const handleToggle = useCallback((eventType: string) => {
+    setPreferences((p) => ({ ...p, [eventType]: !p[eventType] }));
+    setDirty(true);
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
     try {
-      await api.put('/push/preferences', { eventType, enabled: newEnabled });
+      const promises = Object.entries(preferences).map(([eventType, enabled]) =>
+        api.put('/push/preferences', { eventType, enabled })
+      );
+      await Promise.all(promises);
+      setDirty(false);
     } catch {
-      setPreferences((p) => ({ ...p, [eventType]: !newEnabled }));
-      setError('Error al guardar preferencia');
+      setError('Error al guardar preferencias');
     } finally {
-      setSaving(null);
+      setSaving(false);
     }
-  }, [preferences]);
+  };
 
   const handleTest = async () => {
     setTestSending(true);
@@ -57,29 +67,20 @@ export default function AdminNotificationSettings() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center gap-2 p-8">
-        <Loader2 className="w-5 h-5 animate-spin text-coffee-400" />
-        <span className="text-coffee-500 text-sm">Cargando preferencias...</span>
-      </div>
-    );
+    return <AdminSkeleton rows={4} />;
   }
 
   return (
-    <div className="p-6">
+    <div className="p-8">
       <div className="flex items-center gap-3 mb-6">
         <Bell className="w-5 h-5 text-gold-500" />
         <div>
           <h2 className="text-lg font-semibold text-coffee-900 dark:text-cream">Notificaciones push</h2>
-          <p className="text-sm text-coffee-500 mt-0.5">Controla qué eventos generan notificaciones push en tus dispositivos suscritos.</p>
+          <p className="text-sm text-coffee-500 dark:text-coffee-400 mt-0.5">Controla qué eventos generan notificaciones push en tus dispositivos suscritos.</p>
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <AdminErrorState error={error} />}
 
       <div className="space-y-2 mb-8">
         {EVENT_TYPES.map(({ value, label }) => (
@@ -100,15 +101,29 @@ export default function AdminNotificationSettings() {
             <span className={`flex-1 text-sm ${preferences[value] !== false ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-500'}`}>
               {label}
             </span>
-            {saving === value && <Loader2 className="w-3.5 h-3.5 animate-spin text-coffee-400" />}
-            {preferences[value] !== false && saving !== value && <Check className="w-3.5 h-3.5 text-green-500" />}
+            {preferences[value] !== false && <span className="w-3.5 h-3.5 rounded-full bg-green-500" />}
           </label>
         ))}
       </div>
 
+      <div className="mb-8">
+        <button
+          onClick={handleSave}
+          disabled={!dirty || saving}
+          className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Bell className="w-4 h-4" />
+          )}
+          {saving ? 'Guardando...' : 'Guardar cambios'}
+        </button>
+      </div>
+
       <div className="border-t border-coffee-200 dark:border-coffee-800 pt-6">
         <h3 className="text-sm font-medium text-coffee-900 dark:text-cream mb-3">Probar notificaciones</h3>
-        <p className="text-xs text-coffee-500 mb-4">Envía una notificación de prueba a todos los dispositivos suscritos.</p>
+        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-4">Envía una notificación de prueba a todos los dispositivos suscritos.</p>
         <button
           onClick={handleTest}
           disabled={testSending}

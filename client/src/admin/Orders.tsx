@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Search, X, ChevronLeft, ChevronRight as ChevronRightIcon, Download } from 'lucide-react';
+import { ChevronDown, Search, X, ChevronLeft, ChevronRight as ChevronRightIcon, Download, ShoppingBag } from 'lucide-react';
 import { ordersApi } from '../api';
 import { exportToCsv } from './utils/csvExport';
 import { useModuleToast } from './context/ModuleContext';
+import ConfirmDialog from './components/ConfirmDialog';
+import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
 import type { Order, OrderStatus } from '../types';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
@@ -32,6 +35,7 @@ export default function AdminOrders() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState('');
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmBulk, setConfirmBulk] = useState<string | null>(null);
 
   const load = (overrides?: Record<string, string>) => {
     setLoading(true);
@@ -94,24 +98,30 @@ export default function AdminOrders() {
     else setSelected(new Set(orders.map((o) => o.id)));
   };
 
-  const handleBulkStatus = async () => {
-    if (!bulkStatus) return;
+  const handleBulkStatus = (newStatus: string) => {
+    if (selected.size === 0) return;
+    setConfirmBulk(newStatus);
+  };
+
+  const doBulkStatus = async () => {
+    if (!confirmBulk) return;
     setBulkBusy(true);
     let success = 0;
     let fail = 0;
     for (const id of selected) {
       try {
-        await ordersApi.updateStatus(id, bulkStatus);
+        await ordersApi.updateStatus(id, confirmBulk);
         success++;
       } catch {
         fail++;
       }
     }
-    if (success > 0) addToast(`${success} pedido${success !== 1 ? 's' : ''} actualizado${success !== 1 ? 's' : ''} a ${statusConfig[bulkStatus as OrderStatus]?.label ?? bulkStatus}`, 'success');
+    if (success > 0) addToast(`${success} pedido${success !== 1 ? 's' : ''} actualizado${success !== 1 ? 's' : ''} a ${statusConfig[confirmBulk as OrderStatus]?.label ?? confirmBulk}`, 'success');
     if (fail > 0) addToast(`${fail} pedido${fail !== 1 ? 's' : ''} fallaron`, 'error');
     setSelected(new Set());
     setBulkBusy(false);
     setBulkStatus('');
+    setConfirmBulk(null);
   };
 
   const hasFilters = status || search || dateFrom || dateTo;
@@ -203,32 +213,28 @@ export default function AdminOrders() {
             <option value="DELIVERED">Entregado</option>
             <option value="CANCELLED">Cancelado</option>
           </select>
-          <button onClick={handleBulkStatus} disabled={!bulkStatus || bulkBusy}
+          <button onClick={() => handleBulkStatus(bulkStatus)} disabled={!bulkStatus || bulkBusy}
             className="text-xs btn-primary disabled:opacity-50">
             {bulkBusy ? 'Actualizando…' : 'Aplicar'}
           </button>
-          <button onClick={() => setSelected(new Set())} className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-cream ml-auto">Limpiar</button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-cream ml-auto">Limpiar</button>
         </div>
       )}
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-        </div>
+        <AdminSkeleton rows={5} />
       ) : loadError ? (
-        <div className="text-center py-20">
-          <p className="text-red-400 mb-4">{loadError}</p>
-          <button onClick={() => load()} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
-            Reintentar
-          </button>
-        </div>
+        <AdminErrorState error={loadError} onRetry={() => load()} />
       ) : orders.length === 0 ? (
-        <div className="text-center py-20 text-coffee-500">No hay pedidos con ese filtro.</div>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
+          <p className="text-coffee-500 dark:text-coffee-400">No hay pedidos con ese filtro.</p>
+        </div>
       ) : (
         <div className="space-y-2">
           <div className="flex items-center px-5 py-2 bg-coffee-50/50 dark:bg-coffee-800/20 border border-coffee-200 dark:border-coffee-800 mb-2">
             <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === orders.length && orders.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
-            <span className="text-xs text-coffee-500 ml-2">Seleccionar todo</span>
+            <span className="text-xs text-coffee-500 dark:text-coffee-400 ml-2">Seleccionar todo</span>
           </div>
           {orders.map((order) => {
             const cfg = statusConfig[order.status as OrderStatus] ?? statusConfig.PENDING;
@@ -247,7 +253,7 @@ export default function AdminOrders() {
                     </div>
                     <div className="hidden sm:block">
                       <p className="text-coffee-700 dark:text-coffee-300 text-sm">{order.city}, {order.state}</p>
-                      <p className="text-coffee-500 text-xs">{new Date(order.createdAt).toLocaleDateString('es-MX')}</p>
+                      <p className="text-coffee-500 dark:text-coffee-400 text-xs">{new Date(order.createdAt).toLocaleDateString('es-MX')}</p>
                     </div>
                     <span className={`hidden md:inline text-xs px-2.5 py-1 font-medium ${cfg.color} ${cfg.bg}`}>
                       {cfg.label}
@@ -274,7 +280,7 @@ export default function AdminOrders() {
                         </div>
                         {order.notes && (
                           <div className="mt-4">
-                            <p className="text-xs text-coffee-500 uppercase tracking-widest mb-1">Notas</p>
+                            <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Notas</p>
                             <p className="text-coffee-700 dark:text-coffee-300 text-sm">{order.notes}</p>
                           </div>
                         )}
@@ -287,7 +293,7 @@ export default function AdminOrders() {
                         {order.phone && <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{order.phone}</p>}
 
                         <div className="mt-5">
-                          <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">Cambiar estado</p>
+                          <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Cambiar estado</p>
                           <div className="flex flex-wrap gap-2">
                             {allStatuses.map((s) => (
                               <button
@@ -296,7 +302,7 @@ export default function AdminOrders() {
                                 className={`text-xs px-3 py-1.5 border transition-all ${
                                   order.status === s
                                     ? `${statusConfig[s].color} ${statusConfig[s].bg} border-current`
-                                    : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 hover:border-coffee-400 dark:hover:border-coffee-500'
+                                    : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
                                 }`}
                               >
                                 {statusConfig[s].label}
@@ -327,6 +333,16 @@ export default function AdminOrders() {
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmBulk}
+        title="Cambiar estado masivo"
+        message={`¿Cambiar estado de ${selected.size} pedido${selected.size !== 1 ? 's' : ''} a ${confirmBulk ? (statusConfig[confirmBulk as OrderStatus]?.label ?? confirmBulk) : ''}?`}
+        confirmText="Aplicar"
+        loading={bulkBusy}
+        onConfirm={doBulkStatus}
+        onCancel={() => setConfirmBulk(null)}
+      />
     </div>
   );
 }

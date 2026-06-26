@@ -188,7 +188,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
+    <div className="p-8 space-y-8">
       <div>
         <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Dashboard</h1>
         <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">Resumen general de la operación</p>
@@ -230,7 +230,7 @@ export default function Dashboard() {
               {card.value}
             </p>
             <div className="flex items-center justify-between mt-2">
-              <p className="text-coffee-500 text-xs">{card.sub}</p>
+              <p className="text-coffee-500 dark:text-coffee-400 text-xs">{card.sub}</p>
               {card.trend && (
                 <span className="flex items-center gap-0.5 text-green-400 text-xs font-medium">
                   <ArrowUpRight className="w-3 h-3" />
@@ -310,7 +310,7 @@ export default function Dashboard() {
             <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Pedidos recientes</p>
           </div>
           {statusData.length === 0 ? (
-            <div className="flex items-center justify-center h-40 text-coffee-500 text-sm">
+              <div className="flex items-center justify-center h-40 text-coffee-500 dark:text-coffee-400 text-sm">
               Sin datos aún
             </div>
           ) : (
@@ -350,7 +350,7 @@ export default function Dashboard() {
         <div className="xl:col-span-2 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
           <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5">Pedidos recientes</h2>
           {stats.recentOrders.length === 0 ? (
-            <p className="text-coffee-500 text-sm py-4">No hay pedidos aún.</p>
+            <p className="text-coffee-500 dark:text-coffee-400 text-sm py-4">No hay pedidos aún.</p>
           ) : (
             <div className="space-y-3">
               {stats.recentOrders.map((order) => (
@@ -385,7 +385,7 @@ export default function Dashboard() {
             Bajo stock
           </h2>
           {stats.lowStockProducts.length === 0 ? (
-            <p className="text-coffee-500 text-sm">Todo el inventario está bien.</p>
+            <p className="text-coffee-500 dark:text-coffee-400 text-sm">Todo el inventario está bien.</p>
           ) : (
             <div className="space-y-3">
               {stats.lowStockProducts.map(({ name, stock }) => (
@@ -396,7 +396,7 @@ export default function Dashboard() {
                   <p className="text-coffee-800 dark:text-coffee-200 text-sm">{name}</p>
                   <span
                     className={`text-xs font-medium px-2 py-0.5 ${
-                      stock <= 5 ? 'bg-red-900/30 text-red-400' : 'bg-yellow-900/30 text-yellow-400'
+                      stock <= 5 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
                     }`}
                   >
                     {stock} uds
@@ -415,7 +415,7 @@ export default function Dashboard() {
           Top Baristas
         </h2>
         {topBaristas.length === 0 ? (
-          <p className="text-coffee-500 text-sm">Sin brews registrados aún.</p>
+          <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin brews registrados aún.</p>
         ) : (
           <div className="space-y-2">
             {topBaristas.map((b, i) => (
@@ -433,7 +433,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <span className="text-gold-500 text-xs font-semibold">Nv. {b.level}</span>
-                  <p className="text-coffee-500 text-xs">{b.totalXp} XP</p>
+                    <p className="text-coffee-500 dark:text-coffee-400 text-xs">{b.totalXp} XP</p>
                 </div>
               </Link>
             ))}

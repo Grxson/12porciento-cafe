@@ -21,10 +21,18 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
     videoUrl: step?.videoUrl || '',
     duration: step?.duration?.toString() || '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.description.trim()) return;
+    const newErrors: Record<string, string> = {};
+    if (!form.title.trim()) newErrors.title = 'El título es obligatorio';
+    if (!form.description.trim()) newErrors.description = 'La descripción es obligatoria';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
     await onSave({
       title: form.title,
       description: form.description,
@@ -64,21 +72,23 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
                 <input
                   type="text"
                   value={form.title}
-                  onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
+                  onChange={(e) => { setForm(f => ({ ...f, title: e.target.value })); setErrors((prev) => ({ ...prev, title: '' })); }}
                   className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
                   placeholder="ej. Preparación del café"
                 />
+                {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
               </div>
 
               <div>
                 <label className="block text-xs text-coffee-400 mb-1">Descripción *</label>
                 <textarea
                   value={form.description}
-                  onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
+                  onChange={(e) => { setForm(f => ({ ...f, description: e.target.value })); setErrors((prev) => ({ ...prev, description: '' })); }}
                   rows={4}
                   className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500 resize-none"
                   placeholder="Instrucciones detalladas..."
                 />
+                {errors.description && <p className="text-red-400 text-xs mt-1">{errors.description}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -57,11 +57,6 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Skip waiting on install (preserves update prompt flow via registerType: 'prompt')
-self.addEventListener('install', () => {
-  self.skipWaiting();
-});
-
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });

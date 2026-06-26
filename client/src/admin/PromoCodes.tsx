@@ -65,7 +65,6 @@ export default function AdminPromoCodes() {
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
-      addToast(validationError, 'error');
       return;
     }
     setSaving(true); setError('');
@@ -181,7 +180,10 @@ export default function AdminPromoCodes() {
       ) : listError ? (
         <AdminErrorState error={listError} onRetry={load} />
       ) : codes.length === 0 ? (
-        <p className="text-center text-coffee-500 py-10">No hay códigos creados.</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Tag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
+          <p className="text-coffee-500 dark:text-coffee-400">No hay códigos creados.</p>
+        </div>
       ) : (
         <div className="space-y-2">
           {codes.map((c) => {
@@ -203,7 +205,7 @@ export default function AdminPromoCodes() {
                     {c.usedCount}{c.maxUses ? `/${c.maxUses}` : ''} usos
                   </span>
                   {c.expiresAt && (
-                    <span className={`text-xs ${expired ? 'text-red-400' : days !== null && days <= 7 ? 'text-yellow-400' : 'text-coffee-500'}`}>
+                    <span className={`text-xs ${expired ? 'text-red-400' : days !== null && days <= 7 ? 'text-yellow-400' : 'text-coffee-500 dark:text-coffee-400'}`}>
                       {expired ? 'Expirado' : days === 0 ? 'Expira hoy' : `Expira en ${days} día${days === 1 ? '' : 's'}`}
                     </span>
                   )}
@@ -212,7 +214,7 @@ export default function AdminPromoCodes() {
                   <button onClick={() => toggle(c.id)} className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors" aria-label="Activar/desactivar">
                     {c.isActive ? <ToggleRight className="w-5 h-5 text-gold-500" /> : <ToggleLeft className="w-5 h-5" />}
                   </button>
-                  <button onClick={() => setConfirmDelete(c.id)} className="text-coffee-600 hover:text-red-400 transition-colors" aria-label="Eliminar">
+                  <button onClick={() => setConfirmDelete(c.id)} className="text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors" aria-label="Eliminar">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>

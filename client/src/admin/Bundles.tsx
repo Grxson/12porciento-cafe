@@ -248,8 +248,8 @@ export default function AdminBundles() {
       ) : error ? (
         <AdminErrorState error={error} onRetry={retry} />
       ) : bundles.length === 0 ? (
-        <div className="text-center py-20 text-coffee-500">
-          <Package size={40} className="mx-auto mb-4 text-coffee-700" />
+          <div className="text-center py-20 text-coffee-500 dark:text-coffee-400">
+          <Package size={40} className="mx-auto mb-4 text-coffee-700 dark:text-coffee-300" />
           <p>No hay bundles configurados.</p>
         </div>
       ) : (
@@ -308,14 +308,14 @@ export default function AdminBundles() {
                       • {item.quantity > 1 ? `${item.quantity}x ` : ''}
                       {item.product.name}
                     </span>
-                    <span className="text-coffee-500">${item.product.price}</span>
+                    <span className="text-coffee-500 dark:text-coffee-400">${item.product.price}</span>
                   </div>
                 ))}
               </div>
 
               <div className="border-t border-coffee-200 dark:border-coffee-800 pt-3 flex items-end justify-between">
                 <div>
-                  <p className="text-coffee-500 text-xs line-through">
+                  <p className="text-coffee-500 dark:text-coffee-400 text-xs line-through">
                     ${bundle.basePrice.toLocaleString()}
                   </p>
                   <p className="text-gold-500 text-lg font-semibold">
@@ -403,7 +403,7 @@ export default function AdminBundles() {
               {/* isActive toggle — edit only */}
               {modalMode === 'edit' && (
                 <div className="flex items-center gap-3">
-                  <label className="text-xs text-coffee-400">Estado</label>
+                  <label className="text-xs text-coffee-600 dark:text-coffee-400">Estado</label>
                   <button
                     type="button"
                     onClick={() => setField('isActive', !form.isActive)}
@@ -417,7 +417,7 @@ export default function AdminBundles() {
                       }`}
                     />
                   </button>
-                  <span className="text-xs text-coffee-300">
+                  <span className="text-xs text-coffee-700 dark:text-coffee-300">
                     {form.isActive ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
@@ -425,15 +425,15 @@ export default function AdminBundles() {
 
               {/* ── Item selector (add mode only) ─────────────────────── */}
               {modalMode === 'add' && (
-                <div className="border-t border-coffee-800 pt-4">
-                  <p className="text-xs text-coffee-400 mb-3">Productos del bundle *</p>
+                <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
+                  <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-3">Productos del bundle *</p>
 
                   {/* Selector row */}
                   <div className="flex gap-2 mb-3">
                     <select
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
-                      className="flex-1 bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
+                      className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
                     >
                       <option value="">-- Seleccionar producto --</option>
                       {products.map((p) => (
@@ -454,7 +454,7 @@ export default function AdminBundles() {
 
                   {/* Chosen items */}
                   {formItems.length === 0 ? (
-                    <p className="text-xs text-coffee-600 italic">Ningún producto agregado aún.</p>
+                    <p className="text-xs text-coffee-600 dark:text-coffee-400 italic">Ningún producto agregado aún.</p>
                   ) : (
                     <div className="space-y-2">
                       {formItems.map((fi) => {
@@ -462,11 +462,11 @@ export default function AdminBundles() {
                         return (
                           <div
                             key={fi.productId}
-                            className="flex items-center gap-2 bg-coffee-800 border border-coffee-700 px-3 py-2"
+                            className="flex items-center gap-2 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-3 py-2"
                           >
-                            <span className="flex-1 text-xs text-coffee-300 truncate">
+                            <span className="flex-1 text-xs text-coffee-700 dark:text-coffee-300 truncate">
                               {product?.name}
-                              <span className="text-coffee-500 ml-2">${product?.price}</span>
+                              <span className="text-coffee-500 dark:text-coffee-400 ml-2">${product?.price}</span>
                             </span>
                             <input
                               type="number"
@@ -475,7 +475,7 @@ export default function AdminBundles() {
                               onChange={(e) =>
                                 updateItemQty(fi.productId, Math.max(1, Number(e.target.value)))
                               }
-                              className="w-14 bg-coffee-700 border border-coffee-600 text-cream text-xs text-center px-2 py-1 focus:outline-none focus:border-gold-500"
+                              className="w-14 bg-white dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-600 text-coffee-900 dark:text-cream text-xs text-center px-2 py-1 focus:outline-none focus:border-gold-500"
                             />
                             <button
                               type="button"
@@ -495,18 +495,18 @@ export default function AdminBundles() {
 
               {/* Edit-mode read-only items note */}
               {modalMode === 'edit' && editTarget && (
-                <div className="border-t border-coffee-800 pt-4">
-                  <p className="text-xs text-coffee-500 italic mb-2">
+                <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
+                  <p className="text-xs text-coffee-500 dark:text-coffee-400 italic mb-2">
                     Los productos del paquete no se pueden editar después de crearlo.
                   </p>
                   <div className="space-y-1">
                     {editTarget.items.map((item) => (
-                      <div key={item.id} className="text-xs text-coffee-400 flex justify-between">
+                      <div key={item.id} className="text-xs text-coffee-600 dark:text-coffee-400 flex justify-between">
                         <span>
                           {item.quantity > 1 ? `${item.quantity}x ` : ''}
                           {item.product.name}
                         </span>
-                        <span className="text-coffee-600">${item.product.price}</span>
+                        <span className="text-coffee-600 dark:text-coffee-400">${item.product.price}</span>
                       </div>
                     ))}
                   </div>

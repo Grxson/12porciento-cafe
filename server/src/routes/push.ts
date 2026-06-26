@@ -112,7 +112,7 @@ router.post('/test', requireAuth, async (_req: AuthRequest, res: Response) => {
   try {
     const subs = await getAdminSubscriptions();
     if (subs.length === 0) {
-      return res.status(404).json({ error: 'No hay dispositivos suscritos' });
+      return res.json({ ok: true, sent: 0, failed: 0, message: 'No hay dispositivos suscritos' });
     }
 
     let sent = 0;

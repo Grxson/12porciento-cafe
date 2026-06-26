@@ -89,17 +89,25 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // GET /admin/all — all recipes regardless of published status (MUST be before /:id)
-router.get('/admin/all', requireAuth, async (_req: AuthRequest, res: Response) => {
+router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const recipes = await prisma.recipe.findMany({
-      include: {
-        steps: { orderBy: { order: 'asc' } },
-        product: { select: { id: true, name: true, slug: true } },
-        _count: { select: { steps: true } },
-      },
-      orderBy: [{ method: 'asc' }, { title: 'asc' }],
-    });
-    res.json({ data: recipes });
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
+    const skip = (page - 1) * pageSize;
+    const [recipes, total] = await Promise.all([
+      prisma.recipe.findMany({
+        skip,
+        take: pageSize,
+        include: {
+          steps: { orderBy: { order: 'asc' } },
+          product: { select: { id: true, name: true, slug: true } },
+          _count: { select: { steps: true } },
+        },
+        orderBy: [{ method: 'asc' }, { title: 'asc' }],
+      }),
+      prisma.recipe.count(),
+    ]);
+    res.json({ data: recipes, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener recetas' });

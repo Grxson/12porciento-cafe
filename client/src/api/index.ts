@@ -44,7 +44,7 @@ export interface ProductsListResponse {
 
 export const productsApi = {
   list: (params?: Record<string, string>) => api.get<ProductsListResponse>('/products', { params }),
-  adminList: () => api.get('/products/admin/all'),
+  adminList: (params?: Record<string, any>) => api.get('/products/admin/all', { params }),
   getBySlug: (slug: string) => api.get(`/products/${slug}`),
   create: (data: any) => api.post('/products', data),
   update: (id: string, data: any) => api.put(`/products/${id}`, data),
@@ -145,7 +145,7 @@ export const bundlesApi = {
 export const reviewsApi = {
   listByProduct: (productId: string) => api.get(`/reviews/product/${productId}`),
   create: (productId: string, data: any) => api.post(`/reviews/product/${productId}`, data),
-  adminList: () => api.get('/reviews/admin/all'),
+  adminList: (params?: Record<string, any>) => api.get('/reviews/admin/all', { params }),
   approve: (id: string) => api.put(`/reviews/${id}/approve`),
   respond: (id: string, adminResponse: string) => api.put(`/reviews/${id}/respond`, { adminResponse }),
   delete: (id: string) => api.delete(`/reviews/${id}`),

@@ -17,6 +17,21 @@ interface RecipeLiveModeProps {
   onClose: () => void;
 }
 
+function getRelativeTime(dateString: string): string {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = now.getTime() - date.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSecs < 60) return 'hace unos segundos';
+  if (diffMins < 60) return `hace ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}`;
+  if (diffHours < 24) return `hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+  return `hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
+}
+
 export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps) {
   const user = useUser((s) => s.user);
   const { add: addToast } = useToast();
@@ -32,6 +47,9 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [stepPhotos, setStepPhotos] = useState<Record<number, { preview: string; blob: Blob }>>({});
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
+  const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]);
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const objectUrlRef = useRef<string | null>(null);
@@ -43,7 +61,12 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const step = recipe.steps[currentStepIndex];
   const hasNext = currentStepIndex < recipe.steps.length - 1;
   const hasPrev = currentStepIndex > 0;
+  const finalStep = currentStepIndex === recipe.steps.length - 1;
   const currentStepDraft = steps.find((s) => s.index === currentStepIndex) ?? { index: currentStepIndex };
+
+  // R6: Calculate total time in minutes
+  const totalSeconds = recipe.steps.reduce((sum, s) => sum + (s.duration ?? 0), 0);
+  const totalMinutes = Math.round(totalSeconds / 60);
 
   // Load draft on mount
   useEffect(() => {
@@ -150,6 +173,18 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   useEffect(() => {
     return () => {
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
+
+  // R4: Online/offline listener
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
@@ -297,16 +332,30 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-coffee-800">
-        <div>
+        <div className="flex-1">
           <h2 className="text-cream font-serif text-lg">{recipe.title}</h2>
-          <p className="text-xs text-coffee-500">
-            Paso {currentStepIndex + 1} de {recipe.steps.length}
-          </p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-xs text-coffee-500">
+              Paso {currentStepIndex + 1} de {recipe.steps.length}
+              {totalMinutes > 0 && ` • ~${totalMinutes} min total`}
+            </p>
+            {!isOnline && (
+              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-1 bg-red-500/20 border border-red-500/40 text-red-400 rounded">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Sin conexión
+              </span>
+            )}
+          </div>
         </div>
         <button
-          onClick={onClose}
+          onClick={() => {
+            if (currentStepIndex > 0 && !finalStep) {
+              setShowCloseConfirm(true);
+            } else {
+              onClose();
+            }
+          }}
           aria-label="Cerrar receta"
-          className="p-2 text-coffee-400 hover:text-cream transition-colors"
+          className="p-2 text-coffee-400 hover:text-cream transition-colors shrink-0"
         >
           <X className="w-6 h-6" />
         </button>
@@ -549,6 +598,46 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         </div>
         <GestureHints />
       </div>
+
+      {/* R3: Close confirmation dialog */}
+      <AnimatePresence>
+        {showCloseConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4"
+            onClick={() => setShowCloseConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-coffee-900 border border-coffee-800 p-6 max-w-sm w-full rounded"
+            >
+              <h3 className="text-cream font-serif text-lg mb-2">¿Cerrar receta?</h3>
+              <p className="text-coffee-300 text-sm mb-6">
+                Estás en el paso {currentStepIndex + 1}. Tu progreso se guardará y podrás continuar después.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCloseConfirm(false)}
+                  className="flex-1 px-4 py-2 border border-coffee-700 text-coffee-300 text-sm hover:bg-coffee-800 transition-colors"
+                >
+                  Continuar
+                </button>
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick panel (long-press) */}
       <AnimatePresence>

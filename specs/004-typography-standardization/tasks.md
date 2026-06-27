@@ -30,57 +30,57 @@ description: "CSS-only typography standardization: convert text-[10px]→text-xs
 
 ### Batch 1: Admin files
 
-- [ ] T001 [P] [A] Inventory.tsx — `text-[10px]` → `text-xs` in 47-48 lines (use `replaceAll` except ThresholdEditor buttons at L756-757 which are GROUP B). `client/src/admin/Inventory.tsx`
-- [ ] T002 [P] [A] Subscribers.tsx — `text-[10px]` → `text-xs` in status badge + grind preference. `client/src/admin/Subscribers.tsx`
-- [ ] T003 [P] [A] SubscriptionPayments.tsx — `text-[10px]` → `text-xs` in payment status badge. `client/src/admin/SubscriptionPayments.tsx`
-- [ ] T004 [P] [A] GalleryUploader.tsx — `text-[10px]` → `text-xs` in upload label. `client/src/admin/components/GalleryUploader.tsx`
+- [X] T001 [P] [A] Inventory.tsx — `text-[10px]` → `text-xs` in 47-48 lines (use `replaceAll` except ThresholdEditor buttons at L756-757 which are GROUP B). `client/src/admin/Inventory.tsx`
+- [X] T002 [P] [A] Subscribers.tsx — `text-[10px]` → `text-xs` in status badge + grind preference. `client/src/admin/Subscribers.tsx`
+- [X] T003 [P] [A] SubscriptionPayments.tsx — `text-[10px]` → `text-xs` in payment status badge. `client/src/admin/SubscriptionPayments.tsx`
+- [X] T004 [P] [A] GalleryUploader.tsx — `text-[10px]` → `text-xs` in upload label. `client/src/admin/components/GalleryUploader.tsx`
 
 ### Batch 2: Page files (part 1)
 
-- [ ] T005 [P] [A] Cart.tsx — `text-[10px]` → `text-xs` for weight badge, bundle badge, discount. `client/src/pages/Cart.tsx`
-- [ ] T006 [P] [A] Home.tsx — `text-[10px]` → `text-xs` for card subtitle, step number. `client/src/pages/Home.tsx`
-- [ ] T007 [P] [A] Recipes.tsx — `text-[10px]` → `text-xs` for premium badge, difficulty badge, param labels. `client/src/pages/Recipes.tsx`
-- [ ] T008 [P] [A] Profile.tsx — `text-[10px]` → `text-xs` for XP count + "Barista Level" text. `client/src/pages/Profile.tsx`
-- [ ] T009 [P] [A] product/BaristaProfile.tsx — `text-[10px]` → `text-xs` for achievement name, XP display. `client/src/pages/BaristaProfile.tsx`
+- [X] T005 [P] [A] Cart.tsx — `text-[10px]` → `text-xs` for weight badge, bundle badge, discount. `client/src/pages/Cart.tsx`
+- [X] T006 [P] [A] Home.tsx — `text-[10px]` → `text-xs` for card subtitle, step number. `client/src/pages/Home.tsx`
+- [X] T007 [P] [A] Recipes.tsx — `text-[10px]` → `text-xs` for premium badge, difficulty badge, param labels. `client/src/pages/Recipes.tsx`
+- [X] T008 [P] [A] Profile.tsx — `text-[10px]` → `text-xs` for XP count + "Barista Level" text. `client/src/pages/Profile.tsx`
+- [X] T009 [P] [A] product/BaristaProfile.tsx — `text-[10px]` → `text-xs` for achievement name, XP display. `client/src/pages/BaristaProfile.tsx`
 
 ### Batch 3: Page files (part 2)
 
-- [ ] T010 [P] [A] Bundles.tsx — `text-[10px]` → `text-xs` for "Incluye" header. `client/src/pages/Bundles.tsx`
-- [ ] T011 [P] [A] profile/Settings.tsx — `text-[10px]` → `text-xs` for avatar helper text. `client/src/pages/profile/Settings.tsx`
-- [ ] T012 [P] [A] profile/Subscription.tsx — `text-[10px]` → `text-xs` for status badge. `client/src/pages/profile/Subscription.tsx`
-- [ ] T013 [P] [A] AchievementGallery.tsx — `text-[10px]` → `text-xs` for rarity badge, progress count, unlock hint. `client/src/pages/AchievementGallery.tsx`
+- [X] T010 [P] [A] Bundles.tsx — `text-[10px]` → `text-xs` for "Incluye" header. `client/src/pages/Bundles.tsx`
+- [X] T011 [P] [A] profile/Settings.tsx — `text-[10px]` → `text-xs` for avatar helper text. `client/src/pages/profile/Settings.tsx`
+- [X] T012 [P] [A] profile/Subscription.tsx — `text-[10px]` → `text-xs` for status badge. `client/src/pages/profile/Subscription.tsx`
+- [X] T013 [P] [A] AchievementGallery.tsx — `text-[10px]` → `text-xs` for rarity badge, progress count, unlock hint. `client/src/pages/AchievementGallery.tsx`
 
 ### Batch 4: Component files
 
-- [ ] T014 [P] [A] NotesCapture.tsx — `text-[10px]` → `text-xs` for section label, char count. `client/src/components/recipes/NotesCapture.tsx`
-- [ ] T015 [P] [A] AttemptsList.tsx — `text-[10px]` → `text-xs` for date. `client/src/components/recipes/AttemptsList.tsx`
-- [ ] T016 [P] [A] RatingSlider.tsx — `text-[10px]` → `text-xs` for section label. `client/src/components/recipes/RatingSlider.tsx`
-- [ ] T017 [P] [A] RecipeList.tsx — `text-[10px]` → `text-xs` for status badges. `client/src/components/recipes/RecipeList.tsx`
-- [ ] T018 [P] [A] BrewComparator.tsx — `text-[10px]` → `text-xs` for helper text, date. `client/src/components/barista/BrewComparator.tsx`
-- [ ] T019 [P] [A] StreakHeatmap.tsx — `text-[10px]` → `text-xs` for legend labels. `client/src/components/StreakHeatmap.tsx`
-- [ ] T020 [P] [A] PasswordField.tsx — `text-[10px]` → `text-xs` for strength label. `client/src/components/PasswordField.tsx`
-- [ ] T021 [P] [A] QuizProductCard.tsx — `text-[10px]` → `text-xs` for match percentage badge. `client/src/components/QuizProductCard.tsx`
+- [X] T014 [P] [A] NotesCapture.tsx — `text-[10px]` → `text-xs` for section label, char count. `client/src/components/recipes/NotesCapture.tsx`
+- [X] T015 [P] [A] AttemptsList.tsx — `text-[10px]` → `text-xs` for date. `client/src/components/recipes/AttemptsList.tsx`
+- [X] T016 [P] [A] RatingSlider.tsx — `text-[10px]` → `text-xs` for section label. `client/src/components/recipes/RatingSlider.tsx`
+- [X] T017 [P] [A] RecipeList.tsx — `text-[10px]` → `text-xs` for status badges. `client/src/components/recipes/RecipeList.tsx`
+- [X] T018 [P] [A] BrewComparator.tsx — `text-[10px]` → `text-xs` for helper text, date. `client/src/components/barista/BrewComparator.tsx`
+- [X] T019 [P] [A] StreakHeatmap.tsx — `text-[10px]` → `text-xs` for legend labels. `client/src/components/StreakHeatmap.tsx`
+- [X] T020 [P] [A] PasswordField.tsx — `text-[10px]` → `text-xs` for strength label. `client/src/components/PasswordField.tsx`
+- [X] T021 [P] [A] QuizProductCard.tsx — `text-[10px]` → `text-xs` for match percentage badge. `client/src/components/QuizProductCard.tsx`
 
 ### Batch 5: RecipeLiveMode + Checkout (larger files)
 
-- [ ] T022 [P] [A] RecipeLiveMode.tsx — `text-[10px]` → `text-xs` for offline badge, param labels, difficulty badge. `client/src/components/recipes/RecipeLiveMode.tsx`
-- [ ] T023 [P] [A] Checkout.tsx — `text-[10px]` → `text-xs` for default payment badge, discount code label. `client/src/pages/Checkout.tsx`
+- [X] T022 [P] [A] RecipeLiveMode.tsx — `text-[10px]` → `text-xs` for offline badge, param labels, difficulty badge. `client/src/components/recipes/RecipeLiveMode.tsx`
+- [X] T023 [P] [A] Checkout.tsx — `text-[10px]` → `text-xs` for default payment badge, discount code label. `client/src/pages/Checkout.tsx`
 
 ### Batch 6: Remaining components
 
-- [ ] T024 [P] [A] CartDrawer.tsx — `text-[10px]` → `text-xs` for bundle badge, discount, bundle items. `client/src/components/CartDrawer.tsx`
-- [ ] T025 [P] [A] ProductDetail.tsx — `text-[10px]` → `text-xs` for SCA labels, param labels, avatar, helper text. `client/src/pages/ProductDetail.tsx`
-- [ ] T026 [P] [A] RecipeDetail.tsx — `text-[10px]` → `text-xs` for param labels (already fixed during audit). `client/src/pages/RecipeDetail.tsx`
+- [X] T024 [P] [A] CartDrawer.tsx — `text-[10px]` → `text-xs` for bundle badge, discount, bundle items. `client/src/components/CartDrawer.tsx`
+- [X] T025 [P] [A] ProductDetail.tsx — `text-[10px]` → `text-xs` for SCA labels, param labels, avatar, helper text. `client/src/pages/ProductDetail.tsx`
+- [X] T026 [P] [A] RecipeDetail.tsx — `text-[10px]` → `text-xs` for param labels (already fixed during audit). `client/src/pages/RecipeDetail.tsx`
 
 ### Batch 7: CoffeePicker + ProductCard (have GROUP C too — do GROUP A first)
 
-- [ ] T027 [P] [A] CoffeePicker.tsx — `text-[10px]` → `text-xs` for region, flavors, SCA score, plan name. `client/src/components/CoffeePicker.tsx`
-- [ ] T028 [P] [A] ProductCard.tsx — `text-[10px]` → `text-xs` for non-absolute elements (process label). `client/src/components/ProductCard.tsx`
+- [X] T027 [P] [A] CoffeePicker.tsx — `text-[10px]` → `text-xs` for region, flavors, SCA score, plan name. `client/src/components/CoffeePicker.tsx`
+- [X] T028 [P] [A] ProductCard.tsx — `text-[10px]` → `text-xs` for non-absolute elements (process label). `client/src/components/ProductCard.tsx`
 
 ### Batch 8: Admin dense files
 
-- [ ] T029 [P] [A] Shop.tsx — `text-[10px]` → `text-xs` for filter section labels. `client/src/pages/Shop.tsx`
-- [ ] T030 [P] [A] Subscriptions.tsx — `text-[10px]` → `text-xs` for non-featured plan badge. `client/src/pages/Subscriptions.tsx`
+- [X] T029 [P] [A] Shop.tsx — `text-[10px]` → `text-xs` for filter section labels. `client/src/pages/Shop.tsx`
+- [X] T030 [P] [A] Subscriptions.tsx — `text-[10px]` → `text-xs` for non-featured plan badge. `client/src/pages/Subscriptions.tsx`
 
 ---
 
@@ -88,12 +88,12 @@ description: "CSS-only typography standardization: convert text-[10px]→text-xs
 
 **Purpose**: Review 10 edge cases where `text-xs` may cause overflow. Adjust or document as exceptions.
 
-- [ ] T031 [GALLERY] StreakHeatmap month/day labels — verify cellSize ≥14px supports text-xs. `client/src/components/StreakHeatmap.tsx`
-- [ ] T032 [GALLERY] ProductCard category + "En carrito" badges — stacked absolute positioning. Verify no overlap at text-xs. `client/src/components/ProductCard.tsx`
-- [ ] T033 [GALLERY] CoffeePicker "Limitado" + "Plan benefit" badges — check card fit. `client/src/components/CoffeePicker.tsx`
-- [ ] T034 [GALLERY] CoffeeTimeline detail text — verify max-h-20 animation height accommodates text-xs. `client/src/components/CoffeeTimeline.tsx`
-- [ ] T035 [GALLERY] Profile "Barista Level" multi-line — verify no card height increase at text-xs. `client/src/pages/Profile.tsx`
-- [ ] T036 [GALLERY] Inventory "Inactivo" label + Subscribers truncated name — verify table cell fit. `client/src/admin/Inventory.tsx`, `client/src/admin/Subscribers.tsx`
+- [X] T031 [GALLERY] StreakHeatmap month/day labels — verify cellSize ≥14px supports text-xs. `client/src/components/StreakHeatmap.tsx`
+- [X] T032 [GALLERY] ProductCard category + "En carrito" badges — stacked absolute positioning. Verify no overlap at text-xs. `client/src/components/ProductCard.tsx`
+- [X] T033 [GALLERY] CoffeePicker "Limitado" + "Plan benefit" badges — check card fit. `client/src/components/CoffeePicker.tsx`
+- [X] T034 [GALLERY] CoffeeTimeline detail text — verify max-h-20 animation height accommodates text-xs. `client/src/components/CoffeeTimeline.tsx`
+- [X] T035 [GALLERY] Profile "Barista Level" multi-line — verify no card height increase at text-xs. `client/src/pages/Profile.tsx`
+- [X] T036 [GALLERY] Inventory "Inactivo" label + Subscribers truncated name — verify table cell fit. `client/src/admin/Inventory.tsx`, `client/src/admin/Subscribers.tsx`
 
 ---
 
@@ -101,10 +101,10 @@ description: "CSS-only typography standardization: convert text-[10px]→text-xs
 
 **Purpose**: Verify these 6 occurrences still have 10px and add explanatory comment.
 
-- [ ] T037 [B] Shop filter count badge — verify w-4 h-4 circle stays at `text-[10px]`. `client/src/pages/Shop.tsx:307`
-- [ ] T038 [B] NotificationBell count badge — verify w-4 h-4 circle stays at `text-[10px]`. `client/src/components/NotificationBell.tsx:46`
-- [ ] T039 [B] BottomNav labels + cart badge — verify 5-column nav + w-4 h-4 stay at `text-[10px]`. `client/src/components/BottomNav.tsx:38,45`
-- [ ] T040 [B] ThresholdEditor save/cancel buttons — verify inline compact row stays at `text-[10px]`. `client/src/admin/Inventory.tsx:756-757`
+- [X] T037 [B] Shop filter count badge — verify w-4 h-4 circle stays at `text-[10px]`. `client/src/pages/Shop.tsx:307`
+- [X] T038 [B] NotificationBell count badge — verify w-4 h-4 circle stays at `text-[10px]`. `client/src/components/NotificationBell.tsx:46`
+- [X] T039 [B] BottomNav labels + cart badge — verify 5-column nav + w-4 h-4 stay at `text-[10px]`. `client/src/components/BottomNav.tsx:38,45`
+- [X] T040 [B] ThresholdEditor save/cancel buttons — verify inline compact row stays at `text-[10px]`. `client/src/admin/Inventory.tsx:756-757`
 
 ---
 
@@ -112,18 +112,18 @@ description: "CSS-only typography standardization: convert text-[10px]→text-xs
 
 **Purpose**: NotificationBell has BOTH GROUP A and GROUP B in same file. The bell icon body should use `text-xs`, but the count badge (w-4 h-4) MUST stay `text-[10px]`.
 
-- [ ] T041 [A+B] NotificationBell.tsx — Convert line-by-line (NOT replaceAll). Find all `text-[10px]` occurrences, convert only non-badge lines to `text-xs`. `client/src/components/NotificationBell.tsx`
+- [X] T041 [A+B] NotificationBell.tsx — Convert line-by-line (NOT replaceAll). Find all `text-[10px]` occurrences, convert only non-badge lines to `text-xs`. `client/src/components/NotificationBell.tsx`
 
 ---
 
 ## Phase 5: Verification
 
-- [ ] T042 [VERIFY] TypeScript compilation — `npx tsc --noEmit` passes. `client/`
-- [ ] T043 [VERIFY] Visual scan of affected admin pages (Inventory, Subscribers, SubscriptionPayments). Verify no text overflow or layout shift.
-- [ ] T044 [VERIFY] Visual scan of affected public pages (Shop, Cart, Recipes, Subscriptions, Profile, ProductDetail). Verify badges, labels, chips readable.
-- [ ] T045 [VERIFY] Visual scan of components (CoffeePicker, ProductCard, BottomNav, NotificationBell, RecipeLiveMode). Verify no overlap.
-- [ ] T046 [VERIFY] Mobile viewport test at 375px width. Verify BottomNav labels, filter chips, and badges fit without overflow.
-- [ ] T047 [VERIFY] GROUP B exceptions documented with inline comments (`/* compact — keep at 10px */`).
+- [X] T042 [VERIFY] TypeScript compilation — `npx tsc --noEmit` passes. `client/`
+- [X] T043 [VERIFY] Visual scan of affected admin pages (Inventory, Subscribers, SubscriptionPayments). Verify no text overflow or layout shift.
+- [X] T044 [VERIFY] Visual scan of affected public pages (Shop, Cart, Recipes, Subscriptions, Profile, ProductDetail). Verify badges, labels, chips readable.
+- [X] T045 [VERIFY] Visual scan of components (CoffeePicker, ProductCard, BottomNav, NotificationBell, RecipeLiveMode). Verify no overlap.
+- [X] T046 [VERIFY] Mobile viewport test at 375px width. Verify BottomNav labels, filter chips, and badges fit without overflow.
+- [X] T047 [VERIFY] GROUP B exceptions documented with inline comments (`/* compact — keep at 10px */`).
 
 ---
 

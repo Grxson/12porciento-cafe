@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, AlertTriangle, MapPin, CheckCircle, CreditCard, Loader2 } from 'lucide-react';
+import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, AlertTriangle, MapPin, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { CardElement, useStripe, useElements, Elements } from '@stripe/react-stripe-js';

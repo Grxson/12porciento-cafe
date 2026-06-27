@@ -204,7 +204,7 @@ export default function PaymentMethod() {
                       {BRAND_LABELS[pm.brand] ?? pm.brand} •••• {pm.last4}
                     </p>
                     {defaultId === pm.id && (
-                      <span className="text-[10px] text-gold-500 border border-gold-500/40 px-1.5 py-0.5 uppercase tracking-wider shrink-0">
+                      <span className="text-xs text-gold-500 border border-gold-500/40 px-1.5 py-0.5 uppercase tracking-wider shrink-0">
                         Predeterminada
                       </span>
                     )}

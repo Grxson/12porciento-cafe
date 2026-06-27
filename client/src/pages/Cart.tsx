@@ -46,7 +46,7 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
                 <span className="text-coffee-500 text-xs">{product.region}</span>
               )}
               {product.weight && (
-                <span className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 text-[10px] border border-coffee-200 dark:border-coffee-700 px-1.5 py-0.5">
+                <span className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 text-xs border border-coffee-200 dark:border-coffee-700 px-1.5 py-0.5">
                   <Tag className="w-2.5 h-2.5" />
                   {product.weight}g
                 </span>
@@ -119,11 +119,11 @@ function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } 
               {bundle.name}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="bg-gold-500/20 text-gold-600 text-[10px] px-1.5 py-0.5">
+              <span className="bg-gold-500/20 text-gold-600 text-xs px-1.5 py-0.5">
                 Paquete
               </span>
               {bundle.discountPct > 0 && (
-                <span className="text-gold-600 text-[10px] font-semibold">
+                <span className="text-gold-600 text-xs font-semibold">
                   {bundle.discountPct}% OFF
                 </span>
               )}

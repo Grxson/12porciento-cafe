@@ -165,7 +165,7 @@ export default function AchievementGallery() {
                     )}
                   </div>
 
-                  <span className={`text-[10px] uppercase tracking-widest px-2 py-0.5 ${rarity.color}`}>
+                  <span className={`text-xs uppercase tracking-widest px-2 py-0.5 ${rarity.color}`}>
                     {rarity.label}
                   </span>
 
@@ -178,7 +178,7 @@ export default function AchievementGallery() {
                   {!isUnlocked && progressData[a.slug] && (
                     <div className="mt-2 mb-2">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] font-medium">
+                        <p className="text-coffee-400 dark:text-coffee-500 text-xs font-medium">
                           {progressData[a.slug].current} de {progressData[a.slug].target}
                         </p>
                       </div>
@@ -192,7 +192,7 @@ export default function AchievementGallery() {
                   )}
 
                   {!isUnlocked && unlockHints[a.slug] && (
-                    <p className="text-coffee-400 dark:text-coffee-500 text-[10px] italic mt-1 mb-3">
+                    <p className="text-coffee-400 dark:text-coffee-500 text-xs italic mt-1 mb-3">
                       {unlockHints[a.slug]}
                     </p>
                   )}

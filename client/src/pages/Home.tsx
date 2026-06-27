@@ -165,7 +165,7 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="text-coffee-900 dark:text-cream text-xs font-semibold tracking-wide">{label}</p>
-                  <p className="text-coffee-600 dark:text-coffee-400 text-[10px] tracking-wide mt-0.5">{sub}</p>
+                  <p className="text-coffee-600 dark:text-coffee-400 text-xs tracking-wide mt-0.5">{sub}</p>
                 </div>
               </div>
             ))}
@@ -270,7 +270,7 @@ export default function Home() {
                 <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-white dark:bg-coffee-800 border-2 border-gold-500/50 flex items-center justify-center mb-3 md:mb-4 transition-colors">
                   <Icon className="w-6 h-6 md:w-8 md:h-8 text-gold-400" />
                 </div>
-                <span className="text-[10px] text-gold-600 tracking-[0.3em] uppercase mb-1">{num}</span>
+                <span className="text-xs text-gold-600 tracking-[0.3em] uppercase mb-1">{num}</span>
                 <h3 className="font-serif text-lg md:text-xl text-coffee-900 dark:text-cream mb-1 md:mb-2">{title}</h3>
                 <p className="text-coffee-600 dark:text-coffee-400 text-xs leading-relaxed max-w-[240px] md:max-w-[180px]">{desc}</p>
               </ScrollReveal>

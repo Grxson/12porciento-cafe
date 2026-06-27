@@ -43,7 +43,7 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
       <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">Actividad (90 días)</h3>
 
       {/* Month labels */}
-      <div className="ml-7 mb-1 flex text-[10px] text-coffee-500">
+      <div className="ml-7 mb-1 flex text-xs text-coffee-500">
         {monthLabels.map((m) => (
           <div key={m.label} style={{ marginLeft: m.index * (cellSize + gap) }}>{m.label}</div>
         ))}
@@ -51,7 +51,7 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
 
       <div className="flex">
         {/* Day labels */}
-        <div className="flex flex-col mr-1 text-[10px] text-coffee-500 leading-none">
+        <div className="flex flex-col mr-1 text-xs text-coffee-500 leading-none">
           {DAY_LABELS.map((d, i) => (
             <div key={d} style={{ height: cellSize, marginBottom: gap, lineHeight: `${cellSize}px` }}>{d}</div>
           ))}
@@ -88,7 +88,7 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-2 mt-3 text-[10px] text-coffee-500">
+      <div className="flex items-center gap-2 mt-3 text-xs text-coffee-500">
         <span>Menos</span>
         <div className={`w-3 h-3 rounded-sm ${isDark ? 'bg-coffee-800' : 'bg-coffee-100'}`} />
         <div className={`w-3 h-3 rounded-sm ${isDark ? 'bg-coffee-600' : 'bg-coffee-300'}`} />

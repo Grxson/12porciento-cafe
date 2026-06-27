@@ -211,7 +211,7 @@ export default function Inventory() {
           ].map(({ label, value, sub, icon: Icon, color, alert }) => (
             <div key={label} className={`bg-coffee-100 dark:bg-coffee-900 border p-4 ${alert ? 'border-yellow-500/30' : 'border-coffee-200 dark:border-coffee-800'}`}>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-coffee-500 dark:text-coffee-400 text-[10px] uppercase tracking-widest">{label}</p>
+                <p className="text-coffee-500 dark:text-coffee-400 text-xs uppercase tracking-widest">{label}</p>
                 <Icon className={`w-4 h-4 ${color}`} />
               </div>
               <p className={`font-serif text-2xl font-bold ${color}`}>{value}</p>
@@ -222,7 +222,7 @@ export default function Inventory() {
             onClick={() => setTab('adjust')}
             className="bg-gold-500/10 border border-gold-500/30 hover:bg-gold-500/20 p-4 transition-colors text-left"
           >
-            <p className="text-coffee-600 dark:text-coffee-400 text-[10px] uppercase tracking-widest mb-2">Acción rápida</p>
+            <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-2">Acción rápida</p>
             <p className="text-gold-400 text-sm font-medium">Ajustar stock →</p>
           </button>
         </div>
@@ -283,7 +283,7 @@ export default function Inventory() {
                               <img src={resolveImageUrl(p.imageUrl)} alt={p.name} className="w-9 h-9 object-cover shrink-0" />
                               <div>
                                 <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight">{p.name}</p>
-                                {!p.isActive && <span className="text-[10px] text-coffee-600 dark:text-coffee-400">Inactivo</span>}
+                                {!p.isActive && <span className="text-xs text-coffee-600 dark:text-coffee-400">Inactivo</span>}
                               </div>
                             </div>
                           </td>
@@ -303,7 +303,7 @@ export default function Inventory() {
                             <ThresholdEditor productId={p.id} current={p.lowStockThreshold} onSaved={loadOverview} />
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`text-[10px] px-2 py-1 border ${s.cls}`}>{s.label}</span>
+                            <span className={`text-xs px-2 py-1 border ${s.cls}`}>{s.label}</span>
                           </td>
                           <td className="px-4 py-3">
                             <div className="relative flex items-center gap-2">
@@ -483,7 +483,7 @@ export default function Inventory() {
                     <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${color}`} />
                     <div>
                       <p className="text-coffee-900 dark:text-cream text-xs font-medium">{label}</p>
-                      <p className="text-coffee-500 dark:text-coffee-400 text-[10px]">{desc}</p>
+                      <p className="text-coffee-500 dark:text-coffee-400 text-xs">{desc}</p>
                     </div>
                   </button>
                 ))}
@@ -753,8 +753,8 @@ function ThresholdEditor({ productId, current, onSaved }: { productId: string; c
       <input type="number" value={val} onChange={(e) => setVal(e.target.value)}
         className="w-14 bg-white dark:bg-coffee-800 border border-gold-500/40 text-coffee-900 dark:text-cream text-xs px-2 py-1 focus:outline-none"
         min={0} autoFocus onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false); }} />
-      <button onClick={save} className="text-[10px] text-gold-500 hover:text-gold-400">✓</button>
-      <button onClick={() => setEditing(false)} className="text-[10px] text-coffee-600 dark:text-coffee-400">✕</button>
+      <button onClick={save} className="text-xs text-gold-500 hover:text-gold-400">✓</button>
+      <button onClick={() => setEditing(false)} className="text-xs text-coffee-600 dark:text-coffee-400">✕</button>
     </div>
   );
 }

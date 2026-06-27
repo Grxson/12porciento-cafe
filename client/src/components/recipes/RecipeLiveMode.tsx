@@ -340,7 +340,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
               {totalMinutes > 0 && ` • ~${totalMinutes} min total`}
             </p>
             {!isOnline && (
-              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-1 bg-red-500/20 border border-red-500/40 text-red-400 rounded">
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-red-500/20 border border-red-500/40 text-red-400 rounded">
                 <span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Sin conexión
               </span>
             )}
@@ -384,19 +384,19 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
               <div className="grid grid-cols-3 gap-4 mb-6 max-w-sm mx-auto">
                 {step.duration && (
                   <div className="bg-coffee-900/50 p-3 rounded text-center">
-                    <p className="text-[10px] text-coffee-500 uppercase mb-1">Duración</p>
+                    <p className="text-xs text-coffee-500 uppercase mb-1">Duración</p>
                     <p className="text-gold-400 font-bold">{step.duration}s</p>
                   </div>
                 )}
                 {recipe.temp && (
                   <div className="bg-coffee-900/50 p-3 rounded text-center">
-                    <p className="text-[10px] text-coffee-500 uppercase mb-1">Temp</p>
+                    <p className="text-xs text-coffee-500 uppercase mb-1">Temp</p>
                     <p className="text-gold-400 font-bold">{recipe.temp}</p>
                   </div>
                 )}
                 {recipe.grind && (
                   <div className="bg-coffee-900/50 p-3 rounded text-center">
-                    <p className="text-[10px] text-coffee-500 uppercase mb-1">Molienda</p>
+                    <p className="text-xs text-coffee-500 uppercase mb-1">Molienda</p>
                     <p className="text-gold-400 font-bold text-sm">{recipe.grind}</p>
                   </div>
                 )}
@@ -524,7 +524,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
                           >
                             <span className="text-sm text-cream font-medium">{r.title}</span>
                             {r.difficulty && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400">
+                              <span className="text-xs px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400">
                                 {r.difficulty}
                               </span>
                             )}

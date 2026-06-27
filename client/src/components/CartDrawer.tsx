@@ -91,12 +91,12 @@ function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' 
       <div className="flex-1 min-w-0">
         <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight">{bundle.name}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="bg-gold-500/20 text-gold-600 text-[10px] px-1.5 py-0.5">Paquete</span>
+          <span className="bg-gold-500/20 text-gold-600 text-xs px-1.5 py-0.5">Paquete</span>
           {bundle.discountPct > 0 && (
-            <span className="text-gold-600 text-[10px]">{bundle.discountPct}% OFF</span>
+            <span className="text-gold-600 text-xs">{bundle.discountPct}% OFF</span>
           )}
         </div>
-        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] mt-1">
+        <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-1">
           {bundle.items.map((bi) => bi.product?.name || 'Producto').join(', ')}
         </p>
       </div>

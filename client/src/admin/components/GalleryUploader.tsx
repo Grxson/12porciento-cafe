@@ -83,7 +83,7 @@ export default function GalleryUploader({ value, onChange, label = 'Galería de 
             onClick={() => fileRef.current?.click()}
             className="aspect-square border-2 border-dashed border-coffee-400 dark:border-coffee-700 flex flex-col items-center justify-center text-coffee-600 dark:text-coffee-400 hover:border-gold-500 hover:text-coffee-900 dark:hover:text-cream transition-colors"
           >
-            {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Plus size={18} /><span className="text-[10px] mt-1">Agregar</span></>}
+            {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Plus size={18} /><span className="text-xs mt-1">Agregar</span></>}
           </button>
         )}
       </div>

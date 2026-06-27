@@ -22,7 +22,7 @@ function getEmoji(val: number): string {
 export default function RatingSlider({ value, onChange }: RatingSliderProps) {
   return (
     <div className="mb-4 px-1">
-      <p className="text-[10px] text-coffee-500 uppercase tracking-widest mb-2">
+      <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">
         Calificar este paso
       </p>
       <div className="flex items-center gap-3">

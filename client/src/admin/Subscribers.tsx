@@ -20,7 +20,7 @@ function FulfillmentBadge({ status }: { status: string }) {
     PENDIENTE: 'Pendiente', PREPARANDO: 'Preparando', ENVIADO: 'Enviado', ENTREGADO: 'Entregado',
   };
   return (
-    <span className={`text-[10px] px-2 py-0.5 border rounded-sm whitespace-nowrap ${styles[status] ?? styles.PENDIENTE}`}>
+    <span className={`text-xs px-2 py-0.5 border rounded-sm whitespace-nowrap ${styles[status] ?? styles.PENDIENTE}`}>
       {labels[status] ?? status}
     </span>
   );
@@ -386,7 +386,7 @@ export default function AdminSubscribers() {
                           </span>
                         </td>
                         <td className="hidden lg:table-cell px-4 py-3">
-                          <span className="text-[10px] px-2 py-0.5 border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-800/40 text-coffee-700 dark:text-coffee-300 rounded-sm uppercase tracking-wider">
+                          <span className="text-xs px-2 py-0.5 border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-800/40 text-coffee-700 dark:text-coffee-300 rounded-sm uppercase tracking-wider">
                             {sub.grindPreference || 'GRANO'}
                           </span>
                         </td>
@@ -421,7 +421,7 @@ export default function AdminSubscribers() {
                               {sub.items.map((item: any) => (
                                 <div key={item.id} className="flex items-center gap-1 bg-coffee-200 dark:bg-coffee-800 px-2 py-0.5">
                                   <img src={item.product?.imageUrl} className="w-4 h-4 object-cover" alt="" />
-                                  <span className="text-[10px] text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
+                                  <span className="text-xs text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
                                 </div>
                               ))}
                             </div>

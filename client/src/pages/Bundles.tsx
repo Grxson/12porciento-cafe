@@ -121,7 +121,7 @@ export default function Bundles() {
                   </p>
 
                   <div className="space-y-1.5 mb-5">
-                    <p className="text-[10px] text-coffee-500 uppercase tracking-widest">Incluye</p>
+                    <p className="text-xs text-coffee-500 uppercase tracking-widest">Incluye</p>
                     {bundle.items.map((item) => (
                       <div key={item.id} className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-300">
                         <span className="w-1.5 h-1.5 rounded-full bg-gold-500 shrink-0" />

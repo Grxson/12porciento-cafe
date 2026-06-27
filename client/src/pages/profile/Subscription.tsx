@@ -134,7 +134,7 @@ export default function Subscription() {
                 const cls = statusStyles[sub.status] ?? statusStyles.ACTIVE;
                 const lbl = statusLabels[sub.status] ?? 'Activa';
                 return (
-                  <span className={`text-[10px] px-2 py-1 border uppercase tracking-wider ${cls}`}>
+                  <span className={`text-xs px-2 py-1 border uppercase tracking-wider ${cls}`}>
                     {lbl}
                   </span>
                 );

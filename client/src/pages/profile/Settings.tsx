@@ -115,7 +115,7 @@ export default function ProfileSettings() {
                   Quitar foto
                 </button>
               )}
-              <p className="text-coffee-500 dark:text-coffee-600 text-[10px] mt-1">JPG, PNG, WebP · máx 5 MB</p>
+              <p className="text-coffee-500 dark:text-coffee-600 text-xs mt-1">JPG, PNG, WebP · máx 5 MB</p>
             </div>
           </div>
           <input

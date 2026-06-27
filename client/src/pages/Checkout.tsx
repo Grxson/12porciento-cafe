@@ -531,7 +531,7 @@ export default function Checkout() {
                               <p className="text-coffee-900 dark:text-cream text-sm font-medium capitalize">
                                 {m.brand} •••• {m.last4}
                                 {m.id === defaultMethodId && (
-                                  <span className="ml-2 text-[10px] text-gold-600 uppercase tracking-widest border border-gold-400 px-1.5 py-0.5">
+                                  <span className="ml-2 text-xs text-gold-600 uppercase tracking-widest border border-gold-400 px-1.5 py-0.5">
                                     predeterminada
                                   </span>
                                 )}
@@ -692,7 +692,7 @@ export default function Checkout() {
               {/* Promo code */}
               {step === 1 && (
                 <div className="border-t border-coffee-200 dark:border-coffee-700 pt-4 mb-4">
-                  <p className="text-[10px] text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Código de descuento</p>
+                  <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Código de descuento</p>
                   {promoCode ? (
                     <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 px-3 py-2">
                       <div className="flex items-center gap-2">

@@ -30,7 +30,7 @@ export default function QuizProductCard({ product, matchPct }: QuizProductCardPr
           className="w-full h-44 sm:h-52 object-cover"
         />
         {/* Match badge */}
-        <div className="absolute top-2 left-2 bg-gold-500 text-coffee-900 text-[10px] font-bold px-2 py-1 leading-none">
+        <div className="absolute top-2 left-2 bg-gold-500 text-coffee-900 text-xs font-bold px-2 py-1 leading-none">
           {matchPct}% match
         </div>
       </Link>

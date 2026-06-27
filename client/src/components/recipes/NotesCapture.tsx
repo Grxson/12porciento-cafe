@@ -82,7 +82,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
 
   return (
     <div className="mb-4">
-      <p className="text-[10px] text-coffee-500 uppercase tracking-widest mb-2">
+      <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">
         Notas (opcional)
       </p>
 
@@ -178,7 +178,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
       {interim && (
         <p className="text-xs text-gold-500 italic mt-1">{interim}…</p>
       )}
-      <p className="text-[10px] text-coffee-600 text-right">{value.length}/500</p>
+      <p className="text-xs text-coffee-600 text-right">{value.length}/500</p>
     </div>
   );
 }

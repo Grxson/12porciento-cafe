@@ -316,7 +316,7 @@ export default function RecipeDetail() {
                   { label: 'Rendimiento', value: recipe.yield },
                 ].filter((x) => x.value).map((x) => (
                   <div key={x.label} className="bg-coffee-100 dark:bg-coffee-800/50 p-4 text-center">
-                    <p className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">{x.label}</p>
+                    <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">{x.label}</p>
                     <p className="text-coffee-900 dark:text-cream text-sm font-medium">{x.value}</p>
                   </div>
                 ))}

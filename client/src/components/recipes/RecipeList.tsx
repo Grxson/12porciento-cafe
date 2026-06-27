@@ -72,12 +72,12 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
                     <h3 className="font-serif text-coffee-900 dark:text-cream truncate">{recipe.title}</h3>
                     <div className="flex gap-1 shrink-0">
                       {recipe.isPublished ? (
-                        <span className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1">Publicada</span>
+                        <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1">Publicada</span>
                       ) : (
-                        <span className="text-[10px] bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 px-2 py-1">Borrador</span>
+                        <span className="text-xs bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 px-2 py-1">Borrador</span>
                       )}
                       {recipe.isPremium && (
-                        <span className="text-[10px] bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 px-2 py-1">Premium</span>
+                        <span className="text-xs bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 px-2 py-1">Premium</span>
                       )}
                     </div>
                   </div>

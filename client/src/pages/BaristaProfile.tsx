@@ -194,8 +194,8 @@ export default function BaristaProfile() {
                   title={unlock.achievement.description}
                 >
                   <p className="text-3xl mb-1">{unlock.achievement.icon}</p>
-                  <p className="text-[10px] text-coffee-900 dark:text-cream font-semibold leading-tight">{unlock.achievement.name}</p>
-                  <p className="text-[10px] text-gold-500 mt-0.5">+{unlock.achievement.xpReward} XP</p>
+                  <p className="text-xs text-coffee-900 dark:text-cream font-semibold leading-tight">{unlock.achievement.name}</p>
+                  <p className="text-xs text-gold-500 mt-0.5">+{unlock.achievement.xpReward} XP</p>
                 </div>
               ))}
             </div>

@@ -443,7 +443,7 @@ export default function ProductDetail() {
                               style={{ width: `${Math.min(100, ((product.scaScore - 80) / 20) * 100)}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-[10px] text-coffee-600 dark:text-coffee-400 mt-1">
+                          <div className="flex justify-between text-xs text-coffee-600 dark:text-coffee-400 mt-1">
                             <span>80 · Specialty</span>
                             <span>90 · Outstanding</span>
                             <span>100</span>
@@ -508,15 +508,15 @@ export default function ProductDetail() {
 
                     <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-coffee-200 dark:border-coffee-700">
                       <div>
-                        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Temperatura</p>
+                        <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-1">Temperatura</p>
                         <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.temp}</p>
                       </div>
                       <div>
-                        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Molido</p>
+                        <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-1">Molido</p>
                         <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.grind}</p>
                       </div>
                       <div>
-                        <p className="text-coffee-600 dark:text-coffee-400 text-[10px] uppercase tracking-widest mb-1">Ratio</p>
+                        <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-1">Ratio</p>
                         <p className="text-coffee-800 dark:text-cream text-sm font-medium">{recipe.ratio}</p>
                       </div>
                     </div>
@@ -575,7 +575,7 @@ export default function ProductDetail() {
                       <form onSubmit={handleReviewSubmit} className="space-y-4">
                         {loggedUser && (
                           <div className="flex items-center gap-2 bg-coffee-50 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-3 py-2 text-xs text-coffee-600 dark:text-coffee-400">
-                            <div className="w-6 h-6 rounded-full bg-gold-500 flex items-center justify-center text-coffee-950 font-bold text-[10px] shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-gold-500 flex items-center justify-center text-coffee-950 font-bold text-xs shrink-0">
                               {loggedUser.name.charAt(0).toUpperCase()}
                             </div>
                             Publicando como <span className="font-medium text-coffee-800 dark:text-coffee-200">{loggedUser.name}</span>
@@ -622,7 +622,7 @@ export default function ProductDetail() {
                         <button type="submit" disabled={reviewSubmitting} className="w-full btn-primary disabled:opacity-50">
                           {reviewSubmitting ? 'Enviando…' : 'Enviar reseña'}
                         </button>
-                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px]">Tu reseña aparecerá tras aprobación del equipo.</p>
+                        <p className="text-coffee-400 dark:text-coffee-500 text-xs">Tu reseña aparecerá tras aprobación del equipo.</p>
                       </form>
                     )}
                   </div>

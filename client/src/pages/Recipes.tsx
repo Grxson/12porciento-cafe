@@ -470,7 +470,7 @@ export default function Recipes() {
                           {recipe.title}
                         </Link>
                         {recipe.isPremium && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-600 dark:text-gold-400 uppercase tracking-wider shrink-0">
+                          <span className="text-xs px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-600 dark:text-gold-400 uppercase tracking-wider shrink-0">
                             Premium
                           </span>
                         )}
@@ -483,7 +483,7 @@ export default function Recipes() {
                           </span>
                         )}
                         {recipe.difficulty && (
-                          <span className={`text-[10px] px-1.5 py-0.5 border rounded-sm ${DIFFICULTY_COLORS[recipe.difficulty] ?? ''}`}>
+                          <span className={`text-xs px-1.5 py-0.5 border rounded-sm ${DIFFICULTY_COLORS[recipe.difficulty] ?? ''}`}>
                             {recipe.difficulty}
                           </span>
                         )}
@@ -559,7 +559,7 @@ export default function Recipes() {
                               { label: 'Rendimiento', value: recipe.yield },
                             ].filter((x) => x.value).map((x) => (
                               <div key={x.label} className="bg-coffee-100 dark:bg-coffee-800/50 p-3 text-center">
-                                <p className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">{x.label}</p>
+                                <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">{x.label}</p>
                                 <p className="text-coffee-900 dark:text-cream text-sm font-medium">{x.value}</p>
                               </div>
                             ))}

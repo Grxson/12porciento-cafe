@@ -56,7 +56,7 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
             </select>
           </div>
           {brews.length < 2 && (
-            <p className="text-coffee-500 text-[10px]">Necesitas al menos 2 brews para comparar.</p>
+            <p className="text-coffee-500 text-xs">Necesitas al menos 2 brews para comparar.</p>
           )}
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
                   </span>
                 )}
               </div>
-              <div className="text-[10px]">{new Date(brew.createdAt).toLocaleDateString('es-MX')}</div>
+              <div className="text-xs">{new Date(brew.createdAt).toLocaleDateString('es-MX')}</div>
               {brew.photoUrl && (
                 <img src={brew.photoUrl} alt={`Brew ${label}`} className="w-full h-20 object-cover rounded mt-1" />
               )}

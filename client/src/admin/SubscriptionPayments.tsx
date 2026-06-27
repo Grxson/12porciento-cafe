@@ -121,7 +121,7 @@ export default function SubscriptionPayments() {
                           {new Date(p.billingDate).toLocaleDateString('es-MX')}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`text-[10px] px-2 py-0.5 border rounded-sm whitespace-nowrap ${badge.color}`}>
+                          <span className={`text-xs px-2 py-0.5 border rounded-sm whitespace-nowrap ${badge.color}`}>
                             {badge.label}
                           </span>
                         </td>

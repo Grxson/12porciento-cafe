@@ -150,31 +150,31 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
                     <div className="absolute inset-0 flex items-center justify-center bg-coffee-950/60">
                       <div className="text-center">
                         <Lock className="w-5 h-5 text-coffee-400 mx-auto mb-1" />
-                        <p className="text-coffee-400 text-[10px]">Plan Connoisseur</p>
+                        <p className="text-coffee-400 text-xs">Plan Connoisseur</p>
                       </div>
                     </div>
                   )}
 
                   {product.isLimited && !locked && (
-                    <span className="absolute top-3 left-3 text-[10px] bg-gold-500/20 border border-gold-500/40 text-gold-400 px-1.5 py-0.5 uppercase tracking-widest">
+                    <span className="absolute top-3 left-3 text-xs bg-gold-500/20 border border-gold-500/40 text-gold-400 px-1.5 py-0.5 uppercase tracking-widest">
                       Limitado
                     </span>
                   )}
 
                   {product.isLimited && slots.max >= 3 && !locked && (
-                    <span className="absolute bottom-3 left-3 text-[10px] bg-green-900/60 border border-green-600/60 text-green-300 px-1.5 py-0.5 uppercase tracking-widest">
+                    <span className="absolute bottom-3 left-3 text-xs bg-green-900/60 border border-green-600/60 text-green-300 px-1.5 py-0.5 uppercase tracking-widest">
                       Plan benefit
                     </span>
                   )}
                 </div>
 
                 <div className="pt-2.5 pb-1">
-                  <p className="text-[10px] text-gold-600 uppercase tracking-widest mb-0.5 truncate">{product.region}</p>
+                  <p className="text-xs text-gold-600 uppercase tracking-widest mb-0.5 truncate">{product.region}</p>
                   <p className={`font-serif text-sm leading-tight transition-colors ${isSelected ? 'text-gold-500' : 'text-coffee-900 dark:text-cream'}`}>
                     {product.name}
                   </p>
                   {product.flavors && product.flavors.length > 0 && (
-                    <p className="text-[10px] text-coffee-400 mt-1 truncate">
+                    <p className="text-xs text-coffee-400 mt-1 truncate">
                       {product.flavors.join(', ')}
                     </p>
                   )}
@@ -183,7 +183,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
                     {product.scaScore && (
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-gold-500 text-gold-500" />
-                        <span className="text-[10px] text-gold-600">{product.scaScore}</span>
+                        <span className="text-xs text-gold-600">{product.scaScore}</span>
                       </div>
                     )}
                   </div>

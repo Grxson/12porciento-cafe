@@ -78,7 +78,7 @@ export default function PasswordField({
             <div className="h-1 w-full bg-coffee-200 dark:bg-coffee-700 rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all duration-300 ${strength.color}`} style={{ width: strength.width }} />
             </div>
-            <p className={`text-[10px] mt-0.5 ${strength.level === 3 ? 'text-green-500' : strength.level === 2 ? 'text-yellow-500' : 'text-orange-500'}`}>
+            <p className={`text-xs mt-0.5 ${strength.level === 3 ? 'text-green-500' : strength.level === 2 ? 'text-yellow-500' : 'text-orange-500'}`}>
               {strength.label}
             </p>
           </div>

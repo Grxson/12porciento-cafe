@@ -202,11 +202,11 @@ export default function Shop() {
               <div className="flex flex-wrap gap-x-6 gap-y-3 items-center pb-6 mb-6 border-b border-coffee-200 dark:border-coffee-800">
                 <div className="flex items-center gap-1.5 text-coffee-500">
                   <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span className="text-[10px] uppercase tracking-widest font-semibold">Filtros</span>
+                  <span className="text-xs uppercase tracking-widest font-semibold">Filtros</span>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Proceso</span>
+                  <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Proceso</span>
                   {processes.map((p) => (
                     <button key={p} onClick={() => { setProcess(p); setPage(1); }}
                       aria-pressed={process === p}
@@ -217,7 +217,7 @@ export default function Shop() {
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Tueste</span>
+                  <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Tueste</span>
                   {roasts.map((r) => (
                     <button key={r} onClick={() => { setRoast(r); setPage(1); }}
                       aria-pressed={roast === r}
@@ -229,7 +229,7 @@ export default function Shop() {
 
                 {availableFlavors.length > 0 && (
                   <div className="w-full border-t border-coffee-200 dark:border-coffee-800 pt-3 mt-1">
-                    <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-widest block mb-2">Notas de Cata</span>
+                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest block mb-2">Notas de Cata</span>
                     <div className="relative mb-2 max-w-xs">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-coffee-400 pointer-events-none" />
                       <input
@@ -304,7 +304,7 @@ export default function Shop() {
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Filtros
             {(process !== 'Todos' || roast !== 'Todos' || category !== 'TODOS' || selectedFlavors.length > 0) && (
-              <span className="absolute -top-1.5 -right-1.5 bg-gold-500 text-coffee-950 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+              <span className="absolute -top-1.5 -right-1.5 bg-gold-500 text-coffee-950 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
                 {[process !== 'Todos', roast !== 'Todos', category !== 'TODOS', selectedFlavors.length > 0].filter(Boolean).length}
               </span>
             )}
@@ -357,7 +357,7 @@ export default function Shop() {
 
                 {/* Category */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Categoría</span>
+                  <span className="text-xs text-coffee-400 uppercase tracking-widest block">Categoría</span>
                   <div className="flex flex-wrap gap-1.5">
                     {categories.map((cat) => (
                       <button
@@ -379,7 +379,7 @@ export default function Shop() {
                 {/* Process — only relevant for café */}
                 {isCafe && (
                   <div className="space-y-2">
-                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Proceso</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Proceso</span>
                     <div className="flex flex-wrap gap-1.5">
                       {processes.map((p) => (
                         <button
@@ -402,7 +402,7 @@ export default function Shop() {
                 {/* Roast — only relevant for café */}
                 {isCafe && (
                   <div className="space-y-2">
-                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Tueste</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Tueste</span>
                     <div className="flex flex-wrap gap-1.5">
                       {roasts.map((r) => (
                         <button
@@ -424,7 +424,7 @@ export default function Shop() {
 
                 {availableFlavors.length > 0 && (
                   <div className="space-y-2">
-                    <span className="text-[10px] text-coffee-400 uppercase tracking-widest block">Notas de Cata</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Notas de Cata</span>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 pointer-events-none" />
                       <input

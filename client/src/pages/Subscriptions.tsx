@@ -295,7 +295,7 @@ export default function Subscriptions() {
                   >
                     <div className="p-6 flex-1">
                       {plan.badge && (
-                        <span className={`block -mt-7 mb-3 ${plan.featured ? 'text-xs font-extrabold' : 'text-[10px] font-bold'} uppercase tracking-widest px-3 py-1 bg-gold-500 text-coffee-950 w-fit`}>{plan.badge}</span>
+                        <span className={`block -mt-7 mb-3 ${plan.featured ? 'text-xs font-extrabold' : 'text-xs font-bold'} uppercase tracking-widest px-3 py-1 bg-gold-500 text-coffee-950 w-fit`}>{plan.badge}</span>
                       )}
                       <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">{plan.name}</h3>
                       <p className="text-coffee-500 text-xs tracking-widest uppercase mb-4">{plan.subtitle}</p>

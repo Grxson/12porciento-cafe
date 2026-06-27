@@ -51,10 +51,10 @@ export default function Profile() {
               {baristaProfile ? (
                 <>
                   <p className="text-gold-400 font-bold text-sm">Nv. {baristaProfile.level}</p>
-                  <p className="text-[10px] text-coffee-500">{baristaProfile.totalXp} XP</p>
+                  <p className="text-xs text-coffee-500">{baristaProfile.totalXp} XP</p>
                 </>
               ) : (
-                <p className="text-[10px] text-coffee-500 text-center leading-tight">Barista<br/>Level</p>
+                <p className="text-xs text-coffee-500 text-center leading-tight">Barista<br/>Level</p>
               )}
             </Link>
           )}

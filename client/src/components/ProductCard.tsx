@@ -52,12 +52,12 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             <span className="limited-badge">Edición limitada</span>
           )}
           {!isCafe && (
-            <span className="bg-coffee-100/80 dark:bg-coffee-900/80 text-coffee-700 dark:text-coffee-300 text-[10px] uppercase tracking-wider px-2 py-0.5 backdrop-blur-sm">
+            <span className="bg-coffee-100/80 dark:bg-coffee-900/80 text-coffee-700 dark:text-coffee-300 text-xs uppercase tracking-wider px-2 py-0.5 backdrop-blur-sm">
               {product.category === 'ACCESORIOS' ? 'Accesorio' : product.category}
             </span>
           )}
           {inCart && (
-            <span className="bg-blue-600/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 backdrop-blur-sm font-semibold">
+            <span className="bg-blue-600/90 text-white text-xs uppercase tracking-wider px-2 py-0.5 backdrop-blur-sm font-semibold">
               En carrito
             </span>
           )}
@@ -98,7 +98,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       {/* Content */}
       <div className="p-3 sm:p-5 flex flex-col flex-1">
         {/* Origin / category label */}
-        <p className="text-[10px] text-gold-500 uppercase tracking-[0.25em] mb-1.5 font-medium">
+        <p className="text-xs text-gold-500 uppercase tracking-[0.25em] mb-1.5 font-medium">
           {isCafe ? (product.region ?? product.origin ?? 'México') : (product.category === 'MERCH' ? 'Merch' : 'Accesorio')}
         </p>
 
@@ -131,7 +131,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
 
         {/* Footer row */}
         <div className="mt-auto pt-3 border-t border-coffee-100 dark:border-coffee-800 flex items-center justify-between">
-          <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-wider">
+          <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider">
             {isCafe ? (product.process ?? '') : ''}
           </span>
           <Link

@@ -71,7 +71,7 @@ export default function AttemptsList({ recipeId, userId }: AttemptsListProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-bold text-gold-400">{brew.rating}/10</span>
-                <span className="text-[10px] text-coffee-500">
+                <span className="text-xs text-coffee-500">
                   {new Date(brew.createdAt).toLocaleDateString('es-MX')}
                 </span>
               </div>

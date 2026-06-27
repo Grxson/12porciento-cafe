@@ -244,6 +244,18 @@ export default function Recipes() {
   const totalPages = Math.ceil((hasSubscription ? searched.length : [...searched.filter((r) => !r.isPremium).slice(0, 2), ...searched.filter((r) => r.isPremium)].length) / pageSize);
   const hasMore = page < totalPages;
 
+  // MUST be before early returns — hook #19
+  useEffect(() => {
+    if (expandedId) {
+      const element = document.getElementById(`recipe-${expandedId}`);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  }, [expandedId]);
+
   if (error) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4">
@@ -305,18 +317,6 @@ export default function Recipes() {
       </div>
     );
   }
-
-  // R2: Auto-scroll to expanded accordion when it changes
-  useEffect(() => {
-    if (expandedId) {
-      const element = document.getElementById(`recipe-${expandedId}`);
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-      }
-    }
-  }, [expandedId]);
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">

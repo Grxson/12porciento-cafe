@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { RecipesProvider, useRecipesContext } from '../context/RecipesContext';
 import { recipesApi } from '../api';
-import { useToast } from '../context/ToastContext';
+import { useModuleToast } from './context/ModuleContext';
 import RecipeList from '../components/recipes/RecipeList';
 import RecipeEditor from '../components/recipes/RecipeEditor';
 import StepEditor from '../components/recipes/StepEditor';
@@ -18,7 +18,7 @@ interface StepModalState {
 
 // ─── Inner component (must live inside RecipesProvider) ──────────────────────
 function RecipesContent() {
-  const { add } = useToast();
+  const { addToast } = useModuleToast();
   const { recipes, loading, createRecipe, updateRecipe, deleteRecipe, refresh } = useRecipesContext();
 
   const [search, setSearch] = useState('');
@@ -56,15 +56,15 @@ function RecipesContent() {
       };
       if (recipeModal.recipe) {
         await updateRecipe(recipeModal.recipe.id, payload);
-        add('Receta actualizada', 'success');
+        addToast('Receta actualizada', 'success');
       } else {
         await createRecipe(payload);
-        add('Receta creada', 'success');
+        addToast('Receta creada', 'success');
       }
       setRecipeModal({ open: false });
       await refresh();
     } catch (err: any) {
-      add(err?.response?.data?.error || 'Error al guardar receta', 'error');
+      addToast(err?.response?.data?.error || 'Error al guardar receta', 'error');
     } finally {
       setSavingRecipe(false);
     }
@@ -79,9 +79,9 @@ function RecipesContent() {
     setDeletingRecipe(true);
     try {
       await deleteRecipe(confirmRecipe.id);
-      add('Receta eliminada', 'success');
+      addToast('Receta eliminada', 'success');
     } catch (err: any) {
-      add(err?.response?.data?.error || 'Error al eliminar', 'error');
+      addToast(err?.response?.data?.error || 'Error al eliminar', 'error');
     } finally {
       setDeletingRecipe(false);
       setConfirmRecipe(null);
@@ -107,10 +107,10 @@ function RecipesContent() {
     setDeletingStep(true);
     try {
       await recipesApi.deleteStep(confirmStep.recipeId, confirmStep.step.id);
-      add('Paso eliminado', 'success');
+      addToast('Paso eliminado', 'success');
       await refresh();
     } catch (err: any) {
-      add(err?.response?.data?.error || 'Error al eliminar paso', 'error');
+      addToast(err?.response?.data?.error || 'Error al eliminar paso', 'error');
     } finally {
       setDeletingStep(false);
       setConfirmStep(null);
@@ -122,7 +122,7 @@ function RecipesContent() {
       await recipesApi.reorderSteps(recipeId, stepIds);
       await refresh();
     } catch (err: any) {
-      add(err?.response?.data?.error || 'Error al reordenar', 'error');
+      addToast(err?.response?.data?.error || 'Error al reordenar', 'error');
     }
   };
 
@@ -134,15 +134,15 @@ function RecipesContent() {
     try {
       if (stepModal.stepId) {
         await recipesApi.updateStep(stepModal.recipeId, stepModal.stepId, data);
-        add('Paso actualizado', 'success');
+        addToast('Paso actualizado', 'success');
       } else {
         await recipesApi.addStep(stepModal.recipeId, data as Partial<RecipeStep> & { title: string; description: string });
-        add('Paso agregado', 'success');
+        addToast('Paso agregado', 'success');
       }
       setStepModal(null);
       await refresh();
     } catch (err: any) {
-      add(err?.response?.data?.error || 'Error al guardar paso', 'error');
+      addToast(err?.response?.data?.error || 'Error al guardar paso', 'error');
     } finally {
       setSavingStep(false);
     }
@@ -168,7 +168,7 @@ function RecipesContent() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream">Recetas</h1>
         <p className="text-coffee-600 dark:text-coffee-400 text-sm">

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
@@ -125,7 +125,8 @@ function ScrollToTopFab() {
   );
 }
 
-function PublicLayout({ children }: { children: React.ReactNode }) {
+function PublicLayout() {
+  const location = useLocation();
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -138,7 +139,19 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
         <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
       <Navbar />
-      <main className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">{children}</main>
+      <main className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
+      </main>
       <Footer />
       <BottomNav />
       <OfflineBanner />
@@ -171,7 +184,6 @@ function PWAUpdateManager() {
 
 export default function App() {
   const clientTheme = useClientTheme();
-  const location = useLocation();
   return (
     <HelmetProvider>
     <ErrorBoundary>
@@ -181,74 +193,54 @@ export default function App() {
       <ToastContainer />
       <PWAUpdateManager />
       <ScrollToTop />
-      <AnimatePresence>
-        <motion.div
-          key={location.pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2 }}
-        >
-          <Routes location={location}>
-            <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
-            <Route path="/tienda" element={<PublicLayout><Shop /></PublicLayout>} />
-            <Route path="/tienda/:slug" element={<PublicLayout><ProductDetail /></PublicLayout>} />
-            <Route path="/suscripciones" element={<PublicLayout><Subscriptions /></PublicLayout>} />
-            <Route path="/nosotros" element={<PublicLayout><About /></PublicLayout>} />
-            <Route path="/carrito" element={<PublicLayout><Cart /></PublicLayout>} />
-            <Route path="/checkout" element={<PublicLayout><Checkout /></PublicLayout>} />
-            <Route path="/paquetes" element={<PublicLayout><Bundles /></PublicLayout>} />
-            <Route path="/recetas" element={<PublicLayout><Recipes /></PublicLayout>} />
-            <Route path="/recetas/:slug" element={<PublicLayout><RecipeDetail /></PublicLayout>} />
-            <Route path="/galeria" element={<PublicLayout><Gallery /></PublicLayout>} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Register />} />
-            <Route path="/olvide-contrasena" element={<ForgotPassword />} />
-            <Route path="/restablecer-contrasena/:token" element={<ResetPassword />} />
-            <Route
-              path="/perfil/*"
-              element={
-                <UserRoute>
-                  <PublicLayout><Profile /></PublicLayout>
-                </UserRoute>
-              }
-            />
-            <Route path="/perfil/barista/:userId" element={<PublicLayout><BaristaProfile /></PublicLayout>} />
-            <Route path="/leaderboard" element={<PublicLayout><Leaderboard /></PublicLayout>} />
-            <Route
-              path="/logros"
-              element={
-                <UserRoute>
-                  <PublicLayout><AchievementGallery /></PublicLayout>
-                </UserRoute>
-              }
-            />
+      <Routes>
+        {/* Public client routes (with Navbar/Footer layout) */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/tienda" element={<Shop />} />
+          <Route path="/tienda/:slug" element={<ProductDetail />} />
+          <Route path="/suscripciones" element={<Subscriptions />} />
+          <Route path="/nosotros" element={<About />} />
+          <Route path="/carrito" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/paquetes" element={<Bundles />} />
+          <Route path="/recetas" element={<Recipes />} />
+          <Route path="/recetas/:slug" element={<RecipeDetail />} />
+          <Route path="/galeria" element={<Gallery />} />
+          <Route path="/perfil/*" element={<UserRoute><Profile /></UserRoute>} />
+          <Route path="/perfil/barista/:userId" element={<BaristaProfile />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/logros" element={<UserRoute><AchievementGallery /></UserRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
 
-            <Route path="/quiz" element={<Quiz />} />
+        {/* Standalone pages (no layout) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Register />} />
+        <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+        <Route path="/restablecer-contrasena/:token" element={<ResetPassword />} />
+        <Route path="/quiz" element={<Quiz />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="productos" element={<AdminProducts />} />
-              <Route path="pedidos" element={<AdminOrders />} />
-              <Route path="suscriptores" element={<AdminSubscribers />} />
-              <Route path="bundles" element={<AdminBundles />} />
-              <Route path="resenas" element={<AdminReviews />} />
-              <Route path="clientes" element={<AdminCustomers />} />
-              <Route path="descuentos" element={<AdminPromoCodes />} />
-              <Route path="usuarios" element={<AdminUsers />} />
-              <Route path="inventario" element={<AdminInventory />} />
-              <Route path="recetas" element={<AdminRecipesPage />} />
-              <Route path="logros" element={<Achievements />} />
-              <Route path="pagos-suscripciones" element={<SubscriptionPayments />} />
-              <Route path="notificaciones" element={<AdminNotificationSettings />} />
-            </Route>
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </motion.div>
-      </AnimatePresence>
+        {/* Admin routes */}
+        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="productos" element={<AdminProducts />} />
+          <Route path="pedidos" element={<AdminOrders />} />
+          <Route path="suscriptores" element={<AdminSubscribers />} />
+          <Route path="bundles" element={<AdminBundles />} />
+          <Route path="resenas" element={<AdminReviews />} />
+          <Route path="clientes" element={<AdminCustomers />} />
+          <Route path="descuentos" element={<AdminPromoCodes />} />
+          <Route path="usuarios" element={<AdminUsers />} />
+          <Route path="inventario" element={<AdminInventory />} />
+          <Route path="recetas" element={<AdminRecipesPage />} />
+          <Route path="logros" element={<Achievements />} />
+          <Route path="pagos-suscripciones" element={<SubscriptionPayments />} />
+          <Route path="notificaciones" element={<AdminNotificationSettings />} />
+        </Route>
+      </Routes>
     </CartProvider>
     </NotificationsProvider>
     </ErrorBoundary>

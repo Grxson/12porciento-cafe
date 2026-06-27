@@ -47,7 +47,7 @@ export default function SearchableProductSelect({ value, onChange, initialLabel 
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full bg-coffee-800 border border-coffee-700 text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500 flex items-center justify-between hover:border-coffee-600 transition-colors"
+        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500 flex items-center justify-between hover:border-coffee-400 dark:hover:border-coffee-600 transition-colors"
       >
         <span className="truncate text-left">{label}</span>
         <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -59,24 +59,24 @@ export default function SearchableProductSelect({ value, onChange, initialLabel 
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full left-0 right-0 mt-1 bg-coffee-800 border border-coffee-700 z-50 max-h-64 flex flex-col"
+            className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 z-50 max-h-64 flex flex-col"
           >
-            <div className="border-b border-coffee-700 p-2">
+            <div className="border-b border-coffee-200 dark:border-coffee-700 p-2">
               <input
                 type="text"
                 placeholder="Buscar café..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-coffee-900 border border-coffee-700 text-cream text-sm px-2 py-1.5 focus:outline-none focus:border-gold-500"
+                className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-2 py-1.5 focus:outline-none focus:border-gold-500"
                 autoFocus
               />
             </div>
 
             <div className="overflow-y-auto flex-1">
               {loading ? (
-                <div className="p-3 text-center text-coffee-400 text-xs">Cargando...</div>
+                <div className="p-3 text-center text-coffee-500 dark:text-coffee-400 text-xs">Cargando...</div>
               ) : filtered.length === 0 ? (
-                <div className="p-3 text-center text-coffee-400 text-xs">Sin resultados</div>
+                <div className="p-3 text-center text-coffee-500 dark:text-coffee-400 text-xs">Sin resultados</div>
               ) : (
                 filtered.map((product) => (
                   <button
@@ -90,14 +90,14 @@ export default function SearchableProductSelect({ value, onChange, initialLabel 
                     className={`w-full px-3 py-2 text-sm text-left transition-colors ${
                       product.id === value
                         ? 'bg-gold-600/20 text-gold-500'
-                        : 'text-cream hover:bg-coffee-700'
+                        : 'text-coffee-900 dark:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{product.name}</p>
                         {product.origin && (
-                          <p className="text-[11px] text-coffee-400 truncate">{product.origin}</p>
+                          <p className="text-[11px] text-coffee-500 dark:text-coffee-400 truncate">{product.origin}</p>
                         )}
                       </div>
                       {product.id === value && <span className="ml-2 text-gold-500">✓</span>}
@@ -108,14 +108,14 @@ export default function SearchableProductSelect({ value, onChange, initialLabel 
             </div>
 
             {value && (
-              <div className="border-t border-coffee-700 p-2">
+              <div className="border-t border-coffee-200 dark:border-coffee-700 p-2">
                 <button
                   type="button"
                   onClick={() => {
                     onChange('');
                     setSearch('');
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs text-coffee-400 hover:text-cream transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
                 >
                   <X className="w-3 h-3" />
                   Limpiar selección

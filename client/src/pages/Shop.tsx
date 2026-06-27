@@ -117,9 +117,9 @@ export default function Shop() {
     setPage(1);
   };
 
-  const filteredFlavors = flavorSearch
+  const displayedFlavors = flavorSearch
     ? availableFlavors.filter((f) => f.toLowerCase().includes(flavorSearch.toLowerCase()))
-    : [];
+    : availableFlavors;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
@@ -202,7 +202,7 @@ export default function Shop() {
               <div className="flex flex-wrap gap-x-6 gap-y-3 items-center pb-6 mb-6 border-b border-coffee-200 dark:border-coffee-800">
                 <div className="flex items-center gap-1.5 text-coffee-500">
                   <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-semibold">Filtros</span>
+                  <span className="text-[10px] uppercase tracking-widest font-semibold">Filtros</span>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 items-center">
@@ -210,7 +210,7 @@ export default function Shop() {
                   {processes.map((p) => (
                     <button key={p} onClick={() => { setProcess(p); setPage(1); }}
                       aria-pressed={process === p}
-                      className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
+                      className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
                         process === p ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                       }`}>{p}</button>
                   ))}
@@ -221,7 +221,7 @@ export default function Shop() {
                   {roasts.map((r) => (
                     <button key={r} onClick={() => { setRoast(r); setPage(1); }}
                       aria-pressed={roast === r}
-                      className={`text-[11px] px-3 py-1 border transition-all duration-150 cursor-pointer ${
+                      className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
                         roast === r ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
                       }`}>{r}</button>
                   ))}
@@ -247,16 +247,16 @@ export default function Shop() {
                         </button>
                       )}
                     </div>
-                    {flavorSearch && filteredFlavors.length === 0 ? (
+                    {flavorSearch && displayedFlavors.length === 0 ? (
                       <p className="text-xs text-coffee-500 italic">Sin coincidencias</p>
                     ) : (
                       <div className="flex flex-wrap gap-1">
-                        {filteredFlavors.map((f) => (
+                        {displayedFlavors.map((f) => (
                           <button
                             key={f}
                             onClick={() => toggleFlavor(f)}
                             aria-pressed={selectedFlavors.includes(f)}
-                            className={`text-[11px] px-2 py-0.5 border transition-all duration-150 cursor-pointer ${
+                            className={`text-xs px-2 py-0.5 border transition-all duration-150 cursor-pointer ${
                               selectedFlavors.includes(f)
                                 ? 'border-gold-500 text-gold-500 bg-gold-500/8 font-medium'
                                 : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
@@ -272,7 +272,7 @@ export default function Shop() {
 
                 {hasFilters && (
                   <button onClick={resetFilters}
-                    className="flex items-center gap-1 text-[11px] text-coffee-400 hover:text-red-500 transition-colors cursor-pointer ml-auto">
+                    className="flex items-center gap-1 text-xs text-coffee-400 hover:text-red-500 transition-colors cursor-pointer ml-auto">
                     <X className="w-3 h-3" /> Limpiar filtros
                   </button>
                 )}
@@ -364,7 +364,7 @@ export default function Shop() {
                         key={cat.id}
                         onClick={() => handleCategoryChange(cat.id)}
                         aria-pressed={category === cat.id}
-                        className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                        className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                           category === cat.id
                             ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
                             : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
@@ -386,7 +386,7 @@ export default function Shop() {
                           key={p}
                           onClick={() => { setProcess(p); setPage(1); }}
                           aria-pressed={process === p}
-                          className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                          className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             process === p
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
                               : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
@@ -409,7 +409,7 @@ export default function Shop() {
                           key={r}
                           onClick={() => { setRoast(r); setPage(1); }}
                           aria-pressed={roast === r}
-                          className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                          className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             roast === r
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
                               : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
@@ -442,16 +442,16 @@ export default function Shop() {
                         </button>
                       )}
                     </div>
-                    {flavorSearch && filteredFlavors.length === 0 ? (
+                    {flavorSearch && displayedFlavors.length === 0 ? (
                       <p className="text-xs text-coffee-500 italic">Sin coincidencias</p>
                     ) : (
-                      <div className="flex flex-wrap gap-1.5">
-                        {filteredFlavors.map((f) => (
+                      <div className="flex flex-wrap gap-1">
+                        {displayedFlavors.map((f) => (
                           <button
                             key={f}
                             onClick={() => toggleFlavor(f)}
                             aria-pressed={selectedFlavors.includes(f)}
-                            className={`text-[11px] px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                            className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                               selectedFlavors.includes(f)
                                 ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
                                 : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'

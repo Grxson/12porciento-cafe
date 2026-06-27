@@ -22,7 +22,19 @@ export function useInstallPrompt() {
   const [isStandalone, setIsStandalone] = useState(getIsStandalone());
 
   useEffect(() => {
+    const DISMISS_KEY = 'pwa-install-dismissed';
+    const DISMISS_DAYS = 14;
+    const wasDismissed = () => {
+      const raw = localStorage.getItem(DISMISS_KEY);
+      if (!raw) return false;
+      const ts = parseInt(raw, 10);
+      if (Number.isNaN(ts)) return false;
+      return Date.now() - ts < DISMISS_DAYS * 24 * 60 * 60 * 1000;
+    };
+
     const onBeforeInstall = (e: Event) => {
+      // Only intercept if user hasn't dismissed and isn't standalone
+      if (wasDismissed() || getIsStandalone()) return;
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
     };

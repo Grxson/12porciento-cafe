@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, AlertTriangle, MapPin, CheckCircle } from 'lucide-react';
+import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, AlertTriangle, MapPin, CheckCircle, CreditCard, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
+import { CardElement, useStripe, useElements, Elements } from '@stripe/react-stripe-js';
 import { subscriptionsApi } from '../api';
 import { useUser } from '../context/UserContext';
 import ScrollReveal from '../components/ScrollReveal';
@@ -10,6 +12,7 @@ import type { SubscriptionPlan } from '../types';
 import { PLAN_SLOTS } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useToast } from '../context/ToastContext';
+import { mexicanStates } from '../constants/mexico';
 
 const plans: Array<{
   id: SubscriptionPlan;
@@ -60,8 +63,8 @@ const plans: Array<{
   },
 ];
 
-type Step = 1 | 2 | 3;
-interface FormData { name: string; email: string; phone: string; frequency: string; }
+type Step = 1 | 2 | 3 | 4;
+interface FormData { name: string; email: string; phone: string; frequency: string; address: string; city: string; state: string; zipCode: string; }
 interface B2BFormData {
   empresa: string;
   rfc: string;
@@ -85,7 +88,14 @@ export default function Subscriptions() {
     email: user?.email ?? '',
     phone: user?.phone ?? '',
     frequency: 'monthly',
+    address: user?.address ?? '',
+    city: user?.city ?? '',
+    state: user?.state ?? '',
+    zipCode: user?.zipCode ?? '',
   });
+  const [setupClientSecret, setSetupClientSecret] = useState('');
+  const [paymentMethodId, setPaymentMethodId] = useState('');
+  const [paymentError, setPaymentError] = useState('');
   const [b2bForm, setB2BForm] = useState<B2BFormData>({
     empresa: '',
     rfc: '',
@@ -120,12 +130,22 @@ export default function Subscriptions() {
     goToStep(3);
   };
 
+  const handleSetupIntent = async () => {
+    try {
+      const res = await subscriptionsApi.createSetupIntent();
+      setSetupClientSecret(res.data.clientSecret);
+      goToStep(4);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Error al iniciar configuración de pago.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlan) return;
 
     if (user && !hasAddress) {
-      setError('Necesitas agregar tu dirección de envío en tu perfil antes de suscribirte.');
+      setError('Necesitas agregar tu dirección de envío antes de suscribirte.');
       return;
     }
 
@@ -138,6 +158,7 @@ export default function Subscriptions() {
         items: selectedCoffees,
         ...(user ? { userId: user.id } : {}),
       });
+      useUser.getState().setHasSubscription(true);
       setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error al procesar suscripción. Intenta de nuevo.');
@@ -167,8 +188,8 @@ export default function Subscriptions() {
     }
   };
 
-  const stepLabels = ['Elige tu plan', 'Tus cafés', 'Finalizar'];
-  const stepShortLabels = ['Plan', 'Cafés', 'Fin'];
+  const stepLabels = ['Elige tu plan', 'Tus cafés', 'Tus datos', 'Método de pago'];
+  const stepShortLabels = ['Plan', 'Cafés', 'Datos', 'Pago'];
 
   if (success) {
     return (
@@ -274,10 +295,10 @@ export default function Subscriptions() {
                   >
                     <div className="p-6 flex-1">
                       {plan.badge && (
-                        <span className={`block -mt-7 mb-3 ${plan.featured ? 'text-[10px] font-extrabold' : 'text-[9px] font-bold'} uppercase tracking-[0.2em] px-3 py-1 bg-gold-500 text-coffee-950 w-fit`}>{plan.badge}</span>
+                        <span className={`block -mt-7 mb-3 ${plan.featured ? 'text-xs font-extrabold' : 'text-[10px] font-bold'} uppercase tracking-widest px-3 py-1 bg-gold-500 text-coffee-950 w-fit`}>{plan.badge}</span>
                       )}
                       <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">{plan.name}</h3>
-                      <p className="text-coffee-500 text-[10px] tracking-widest uppercase mb-4">{plan.subtitle}</p>
+                      <p className="text-coffee-500 text-xs tracking-widest uppercase mb-4">{plan.subtitle}</p>
                       {plan.price ? (
                         <div className="flex items-baseline gap-1 mb-4">
                           <span className="font-serif text-3xl text-coffee-900 dark:text-cream">${plan.price}</span>
@@ -304,7 +325,7 @@ export default function Subscriptions() {
                     <div className="p-6 pt-0">
                       <button
                         type="button"
-                        className={`w-full py-3 text-xs font-semibold tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-2
+                        className={`w-full py-3 text-xs font-semibold tracking-wider uppercase transition-all flex items-center justify-center gap-2
                           ${plan.featured
                             ? 'bg-gold-500 text-coffee-950 group-hover:bg-gold-400'
                             : 'bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 border border-coffee-200 dark:border-coffee-700 group-hover:border-gold-500/40 group-hover:text-coffee-900 dark:group-hover:text-cream'
@@ -331,6 +352,24 @@ export default function Subscriptions() {
                 <div className="gold-line" />
                 <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream">Plan {selectedPlan.name}</h2>
               </div>
+              {/* Sticky continue bar when enough coffees selected */}
+              {selectedCoffees.length >= PLAN_SLOTS[selectedPlan.id].min && (
+                <div className="sticky top-20 z-10 bg-coffee-50 dark:bg-coffee-950 border border-gold-500/30 px-5 py-3 mb-6 flex items-center justify-between shadow-sm">
+                  <div>
+                    <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+                      {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''} seleccionados
+                    </p>
+                    <p className="text-coffee-500 text-xs">{grindPreference === 'GRANO' ? 'Grano entero' : 'Molido'}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCoffeeNext}
+                    className="btn-primary flex items-center gap-2 text-sm"
+                  >
+                    Continuar <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <CoffeePicker
                 plan={selectedPlan.id}
                 selected={selectedCoffees}
@@ -384,7 +423,7 @@ export default function Subscriptions() {
                       { name: 'contactoTelefono', label: 'Teléfono *', type: 'tel', required: true, placeholder: '55 1234 5678' },
                     ].map(({ name, label, type, required, placeholder }) => (
                       <div key={name}>
-                        <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">{label}</label>
+                        <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">{label}</label>
                         <input
                           type={type} required={required} placeholder={placeholder}
                           value={(b2bForm as any)[name]}
@@ -395,7 +434,7 @@ export default function Subscriptions() {
                     ))}
 
                     <div>
-                      <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">Volumen estimado *</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Volumen estimado *</label>
                       <select
                         required
                         value={b2bForm.volumenEstimado}
@@ -409,7 +448,7 @@ export default function Subscriptions() {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">Giro del negocio</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Giro del negocio</label>
                       <input
                         type="text" placeholder="Ej: Oficina, Café, Restaurante, etc."
                         value={b2bForm.giroNegocio || ''}
@@ -483,7 +522,7 @@ export default function Subscriptions() {
                       { name: 'phone', label: 'Teléfono',          type: 'tel',   required: false, placeholder: '55 1234 5678' },
                     ].map(({ name, label, type, required, placeholder }) => (
                       <div key={name}>
-                        <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-2">{label}</label>
+                        <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">{label}</label>
                         <input
                           name={name} type={type} required={required} placeholder={placeholder}
                           value={(form as any)[name]}
@@ -492,8 +531,49 @@ export default function Subscriptions() {
                         />
                       </div>
                     ))}
+                    <div className="border-t border-coffee-200 dark:border-coffee-800 pt-5 mt-2">
+                      <p className="text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-4">Dirección de envío</p>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Dirección *</label>
+                          <input name="address" required value={form.address}
+                            onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                            placeholder="Calle, número, colonia"
+                            className="input-dark !text-base min-h-[48px] w-full"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Ciudad *</label>
+                            <input name="city" required value={form.city}
+                              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                              placeholder="Ciudad"
+                              className="input-dark !text-base min-h-[48px] w-full"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Estado *</label>
+                            <select name="state" required value={form.state}
+                              onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
+                              className="input-dark !text-base min-h-[48px] w-full"
+                            >
+                              <option value="">Seleccionar</option>
+                              {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">CP *</label>
+                            <input name="zipCode" required value={form.zipCode}
+                              onChange={(e) => setForm((f) => ({ ...f, zipCode: e.target.value }))}
+                              placeholder="12345"
+                              className="input-dark !text-base min-h-[48px] w-full"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <div>
-                      <label className="block text-[10px] text-coffee-600 dark:text-coffee-500 uppercase tracking-[0.2em] mb-3">Frecuencia de envío</label>
+                      <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-3">Frecuencia de envío</label>
                       <div className="grid grid-cols-2 gap-2">
                         {[{ value: 'monthly', label: 'Mensual' }, { value: 'bimonthly', label: 'Bimestral' }].map(({ value, label }) => (
                           <button key={value} type="button"
@@ -522,10 +602,75 @@ export default function Subscriptions() {
                       {loading ? 'Procesando…' : 'Confirmar suscripción'}
                     </button>
                     <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
-                      El pago se coordina por transferencia. Te enviamos los datos al correo proporcionado.
+                      El pago se procesará con el método que elijas a continuación.
                     </p>
                   </form>
                 </>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Step 4: Payment method */}
+        {step === 4 && selectedPlan && setupClientSecret && (
+          <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+            <div className="max-w-xl mx-auto px-4 sm:px-6 py-12">
+              <button onClick={() => goToStep(3)} className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors">
+                <ChevronLeft className="w-3.5 h-3.5" /> Cambiar datos
+              </button>
+              <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-coffee-500 uppercase tracking-widest">Tu suscripción</span>
+                  <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-1">
+                  <Coffee className="w-3.5 h-3.5 text-gold-500" />
+                  {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}
+                </div>
+                {selectedPlan.price && (
+                  <p className="font-serif text-2xl text-coffee-900 dark:text-cream">${selectedPlan.price} <span className="text-coffee-500 text-sm font-sans">/ mes</span></p>
+                )}
+              </div>
+              <div className="gold-line mb-5" />
+              <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Método de pago</h3>
+              <Elements stripe={loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '')} options={{ clientSecret: setupClientSecret }}>
+                <SubscriptionCardForm
+                  clientSecret={setupClientSecret}
+                  onSuccess={async (pmId) => {
+                    setPaymentMethodId(pmId);
+                    // Submit subscription now with payment method
+                    if (!selectedPlan) return;
+                    setLoading(true); setError(''); setPaymentError('');
+                    try {
+                      await subscriptionsApi.create({
+                        ...form,
+                        plan: selectedPlan.id,
+                        grindPreference,
+                        items: selectedCoffees,
+                        paymentMethodId: pmId,
+                        ...(user ? { userId: user.id } : {}),
+                      });
+                      useUser.getState().setHasSubscription(true);
+                      setSuccess(true);
+                    } catch (err: any) {
+                      setError(err.response?.data?.error || 'Error al procesar suscripción.');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  onError={(msg) => setPaymentError(msg)}
+                  loading={loading}
+                />
+              </Elements>
+              {paymentError && (
+                <div className="flex items-start gap-2 text-red-400 text-sm mt-4">
+                  <span>{paymentError}</span>
+                </div>
+              )}
+              {error && (
+                <div className="flex items-start gap-2 text-red-400 text-sm mt-2">
+                  <span>{error}</span>
+                </div>
               )}
             </div>
           </motion.div>
@@ -565,5 +710,68 @@ export default function Subscriptions() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function SubscriptionCardForm({ clientSecret, onSuccess, onError, loading }: {
+  clientSecret: string;
+  onSuccess: (pmId: string) => void;
+  onError: (msg: string) => void;
+  loading: boolean;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSaving(true);
+    try {
+      const result = await stripe.confirmSetup({
+        elements,
+        redirect: 'if_required',
+        confirmParams: { return_url: window.location.origin + '/suscripciones' },
+      });
+      if (result.error) {
+        onError(result.error.message || 'Error al guardar tarjeta.');
+      } else if (result.setupIntent?.status === 'succeeded') {
+        onSuccess(result.setupIntent.payment_method as string);
+      } else {
+        onError('No se pudo configurar el método de pago.');
+      }
+    } catch (err: any) {
+      onError(err.message || 'Error al procesar tarjeta.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSaveCard}>
+      <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-5 mb-6">
+        <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-4">Tarjeta de crédito o débito</p>
+        <div className="px-3 py-3 border border-coffee-200 dark:border-coffee-700 bg-white dark:bg-coffee-900 min-h-[48px]">
+          <CardElement
+            options={{
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: '#1a120b',
+                  '::placeholder': { color: '#a0927e' },
+                },
+              },
+            }}
+          />
+        </div>
+      </div>
+      <button
+        type="submit"
+        disabled={!stripe || saving || loading}
+        className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {saving || loading ? 'Procesando…' : 'Guardar método de pago y confirmar'}
+      </button>
+    </form>
   );
 }

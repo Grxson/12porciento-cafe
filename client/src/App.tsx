@@ -140,7 +140,7 @@ function PublicLayout() {
       </Helmet>
       <Navbar />
       <main className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 8 }}

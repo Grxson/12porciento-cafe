@@ -61,7 +61,7 @@ function DesktopNode({ node, index }: { node: TimelineNode; index: number }) {
         transition={{ duration: 0.4, delay: index * 0.1 + 0.1 }}
         className="text-center px-1"
       >
-        <p className="text-[9px] text-gold-600 uppercase tracking-[0.25em] mb-0.5">{node.stage}</p>
+        <p className="text-[10px] text-gold-600 uppercase tracking-[0.25em] mb-0.5">{node.stage}</p>
         <p className="font-serif text-coffee-900 dark:text-cream text-sm leading-tight">{node.value}</p>
         <p className="text-coffee-400 text-[10px] mt-1 leading-relaxed max-h-0 overflow-hidden group-hover:max-h-20 transition-all duration-300">{node.detail}</p>
       </motion.div>
@@ -100,7 +100,7 @@ export default function CoffeeTimeline({ product }: { product: Product }) {
               {i < nodes.length - 1 && <div className="w-px flex-1 bg-coffee-200 mt-1 min-h-[16px]" />}
             </div>
             <div className="pt-1 min-w-0 flex-1">
-              <p className="text-[9px] text-gold-600 uppercase tracking-widest">{node.stage}</p>
+              <p className="text-[10px] text-gold-600 uppercase tracking-widest">{node.stage}</p>
               <p className="font-serif text-coffee-900 dark:text-cream text-sm break-words">{node.value}</p>
               <p className="text-coffee-500 text-xs mt-0.5 leading-relaxed break-words">{node.detail}</p>
             </div>

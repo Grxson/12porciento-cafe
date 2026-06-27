@@ -19,20 +19,35 @@ function appendNote(existing: string, addition: string): string {
 export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesCaptureProps) {
   const [recording, setRecording] = useState(false);
   const [micDenied, setMicDenied] = useState(false);
-  const [stepPhoto, setStepPhoto] = useState<string | null>(null); // R14: Per-step photo preview
+  const [stepPhoto, setStepPhoto] = useState<string | null>(null); // R14: Per-step photo capture
+  const [interim, setInterim] = useState('');
   const recognitionRef = useRef<any>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   const startVoice = () => {
     if (!SpeechRecognition) return;
     const recognition = new SpeechRecognition();
     recognition.lang = 'es-MX';
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.onresult = (e: any) => {
-      const transcript = e.results[0]?.[0]?.transcript ?? '';
-      if (transcript) onChange(appendNote(value, transcript));
+      let finalText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) {
+          finalText += (finalText ? ' ' : '') + r[0].transcript;
+        } else {
+          setInterim(r[0].transcript);
+        }
+      }
+      if (finalText) {
+        const current = valueRef.current;
+        onChange(current ? `${current} · ${finalText}` : finalText);
+      }
     };
-    recognition.onend = () => setRecording(false);
+    recognition.onend = () => { setRecording(false); setInterim(''); };
     recognition.onerror = (event: any) => {
       if (event.error === 'not-allowed') {
         setMicDenied(true);
@@ -47,6 +62,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
   const stopVoice = () => {
     recognitionRef.current?.stop();
     setRecording(false);
+    setInterim('');
   };
 
   // R14: Per-step photo capture
@@ -155,10 +171,13 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
         rows={2}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="O escribe aquí..."
+        placeholder={recording ? 'Escuchando...' : 'O escribe aquí...'}
         maxLength={500}
         className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 text-xs px-3 py-2 focus:border-gold-500 focus:outline-none resize-none"
       />
+      {interim && (
+        <p className="text-xs text-gold-500 italic mt-1">{interim}…</p>
+      )}
       <p className="text-[10px] text-coffee-600 text-right">{value.length}/500</p>
     </div>
   );

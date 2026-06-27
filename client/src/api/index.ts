@@ -62,8 +62,9 @@ export const subscriptionsApi = {
   create: (data: {
     name: string; email: string; phone?: string; plan: string;
     frequency: string; grindPreference: string; items: string[];
-    userId?: string;
+    userId?: string; paymentMethodId?: string;
   }) => api.post('/subscriptions', data),
+  createSetupIntent: () => api.post<{ clientSecret: string }>('/subscriptions/setup-intent'),
   list: (params?: Record<string, string>) => api.get('/subscriptions', { params }),
   updateStatus: (id: string, status: string) => api.put(`/subscriptions/${id}/status`, { status }),
   updateItems: (id: string, items: string[], grindPreference?: string) =>

@@ -44,7 +44,7 @@ async function ensureStripeCustomer(email: string, name: string, phone?: string)
 // POST / — create subscription with selected coffees
 router.post('/', createLimiter, async (req: Request, res: Response) => {
   try {
-    const { name, email, phone, plan, frequency = 'monthly', grindPreference = 'GRANO', items = [] } = req.body;
+    const { name, email, phone, plan, frequency = 'monthly', grindPreference = 'GRANO', items = [], paymentMethodId } = req.body;
 
     let userId: string | undefined;
     const authHeader = req.headers.authorization;
@@ -157,6 +157,21 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
         });
 
         stripeSubscriptionId = stripeSub.id;
+
+        // Attach payment method if provided
+        if (paymentMethodId && typeof paymentMethodId === 'string') {
+          try {
+            await stripe.paymentMethods.attach(paymentMethodId, { customer: stripeCustomerId });
+            await stripe.customers.update(stripeCustomerId, {
+              invoice_settings: { default_payment_method: paymentMethodId },
+            });
+            await stripe.subscriptions.update(stripeSub.id, {
+              default_payment_method: paymentMethodId,
+            });
+          } catch (pmErr) {
+            console.warn('[subscription] Could not attach payment method:', pmErr);
+          }
+        }
       } catch (stripeErr) {
         console.warn('[subscription] Could not create Stripe subscription:', stripeErr);
       }
@@ -455,6 +470,34 @@ router.post('/b2b-inquiry', async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al crear solicitud B2B' });
+  }
+});
+
+// POST /setup-intent — create Stripe SetupIntent for payment method collection
+router.post('/setup-intent', async (req: Request, res: Response) => {
+  try {
+    let stripeCustomerId: string;
+    const { email, name } = req.body;
+
+    if (email && name) {
+      stripeCustomerId = await ensureStripeCustomer(email, name);
+    } else {
+      // Create ephemeral customer for guests
+      const customer = await stripe.customers.create({
+        metadata: { source: '12porciento-subscription-setup' },
+      });
+      stripeCustomerId = customer.id;
+    }
+
+    const setupIntent = await stripe.setupIntents.create({
+      customer: stripeCustomerId,
+      payment_method_types: ['card'],
+    });
+
+    res.json({ clientSecret: setupIntent.client_secret });
+  } catch (err) {
+    console.error('[subscription] setup-intent error:', err);
+    res.status(500).json({ error: 'Error al crear configuración de pago' });
   }
 });
 

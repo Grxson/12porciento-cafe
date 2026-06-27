@@ -59,7 +59,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
               key={g}
               type="button"
               onClick={() => onGrindChange(g)}
-              className={`px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] transition-all ${
+              className={`px-6 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all ${
                 grindPreference === g ? 'bg-gold-500 text-coffee-950' : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
               }`}
             >
@@ -156,13 +156,13 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
                   )}
 
                   {product.isLimited && !locked && (
-                    <span className="absolute top-3 left-3 text-[9px] bg-gold-500/20 border border-gold-500/40 text-gold-400 px-1.5 py-0.5 uppercase tracking-widest">
+                    <span className="absolute top-3 left-3 text-[10px] bg-gold-500/20 border border-gold-500/40 text-gold-400 px-1.5 py-0.5 uppercase tracking-widest">
                       Limitado
                     </span>
                   )}
 
                   {product.isLimited && slots.max >= 3 && !locked && (
-                    <span className="absolute bottom-3 left-3 text-[8px] bg-green-900/60 border border-green-600/60 text-green-300 px-1.5 py-0.5 uppercase tracking-widest">
+                    <span className="absolute bottom-3 left-3 text-[10px] bg-green-900/60 border border-green-600/60 text-green-300 px-1.5 py-0.5 uppercase tracking-widest">
                       Plan benefit
                     </span>
                   )}
@@ -174,7 +174,7 @@ export default function CoffeePicker({ plan, selected, onChange, grindPreference
                     {product.name}
                   </p>
                   {product.flavors && product.flavors.length > 0 && (
-                    <p className="text-[9px] text-coffee-400 mt-1 truncate">
+                    <p className="text-[10px] text-coffee-400 mt-1 truncate">
                       {product.flavors.join(', ')}
                     </p>
                   )}

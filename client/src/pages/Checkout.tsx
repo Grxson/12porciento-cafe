@@ -706,16 +706,16 @@ export default function Checkout() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full min-w-0">
                       <input
                         value={promoInput}
                         onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
                         placeholder="CÓDIGO"
-                        className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 text-base min-h-[44px] focus:border-gold-500 focus:outline-none uppercase"
+                        className="flex-1 min-w-0 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 text-base min-h-[44px] focus:border-gold-500 focus:outline-none uppercase"
                       />
                       <button onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()}
-                        className="bg-coffee-100 dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 px-3 text-sm min-h-[44px] hover:bg-coffee-200 dark:hover:bg-coffee-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1">
+                        className="shrink-0 bg-coffee-100 dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 px-3 text-sm min-h-[44px] hover:bg-coffee-200 dark:hover:bg-coffee-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1 whitespace-nowrap">
                         {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aplicar'}
                       </button>
                     </div>

@@ -52,12 +52,12 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             <span className="limited-badge">Edición limitada</span>
           )}
           {!isCafe && (
-            <span className="bg-coffee-100/80 dark:bg-coffee-900/80 text-coffee-700 dark:text-coffee-300 text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 backdrop-blur-sm">
+            <span className="bg-coffee-100/80 dark:bg-coffee-900/80 text-coffee-700 dark:text-coffee-300 text-[10px] uppercase tracking-wider px-2 py-0.5 backdrop-blur-sm">
               {product.category === 'ACCESORIOS' ? 'Accesorio' : product.category}
             </span>
           )}
           {inCart && (
-            <span className="bg-blue-600/90 text-white text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 backdrop-blur-sm font-semibold">
+            <span className="bg-blue-600/90 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 backdrop-blur-sm font-semibold">
               En carrito
             </span>
           )}
@@ -131,7 +131,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
 
         {/* Footer row */}
         <div className="mt-auto pt-3 border-t border-coffee-100 dark:border-coffee-800 flex items-center justify-between">
-          <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-[0.2em]">
+          <span className="text-[10px] text-coffee-600 dark:text-coffee-400 uppercase tracking-wider">
             {isCafe ? (product.process ?? '') : ''}
           </span>
           <Link

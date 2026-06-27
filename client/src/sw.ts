@@ -98,9 +98,11 @@ self.addEventListener('push', (event) => {
 });
 
 // Sync event — background sync for brew logs
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'brew-sync') {
-    event.waitUntil(
+self.addEventListener('sync', ((event: Event) => {
+  const syncEvent = event as Event & { tag: string };
+  if (syncEvent.tag === 'brew-sync') {
+    const ext = event as ExtendableEvent;
+    ext.waitUntil(
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
         for (const client of clients) {
           client.postMessage({ type: 'BREW_SYNC' });
@@ -108,7 +110,7 @@ self.addEventListener('sync', (event) => {
       }),
     );
   }
-});
+}) as EventListener);
 
 // Notification click — open/focus window with correct URL
 self.addEventListener('notificationclick', (event) => {

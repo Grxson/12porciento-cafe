@@ -97,6 +97,19 @@ self.addEventListener('push', (event) => {
   }
 });
 
+// Sync event — background sync for brew logs
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'brew-sync') {
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        for (const client of clients) {
+          client.postMessage({ type: 'BREW_SYNC' });
+        }
+      }),
+    );
+  }
+});
+
 // Notification click — open/focus window with correct URL
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();

@@ -74,4 +74,11 @@ export async function initBrewSync(): Promise<void> {
       .then((reg) => (reg as any).sync.register('brew-sync'))
       .catch(console.error);
   }
+
+  // Listen for sync events forwarded from SW
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type === 'BREW_SYNC') {
+      syncBrews().catch(console.error);
+    }
+  });
 }

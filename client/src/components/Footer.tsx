@@ -20,7 +20,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-4 mt-6">
               <div className="w-11 h-11 border border-coffee-200 dark:border-coffee-700 hover:border-gold-500/40 flex items-center justify-center transition-colors">
-                <a href="#" aria-label="Instagram" className="text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors">
+                <a href="https://www.instagram.com/12porciento.cafe/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors">
                   <Instagram className="w-5 h-5" />
                 </a>
               </div>

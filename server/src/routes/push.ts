@@ -7,6 +7,7 @@ import {
   removeSubscription,
   getUserSubscriptions,
   getAdminSubscriptions,
+  getAnonymousSubscriptions,
   getSubscriptionByEndpoint,
   cleanupSubscription,
   getAdminPreferences,
@@ -110,7 +111,7 @@ router.get('/subscriptions', requireAuth, async (_req: AuthRequest, res: Respons
 // POST /api/push/test — send test notification (admin-only)
 router.post('/test', requireAuth, async (_req: AuthRequest, res: Response) => {
   try {
-    const subs = await getAdminSubscriptions();
+    const subs = await getAnonymousSubscriptions();
     if (subs.length === 0) {
       return res.json({ ok: true, sent: 0, failed: 0, message: 'No hay dispositivos suscritos' });
     }

@@ -44,9 +44,14 @@ export async function getUserSubscriptions(userId: string) {
 }
 
 export async function getAdminSubscriptions() {
-  // Admins are users with no userId (anonymous) or linked to admin users
-  // For now, return all subscriptions (both user and anonymous)
+  // Return all subscriptions (for admin list view)
   return prisma.pushSubscription.findMany();
+}
+
+export async function getAnonymousSubscriptions() {
+  // Return only anonymous subscriptions (userId: null)
+  // Used for test notifications to avoid spamming all users
+  return prisma.pushSubscription.findMany({ where: { userId: null } });
 }
 
 export async function cleanupSubscription(id: string) {

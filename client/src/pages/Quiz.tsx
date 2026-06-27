@@ -271,7 +271,7 @@ export default function Quiz() {
           <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream">¿Cuál es tu roast perfecto?</h1>
         </div>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {!done ? (
             <motion.div
               key={step}

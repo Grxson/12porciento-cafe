@@ -21,7 +21,7 @@ export default function ProductGallery({ images, alt, badge }: ProductGalleryPro
   return (
     <div>
       <div className="relative aspect-[3/4] overflow-hidden bg-coffee-100 dark:bg-coffee-900">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <motion.img
             key={current}
             src={resolveImageUrl(current)}

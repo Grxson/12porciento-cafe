@@ -186,7 +186,7 @@ export default function Navbar() {
             className="md:hidden text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Menú"
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               {open
                 ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X className="w-5 h-5" /></motion.span>
                 : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Menu className="w-5 h-5" /></motion.span>

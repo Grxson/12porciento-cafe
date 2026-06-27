@@ -54,7 +54,7 @@ export default function TestimonialsSlider() {
         <h2 className="font-serif text-4xl text-cream mb-12">Nuestros Clientes</h2>
 
         <div className="relative min-h-[200px]">
-          <AnimatePresence mode="wait" custom={dir}>
+          <AnimatePresence custom={dir}>
             <motion.div
               key={idx}
               custom={dir}

@@ -79,7 +79,7 @@ export default function Register() {
           ))}
         </div>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {step === 1 ? (
             <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
               <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">

@@ -334,7 +334,7 @@ export default function ProductDetail() {
           </div>
 
           <div className="py-10">
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               <motion.div
                 key={tab}
                 initial={{ opacity: 0, y: 8 }}

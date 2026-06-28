@@ -104,8 +104,17 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
 
     const existing = await prisma.subscription.findUnique({ where: { email: normalizedEmail } });
     if (existing && (existing.status === 'ACTIVE' || existing.status === 'PAUSED')) {
-      res.status(409).json({ error: 'Ya tienes una suscripción activa o pausada con este email' });
-      return;
+      if (existing.userId && existing.userId === userId) {
+        // Upgrade: authenticated user changing plan on own subscription
+        // Falls through to update logic below
+      } else if (!userId) {
+        res.status(409).json({ error: 'Ya tienes una suscripción activa o pausada con este email' });
+        return;
+      } else {
+        // Same email, different user — shouldn't happen but protect anyway
+        res.status(409).json({ error: 'Este email ya tiene una suscripción activa' });
+        return;
+      }
     }
 
     const nextBilling = new Date();
@@ -210,8 +219,10 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
 
     emitEvent({
       event: 'subscription_created',
-      title: 'Nueva suscripción',
-      message: `${subscription.name} se suscribió al plan ${subscription.plan}`,
+      title: existing && existing.status !== 'CANCELLED' ? 'Plan actualizado' : 'Nueva suscripción',
+      message: existing && existing.status !== 'CANCELLED'
+        ? `${subscription.name} cambió al plan ${subscription.plan}`
+        : `${subscription.name} se suscribió al plan ${subscription.plan}`,
       data: { subscriptionId: subscription.id, plan: subscription.plan },
     });
 

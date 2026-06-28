@@ -44,6 +44,7 @@ export default function Navbar() {
   const openDrawer = useCart((s) => s.openDrawer);
   const { dark, toggle } = useClientTheme();
   const user = useUser((s) => s.user);
+  const hasSubscription = useUser((s) => s.hasSubscription);
   const menuRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
 
@@ -103,12 +104,15 @@ export default function Navbar() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `text-sm tracking-widest uppercase transition-colors duration-200 ${
+                `text-sm tracking-widest uppercase transition-colors duration-200 relative ${
                   isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
                 }`
               }
             >
               {label}
+              {to === '/suscripciones' && hasSubscription && (
+                <span className="absolute -top-1.5 -right-3 w-2 h-2 bg-gold-500 rounded-full" />
+              )}
             </NavLink>
           ))}
 
@@ -217,20 +221,23 @@ export default function Navbar() {
             tabIndex={-1}
           >
             <nav className="flex flex-col px-6 gap-1">
-              {links.map(({ to, label }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  onClick={() => setOpen(false)}
-                  className={({ isActive }) =>
-                    `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors ${
-                      isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-                    }`
-                  }
-                >
-                  {label}
-                </NavLink>
-              ))}
+                  {links.map(({ to, label }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      onClick={() => setOpen(false)}
+                      className={({ isActive }) =>
+                        `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors relative ${
+                          isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                        }`
+                      }
+                    >
+                      {label}
+                      {to === '/suscripciones' && hasSubscription && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 w-2 h-2 bg-gold-500 rounded-full" />
+                      )}
+                    </NavLink>
+                  ))}
             </nav>
           </motion.div>
         </>

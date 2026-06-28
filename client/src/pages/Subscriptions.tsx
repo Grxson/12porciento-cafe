@@ -4,7 +4,7 @@ import { Check, X, Star, Truck, RefreshCw, ChevronRight, ChevronLeft, Coffee, Al
 import { Link } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { CardElement, useStripe, useElements, Elements } from '@stripe/react-stripe-js';
-import { subscriptionsApi } from '../api';
+import { subscriptionsApi, usersApi } from '../api';
 import { useUser } from '../context/UserContext';
 import ScrollReveal from '../components/ScrollReveal';
 import CoffeePicker from '../components/CoffeePicker';
@@ -80,6 +80,7 @@ export default function Subscriptions() {
   const hasSubscription = useUser((s) => s.hasSubscription);
   const { add: addToast } = useToast();
   const [step, setStep] = useState<Step>(1);
+  const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<typeof plans[0] | null>(null);
   const [selectedCoffees, setSelectedCoffees] = useState<string[]>([]);
   const [grindPreference, setGrindPreference] = useState<'MOLIDO' | 'GRANO'>('GRANO');
@@ -109,25 +110,62 @@ export default function Subscriptions() {
   const [success, setSuccess] = useState(false);
   const [showB2BConfirm, setShowB2BConfirm] = useState(false);
   const [error, setError] = useState('');
+  const [isUpgrade, setIsUpgrade] = useState(false);
 
   const hasAddress = !!(user?.address && user?.city && user?.state && user?.zipCode);
 
+  useEffect(() => {
+    if (hasSubscription) {
+      usersApi.mySubscription()
+        .then((r) => setCurrentPlan((r.data?.plan as SubscriptionPlan) ?? null))
+        .catch(() => setCurrentPlan(null));
+    } else {
+      setCurrentPlan(null);
+    }
+  }, [hasSubscription]);
+
   const goToStep = (n: Step) => {
     setStep(n);
+    if (n === 1) { setIsUpgrade(false); setError(''); }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSelectPlan = (plan: typeof plans[0]) => {
+    if (currentPlan === plan.id) return; // Already on this plan
     setSelectedPlan(plan);
     setSelectedCoffees([]);
     goToStep(2);
   };
 
-  const handleCoffeeNext = () => {
+  const handleCoffeeNext = async () => {
     if (!selectedPlan) return;
     const slots = PLAN_SLOTS[selectedPlan.id];
     if (selectedCoffees.length < slots.min) return;
-    goToStep(3);
+    if (hasSubscription && user && selectedPlan.id !== 'EMPRESARIAL') {
+      // Upgrade: submit directly, skip contact/payment forms
+      setLoading(true); setError(''); setIsUpgrade(true);
+      try {
+        await subscriptionsApi.create({
+          name: user.name ?? form.name,
+          email: user.email ?? form.email,
+          phone: user.phone ?? form.phone,
+          plan: selectedPlan.id,
+          frequency: form.frequency,
+          grindPreference,
+          items: selectedCoffees,
+          userId: user.id,
+        });
+        useUser.getState().setHasSubscription(true);
+        setCurrentPlan(selectedPlan.id);
+        setSuccess(true);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Error al actualizar plan.');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      goToStep(3);
+    }
   };
 
   const handleSetupIntent = async () => {
@@ -149,7 +187,7 @@ export default function Subscriptions() {
       return;
     }
 
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setIsUpgrade(false);
     try {
       await subscriptionsApi.create({
         ...form,
@@ -203,12 +241,23 @@ export default function Subscriptions() {
           <div className="w-16 h-16 border-2 border-gold-500 flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-gold-500" />
           </div>
-          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">¡Suscripción confirmada!</h2>
-          <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed mb-4">
-            Bienvenido al plan <span className="text-gold-400 font-medium">{selectedPlan?.name}</span>.
-            Tu primer envío incluirá {selectedCoffees.length} lote{selectedCoffees.length !== 1 ? 's' : ''} tostados a pedido.
+          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">
+            {isUpgrade ? '¡Plan actualizado!' : '¡Suscripción confirmada!'}
+          </h2>
+          {isUpgrade ? (
+            <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed mb-4">
+              Cambiaste al plan <span className="text-gold-400 font-medium">{selectedPlan?.name}</span>.
+              Tu próxima suscripción incluirá {selectedCoffees.length} lote{selectedCoffees.length !== 1 ? 's' : ''} tostados a pedido.
+            </p>
+          ) : (
+            <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed mb-4">
+              Bienvenido al plan <span className="text-gold-400 font-medium">{selectedPlan?.name}</span>.
+              Tu primer envío incluirá {selectedCoffees.length} lote{selectedCoffees.length !== 1 ? 's' : ''} tostados a pedido.
+            </p>
+          )}
+          <p className="text-coffee-500 dark:text-coffee-500 text-xs">
+            {isUpgrade ? 'Tu suscripción se actualizó correctamente.' : 'Nos pondremos en contacto para coordinar el pago del primer ciclo.'}
           </p>
-          <p className="text-coffee-500 dark:text-coffee-500 text-xs">Nos pondremos en contacto para coordinar el pago del primer ciclo.</p>
         </motion.div>
       </div>
     );
@@ -270,7 +319,11 @@ export default function Subscriptions() {
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-gold-500 shrink-0" />
                     <div>
-                      <p className="text-coffee-900 dark:text-cream text-sm font-medium">Ya tienes una suscripción activa</p>
+                      <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+                        {currentPlan
+                          ? `Plan ${plans.find((p) => p.id === currentPlan)?.name ?? currentPlan} — suscripción activa`
+                          : 'Ya tienes una suscripción activa'}
+                      </p>
                       <p className="text-coffee-400 text-xs">Selecciona un plan diferente para hacer el cambio o mejora al siguiente nivel.</p>
                     </div>
                   </div>
@@ -287,14 +340,18 @@ export default function Subscriptions() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: i * 0.08 }}
                     onClick={() => handleSelectPlan(plan)}
-                    className={`relative flex flex-col border cursor-pointer transition-all duration-300 group
-                      ${plan.featured
-                        ? 'border-gold-500 bg-white dark:bg-coffee-900 shadow-[0_0_40px_rgba(201,169,110,0.1)]'
-                        : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900/60 hover:border-coffee-300 dark:hover:border-coffee-700'
+                    className={`relative flex flex-col border transition-all duration-300 group
+                      ${currentPlan === plan.id
+                        ? 'opacity-70 cursor-default border-coffee-300 dark:border-coffee-600 bg-coffee-50 dark:bg-coffee-900/40'
+                        : plan.featured
+                          ? 'cursor-pointer border-gold-500 bg-white dark:bg-coffee-900 shadow-[0_0_40px rgba(201,169,110,0.1)]'
+                          : 'cursor-pointer border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900/60 hover:border-coffee-300 dark:hover:border-coffee-700'
                       }`}
                   >
                     <div className="p-6 flex-1">
-                      {plan.badge && (
+                      {currentPlan === plan.id ? (
+                        <span className="block -mt-7 mb-3 text-xs font-bold uppercase tracking-widest px-3 py-1 bg-coffee-300 dark:bg-coffee-600 text-coffee-700 dark:text-cream w-fit">Plan actual</span>
+                      ) : plan.badge && (
                         <span className={`block -mt-7 mb-3 ${plan.featured ? 'text-xs font-extrabold' : 'text-xs font-bold'} uppercase tracking-widest px-3 py-1 bg-gold-500 text-coffee-950 w-fit`}>{plan.badge}</span>
                       )}
                       <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">{plan.name}</h3>
@@ -323,16 +380,26 @@ export default function Subscriptions() {
                       </ul>
                     </div>
                     <div className="p-6 pt-0">
-                      <button
-                        type="button"
-                        className={`w-full py-3 text-xs font-semibold tracking-wider uppercase transition-all flex items-center justify-center gap-2
-                          ${plan.featured
-                            ? 'bg-gold-500 text-coffee-950 group-hover:bg-gold-400'
-                            : 'bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 border border-coffee-200 dark:border-coffee-700 group-hover:border-gold-500/40 group-hover:text-coffee-900 dark:group-hover:text-cream'
-                          }`}
-                      >
-                        {hasSubscription ? `Cambiar a ${plan.name}` : `Elegir ${plan.name}`} <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
+                      {currentPlan === plan.id ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full py-3 text-xs font-semibold tracking-wider uppercase bg-coffee-100 dark:bg-coffee-800 text-coffee-400 dark:text-coffee-600 cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          Plan actual
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={`w-full py-3 text-xs font-semibold tracking-wider uppercase transition-all flex items-center justify-center gap-2
+                            ${plan.featured
+                              ? 'bg-gold-500 text-coffee-950 group-hover:bg-gold-400'
+                              : 'bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 border border-coffee-200 dark:border-coffee-700 group-hover:border-gold-500/40 group-hover:text-coffee-900 dark:group-hover:text-cream'
+                            }`}
+                        >
+                          {hasSubscription ? `Cambiar a ${plan.name}` : `Elegir ${plan.name}`} <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -364,9 +431,10 @@ export default function Subscriptions() {
                   <button
                     type="button"
                     onClick={handleCoffeeNext}
-                    className="btn-primary flex items-center gap-2 text-sm"
+                    disabled={loading}
+                    className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Continuar <ChevronRight className="w-4 h-4" />
+                    {loading ? 'Cambiando plan…' : 'Continuar'} <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -380,13 +448,18 @@ export default function Subscriptions() {
               <div className="mt-10 flex justify-end">
                 <button
                   type="button"
-                  disabled={selectedCoffees.length < PLAN_SLOTS[selectedPlan.id].min}
+                  disabled={selectedCoffees.length < PLAN_SLOTS[selectedPlan.id].min || loading}
                   onClick={handleCoffeeNext}
                   className="btn-primary flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Continuar <ChevronRight className="w-4 h-4" />
+                  {loading ? 'Cambiando plan…' : 'Continuar'} <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
+              {error && (
+                <div className="flex items-start gap-2 text-red-400 text-sm mt-6">
+                  <span>{error}</span>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -642,6 +715,7 @@ export default function Subscriptions() {
                     if (!selectedPlan) return;
                     setLoading(true); setError(''); setPaymentError('');
                     try {
+                      setIsUpgrade(false);
                       await subscriptionsApi.create({
                         ...form,
                         plan: selectedPlan.id,

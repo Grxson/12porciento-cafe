@@ -56,6 +56,8 @@ model Product {
   subscriptionItems SubscriptionItem[]
   stockMovements    StockMovement[]
   linkedRecipes Recipe[] @relation("productRecipes")
+  wishlistItems  WishlistItem[]
+  priceRecords   PriceRecord[]
 }
 
 model StockMovement {
@@ -134,6 +136,12 @@ model Subscription {
   lastPaymentDate   DateTime?
   failedAttempts    Int     @default(0)
   lastFailureReason String?
+
+  pausedAt      DateTime?
+  pausedUntil   DateTime?
+  pausedReason  String?
+  skipCount     Int      @default(0)   // how many billings skipped
+  maxSkips      Int      @default(0)   // 0 = unlimited
 
   payments SubscriptionPayment[]
 }
@@ -227,6 +235,7 @@ model Recipe {
 
   steps       RecipeStep[]
   brewLogs    BrewLog[]
+  ratings     RecipeRating[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -313,6 +322,10 @@ model User {
   reviewReplies                ReviewReply[] @relation("reviewReplies")
   baristaProfile               BaristaProfile?
   pushSubscriptions            PushSubscription[]
+  wishlistItems                WishlistItem[]
+  recipeRatings                RecipeRating[]
+  sentGiftCards                GiftCard[]     @relation("sentGiftCards")
+  receivedGiftCards             GiftCard[]     @relation("receivedGiftCards")
 }
 
 model BaristaProfile {
@@ -400,6 +413,85 @@ model AdminNotificationPreference {
 
   @@unique([adminId, eventType])
   @@map("admin_notification_preferences")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model RecipeRating {
+  id        String   @id @default(cuid())
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([recipeId, userId])
+  @@index([recipeId])
+  @@index([userId])
+}
+
+model PriceRecord {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  price     Float
+  costPrice Float?
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model GiftCard {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  initialAmount Float
+  balance       Float
+  senderId      String?
+  sender        User?    @relation("sentGiftCards", fields: [senderId], references: [id], onDelete: SetNull)
+  recipientId   String?
+  recipient     User?    @relation("receivedGiftCards", fields: [recipientId], references: [id], onDelete: SetNull)
+  senderName    String?
+  senderEmail   String?
+  recipientName String?
+  recipientEmail String?
+  message       String?
+  isActive      Boolean  @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([code])
+}
+
+model AbandonedCart {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  items     String   // JSON: [{productId, quantity}]
+  couponCode String?
+  reminderSentAt DateTime?
+  reminderCount Int      @default(0)
+  recovered  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([email])
+  @@index([recovered])
+  @@index([createdAt])
 }
 
 model B2BInquiry {

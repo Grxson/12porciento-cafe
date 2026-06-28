@@ -106,17 +106,8 @@ router.post('/validate', validateLimiter, async (req: Request, res: Response) =>
     }
     const promo = await prisma.promoCode.findUnique({ where: { code: code.trim().toUpperCase() } });
 
-    if (!promo || !promo.isActive) {
-      res.status(404).json({ error: 'Código inválido o inactivo' });
-      return;
-    }
-    if (promo.expiresAt && new Date() > promo.expiresAt) {
-      res.status(400).json({ error: 'Código expirado' });
-      return;
-    }
-    if (promo.maxUses && promo.usedCount >= promo.maxUses) {
-      res.status(400).json({ error: 'Código agotado' });
-      return;
+    if (!promo || !promo.isActive || (promo.expiresAt && new Date() > promo.expiresAt) || (promo.maxUses && promo.usedCount >= promo.maxUses)) {
+      return res.status(400).json({ error: 'Código de descuento inválido' });
     }
 
     res.json({ data: { discount: promo.discount, type: promo.type, code: promo.code } });

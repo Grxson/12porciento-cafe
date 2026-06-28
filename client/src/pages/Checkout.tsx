@@ -247,13 +247,13 @@ export default function Checkout() {
           ? [{ productId: i.product.id, quantity: i.quantity }]
           : i.bundle.items.map((bi) => ({ productId: bi.product.id, quantity: bi.quantity * i.quantity })),
       );
-      await ordersApi.create({
+      await retryWithBackoff(() => ordersApi.create({
         ...form,
         ...(user ? { userId: user.id } : {}),
         ...(paymentIntentId ? { paymentIntentId } : {}),
         ...(promoCode ? { promoCode } : {}),
         items: orderItems,
-      });
+      }));
       setSuccess(true);
       clearCart();
     } catch (err: any) {

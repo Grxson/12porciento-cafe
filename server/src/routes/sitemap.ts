@@ -1,7 +1,5 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../db';
 const router = Router();
 
 const BASE_URL = process.env.CLIENT_URL || 'https://12porciento.cafe';

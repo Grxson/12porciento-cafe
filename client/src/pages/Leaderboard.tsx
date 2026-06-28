@@ -92,7 +92,7 @@ export default function Leaderboard() {
           <div className="text-center py-12">
             <p className="text-coffee-500">No se pudo cargar el ranking.</p>
             <button
-              onClick={() => { setError(false); setLoading(true); baristaApi.getLeaderboard(50).then((res) => setEntries(res.data.data)).catch(() => setError(true)).finally(() => setLoading(false)); }}
+              onClick={() => { setError(false); setLoading(true); baristaApi.getLeaderboard(50, period).then((res) => setEntries(res.data.data)).catch(() => setError(true)).finally(() => setLoading(false)); }}
               className="text-xs text-gold-500 hover:text-gold-400 mt-2 underline"
               aria-label="Reintentar carga del ranking"
             >

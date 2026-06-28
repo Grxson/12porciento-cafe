@@ -89,15 +89,24 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
     amount = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       let totalAmount = 0;
       for (const item of items) {
+        // Atomic check: only succeeds if stock >= quantity
+        const updated = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
+          data: {},  // no change, just atomic check
+        });
+        if (updated.count === 0) {
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { name: true, stock: true },
+          });
+          throw new Error(`Stock insuficiente para "${product?.name || 'Producto'}" (disponible: ${product?.stock ?? 0})`);
+        }
         const product = await tx.product.findUnique({
           where: { id: item.productId },
           select: { price: true, stock: true, isActive: true, name: true },
         });
         if (!product || !product.isActive) {
           throw new Error(`Producto ${item.productId} no disponible`);
-        }
-        if (product.stock < item.quantity) {
-          throw new Error(`Stock insuficiente para "${product.name}"`);
         }
         totalAmount += product.price * item.quantity;
       }

@@ -81,7 +81,18 @@ router.get('/', async (req: Request, res: Response) => {
       orderBy: [{ isPremium: 'asc' }, { method: 'asc' }, { title: 'asc' }],
     });
 
-    res.json({ data: recipes });
+    const hasPremium = recipes.some(r => r.isPremium);
+    let hasAccess = false;
+    if (hasPremium) {
+      const authHeader = req.headers.authorization;
+      hasAccess = await hasRecipeAccess(authHeader);
+    }
+
+    const gated = hasPremium && !hasAccess
+      ? recipes.map(r => r.isPremium ? lockRecipe(r) : r)
+      : recipes;
+
+    res.json({ data: gated });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener recetas' });

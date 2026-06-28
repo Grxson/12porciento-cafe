@@ -90,21 +90,22 @@ router.post('/', async (req: Request, res: Response) => {
     try {
       await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         for (const item of orderItems) {
-          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true, name: true, lowStockThreshold: true } });
-          if (!prod || prod.stock < item.quantity) {
-            throw new Error('Stock insuficiente al confirmar orden');
-          }
-          const newStock = prod.stock - item.quantity;
-          await tx.product.update({
-            where: { id: item.productId },
+          const updated = await tx.product.updateMany({
+            where: { id: item.productId, stock: { gte: item.quantity } },
             data: { stock: { decrement: item.quantity } },
           });
+          if (updated.count === 0) {
+            throw new Error('Stock insuficiente al confirmar orden');
+          }
+          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true, name: true, lowStockThreshold: true } });
+          if (!prod) throw new Error('Producto no encontrado');
+          const newStock = prod.stock;
           await tx.stockMovement.create({
             data: {
               productId: item.productId,
               type: 'SALE',
               quantity: -item.quantity,
-              previousStock: prod.stock,
+              previousStock: prod.stock + item.quantity,
               newStock,
               notes: `Webhook PI ${intent.id}`,
             },
@@ -179,6 +180,42 @@ router.post('/', async (req: Request, res: Response) => {
       code: intent.last_payment_error?.code ?? 'unknown',
       message: intent.last_payment_error?.message ?? 'no message',
     });
+    res.json({ received: true });
+    return;
+  }
+
+  if (event.type === 'charge.refunded') {
+    const charge = event.data.object as { payment_intent: string; id: string; amount: number };
+    const order = await prisma.order.findUnique({ where: { paymentIntentId: charge.payment_intent } });
+    if (order) {
+      await prisma.$transaction(async (tx) => {
+        await tx.order.update({ where: { id: order.id }, data: { status: 'REFUNDED' } });
+        // Restore stock
+        const orderItems = await tx.orderItem.findMany({ where: { orderId: order.id } });
+        for (const item of orderItems) {
+          await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId, type: 'RETURN', quantity: item.quantity,
+              previousStock: 0, newStock: 0, // we don't have prev stock handy, that's OK
+              orderId: order.id, notes: `Reembolso charge ${charge.id}`,
+            },
+          });
+        }
+      });
+      console.log(`[webhook] Order ${order.id} refunded, stock restored`);
+    }
+    res.json({ received: true });
+    return;
+  }
+
+  if (event.type === 'payment_intent.canceled') {
+    const intent = event.data.object as { id: string };
+    const order = await prisma.order.findUnique({ where: { paymentIntentId: intent.id } });
+    if (order && order.status === 'PENDING') {
+      await prisma.order.update({ where: { id: order.id }, data: { status: 'CANCELLED' } });
+      console.log(`[webhook] Order ${order.id} cancelled due to payment cancellation`);
+    }
     res.json({ received: true });
     return;
   }

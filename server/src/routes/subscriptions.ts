@@ -283,6 +283,43 @@ router.put('/:id/items', requireUserAuth, async (req: UserAuthRequest, res: Resp
 
 // PUT /:id/admin — admin: edit plan, frequency, grindPreference, and coffee items
 router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) => {
+  async function syncStripeSubscription(subId: string, newPlan: string | undefined, newFrequency: string | undefined, newItems: string[] | undefined) {
+    const current = await prisma.subscription.findUnique({
+      where: { id: subId },
+      include: { items: { include: { product: { select: { price: true } } } } },
+    });
+    if (!current?.stripeSubscriptionId) return;
+    
+    try {
+      const totalPrice = current.items.reduce((sum, item) => sum + Number(item.product.price), 0);
+      const amountInCents = Math.round(totalPrice * 100);
+      if (amountInCents < 100) return;
+      
+      const stripeSub = await stripe.subscriptions.retrieve(current.stripeSubscriptionId);
+      const stripeItemId = stripeSub.items.data[0]?.id;
+      if (!stripeItemId) return;
+      
+      await stripe.subscriptions.update(current.stripeSubscriptionId, {
+        items: [{
+          id: stripeItemId,
+          price_data: {
+            currency: 'mxn',
+            product: stripeSub.items.data[0].price.product,
+            unit_amount: amountInCents,
+            recurring: {
+              interval: 'month',
+              interval_count: current.frequency === 'bimonthly' ? 2 : 1,
+            },
+          },
+        }],
+        proration_behavior: 'none',
+      });
+      console.log(`[subscription] Stripe synced for ${subId}`);
+    } catch (stripeErr) {
+      console.warn(`[subscription] Failed to sync Stripe for ${subId}:`, stripeErr);
+    }
+  }
+
   try {
     const { plan, frequency, grindPreference, items } = req.body as {
       plan?: string; frequency?: string; grindPreference?: string; items?: string[];
@@ -339,6 +376,7 @@ router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) =>
           },
         }),
       ]);
+      await syncStripeSubscription(req.params.id, plan, frequency, items);
       res.json(updated);
       return;
     }
@@ -351,6 +389,7 @@ router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) =>
         items: { include: { product: { select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true } } } },
       },
     });
+    await syncStripeSubscription(req.params.id, plan, frequency, items);
     res.json(updated);
   } catch (err) {
     console.error(err);
@@ -413,15 +452,6 @@ router.put('/:id/fulfillment', requireAuth, async (req: AuthRequest, res: Respon
     }
 
     const updateData: any = { fulfillmentStatus };
-
-    if (fulfillmentStatus === 'ENTREGADO') {
-      const sub = await prisma.subscription.findUnique({ where: { id: req.params.id } });
-      if (sub) {
-        const next = new Date();
-        next.setMonth(next.getMonth() + (sub.frequency === 'bimonthly' ? 2 : 1));
-        updateData.nextBilling = next;
-      }
-    }
 
     const updated = await prisma.subscription.update({
       where: { id: req.params.id },
@@ -509,6 +539,76 @@ router.post('/setup-intent', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('[subscription] setup-intent error:', err);
     res.status(500).json({ error: 'Error al crear configuración de pago' });
+  }
+});
+
+// GET /b2b-inquiries — admin list B2B inquiries
+router.get('/b2b-inquiries', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { status, search, page, pageSize } = req.query;
+    const where: any = {};
+
+    if (status) where.status = status;
+    if (search) {
+      where.OR = [
+        { empresa: { contains: search as string } },
+        { contactoNombre: { contains: search as string } },
+        { contactoEmail: { contains: search as string } },
+      ];
+    }
+
+    const psRaw = parseInt(pageSize as string);
+    const ps = Number.isInteger(psRaw) ? Math.min(Math.max(psRaw, 1), 200) : 50;
+    const pgRaw = parseInt(page as string);
+    const pg = Number.isInteger(pgRaw) ? Math.max(pgRaw - 1, 0) : 0;
+
+    const [inquiries, total] = await prisma.$transaction([
+      prisma.b2BInquiry.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: ps,
+        skip: pg * ps,
+      }),
+      prisma.b2BInquiry.count({ where }),
+    ]);
+
+    res.json({ data: inquiries, total, page: pg + 1, pageSize: ps, totalPages: Math.ceil(total / ps) });
+  } catch {
+    res.status(500).json({ error: 'Error al listar consultas B2B' });
+  }
+});
+
+// GET /b2b-inquiries/:id — admin inquiry detail
+router.get('/b2b-inquiries/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const inquiry = await prisma.b2BInquiry.findUnique({ where: { id: req.params.id } });
+    if (!inquiry) {
+      res.status(404).json({ error: 'Consulta no encontrada' });
+      return;
+    }
+    res.json(inquiry);
+  } catch {
+    res.status(500).json({ error: 'Error al obtener consulta' });
+  }
+});
+
+// PUT /b2b-inquiries/:id/status — admin update status
+router.put('/b2b-inquiries/:id/status', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { status } = req.body;
+    const valid = ['NEW', 'CONTACTED', 'RESOLVED'];
+    if (!valid.includes(status)) {
+      res.status(400).json({ error: 'Estado inválido. Valores: NEW, CONTACTED, RESOLVED' });
+      return;
+    }
+
+    const inquiry = await prisma.b2BInquiry.update({
+      where: { id: req.params.id },
+      data: { status },
+    });
+    res.json(inquiry);
+  } catch {
+    res.status(500).json({ error: 'Error al actualizar estado' });
   }
 });
 

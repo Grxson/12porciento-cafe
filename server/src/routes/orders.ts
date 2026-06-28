@@ -195,16 +195,23 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
         });
 
         for (const item of intentItems) {
+          const updated = await tx.product.updateMany({
+            where: { id: item.productId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (updated.count === 0) {
+            const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { name: true, stock: true } });
+            throw new Error(`VALIDATION:Stock insuficiente para "${prod?.name || 'Producto'}" (disponible: ${prod?.stock ?? 0})`);
+          }
           const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true, price: true, name: true, lowStockThreshold: true } });
           if (prod) {
-            const newStock = prod.stock - item.quantity;
-            await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
+            const newStock = prod.stock;
             await tx.stockMovement.create({
               data: {
                 productId: item.productId,
                 type: 'SALE',
                 quantity: -item.quantity,
-                previousStock: prod.stock,
+                previousStock: prod.stock + item.quantity,
                 newStock,
                 orderId: created.id,
                 notes: `Pedido #${created.id.slice(-8).toUpperCase()}`,

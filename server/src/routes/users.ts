@@ -341,13 +341,15 @@ router.post('/forgot-password', resetLimiter, async (req: Request, res: Response
     const normalizedEmail = email.toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) {
-      return res.status(404).json({ error: 'No encontramos una cuenta con ese correo electrónico.' });
+      console.log(`[password-reset] Email not found (silent): ${normalizedEmail}`);
+      return res.json({ ok: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
     }
     const token = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const expires = new Date(Date.now() + 3600000); // 1 hour
     await prisma.user.update({
       where: { id: user.id },
-      data: { resetToken: token, resetTokenExpires: expires },
+      data: { resetToken: hashedToken, resetTokenExpires: expires },
     });
     const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/restablecer-contrasena/${token}`;
     const html = `
@@ -384,8 +386,9 @@ router.post('/reset-password', authLimiter, async (req: Request, res: Response) 
     if (!password || typeof password !== 'string' || password.length < 6 || password.length > 128) {
       return res.status(400).json({ error: 'La contraseña debe tener entre 6 y 128 caracteres' });
     }
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const user = await prisma.user.findFirst({
-      where: { resetToken: token, resetTokenExpires: { gt: new Date() } },
+      where: { resetToken: hashedToken, resetTokenExpires: { gt: new Date() } },
     });
     if (!user) {
       return res.status(400).json({ error: 'Token inválido o expirado. Solicita un nuevo enlace.' });

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
   ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
-  Shield, Sun, Moon, Award, CreditCard, Bell,
+  Shield, Sun, Moon, Award, CreditCard, MessageCircle, Bell,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -24,6 +24,7 @@ const navLinks = [
   { to: '/admin/descuentos',   label: 'Descuentos',   icon: Tag },
   { to: '/admin/logros',       label: 'Logros',       icon: Award },
   { to: '/admin/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
+  { to: '/admin/consultas-b2b',  label: 'Consultas B2B', icon: MessageCircle },
   { to: '/admin/notificaciones', label: 'Notificaciones', icon: Bell },
 ];
 
@@ -41,6 +42,7 @@ const pageTitles: Record<string, string> = {
   '/admin/descuentos':   'Descuentos',
   '/admin/logros':       'Logros',
   '/admin/pagos-suscripciones': 'Pagos Suscripciones',
+  '/admin/consultas-b2b': 'Consultas B2B',
   '/admin/notificaciones': 'Notificaciones',
 };
 
@@ -77,7 +79,7 @@ function AdminLayoutInner() {
         <div className="p-6 border-b border-coffee-200 dark:border-coffee-800 flex items-center justify-between">
           <div>
             <div className="font-serif text-2xl font-black text-coffee-900 dark:text-cream">12%</div>
-            <div className="text-[9px] tracking-[0.3em] text-gold-500 uppercase">panel admin</div>
+            <div className="text-[10px] tracking-[0.3em] text-gold-500 uppercase">panel admin</div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}

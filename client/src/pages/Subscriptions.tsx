@@ -214,9 +214,11 @@ export default function Subscriptions() {
       await subscriptionsApi.b2bInquiry({
         empresa: b2bForm.empresa,
         rfc: b2bForm.rfc,
-        contacto: b2bForm.contactoNombre,
-        telefono: b2bForm.contactoTelefono,
-        comentarios: `${b2bForm.volumenEstimado} kg/mes${b2bForm.giroNegocio ? ` · ${b2bForm.giroNegocio}` : ''}`,
+        contactoNombre: b2bForm.contactoNombre,
+        contactoEmail: b2bForm.contactoEmail,
+        contactoTelefono: b2bForm.contactoTelefono,
+        volumenEstimado: b2bForm.volumenEstimado,
+        giroNegocio: b2bForm.giroNegocio || undefined,
       });
       setShowB2BConfirm(true);
     } catch (err: any) {
@@ -300,7 +302,7 @@ export default function Subscriptions() {
                     {step > n ? <Check className="w-3.5 h-3.5" /> : n}
                   </div>
                   <span className={`hidden sm:inline text-xs transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{label}</span>
-                  <span className={`sm:hidden text-[11px] leading-tight transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{stepShortLabels[i]}</span>
+                  <span className={`sm:hidden text-xs leading-tight transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}>{stepShortLabels[i]}</span>
                 </div>
                 {i < stepLabels.length - 1 && <div className="flex-1 h-px bg-coffee-200 dark:bg-coffee-800 mx-3" />}
               </div>
@@ -499,7 +501,7 @@ export default function Subscriptions() {
                         <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">{label}</label>
                         <input
                           type={type} required={required} placeholder={placeholder}
-                          value={(b2bForm as any)[name]}
+                          value={b2bForm[name as keyof B2BFormData]}
                           onChange={(e) => setB2BForm((f) => ({ ...f, [name]: e.target.value }))}
                           className="input-dark !text-base min-h-[48px]"
                         />
@@ -511,7 +513,7 @@ export default function Subscriptions() {
                       <select
                         required
                         value={b2bForm.volumenEstimado}
-                        onChange={(e) => setB2BForm((f) => ({ ...f, volumenEstimado: e.target.value as any }))}
+                        onChange={(e) => setB2BForm((f) => ({ ...f, volumenEstimado: e.target.value as B2BFormData['volumenEstimado'] }))}
                         className="input-dark !text-base min-h-[48px]"
                       >
                         <option value="10-25">10-25 lotes/mes</option>
@@ -598,7 +600,7 @@ export default function Subscriptions() {
                         <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">{label}</label>
                         <input
                           name={name} type={type} required={required} placeholder={placeholder}
-                          value={(form as any)[name]}
+                          value={form[name as keyof FormData]}
                           onChange={(e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }))}
                           className="input-dark !text-base min-h-[48px]"
                         />

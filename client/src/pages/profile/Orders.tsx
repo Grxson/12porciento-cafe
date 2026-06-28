@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Package } from 'lucide-react';
+import { Package, ShoppingBag } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { usersApi } from '../../api';
 import type { Order } from '../../types';
 import { PageMeta } from '../../hooks/usePageMeta';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../../context/ToastContext';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   PENDING:    { label: 'Pendiente',   color: 'text-yellow-400' },
@@ -17,6 +20,8 @@ export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const addItem = useCart((s) => s.addItem);
+  const { add: addToast } = useToast();
 
   const load = () => {
     setLoading(true);
@@ -84,6 +89,24 @@ export default function Orders() {
             {order.items.map((item) => (
               <p key={item.id} className="text-coffee-700 dark:text-coffee-300 text-xs truncate">{item.product.name} × {item.quantity}</p>
             ))}
+          </div>
+          <div className="flex items-center gap-3 mt-4 pt-3 border-t border-coffee-100 dark:border-coffee-800">
+            <Link
+              to={`/perfil/pedidos/${order.id}`}
+              className="text-xs text-gold-500 hover:text-gold-400 border border-gold-500/30 px-3 py-1.5 transition-colors"
+            >
+              Ver detalle
+            </Link>
+            <button
+              onClick={() => {
+                order.items.forEach((item) => addItem(item.product, item.quantity));
+                addToast('Productos agregados al carrito', 'success');
+              }}
+              className="flex items-center gap-1.5 text-xs text-coffee-700 dark:text-coffee-300 hover:text-coffee-900 dark:hover:text-cream border border-coffee-300 dark:border-coffee-700 px-3 py-1.5 transition-colors"
+            >
+              <ShoppingBag className="w-3 h-3" />
+              Volver a pedir
+            </button>
           </div>
         </motion.div>
       ))}

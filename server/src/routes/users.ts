@@ -159,6 +159,22 @@ router.get('/me/orders', requireUserAuth, async (req: UserAuthRequest, res: Resp
   }
 });
 
+// GET /api/users/me/orders/:id — single order detail
+router.get('/me/orders/:id', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const order = await prisma.order.findFirst({
+      where: { id: req.params.id, userId: req.user!.id },
+      include: { items: { include: { product: true } } },
+    });
+    if (!order) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+    res.json(order);
+  } catch {
+    res.status(500).json({ error: 'Error al obtener pedido' });
+  }
+});
+
 // GET /api/users/me/reviews
 router.get('/me/reviews', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {

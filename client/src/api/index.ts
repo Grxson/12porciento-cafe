@@ -73,8 +73,11 @@ export const subscriptionsApi = {
     api.put(`/subscriptions/${id}/fulfillment`, { fulfillmentStatus }),
   adminUpdate: (id: string, data: { plan?: string; frequency?: string; grindPreference?: string; items?: string[] }) =>
     api.put(`/subscriptions/${id}/admin`, data),
-  b2bInquiry: (data: { empresa: string; rfc: string; contacto: string; telefono?: string; comentarios?: string }) =>
+  b2bInquiry: (data: { empresa: string; rfc: string; contactoNombre: string; contactoEmail?: string; contactoTelefono?: string; volumenEstimado?: string; giroNegocio?: string }) =>
     api.post('/subscriptions/b2b-inquiry', data),
+  b2bList: (params?: Record<string, string>) => api.get('/subscriptions/b2b-inquiries', { params }),
+  b2bGet: (id: string) => api.get(`/subscriptions/b2b-inquiries/${id}`),
+  b2bUpdateStatus: (id: string, status: string) => api.put(`/subscriptions/b2b-inquiries/${id}/status`, { status }),
 };
 
 export const recipesApi = {
@@ -171,6 +174,7 @@ export const usersApi = {
   update: (data: Partial<Omit<UserProfile, 'id' | 'email' | 'createdAt'>>) =>
     api.put<UserProfile>('/users/me', data),
   myOrders: () => api.get<Order[]>('/users/me/orders'),
+  myOrder: (id: string) => api.get<Order>(`/users/me/orders/${id}`),
   myReviews: () => api.get<Review[]>('/users/me/reviews'),
   mySubscription: () => api.get<Subscription | null>('/users/me/subscription'),
   cancelSubscription: (id: string) =>

@@ -7,6 +7,7 @@ import Reviews from './profile/Reviews';
 import Subscription from './profile/Subscription';
 import ProfileSettings from './profile/Settings';
 import PaymentMethod from './profile/PaymentMethod';
+import OrderDetail from './profile/OrderDetail';
 import { PageMeta } from '../hooks/usePageMeta';
 
 const tabs = [
@@ -82,6 +83,7 @@ export default function Profile() {
         <Routes>
           <Route index element={<Navigate to="pedidos" replace />} />
           <Route path="pedidos" element={<Orders />} />
+          <Route path="pedidos/:id" element={<OrderDetail />} />
           <Route path="resenas" element={<Reviews />} />
           <Route path="suscripcion" element={<Subscription />} />
           <Route path="pago" element={<PaymentMethod />} />

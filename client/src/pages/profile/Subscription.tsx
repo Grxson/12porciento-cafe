@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { CreditCard, AlertTriangle, Edit3, Lock, Check, PauseCircle, PlayCircle } from 'lucide-react';
-import { usersApi, subscriptionsApi } from '../../api';
+import { usersApi, subscriptionsApi, subscriptionPauseApi } from '../../api';
 import { useUser } from '../../context/UserContext';
 import SubscriptionBilling from './SubscriptionBilling';
 import CoffeePicker from '../../components/CoffeePicker';
@@ -26,6 +26,8 @@ export default function Subscription() {
   const [pausing, setPausing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPauseConfirm, setShowPauseConfirm] = useState(false);
+  const [pauseReason, setPauseReason] = useState('');
+  const [pauseUntil, setPauseUntil] = useState('');
   const [editing, setEditing] = useState(false);
   const [editCoffees, setEditCoffees] = useState<string[]>([]);
   const [editGrind, setEditGrind] = useState<'MOLIDO' | 'GRANO'>('GRANO');
@@ -62,9 +64,16 @@ export default function Subscription() {
     if (!sub) return;
     setPausing(true);
     try {
-      const updated = await usersApi.pauseSubscription(sub.id);
-      setSub(updated.data);
+      const res = await subscriptionPauseApi.pause({
+        reason: pauseReason || undefined,
+        until: pauseUntil || undefined,
+      });
+      setSub(res.data.data);
       setShowPauseConfirm(false);
+      setPauseReason('');
+      setPauseUntil('');
+    } catch (err: any) {
+      addToast(err.response?.data?.error || 'Error al pausar suscripción', 'error');
     } finally { setPausing(false); }
   };
 
@@ -72,8 +81,10 @@ export default function Subscription() {
     if (!sub) return;
     setPausing(true);
     try {
-      const updated = await usersApi.resumeSubscription(sub.id);
-      setSub(updated.data);
+      const res = await subscriptionPauseApi.resume();
+      setSub(res.data.data);
+    } catch (err: any) {
+      addToast(err.response?.data?.error || 'Error al reanudar suscripción', 'error');
     } finally { setPausing(false); }
   };
 
@@ -232,43 +243,135 @@ export default function Subscription() {
       </AnimatePresence>
 
       {/* Pause / Resume */}
-      {sub.status === 'ACTIVE' && (
-        <>
-          {!showPauseConfirm ? (
-            <button onClick={() => setShowPauseConfirm(true)} className="text-xs text-coffee-500 hover:text-gold-500 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/30 px-4 py-2 min-h-[44px] transition-colors mr-3">
-              <PauseCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
-              Pausar suscripción
-            </button>
-          ) : (
-            <div className="bg-white dark:bg-coffee-900 border border-gold-500/30 p-5 max-w-md mb-4">
-              <div className="flex items-start gap-3 mb-4">
-                <PauseCircle className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
-                <p className="text-coffee-800 dark:text-coffee-200 text-sm">¿Pausar tu suscripción? Seguiremos guardando tu selección de cafés. Puedes reactivar cuando quieras.</p>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={handlePause} disabled={pausing}
-                  className="text-xs text-gold-500 border border-gold-500/40 hover:border-gold-500 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
-                  {pausing ? 'Pausando...' : 'Sí, pausar'}
-                </button>
-                <button onClick={() => setShowPauseConfirm(false)} className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
-                  Mantener activa
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      {(() => {
+        const maxSkips = sub.maxSkips ?? 0;
+        const skipCount = sub.skipCount ?? 0;
+        const remaining = maxSkips > 0 ? maxSkips - skipCount : null;
+        const maxedOut = maxSkips > 0 && skipCount >= maxSkips;
 
-      {sub.status === 'PAUSED' && (
-        <button onClick={handleResume} disabled={pausing}
-          className="text-xs text-green-500 hover:text-green-400 border border-green-500/30 hover:border-green-500/50 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
-          <PlayCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
-          {pausing ? 'Reactivando...' : 'Reactivar suscripción'}
-        </button>
-      )}
+        if (sub.status === 'ACTIVE') {
+          return (
+            <>
+              {/* Remaining pauses indicator */}
+              {remaining !== null && (
+                <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-3">
+                  {remaining > 0
+                    ? `${remaining} de ${maxSkips} pausas disponibles`
+                    : 'Has agotado tus pausas'}
+                </p>
+              )}
+
+              {maxedOut ? (
+                <div className="bg-coffee-100 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700 p-4 max-w-md mb-3">
+                  <p className="text-xs text-coffee-600 dark:text-coffee-400">
+                    Has alcanzado el máximo de pausas permitidas. Escríbenos a{' '}
+                    <a href="mailto:soporte@12porciento.mx" className="text-gold-500 hover:text-gold-400 underline">soporte@12porciento.mx</a>
+                    {' '}si necesitas ayuda.
+                  </p>
+                </div>
+              ) : !showPauseConfirm ? (
+                <button onClick={() => setShowPauseConfirm(true)}
+                  className="text-xs text-coffee-500 hover:text-gold-500 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/30 px-4 py-2 min-h-[44px] transition-colors mr-3">
+                  <PauseCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+                  Pausar suscripción
+                </button>
+              ) : (
+                <div className="bg-white dark:bg-coffee-900 border border-gold-500/30 p-5 max-w-md mb-4">
+                  <div className="flex items-start gap-3 mb-4">
+                    <PauseCircle className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
+                    <p className="text-coffee-800 dark:text-coffee-200 text-sm">¿Pausar tu suscripción? Seguiremos guardando tu selección de cafés.</p>
+                  </div>
+                  {/* Reason dropdown */}
+                  <div className="mb-4">
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Motivo</label>
+                    <select
+                      value={pauseReason}
+                      onChange={(e) => setPauseReason(e.target.value)}
+                      className="input-dark !text-sm w-full"
+                    >
+                      <option value="">Seleccionar motivo</option>
+                      <option value="VIAJE">Viaje</option>
+                      <option value="EXCESO">Exceso de café</option>
+                      <option value="ECONOMICO">Motivos económicos</option>
+                      <option value="OTRO">Otro</option>
+                    </select>
+                  </div>
+                  {/* Optional date picker */}
+                  <div className="mb-4">
+                    <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Reanudar el (opcional)</label>
+                    <input
+                      type="date"
+                      value={pauseUntil}
+                      onChange={(e) => setPauseUntil(e.target.value)}
+                      min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                      className="input-dark !text-sm w-full"
+                    />
+                  </div>
+                  {remaining !== null && (
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-4">
+                      {remaining - 1} de {maxSkips} pausas restantes después de esta
+                    </p>
+                  )}
+                  <div className="flex gap-3">
+                    <button onClick={handlePause} disabled={pausing}
+                      className="text-xs text-gold-500 border border-gold-500/40 hover:border-gold-500 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
+                      {pausing ? 'Pausando...' : 'Confirmar pausa'}
+                    </button>
+                    <button onClick={() => { setShowPauseConfirm(false); setPauseReason(''); setPauseUntil(''); }}
+                      className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream px-4 py-2 min-h-[44px] transition-colors">
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        }
+
+        if (sub.status === 'PAUSED') {
+          return (
+            <div className="max-w-md mb-4">
+              {/* Pause info card */}
+              <div className="bg-white dark:bg-coffee-900 border border-yellow-500/30 p-4 mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <PauseCircle className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs text-yellow-400 font-medium uppercase tracking-wider">Suscripción pausada</span>
+                </div>
+                {sub.pausedAt && (
+                  <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-1">
+                    Desde: {new Date(sub.pausedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                )}
+                {sub.pausedReason && (
+                  <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-1">
+                    Motivo: {({
+                      VIAJE: 'Viaje',
+                      EXCESO: 'Exceso de café',
+                      ECONOMICO: 'Motivos económicos',
+                      OTRO: 'Otro',
+                    } as Record<string, string>)[sub.pausedReason] ?? sub.pausedReason}
+                  </p>
+                )}
+                {sub.pausedUntil && (
+                  <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-1">
+                    Reanudación automática: {new Date(sub.pausedUntil).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+              <button onClick={handleResume} disabled={pausing}
+                className="text-xs text-green-500 hover:text-green-400 border border-green-500/30 hover:border-green-500/50 px-4 py-2 min-h-[44px] transition-colors disabled:opacity-50">
+                <PlayCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+                {pausing ? 'Reactivando...' : 'Reactivar suscripción'}
+              </button>
+            </div>
+          );
+        }
+
+        return null;
+      })()}
 
       {/* Cancel */}
-      {sub.status !== 'CANCELLED' && (
+      {sub.status !== 'CANCELLED' && sub.status !== 'PAUSED' && (
         <>
           {!showConfirm ? (
             <button onClick={() => setShowConfirm(true)} className="text-xs text-coffee-500 hover:text-red-400 border border-coffee-200 dark:border-coffee-800 hover:border-red-400/30 px-4 py-2 min-h-[44px] transition-colors mt-3">

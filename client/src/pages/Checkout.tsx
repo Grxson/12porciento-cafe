@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard, Package, ShoppingBag } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
-import { ordersApi, paymentsApi, promoCodesApi, usersApi } from '../api';
+import { ordersApi, paymentsApi, promoCodesApi, usersApi, abandonedCartApi } from '../api';
 import { retryWithBackoff } from '../services/paymentRetry';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
@@ -118,6 +118,40 @@ export default function Checkout() {
     if (params.get('success') === 'true' && !success) {
       setSuccess(true);
     }
+  }, []);
+
+  // Track abandoned cart on mount + page leave (for logged-in users with items)
+  useEffect(() => {
+    if (items.length === 0 || !user) return;
+
+    const data = {
+      items: items.map((i) => {
+        if (i.itemType === 'product') {
+          return { productId: i.product.id, name: i.product.name, quantity: i.quantity, price: i.product.price };
+        }
+        return { productId: i.bundleId, name: i.bundle.name, quantity: i.quantity, price: i.bundle.finalPrice };
+      }),
+      email: user.email,
+      couponCode: promoCode || undefined,
+    };
+
+    // Track on mount (already at risk)
+    abandonedCartApi.track(data).catch(() => {});
+
+    // Track on page close/refresh via sendBeacon
+    const token = localStorage.getItem('user_token');
+    const handleBeforeUnload = () => {
+      if (!token) return;
+      navigator.sendBeacon(
+        `${import.meta.env.VITE_API_URL || '/api'}/abandoned-cart/track`,
+        new Blob([JSON.stringify(data)], { type: 'application/json' }),
+      );
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

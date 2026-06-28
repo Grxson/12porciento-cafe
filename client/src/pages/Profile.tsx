@@ -1,5 +1,5 @@
 import { NavLink, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { Package, Star, CreditCard, Settings, CreditCard as CardIcon, Trophy } from 'lucide-react';
+import { Package, Star, CreditCard, Settings, CreditCard as CardIcon, Trophy, Heart, Gift } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useBarista } from '../hooks/useBarista';
 import Orders from './profile/Orders';
@@ -8,14 +8,18 @@ import Subscription from './profile/Subscription';
 import ProfileSettings from './profile/Settings';
 import PaymentMethod from './profile/PaymentMethod';
 import OrderDetail from './profile/OrderDetail';
+import Wishlist from './profile/Wishlist';
+import GiftCards from './profile/GiftCards';
 import { PageMeta } from '../hooks/usePageMeta';
 
 const tabs = [
-  { to: '/perfil/pedidos',       label: 'Pedidos',      icon: Package },
-  { to: '/perfil/resenas',       label: 'Reseñas',      icon: Star },
-  { to: '/perfil/suscripcion',   label: 'Suscripción',  icon: CreditCard },
-  { to: '/perfil/pago',          label: 'Método de pago', icon: CardIcon },
-  { to: '/perfil/configuracion', label: 'Mi perfil',    icon: Settings },
+  { to: '/perfil/pedidos',       label: 'Pedidos',         icon: Package },
+  { to: '/perfil/resenas',       label: 'Reseñas',         icon: Star },
+  { to: '/perfil/lista-deseos',  label: 'Lista de Deseos', icon: Heart },
+  { to: '/perfil/suscripcion',   label: 'Suscripción',     icon: CreditCard },
+  { to: '/perfil/pago',          label: 'Método de pago',  icon: CardIcon },
+  { to: '/perfil/configuracion', label: 'Mi perfil',       icon: Settings },
+  { to: '/perfil/gift-cards',    label: 'Gift Cards',     icon: Gift },
 ];
 
 export default function Profile() {
@@ -85,9 +89,11 @@ export default function Profile() {
           <Route path="pedidos" element={<Orders />} />
           <Route path="pedidos/:id" element={<OrderDetail />} />
           <Route path="resenas" element={<Reviews />} />
+          <Route path="lista-deseos" element={<Wishlist />} />
           <Route path="suscripcion" element={<Subscription />} />
           <Route path="pago" element={<PaymentMethod />} />
           <Route path="configuracion" element={<ProfileSettings />} />
+          <Route path="gift-cards" element={<GiftCards />} />
         </Routes>
       </div>
     </div>

@@ -3,8 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { PageMeta } from '../hooks/usePageMeta';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe, PackageX, AlertTriangle, CheckCircle } from 'lucide-react';
-import { productsApi, reviewsApi, recipesApi } from '../api';
+import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe, Heart, PackageX, AlertTriangle, CheckCircle } from 'lucide-react';
+import { productsApi, reviewsApi, recipesApi, wishlistApi } from '../api';
 import { useCart, MAX_QTY_PER_PRODUCT } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
@@ -14,6 +14,7 @@ import CoffeeTimeline from '../components/CoffeeTimeline';
 import Breadcrumbs from '../components/Breadcrumbs';
 import BrewingGuideModal from '../components/BrewingGuideModal';
 import ReviewThread from '../components/ReviewThread';
+import PriceHistory from '../components/PriceHistory';
 import type { Product, Review, Recipe } from '../types';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
@@ -37,6 +38,9 @@ export default function ProductDetail() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [brewingOpen, setBrewingOpen] = useState(false);
+  const [inWishlist, setInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [priceHistory, setPriceHistory] = useState<{ id: string; price: number; createdAt: string }[]>([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -53,10 +57,38 @@ export default function ProductDetail() {
         setProduct(r.data);
         reviewsApi.listByProduct(r.data.id).then((rr) => setReviews(rr.data.data || [])).catch(console.error);
         recipesApi.list({ productId: r.data.id }).then((rr) => setProductRecipes(rr.data.data)).catch(console.error);
+        productsApi.priceHistory(r.data.id).then((ph) => setPriceHistory(ph.data.data)).catch(console.error);
       })
       .catch((err) => { console.error(err); console.error('No se pudo cargar el producto.'); })
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    if (!product || !loggedUser) return;
+    wishlistApi.check(product.id)
+      .then((r) => setInWishlist(r.data.inWishlist))
+      .catch(console.error);
+  }, [product?.id, loggedUser?.id]);
+
+  const handleWishlistToggle = async () => {
+    if (!product || !loggedUser) return;
+    setWishlistLoading(true);
+    try {
+      if (inWishlist) {
+        await wishlistApi.remove(product.id);
+        setInWishlist(false);
+        addToast('Eliminado de lista de deseos', 'success');
+      } else {
+        await wishlistApi.add(product.id);
+        setInWishlist(true);
+        addToast('Agregado a lista de deseos', 'success');
+      }
+    } catch (err: any) {
+      addToast(err.response?.data?.error || 'Error al actualizar lista de deseos', 'error');
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const handleAdd = () => {
     if (!product) return;
@@ -309,6 +341,23 @@ export default function ProductDetail() {
                   <BookOpen className="w-4 h-4" />
                   Guía de Preparación
                 </button>
+              )}
+
+              {loggedUser && (
+                <div className="mt-4 pt-4 border-t border-coffee-200 dark:border-coffee-800">
+                  <button
+                    onClick={handleWishlistToggle}
+                    disabled={wishlistLoading}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium transition-colors border border-coffee-300 dark:border-coffee-700 hover:border-gold-500/50 disabled:opacity-50"
+                  >
+                    <Heart className={`w-4 h-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-coffee-500 dark:text-coffee-400'}`} />
+                    {inWishlist ? 'En lista de deseos' : 'Agregar a lista de deseos'}
+                  </button>
+                </div>
+              )}
+
+              {priceHistory.length > 0 && (
+                <PriceHistory records={priceHistory} currentPrice={product.price} />
               )}
             </div>
           </motion.div>
@@ -649,6 +698,15 @@ export default function ProductDetail() {
         className="md:hidden fixed left-0 right-0 z-40 bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] flex items-center gap-3"
         style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 3.75rem)' }}
       >
+        {loggedUser && (
+          <button
+            onClick={handleWishlistToggle}
+            disabled={wishlistLoading}
+            className="shrink-0 p-3 border border-coffee-700 hover:border-gold-500/50 transition-colors disabled:opacity-50"
+          >
+            <Heart className={`w-5 h-5 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-coffee-400'}`} />
+          </button>
+        )}
         <div className="shrink-0">
           <p className="text-gold-500 font-semibold text-lg">${product.price}</p>
         </div>

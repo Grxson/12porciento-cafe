@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, Package, Settings } from 'lucide-react';
+import { User, LogOut, Package, Settings, Gift } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../context/UserContext';
 
@@ -52,6 +52,7 @@ export default function UserMenu() {
               {[
                 { to: '/perfil/pedidos', label: 'Mis pedidos', icon: Package },
                 { to: '/perfil/configuracion', label: 'Mi perfil', icon: Settings },
+                { to: '/gift-card', label: 'Regalar', icon: Gift },
               ].map(({ to, label, icon: Icon }) => (
                 <Link key={to} to={to} onClick={() => setOpen(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-coffee-700 dark:text-coffee-300 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-800/50 transition-colors">

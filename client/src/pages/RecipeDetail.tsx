@@ -6,9 +6,9 @@ import {
   Clock, Download, Play, ChevronLeft,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { recipesApi } from '../api';
+import { recipesApi, recipeRatingsApi } from '../api';
 import { useUser } from '../context/UserContext';
-import type { Recipe } from '../types';
+import type { Recipe, RecipeRating } from '../types';
 import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 import AttemptsList from '../components/recipes/AttemptsList';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -130,6 +130,12 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<RecipeRating[]>([]);
+  const [avgRating, setAvgRating] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [userComment, setUserComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -147,6 +153,20 @@ export default function RecipeDetail() {
       setLoading(false);
     });
   }, [slug]);
+
+  useEffect(() => {
+    if (!recipe) return;
+    recipeRatingsApi.get(recipe.id).then((r) => {
+      setRatings(r.data.data);
+      setAvgRating(r.data.average);
+      setRatingCount(r.data.count);
+      const mine = r.data.data.find((rt) => rt.user.id === user?.id);
+      if (mine) {
+        setUserRating(mine.rating);
+        setUserComment(mine.comment || '');
+      }
+    }).catch(() => {});
+  }, [recipe?.id, user?.id]);
 
   if (error) {
     return (
@@ -369,6 +389,126 @@ export default function RecipeDetail() {
                 <AttemptsList recipeId={recipe.id} userId={user.id} />
               </div>
             )}
+
+            <div className="border-t border-coffee-200 dark:border-coffee-800 pt-6">
+              <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Valoraciones</h2>
+
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-0.5">
+                  {[1,2,3,4,5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-5 h-5 ${star <= Math.round(avgRating) ? 'text-gold-500 fill-gold-500' : 'text-coffee-400 dark:text-coffee-600'}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-coffee-900 dark:text-cream text-lg font-semibold">{avgRating}</span>
+                <span className="text-coffee-600 dark:text-coffee-400 text-sm">({ratingCount} {ratingCount === 1 ? 'valoración' : 'valoraciones'})</span>
+              </div>
+
+              {user && (
+                <div className="bg-coffee-100 dark:bg-coffee-800/50 p-5 mb-6">
+                  <p className="text-coffee-900 dark:text-cream text-sm font-medium mb-3">
+                    {userRating ? 'Tu valoración' : 'Valora esta receta'}
+                  </p>
+                  <div className="flex items-center gap-1 mb-3">
+                    {[1,2,3,4,5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setUserRating(star)}
+                        className={`p-0.5 transition-colors ${star <= userRating ? 'text-gold-500' : 'text-coffee-400 dark:text-coffee-600'} hover:text-gold-400`}
+                      >
+                        <Star className={`w-6 h-6 ${star <= userRating ? 'fill-gold-500' : ''}`} />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={userComment}
+                    onChange={(e) => setUserComment(e.target.value)}
+                    placeholder="Comentario (opcional)"
+                    rows={3}
+                    className="w-full bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm p-3 mb-3 resize-none focus:outline-none focus:border-gold-500"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={!userRating || submitting}
+                      onClick={async () => {
+                        setSubmitting(true);
+                        try {
+                          await recipeRatingsApi.upsert(recipe.id, { rating: userRating, comment: userComment || undefined });
+                          const r = await recipeRatingsApi.get(recipe.id);
+                          setRatings(r.data.data);
+                          setAvgRating(r.data.average);
+                          setRatingCount(r.data.count);
+                        } catch { /* ignore */ }
+                        setSubmitting(false);
+                      }}
+                      className="px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors disabled:opacity-50"
+                    >
+                      {submitting ? 'Guardando…' : userRating ? 'Guardar' : 'Valorar'}
+                    </button>
+                    {ratings.some((r) => r.user.id === user.id) && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await recipeRatingsApi.remove(recipe.id);
+                            setUserRating(0);
+                            setUserComment('');
+                            const r = await recipeRatingsApi.get(recipe.id);
+                            setRatings(r.data.data);
+                            setAvgRating(r.data.average);
+                            setRatingCount(r.data.count);
+                          } catch { /* ignore */ }
+                        }}
+                        className="px-4 py-2 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream text-xs font-semibold uppercase tracking-wider hover:bg-coffee-100 dark:hover:bg-coffee-800 transition-colors"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {ratings.length > 0 && (
+                <div className="space-y-4">
+                  {ratings.map((r) => (
+                    <div key={r.id} className="flex items-start gap-3 pb-4 border-b border-coffee-200 dark:border-coffee-800 last:border-0">
+                      <div className="w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center flex-shrink-0">
+                        <span className="text-gold-600 dark:text-gold-400 text-xs font-bold uppercase">
+                          {r.user.name.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-coffee-900 dark:text-cream text-sm font-medium truncate">{r.user.name}</span>
+                          <div className="flex items-center gap-0.5">
+                            {[1,2,3,4,5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-3 h-3 ${star <= r.rating ? 'text-gold-500 fill-gold-500' : 'text-coffee-400 dark:text-coffee-600'}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {r.comment && (
+                          <p className="text-coffee-700 dark:text-coffee-300 text-sm">{r.comment}</p>
+                        )}
+                        <p className="text-coffee-500 dark:text-coffee-500 text-xs mt-1">
+                          {new Date(r.createdAt).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {ratings.length === 0 && (
+                <p className="text-coffee-600 dark:text-coffee-400 text-sm">Sé el primero en valorar esta receta.</p>
+              )}
+            </div>
           </motion.div>
         )}
 

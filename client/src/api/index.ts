@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { UserProfile, Order, Review, Subscription, PaymentMethod, Recipe, RecipeStep } from '../types';
+import type { UserProfile, Order, Review, Subscription, PaymentMethod, Recipe, RecipeStep, WishlistItem, Product, RecipeRating, GiftCard, AbandonedCart } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -49,6 +49,7 @@ export const productsApi = {
   create: (data: any) => api.post('/products', data),
   update: (id: string, data: any) => api.put(`/products/${id}`, data),
   delete: (id: string) => api.delete(`/products/${id}`),
+  priceHistory: (id: string) => api.get<{ data: { id: string; price: number; createdAt: string }[] }>(`/products/${id}/price-history`),
 };
 
 export const ordersApi = {
@@ -111,6 +112,12 @@ export const inventoryApi = {
   }) => api.post('/inventory/adjust', data),
   updateThreshold: (productId: string, threshold: number) =>
     api.put(`/inventory/products/${productId}/threshold`, { threshold }),
+};
+
+export const subscriptionPauseApi = {
+  pause: (data?: { reason?: string; until?: string }) => api.patch('/subscriptions/pause', data),
+  resume: () => api.patch('/subscriptions/resume'),
+  pauseInfo: () => api.get<{ data: { id: string; status: string; pausedAt: string | null; pausedUntil: string | null; pausedReason: string | null; skipCount: number; maxSkips: number } }>('/subscriptions/pause-info'),
 };
 
 export const subscriptionPaymentsApi = {
@@ -197,7 +204,16 @@ export const usersApi = {
     api.post<{ ok: boolean; message: string }>('/users/reset-password', { token, password }),
 };
 
+export const giftCardsApi = {
+  purchase: (data: { amount: number; recipientName?: string; recipientEmail: string; senderName?: string; message?: string; paymentIntentId: string }) => api.post('/gift-cards/purchase', data),
+  my: () => api.get<{ data: { sent: GiftCard[]; received: GiftCard[] } }>('/gift-cards/my'),
+  redeem: (code: string) => api.post('/gift-cards/redeem', { code }),
+  list: () => api.get<{ data: GiftCard[] }>('/gift-cards'),
+  toggle: (id: string, isActive: boolean) => api.patch(`/gift-cards/${id}/toggle`, { isActive }),
+};
+
 export const paymentsApi = {
+  createGiftIntent: (amount: number) => api.post<{ clientSecret: string; paymentIntentId: string }>('/payments/create-gift-intent', { amount }),
   createIntent: (
     data: {
       items: { productId: string; quantity: number }[];
@@ -266,5 +282,31 @@ export const achievementsApi = {
   delete: (id: string) => api.delete(`/barista/admin-achievements/${id}`),
 };
 
+export const wishlistApi = {
+  list: () => api.get<{ data: (WishlistItem & { product: Product })[] }>('/wishlist'),
+  add: (productId: string) => api.post('/wishlist', { productId }),
+  remove: (productId: string) => api.delete(`/wishlist/${productId}`),
+  check: (productId: string) => api.get<{ inWishlist: boolean }>(`/wishlist/check/${productId}`),
+};
+
+export const recipeRatingsApi = {
+  get: (recipeId: string) => api.get<{ data: RecipeRating[]; average: number; count: number }>(`/recipe-ratings/${recipeId}`),
+  upsert: (recipeId: string, data: { rating: number; comment?: string }) => api.post(`/recipe-ratings/${recipeId}`, data),
+  remove: (recipeId: string) => api.delete(`/recipe-ratings/${recipeId}`),
+};
+
+export const abandonedCartApi = {
+  track: (data: { items: { productId: string; name: string; quantity: number; price: number }[]; email: string; couponCode?: string }) => api.post('/abandoned-cart/track', data),
+  sendReminder: (id: string) => api.post('/abandoned-cart/send-reminder', { id }),
+  recover: (id: string) => api.patch(`/abandoned-cart/${id}/recover`),
+  list: (page?: number) => api.get<{ data: AbandonedCart[]; total: number; page: number; totalPages: number }>(`/abandoned-cart?page=${page || 1}`),
+};
+
 export default api;
+export const adminApi = {
+  logistics: (params?: { status?: string; page?: number }) =>
+    api.get<{ data: Order[]; total: number; page: number; totalPages: number; statusCounts: Record<string, number> }>('/admin/orders/logistics', { params }),
+  updateOrderStatus: (id: string, status: string) => api.patch(`/admin/orders/${id}/status`, { status }),
+};
+
 export { baristaApi } from './barista';

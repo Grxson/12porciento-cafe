@@ -114,12 +114,13 @@ export interface Order {
   status: OrderStatus;
   notes?: string;
   userId?: string;
+  user?: { id: string; name: string; email: string; phone?: string };
   items: OrderItemFull[];
   createdAt: string;
   updatedAt: string;
 }
 
-export type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'PROCESSING' | 'CONFIRMED' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
 export interface OrderItemFull {
   id: string;
@@ -174,6 +175,11 @@ export interface Subscription {
   nextBilling: string;
   createdAt: string;
   items: SubscriptionItem[];
+  pausedAt?: string | null;
+  pausedUntil?: string | null;
+  pausedReason?: string | null;
+  skipCount?: number;
+  maxSkips?: number;
 }
 
 export type SubscriptionPlan = 'FUNDADOR' | 'EXPLORADOR' | 'CONNOISSEUR' | 'EMPRESARIAL';
@@ -221,6 +227,12 @@ export interface DashboardStats {
   pendingReviews: number;
   lowStockProducts: { name: string; stock: number }[];
   recentOrders: Order[];
+  revenueByMonth: { month: number; year: number; total: number }[];
+  ordersByDay: { date: string; count: number; revenue: number }[];
+  topProducts: { name: string; quantity: number; revenue: number }[];
+  subscriptionRevenue: number;
+  newUsersThisMonth: number;
+  conversionRate: number;
 }
 
 export interface BaristaProfile {
@@ -262,6 +274,15 @@ export interface Achievement {
   xpReward: number;
 }
 
+export interface WishlistItem {
+  id: string;
+  userId: string;
+  productId: string;
+  product: Product;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface AchievementWithUnlock extends Achievement {
   unlockedAt: string | null;
 }
@@ -272,6 +293,47 @@ export interface AchievementUnlock {
   achievementId: string;
   achievement: Achievement;
   unlockedAt: string;
+}
+
+export interface RecipeRating {
+  id: string;
+  recipeId: string;
+  userId: string;
+  user: { id: string; name: string };
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
+export interface GiftCard {
+  id: string;
+  code: string;
+  initialAmount: number;
+  balance: number;
+  senderId?: string;
+  sender?: { id: string; name: string };
+  recipientId?: string;
+  recipient?: { id: string; name: string };
+  senderName?: string;
+  senderEmail?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  message?: string;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+}
+
+export interface AbandonedCart {
+  id: string;
+  userId?: string;
+  email: string;
+  items: string;
+  couponCode?: string;
+  reminderSentAt?: string;
+  reminderCount: number;
+  recovered: boolean;
+  createdAt: string;
 }
 
 export type { RecipeDraft, StepDraft } from './recipeDraft';

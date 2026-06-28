@@ -39,7 +39,7 @@ export default function Login() {
       >
         <div className="text-center mb-10">
           <div className="font-serif text-5xl font-black text-coffee-900 dark:text-cream">12%</div>
-          <div className="text-[9px] tracking-[0.3em] text-gold-500 uppercase mt-1">mi cuenta</div>
+          <div className="text-[10px] tracking-[0.3em] text-gold-500 uppercase mt-1">mi cuenta</div>
         </div>
 
         <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">

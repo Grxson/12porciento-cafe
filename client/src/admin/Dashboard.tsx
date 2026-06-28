@@ -10,6 +10,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { dashboardApi, baristaApi } from '../api';
+import { PageMeta } from '../hooks/usePageMeta';
 import type { DashboardStats } from '../types';
 
 interface ChartColors {
@@ -189,6 +190,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-8 space-y-8">
+      <PageMeta title="Dashboard" noSuffix />
       <div>
         <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Dashboard</h1>
         <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">Resumen general de la operación</p>

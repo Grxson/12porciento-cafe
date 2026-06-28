@@ -74,7 +74,7 @@ export default function GalleryLightbox({
       >
         <button
           onClick={onClose}
-          aria-label="Cerrar"
+          aria-label="Cerrar galería"
           className="absolute top-4 right-4 text-white/80 hover:text-white p-2 z-10 transition-colors"
         >
           <X size={28} />
@@ -86,7 +86,7 @@ export default function GalleryLightbox({
               e.stopPropagation();
               goTo(-1);
             }}
-            aria-label="Anterior"
+            aria-label="Imagen anterior"
             className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white p-2 z-10 transition-colors"
           >
             <ChevronLeft size={36} />
@@ -99,7 +99,7 @@ export default function GalleryLightbox({
               e.stopPropagation();
               goTo(1);
             }}
-            aria-label="Siguiente"
+            aria-label="Siguiente imagen"
             className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white p-2 z-10 transition-colors"
           >
             <ChevronRight size={36} />

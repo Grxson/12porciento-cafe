@@ -356,9 +356,9 @@ export default function Checkout() {
         <div
           className="flex items-center gap-3 mb-10"
           role="progressbar"
-          aria-valuenow={step}
-          aria-valuemin={1}
-          aria-valuemax={3}
+          aria-valuenow={step === 1 ? 0 : step === 2 ? 50 : 100}
+          aria-valuemin={0}
+          aria-valuemax={100}
           aria-label="Progreso del pedido"
         >
           {[

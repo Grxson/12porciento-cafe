@@ -129,7 +129,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
             key={t}
             type="button"
             onClick={() => onChange(appendNote(value, t))}
-            className="text-[11px] px-2.5 py-1 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-gold-500 hover:text-gold-400 transition-colors"
+            className="text-xs px-2.5 py-1 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-gold-500 hover:text-gold-400 transition-colors"
           >
             {t}
           </button>

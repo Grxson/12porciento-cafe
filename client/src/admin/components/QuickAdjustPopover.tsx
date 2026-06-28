@@ -33,8 +33,8 @@ export default function QuickAdjustPopover({
     try {
       const res = await api.post('/inventory/adjust', { productId, type, quantity: n, notes: notes || undefined });
       // /adjust returns { product: { id, name, stock }, movement }
-      const newStock = res.data?.product?.stock ??
-        (type === 'LOSS' ? currentStock - n : currentStock + n);
+      const delta = type === 'LOSS' ? -n : n; // LOSS subtracts, RESTOCK/ADJUSTMENT add (n > 0)
+      const newStock = res.data?.product?.stock ?? (currentStock + delta);
       addToast(`Stock actualizado: ${productName}`, 'success');
       onDone(newStock);
       onClose();
@@ -55,7 +55,7 @@ export default function QuickAdjustPopover({
             key={v}
             type="button"
             onClick={() => setType(v)}
-            className={`text-[11px] py-1.5 border transition-colors ${
+            className={`text-xs py-1.5 border transition-colors ${
               type === v ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
             }`}
           >

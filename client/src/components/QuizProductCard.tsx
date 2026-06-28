@@ -48,7 +48,7 @@ export default function QuizProductCard({ product, matchPct }: QuizProductCardPr
         )}
 
         {/* Reason */}
-        <p className="text-[11px] text-coffee-400 dark:text-coffee-500 italic mb-3 leading-snug">
+        <p className="text-xs text-coffee-400 dark:text-coffee-500 italic mb-3 leading-snug">
           {getReason(product, matchPct)}
         </p>
 

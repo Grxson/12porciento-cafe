@@ -75,7 +75,7 @@ export default function Home() {
         <motion.div style={{ y }} className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1920&q=80"
-            alt=""
+            alt="12% Café — Café de especialidad mexicano"
             className="w-full h-full object-cover opacity-25"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-coffee-950/60 via-coffee-950/20 to-coffee-950" />

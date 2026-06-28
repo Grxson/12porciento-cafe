@@ -41,10 +41,9 @@ export default function AdminNotificationSettings() {
     setSaving(true);
     setError('');
     try {
-      const promises = Object.entries(preferences).map(([eventType, enabled]) =>
-        api.put('/push/preferences', { eventType, enabled })
-      );
-      await Promise.all(promises);
+      for (const [eventType, enabled] of Object.entries(preferences)) {
+        await api.put('/push/preferences', { eventType, enabled });
+      }
       setDirty(false);
     } catch {
       setError('Error al guardar preferencias');
@@ -87,21 +86,21 @@ export default function AdminNotificationSettings() {
           <label
             key={value}
             className={`flex items-center gap-3 p-3 border cursor-pointer transition-colors ${
-              preferences[value] !== false
+              preferences[value] === true
                 ? 'bg-coffee-50 dark:bg-coffee-900 border-coffee-200 dark:border-coffee-700'
                 : 'bg-coffee-100/50 dark:bg-coffee-950/50 border-coffee-200/50 dark:border-coffee-800/50'
             }`}
           >
             <input
               type="checkbox"
-              checked={preferences[value] !== false}
+              checked={preferences[value] === true}
               onChange={() => handleToggle(value)}
               className="w-4 h-4 accent-gold-500"
             />
-            <span className={`flex-1 text-sm ${preferences[value] !== false ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-500'}`}>
+            <span className={`flex-1 text-sm ${preferences[value] === true ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-500'}`}>
               {label}
             </span>
-            {preferences[value] !== false && <span className="w-3.5 h-3.5 rounded-full bg-green-500 dark:bg-green-400" />}
+            {preferences[value] === true && <span className="w-3.5 h-3.5 rounded-full bg-green-500 dark:bg-green-400" />}
           </label>
         ))}
       </div>

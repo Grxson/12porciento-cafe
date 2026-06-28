@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { PageMeta } from '../hooks/usePageMeta';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Mountain, Leaf, Star, ShoppingBag, ArrowLeft, Package, Coffee, BookOpen, MessageSquare, Thermometer, Award, FlaskConical, Globe, PackageX, AlertTriangle, CheckCircle } from 'lucide-react';
 import { productsApi, reviewsApi, recipesApi } from '../api';
@@ -127,12 +128,14 @@ export default function ProductDetail() {
 
   return (
     <>
+      <PageMeta
+        title={product.name}
+        description={product.description?.slice(0, 160) ?? `Café de especialidad ${product.name}. ${product.origin ?? ''} ${product.process ?? ''}`.trim()}
+        image={product.imageUrl}
+      />
       <Helmet>
         <title>{product.name} | 12% — Café de Especialidad</title>
-        <meta name="description" content={product.description?.slice(0, 160) ?? `Café de especialidad ${product.name}. ${product.origin ?? ''} ${product.process ?? ''}`.trim()} />
         <meta property="og:title" content={`${product.name} | 12% — Café de Especialidad`} />
-        <meta property="og:description" content={product.description?.slice(0, 160) ?? `Café de especialidad ${product.name}`} />
-        <meta property="og:image" content={product.imageUrl ?? ''} />
         <meta property="og:type" content="product" />
         <script type="application/ld+json">
           {JSON.stringify({

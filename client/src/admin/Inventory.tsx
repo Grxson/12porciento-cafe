@@ -9,6 +9,7 @@ import { useModuleToast } from './context/ModuleContext';
 import QuickAdjustPopover from './components/QuickAdjustPopover';
 import { resolveImageUrl } from './utils/imageUrl';
 import AdminSkeleton from './components/AdminSkeleton';
+import { PageMeta } from '../hooks/usePageMeta';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -189,6 +190,7 @@ export default function Inventory() {
 
   return (
     <div className="p-6 sm:p-8">
+      <PageMeta title="Inventario" noSuffix />
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Inventario</h1>

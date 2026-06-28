@@ -129,7 +129,7 @@ export function useModuleList<T extends { id: string }>(
     [selected, remove],
   );
 
-  // Filters support exact equality for non-string values and .includes() for string values
+  // Filters support exact equality (===) for all values
   const selectAll = useCallback(() => {
     setSelected(new Set(items.map((i) => i.id)));
   }, [items]);

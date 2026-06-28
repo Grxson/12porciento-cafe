@@ -97,7 +97,7 @@ export default function SearchableProductSelect({ value, onChange, initialLabel 
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{product.name}</p>
                         {product.origin && (
-                          <p className="text-[11px] text-coffee-500 dark:text-coffee-400 truncate">{product.origin}</p>
+                          <p className="text-xs text-coffee-500 dark:text-coffee-400 truncate">{product.origin}</p>
                         )}
                       </div>
                       {product.id === value && <span className="ml-2 text-gold-500">✓</span>}

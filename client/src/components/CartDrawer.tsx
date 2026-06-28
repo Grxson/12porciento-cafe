@@ -42,6 +42,7 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
         <div className="flex items-center gap-2 mt-2">
           <button
             onClick={() => updateQuantity(key, quantity - 1)}
+            aria-label="Reducir cantidad"
             className="w-11 h-11 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
           >
             <Minus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
@@ -49,6 +50,7 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
           <span className="text-coffee-900 dark:text-cream text-sm w-5 text-center">{quantity}</span>
           <button
             onClick={() => updateQuantity(key, quantity + 1)}
+            aria-label="Aumentar cantidad"
             className="w-11 h-11 border border-coffee-300 dark:border-coffee-600 flex items-center justify-center hover:border-gold-500 transition-colors"
           >
             <Plus className="w-3 h-3 text-coffee-600 dark:text-coffee-400" />
@@ -56,7 +58,7 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
         </div>
       </div>
       <div className="flex flex-col items-end justify-between shrink-0">
-        <button onClick={() => removeItem(key)} className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
+        <button onClick={() => removeItem(key)} aria-label="Eliminar producto" className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
           <Trash2 className="w-4 h-4" />
         </button>
         <p className="text-coffee-900 dark:text-cream text-sm font-medium">
@@ -101,7 +103,7 @@ function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' 
         </p>
       </div>
       <div className="flex flex-col items-end justify-between shrink-0">
-        <button onClick={() => removeItem(key)} className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
+        <button onClick={() => removeItem(key)} aria-label="Eliminar producto" className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors">
           <Trash2 className="w-4 h-4" />
         </button>
         <p className="text-gold-600 text-sm font-medium">
@@ -159,7 +161,7 @@ export default function CartDrawer() {
                   <span className="text-xs text-coffee-500">({items.length} {items.length === 1 ? 'producto' : 'productos'})</span>
                 )}
               </div>
-              <button ref={closeButtonRef} onClick={closeDrawer} className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
+              <button ref={closeButtonRef} onClick={closeDrawer} aria-label="Cerrar carrito" className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>

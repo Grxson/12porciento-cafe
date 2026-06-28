@@ -122,7 +122,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         {isCafe && product.flavors.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3 sm:mb-4">
             {product.flavors.slice(0, 3).map((f) => (
-              <span key={f} className="text-[11px] text-coffee-600 dark:text-coffee-300 bg-coffee-100 dark:bg-coffee-800 px-2 py-0.5 leading-5">
+              <span key={f} className="text-xs text-coffee-600 dark:text-coffee-300 bg-coffee-100 dark:bg-coffee-800 px-2 py-0.5 leading-5">
                 {f}
               </span>
             ))}

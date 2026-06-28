@@ -6,6 +6,7 @@ import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import { PageMeta } from '../hooks/usePageMeta';
 import type { Order, OrderStatus } from '../types';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
@@ -128,6 +129,7 @@ export default function AdminOrders() {
 
   return (
     <div className="p-8">
+      <PageMeta title="Pedidos" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Pedidos</h1>

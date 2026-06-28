@@ -21,11 +21,11 @@ export default function GestureHints() {
     >
       <div className="text-center cursor-pointer">
         <p className="text-base">👉</p>
-        <p className="text-[9px] text-coffee-600 uppercase tracking-wider">Swipe</p>
+        <p className="text-[10px] text-coffee-600 uppercase tracking-wider">Swipe</p>
       </div>
       <div className="text-center cursor-pointer">
         <p className="text-base">☝️</p>
-        <p className="text-[9px] text-coffee-600 uppercase tracking-wider">Long-press</p>
+        <p className="text-[10px] text-coffee-600 uppercase tracking-wider">Long-press</p>
       </div>
     </div>
   );

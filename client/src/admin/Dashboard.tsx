@@ -6,8 +6,8 @@ import {
   Package, Gift, Tag, Plus, Coffee,
 } from 'lucide-react';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
 import { dashboardApi, baristaApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -63,20 +63,6 @@ const statusConfig: Record<string, { label: string; color: string; hex: string }
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-function buildRevenueData(totalRevenue: number, revenueThisMonth: number) {
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const base = revenueThisMonth || totalRevenue / 6;
-  const variance = [0.55, 0.7, 0.8, 0.9, 1.0, 1.15];
-  return Array.from({ length: 6 }, (_, i) => {
-    const monthIdx = (currentMonth - 5 + i + 12) % 12;
-    return {
-      mes: MONTHS[monthIdx],
-      ingresos: Math.round(base * variance[i]),
-    };
-  });
-}
-
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,20 +90,19 @@ export default function Dashboard() {
   }, []);
 
   const revenueData = useMemo(() => {
-    if (!stats) return [];
-    return buildRevenueData(stats.totalRevenue, stats.revenueThisMonth);
+    if (!stats?.revenueByMonth) return [];
+    return stats.revenueByMonth.map(r => ({
+      mes: MONTHS[r.month],
+      ingresos: r.total,
+    }));
   }, [stats]);
 
-  const statusData = useMemo(() => {
-    if (!stats) return [];
-    const counts: Record<string, number> = {};
-    for (const o of stats.recentOrders) {
-      counts[o.status] = (counts[o.status] || 0) + 1;
-    }
-    return Object.entries(counts).map(([status, value]) => ({
-      name: statusConfig[status]?.label ?? status,
-      value,
-      hex: statusConfig[status]?.hex ?? '#c9a96e',
+  const ordersByDayData = useMemo(() => {
+    if (!stats?.ordersByDay) return [];
+    return stats.ordersByDay.slice(-7).map(d => ({
+      dia: new Date(d.date + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' }),
+      pedidos: d.count,
+      ingresos: d.revenue,
     }));
   }, [stats]);
 
@@ -183,6 +168,30 @@ export default function Dashboard() {
       value: stats.totalBrews ?? 0,
       sub: 'En el sistema',
       icon: Coffee,
+      trend: null,
+      accent: false,
+    },
+    {
+      label: 'Ingresos suscrip.',
+      value: `$${stats.subscriptionRevenue.toLocaleString('es-MX')}`,
+      sub: 'Total acumulado',
+      icon: Gift,
+      trend: null,
+      accent: false,
+    },
+    {
+      label: 'Nuevos usuarios',
+      value: stats.newUsersThisMonth,
+      sub: 'Registrados este mes',
+      icon: Users,
+      trend: null,
+      accent: false,
+    },
+    {
+      label: 'Tasa conversión',
+      value: `${stats.conversionRate}%`,
+      sub: 'Pedidos / Usuarios',
+      icon: TrendingUp,
       trend: null,
       accent: false,
     },
@@ -256,7 +265,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Tendencia de ingresos</h2>
-              <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Últimos 6 meses</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Últimos 12 meses</p>
             </div>
             <span className="text-gold-500 text-xs tracking-widest uppercase">MXN</span>
           </div>
@@ -300,7 +309,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Order status donut */}
+        {/* Orders by day */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -308,39 +317,37 @@ export default function Dashboard() {
           className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6"
         >
           <div className="mb-6">
-            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Estado de pedidos</h2>
-            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Pedidos recientes</p>
+            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Pedidos por día</h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Últimos 7 días</p>
           </div>
-          {statusData.length === 0 ? (
-              <div className="flex items-center justify-center h-40 text-coffee-500 dark:text-coffee-400 text-sm">
+          {ordersByDayData.length === 0 ? (
+            <div className="flex items-center justify-center h-40 text-coffee-500 dark:text-coffee-400 text-sm">
               Sin datos aún
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={54}
-                  outerRadius={80}
-                  dataKey="value"
-                  strokeWidth={0}
-                >
-                  {statusData.map((entry, i) => (
-                    <Cell key={`cell-${i}`} fill={entry.hex} />
-                  ))}
-                </Pie>
+              <BarChart data={ordersByDayData} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+                <XAxis
+                  dataKey="dia"
+                  tick={{ fill: chartColors.text, fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: chartColors.text, fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
                 <Tooltip
                   contentStyle={{ background: chartColors.tooltipBg, border: `1px solid ${chartColors.tooltipBorder}`, borderRadius: 0 }}
+                  labelStyle={{ color: chartColors.gold, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em' }}
                   itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
+                  formatter={(v, name) => [v, name === 'pedidos' ? 'Pedidos' : 'Ingresos']}
                 />
-                <Legend
-                  iconType="circle"
-                  iconSize={8}
-                  formatter={(v) => <span style={{ color: chartColors.text, fontSize: 11 }}>{v}</span>}
-                />
-              </PieChart>
+                <Bar dataKey="pedidos" fill={chartColors.gold} radius={[2, 2, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </motion.div>
@@ -380,6 +387,71 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* Top products */}
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+          <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5 flex items-center gap-2">
+            <Package className="w-4 h-4 text-gold-500/60" />
+            Productos más vendidos
+          </h2>
+          {!stats.topProducts || stats.topProducts.length === 0 ? (
+            <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
+          ) : (
+            <div className="space-y-3">
+              {stats.topProducts.map((product, i) => (
+                <div
+                  key={product.name}
+                  className="flex items-center justify-between py-2.5 border-b border-coffee-200 dark:border-coffee-800 last:border-0"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-coffee-500 text-xs w-5 text-right shrink-0">{i + 1}</span>
+                    <p className="text-coffee-800 dark:text-coffee-200 text-sm truncate">{product.name}</p>
+                  </div>
+                  <div className="text-right shrink-0 ml-4">
+                    <p className="text-coffee-900 dark:text-cream text-sm font-medium">{product.quantity} uds</p>
+                    <p className="text-gold-500 text-xs">${product.revenue.toLocaleString('es-MX')}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Secondary row */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Barista leaderboard */}
+        <div className="xl:col-span-2 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+          <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5 flex items-center gap-2">
+            <Coffee className="w-4 h-4 text-gold-500/60" />
+            Top Baristas
+          </h2>
+          {topBaristas.length === 0 ? (
+            <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin brews registrados aún.</p>
+          ) : (
+            <div className="space-y-2">
+              {topBaristas.map((b, i) => (
+                <Link
+                  key={b.userId}
+                  to={`/perfil/barista/${b.userId}`}
+                  className="flex items-center justify-between py-2.5 border-b border-coffee-200 dark:border-coffee-800 last:border-0 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30 -mx-2 px-2 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-coffee-500 text-xs w-5 text-right">{i + 1}</span>
+                    <div>
+                      <p className="text-coffee-900 dark:text-cream text-sm font-medium">{b.user.name}</p>
+                      <p className="text-coffee-500 text-xs">{b.totalBrews} brews</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-gold-500 text-xs font-semibold">Nv. {b.level}</span>
+                      <p className="text-coffee-500 dark:text-coffee-400 text-xs">{b.totalXp} XP</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Low stock */}
         <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
           <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5 flex items-center gap-2">
@@ -408,39 +480,6 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Barista leaderboard */}
-      <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
-        <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-5 flex items-center gap-2">
-          <Coffee className="w-4 h-4 text-gold-500/60" />
-          Top Baristas
-        </h2>
-        {topBaristas.length === 0 ? (
-          <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin brews registrados aún.</p>
-        ) : (
-          <div className="space-y-2">
-            {topBaristas.map((b, i) => (
-              <Link
-                key={b.userId}
-                to={`/perfil/barista/${b.userId}`}
-                className="flex items-center justify-between py-2.5 border-b border-coffee-200 dark:border-coffee-800 last:border-0 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30 -mx-2 px-2 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-coffee-500 text-xs w-5 text-right">{i + 1}</span>
-                  <div>
-                    <p className="text-coffee-900 dark:text-cream text-sm font-medium">{b.user.name}</p>
-                    <p className="text-coffee-500 text-xs">{b.totalBrews} brews</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-gold-500 text-xs font-semibold">Nv. {b.level}</span>
-                    <p className="text-coffee-500 dark:text-coffee-400 text-xs">{b.totalXp} XP</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

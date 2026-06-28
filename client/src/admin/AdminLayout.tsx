@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
   ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
-  Shield, Sun, Moon, Award, CreditCard, MessageCircle, Bell,
+  Shield, Sun, Moon, Award, CreditCard, MessageCircle, Bell, ShoppingCart, Truck,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -16,6 +16,7 @@ const navLinks = [
   { to: '/admin/inventario',   label: 'Inventario',   icon: Warehouse },
   { to: '/admin/recetas',      label: 'Recetas',      icon: BookOpen },
   { to: '/admin/pedidos',      label: 'Pedidos',      icon: ShoppingBag },
+  { to: '/admin/logistica',    label: 'Logística',    icon: Truck },
   { to: '/admin/suscriptores', label: 'Suscriptores', icon: Users },
   { to: '/admin/bundles',      label: 'Bundles',      icon: Gift },
   { to: '/admin/resenas',      label: 'Reseñas',      icon: Star },
@@ -26,6 +27,7 @@ const navLinks = [
   { to: '/admin/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
   { to: '/admin/consultas-b2b',  label: 'Consultas B2B', icon: MessageCircle },
   { to: '/admin/notificaciones', label: 'Notificaciones', icon: Bell },
+  { to: '/admin/carritos-abandonados', label: 'Carritos Abandonados', icon: ShoppingCart },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -34,6 +36,7 @@ const pageTitles: Record<string, string> = {
   '/admin/inventario':   'Inventario',
   '/admin/recetas':      'Recetas',
   '/admin/pedidos':      'Pedidos',
+  '/admin/logistica':    'Logística',
   '/admin/suscriptores': 'Suscriptores',
   '/admin/bundles':      'Bundles',
   '/admin/resenas':      'Reseñas',
@@ -44,6 +47,7 @@ const pageTitles: Record<string, string> = {
   '/admin/pagos-suscripciones': 'Pagos Suscripciones',
   '/admin/consultas-b2b': 'Consultas B2B',
   '/admin/notificaciones': 'Notificaciones',
+  '/admin/carritos-abandonados': 'Carritos Abandonados',
 };
 
 function AdminLayoutInner() {

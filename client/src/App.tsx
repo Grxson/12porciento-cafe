@@ -74,6 +74,8 @@ import Achievements from './admin/Achievements';
 import SubscriptionPayments from './admin/SubscriptionPayments';
 import AdminNotificationSettings from './admin/AdminNotificationSettings';
 import B2BInquiries from './admin/B2BInquiries';
+import AbandonedCarts from './admin/AbandonedCarts';
+import Logistics from './admin/Logistics';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
 import BottomNav from './components/BottomNav';
@@ -85,6 +87,7 @@ import BaristaProfile from './pages/BaristaProfile';
 import Leaderboard from './pages/Leaderboard';
 import AchievementGallery from './pages/AchievementGallery';
 import Bundles from './pages/Bundles';
+import GiftCardPurchase from './pages/GiftCardPurchase';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
@@ -212,6 +215,7 @@ export default function App() {
           <Route path="/perfil/barista/:userId" element={<BaristaProfile />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/logros" element={<UserRoute><AchievementGallery /></UserRoute>} />
+          <Route path="/gift-card" element={<UserRoute><GiftCardPurchase /></UserRoute>} />
           <Route path="*" element={<NotFound />} />
         </Route>
 
@@ -241,6 +245,8 @@ export default function App() {
           <Route path="pagos-suscripciones" element={<SubscriptionPayments />} />
           <Route path="notificaciones" element={<AdminNotificationSettings />} />
           <Route path="consultas-b2b" element={<B2BInquiries />} />
+          <Route path="carritos-abandonados" element={<AbandonedCarts />} />
+          <Route path="logistica" element={<Logistics />} />
         </Route>
       </Routes>
     </CartProvider>

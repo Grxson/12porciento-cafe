@@ -12,6 +12,8 @@ import type { Order, OrderStatus } from '../types';
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   PENDING:    { label: 'Pendiente',   color: 'text-yellow-700 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/20' },
   PROCESSING: { label: 'Procesando',  color: 'text-blue-700 dark:text-blue-400',   bg: 'bg-blue-100 dark:bg-blue-900/20' },
+  CONFIRMED:  { label: 'Confirmado',  color: 'text-blue-600 dark:text-blue-400',   bg: 'bg-blue-100 dark:bg-blue-900/20' },
+  PREPARING:  { label: 'Preparando',  color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/20' },
   SHIPPED:    { label: 'Enviado',     color: 'text-purple-700 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/20' },
   DELIVERED:  { label: 'Entregado',   color: 'text-green-600 dark:text-green-400',  bg: 'bg-green-100 dark:bg-green-900/20' },
   CANCELLED:  { label: 'Cancelado',   color: 'text-red-600 dark:text-red-400',    bg: 'bg-red-100 dark:bg-red-900/20' },

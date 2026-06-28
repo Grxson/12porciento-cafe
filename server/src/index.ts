@@ -23,6 +23,11 @@ import uploadsRouter from './routes/uploads';
 import baristaRouter from './routes/barista';
 import sitemapRouter from './routes/sitemap';
 import pushRouter from './routes/push';
+import wishlistRouter from './routes/wishlist';
+import recipeRatingsRouter from './routes/recipe-ratings';
+import giftCardsRouter from './routes/gift-cards';
+import abandonedCartRouter from './routes/abandoned-cart';
+import adminOrdersRouter from './routes/admin/orders';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import { initMail } from './lib/mail';
@@ -86,6 +91,11 @@ app.use('/api/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: t
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/barista', baristaRouter);
 app.use('/api/push', pushRouter);
+app.use('/api/wishlist', wishlistRouter);
+app.use('/api/recipe-ratings', recipeRatingsRouter);
+app.use('/api/gift-cards', giftCardsRouter);
+app.use('/api/abandoned-cart', abandonedCartRouter);
+app.use('/api/admin/orders', adminOrdersRouter);
 app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

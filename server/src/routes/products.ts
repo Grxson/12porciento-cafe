@@ -247,6 +247,13 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     if (validationError) { res.status(400).json({ error: validationError }); return; }
 
     const { flavors, images, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
+
+    // Fetch old price for PriceRecord logging
+    const oldProduct = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      select: { price: true },
+    });
+
     const product = await prisma.product.update({
       where: { id: req.params.id },
       data: {
@@ -259,9 +266,32 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
         ...(minOrderQty !== undefined && { minOrderQty: minOrderQty ? parseInt(minOrderQty) : null }),
       },
     });
+
+    // Log PriceRecord if price changed
+    const newPrice = data.price !== undefined ? Number(data.price) : undefined;
+    if (newPrice !== undefined && oldProduct && oldProduct.price !== newPrice) {
+      await prisma.priceRecord.create({
+        data: { productId: req.params.id, price: newPrice },
+      }).catch((e) => console.error('[priceRecord] Failed to log price change:', e));
+    }
+
     res.json(parseProduct(product));
   } catch (e: any) {
     res.status(500).json({ error: 'Error al actualizar producto', detail: e?.message });
+  }
+});
+
+// GET /products/:id/price-history — returns up to 50 price records
+router.get('/:id/price-history', async (req: Request, res: Response) => {
+  try {
+    const records = await prisma.priceRecord.findMany({
+      where: { productId: req.params.id },
+      orderBy: { createdAt: 'asc' },
+      take: 50,
+    });
+    res.json({ data: records });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener historial de precios' });
   }
 });
 

@@ -170,4 +170,27 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   }
 });
 
+// POST /create-gift-intent — create PaymentIntent for gift card purchase
+router.post('/create-gift-intent', paymentLimiter, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || amount < 50 || amount > 5000) {
+      return res.status(400).json({ error: 'El monto debe ser entre $50 y $5,000' });
+    }
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency: 'mxn',
+      automatic_payment_methods: { enabled: true },
+      metadata: { type: 'gift_card' },
+    });
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    });
+  } catch (error: any) {
+    console.error('Stripe gift intent error:', error);
+    res.status(500).json({ error: 'Error al crear intento de pago' });
+  }
+});
+
 export default router;

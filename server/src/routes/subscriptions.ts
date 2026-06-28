@@ -612,4 +612,80 @@ router.put('/b2b-inquiries/:id/status', requireAuth, async (req: AuthRequest, re
   }
 });
 
+// PATCH /pause — pause subscription (user)
+router.patch('/pause', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const { reason, until } = req.body;
+    const subscription = await prisma.subscription.findFirst({
+      where: { userId: req.user!.id, status: 'ACTIVE' },
+    });
+    if (!subscription) {
+      res.status(404).json({ error: 'No tienes una suscripción activa' });
+      return;
+    }
+    if (subscription.maxSkips > 0 && subscription.skipCount >= subscription.maxSkips) {
+      res.status(400).json({ error: 'Has alcanzado el máximo de pausas permitidas' });
+      return;
+    }
+    const updated = await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        pausedAt: new Date(),
+        pausedUntil: until ? new Date(until) : null,
+        pausedReason: reason || null,
+        skipCount: { increment: 1 },
+        status: 'PAUSED',
+      },
+    });
+    res.json({ data: updated });
+  } catch {
+    res.status(500).json({ error: 'Error al pausar suscripción' });
+  }
+});
+
+// PATCH /resume — resume paused subscription (user)
+router.patch('/resume', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const subscription = await prisma.subscription.findFirst({
+      where: { userId: req.user!.id, status: 'PAUSED' },
+    });
+    if (!subscription) {
+      res.status(404).json({ error: 'No tienes una suscripción pausada' });
+      return;
+    }
+    const updated = await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        pausedAt: null,
+        pausedUntil: null,
+        pausedReason: null,
+        status: 'ACTIVE',
+      },
+    });
+    res.json({ data: updated });
+  } catch {
+    res.status(500).json({ error: 'Error al reanudar suscripción' });
+  }
+});
+
+// GET /pause-info — get pause status for current user
+router.get('/pause-info', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const subscription = await prisma.subscription.findFirst({
+      where: { userId: req.user!.id, status: { in: ['ACTIVE', 'PAUSED'] } },
+      select: {
+        id: true, status: true, pausedAt: true, pausedUntil: true,
+        pausedReason: true, skipCount: true, maxSkips: true,
+      },
+    });
+    if (!subscription) {
+      res.status(404).json({ error: 'No tienes suscripción' });
+      return;
+    }
+    res.json({ data: subscription });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener información de pausa' });
+  }
+});
+
 export default router;

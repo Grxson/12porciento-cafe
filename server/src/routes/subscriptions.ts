@@ -304,7 +304,7 @@ router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) =>
           id: stripeItemId,
           price_data: {
             currency: 'mxn',
-            product: stripeSub.items.data[0].price.product,
+            product: stripeSub.items.data[0].price.product as string,
             unit_amount: amountInCents,
             recurring: {
               interval: 'month',

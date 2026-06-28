@@ -68,6 +68,20 @@ export interface Product {
   description: string;
   isLimited: boolean;
   isActive: boolean;
+  producer?: string;
+  farmName?: string;
+  harvestYear?: number;
+  certifications?: string;
+  body?: string;
+  acidity?: string;
+  processingDescription?: string;
+  recommendedBrewMethod?: string;
+  brewTemperature?: number;
+  brewRatio?: string;
+  grindSize?: string;
+  tastingNotes?: string;
+  pairingSuggestions?: string;
+  isMemberExclusive: boolean;
   createdAt: string;
   updatedAt: string;
 }

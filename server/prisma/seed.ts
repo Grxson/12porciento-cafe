@@ -238,6 +238,128 @@ const MERCH_ACCESORIOS = [
 // Helper to pick random image from pool
 const pickImage = (pool: string[]) => pool[Math.floor(Math.random() * pool.length)];
 
+// ─── Coffee profile helpers ──────────────────────────────────────────────
+const pickFarm = (farms: string[]) => farms[Math.floor(Math.random() * farms.length)];
+
+const producerForOrigin = (origin: string): string => {
+  const map: Record<string, string[]> = {
+    Veracruz: ['Finca Don Justo', 'Finca San Miguel', 'Finca Santa Cruz'],
+    Chiapas: ['Finca La Joya', 'Finca Irlanda', 'Finca Hamburgo'],
+    Oaxaca: ['Finca La Gloria', 'Finca El Olivo'],
+    Guerrero: ['Finca La Sierpe', 'Finca El Cerrito'],
+    Hidalgo: ['Finca Bella Vista', 'Finca La Unión'],
+    Puebla: ['Finca Xicotepec', 'Finca La Esperanza'],
+    Nayarit: ['Finca San Cristóbal', 'Finca El Molino'],
+    'San Luis Potosí': ['Finca La Huasteca', 'Finca Xilitla'],
+  };
+  const farms = map[origin];
+  return farms ? pickFarm(farms) : `Caficultores de ${origin}`;
+};
+
+const farmNameForOrigin = (origin: string): string => {
+  const map: Record<string, string[]> = {
+    Veracruz: ['Santa Cruz', 'San Miguel', 'Don Justo'],
+    Chiapas: ['La Joya', 'Irlanda', 'Hamburgo'],
+    Oaxaca: ['La Gloria', 'El Olivo'],
+    Guerrero: ['La Sierpe', 'El Cerrito'],
+    Hidalgo: ['Bella Vista', 'La Unión'],
+    Puebla: ['Xicotepec', 'La Esperanza'],
+    Nayarit: ['San Cristóbal', 'El Molino'],
+    'San Luis Potosí': ['La Huasteca', 'Xilitla'],
+  };
+  const farms = map[origin];
+  return farms ? pickFarm(farms) : 'Los Altos';
+};
+
+const certificationsFor = (altitude: number | undefined, scaScore: number | undefined, isLimited: boolean): string => {
+  const certs: string[] = [];
+  if (altitude && altitude > 1300) certs.push('Orgánico');
+  if (scaScore && scaScore > 87) certs.push('Comercio Justo');
+  if (scaScore && scaScore > 90) certs.push('Rainforest Alliance');
+  if (isLimited) certs.push('Edición Limitada');
+  if (certs.length === 0) certs.push('Orgánico');
+  return JSON.stringify(certs);
+};
+
+const bodyForProcess = (process: string | undefined): string => {
+  if (!process) return 'Medio';
+  if (process.includes('Lavado')) return 'Medio';
+  if (process.includes('Anaeróbico')) return 'Completo';
+  if (process.includes('Natural')) return 'Completo';
+  if (process.includes('Honey')) return 'Medio';
+  return 'Medio';
+};
+
+const acidityForAltitude = (altitude: number | undefined): string => {
+  if (!altitude) return 'Media';
+  if (altitude >= 1300) return 'Alta';
+  if (altitude >= 1000) return 'Media';
+  return 'Baja';
+};
+
+const processingDescForProcess = (process: string | undefined): string => {
+  if (!process) return 'Proceso tradicional de la región.';
+  if (process.includes('Lavado')) return 'Fermentación húmeda de 24-36 horas. Despulpado, fermentación en tanques, lavado y secado en camas africanas.';
+  if (process.includes('Natural')) return 'Cerezas secadas al sol en camas africanas durante 18-25 días. Giro frecuente para fermentación uniforme.';
+  if (process.includes('Honey')) return 'Despulpado selectivo conservando capa de mucílago. Secado lento en camas africanas.';
+  if (process.includes('Anaeróbico')) return 'Fermentación anaeróbica en tanques sellados con monitoreo de temperatura.';
+  return 'Proceso tradicional de la región.';
+};
+
+const brewMethodForScore = (scaScore: number | undefined): string => {
+  if (scaScore && scaScore >= 89) return 'V60';
+  if (scaScore && scaScore >= 86) return 'AeroPress';
+  if (scaScore && scaScore >= 80) return 'Chemex';
+  return 'V60';
+};
+
+const brewTempForRoast = (roastLevel: string | undefined): number => {
+  if (roastLevel === 'Ligero') return 92;
+  if (roastLevel === 'Medio-Ligero') return 90;
+  if (roastLevel === 'Medio') return 88;
+  if (roastLevel === 'Oscuro') return 85;
+  return 90;
+};
+
+const brewRatioForRoast = (roastLevel: string | undefined): string => {
+  if (roastLevel === 'Ligero' || roastLevel === 'Medio-Ligero') return '1:16';
+  if (roastLevel === 'Oscuro') return '1:14';
+  return '1:15';
+};
+
+const grindSizeForMethod = (method: string): string => {
+  if (method === 'V60') return 'Medio-Fino';
+  if (method === 'AeroPress') return 'Medio-Fino';
+  if (method === 'Chemex') return 'Medio';
+  if (method === 'Espresso') return 'Fino';
+  return 'Medio';
+};
+
+const parseFlavors = (flavorsJson: string | undefined): string[] => {
+  if (!flavorsJson) return [];
+  try {
+    return JSON.parse(flavorsJson);
+  } catch {
+    return [];
+  }
+};
+
+const tastingNotesFor = (flavorsJson: string | undefined, body: string, acidity: string): string => {
+  const flavors = parseFlavors(flavorsJson);
+  const f1 = flavors[0] || 'chocolate';
+  const f2 = flavors[1] || 'caramelo';
+  return `Notas de ${f1}, ${f2} con cuerpo ${body.toLowerCase()} y acidez ${acidity.toLowerCase()}. Final largo y dulce.`;
+};
+
+const pairingForProcess = (process: string | undefined): string => {
+  if (!process) return 'Chocolate, pan dulce';
+  if (process.includes('Lavado')) return 'Pastelería fina, ensaladas de frutas';
+  if (process.includes('Natural')) return 'Chocolate oscuro, quesos curados';
+  if (process.includes('Honey')) return 'Frutos secos, postres cremosos';
+  if (process.includes('Anaeróbico')) return 'Mermeladas, chocolate artesanal';
+  return 'Chocolate, pan dulce';
+};
+
 const products = [
   // ─── CAFÉ: 55 products ─────────────────────────────────────────────────────
 
@@ -2364,9 +2486,58 @@ async function main() {
   console.log('☕ Creando 114 productos...');
   const createdProducts = [];
   for (const product of products) {
+    const isCafe = product.category === 'CAFÉ';
+    const p = product as any;
+
+    let producer: string | null = null;
+    let farmName: string | null = null;
+    let harvestYear: number | null = null;
+    let certifications: string | null = null;
+    let body: string | null = null;
+    let acidity: string | null = null;
+    let processingDescription: string | null = null;
+    let recommendedBrewMethod: string | null = null;
+    let brewTemperature: number | null = null;
+    let brewRatio: string | null = null;
+    let grindSize: string | null = null;
+    let tastingNotes: string | null = null;
+    let pairingSuggestions: string | null = null;
+    let isMemberExclusive = false;
+
+    if (isCafe) {
+      producer = producerForOrigin(p.origin);
+      farmName = farmNameForOrigin(p.origin);
+      harvestYear = 2025;
+      certifications = certificationsFor(p.altitude, p.scaScore, p.isLimited);
+      body = bodyForProcess(p.process);
+      acidity = acidityForAltitude(p.altitude);
+      processingDescription = processingDescForProcess(p.process);
+      recommendedBrewMethod = brewMethodForScore(p.scaScore);
+      brewTemperature = brewTempForRoast(p.roastLevel);
+      brewRatio = brewRatioForRoast(p.roastLevel);
+      grindSize = grindSizeForMethod(recommendedBrewMethod);
+      tastingNotes = tastingNotesFor(p.flavors, body, acidity);
+      pairingSuggestions = pairingForProcess(p.process);
+      isMemberExclusive = (p.scaScore >= 89) || p.isLimited;
+    }
+
     const created = await prisma.product.create({
       data: {
         ...product,
+        producer,
+        farmName,
+        harvestYear,
+        certifications,
+        body,
+        acidity,
+        processingDescription,
+        recommendedBrewMethod,
+        brewTemperature,
+        brewRatio,
+        grindSize,
+        tastingNotes,
+        pairingSuggestions,
+        isMemberExclusive,
         sku: product.slug.toUpperCase(),
         costPrice: Math.round(product.price * 0.3),
         supplier: 'Cafetería 12%',

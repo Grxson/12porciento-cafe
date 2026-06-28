@@ -34,7 +34,21 @@ model Product {
   description String
   isLimited   Boolean     @default(false)
   isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
+  producer              String?
+  farmName              String?
+  harvestYear           Int?
+  certifications        String?
+  body                  String?
+  acidity               String?
+  processingDescription String?
+  recommendedBrewMethod String?
+  brewTemperature       Int?
+  brewRatio             String?
+  grindSize             String?
+  tastingNotes          String?
+  pairingSuggestions    String?
+  isMemberExclusive     Boolean     @default(false)
+  createdAt             DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   orderItems        OrderItem[]
   bundleItems       BundleItem[]
@@ -397,9 +411,11 @@ model B2BInquiry {
   contactoTelefono String
   volumenEstimado String
   giroNegocio String?
+  status String @default("NEW") // NEW | CONTACTED | RESOLVED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([contactoEmail])
+  @@index([status])
 }

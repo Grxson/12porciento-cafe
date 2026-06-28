@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShoppingBag, Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
+import { Search, ShoppingBag, Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag, ChevronDown } from 'lucide-react';
 import { productsApi } from '../api';
 import ConfirmDialog from './components/ConfirmDialog';
 import ImageUploader from './components/ImageUploader';
@@ -10,12 +10,19 @@ import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
+import { PageMeta } from '../hooks/usePageMeta';
 import type { Product } from '../types';
 
 const emptyForm = {
   name: '', slug: '', category: 'CAFÉ', origin: 'México', region: '', altitude: '' as string | number,
   variety: '', process: '', scaScore: '' as string | number, roastLevel: '', flavors: '',
-  price: 0, weight: '' as string | number, stock: 0, imageUrl: '', images: [] as string[], description: '', isLimited: false, isActive: true,
+  price: 0, weight: '' as string | number, stock: 0, imageUrl: '', images: [] as string[], description: '',
+  isLimited: false, isActive: true,
+  producer: '', farmName: '', harvestYear: '' as string | number,
+  certifications: '', body: '', acidity: '', processingDescription: '',
+  recommendedBrewMethod: '', brewTemperature: '' as string | number,
+  brewRatio: '', grindSize: '', tastingNotes: '', pairingSuggestions: '',
+  isMemberExclusive: false,
 };
 
 const categoryLabels: Record<string, string> = { 'CAFÉ': 'Café', 'ACCESORIOS': 'Accesorios', 'MERCH': 'Merch' };
@@ -40,6 +47,7 @@ export default function AdminProducts() {
   const [formError, setFormError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showCoffeeProfile, setShowCoffeeProfile] = useState(false);
 
   const load = (overridePage?: number) => {
     setLoading(true);
@@ -58,9 +66,11 @@ export default function AdminProducts() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const openAdd = () => { setForm(emptyForm); setEditId(null); setModal('add'); };
+  const openAdd = () => { setForm(emptyForm); setEditId(null); setModal('add'); setShowCoffeeProfile(false); };
 
   const openEdit = (p: Product) => {
+    const certStr = p.certifications ? (typeof p.certifications === 'string' ?
+      JSON.parse(p.certifications).join(', ') : (p.certifications as string[]).join(', ')) : '';
     setForm({
       ...p,
       flavors: (p.flavors || []).join(', '),
@@ -68,9 +78,13 @@ export default function AdminProducts() {
       scaScore: p.scaScore ?? '',
       weight: p.weight ?? '',
       images: p.images ?? [],
+      harvestYear: p.harvestYear ?? '',
+      brewTemperature: p.brewTemperature ?? '',
+      certifications: certStr,
     } as typeof emptyForm);
     setEditId(p.id);
     setModal('edit');
+    setShowCoffeeProfile(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,10 +96,13 @@ export default function AdminProducts() {
     setSaving(true);
     const data: any = {
       ...form,
-      flavors: form.category === 'CAFÉ' ? form.flavors.split(',').map((f) => f.trim()).filter(Boolean) : [],
+      flavors: form.category === 'CAFÉ' ? form.flavors.split(',').map((f: string) => f.trim()).filter(Boolean) : [],
       altitude: form.altitude !== '' ? Number(form.altitude) : null,
       scaScore: form.scaScore !== '' ? Number(form.scaScore) : null,
       weight: form.weight !== '' ? Number(form.weight) : null,
+      harvestYear: form.harvestYear !== '' ? Number(form.harvestYear) : null,
+      brewTemperature: form.brewTemperature !== '' ? Number(form.brewTemperature) : null,
+      certifications: form.certifications ? JSON.stringify(form.certifications.split(',').map((c: string) => c.trim()).filter(Boolean)) : null,
     };
     try {
       if (modal === 'add') await productsApi.create(data);
@@ -167,6 +184,7 @@ export default function AdminProducts() {
 
   return (
     <div className="p-8">
+      <PageMeta title="Productos" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Productos</h1>
@@ -363,7 +381,7 @@ export default function AdminProducts() {
                       <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
                       <input
                         required={required}
-                        value={(form as any)[name] ?? ''}
+                        value={String(form[name as keyof typeof emptyForm] ?? '')}
                         onChange={(e) => setForm((f) => ({ ...f, [name]: e.target.value }))}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                       />
@@ -410,7 +428,7 @@ export default function AdminProducts() {
                         type={type}
                         step={step}
                         required={required}
-                        value={(form as any)[name] ?? ''}
+                        value={String(form[name as keyof typeof emptyForm] ?? '')}
                         onChange={(e) => setForm((f) => ({ ...f, [name]: e.target.value }))}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                       />
@@ -438,6 +456,165 @@ export default function AdminProducts() {
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
                       placeholder="Chocolate, Frambuesa, Miel"
                     />
+                  </div>
+                )}
+
+                {isCafe && (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowCoffeeProfile(!showCoffeeProfile)}
+                      className="flex items-center justify-between w-full text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest py-2 px-3 bg-coffee-200/50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700 mb-3"
+                    >
+                      Perfil de Café (campos nuevos)
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showCoffeeProfile ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {showCoffeeProfile && (
+                      <>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Productor</label>
+                            <input
+                              value={form.producer}
+                              onChange={(e) => setForm((f) => ({ ...f, producer: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                              placeholder="Ej: Finca El Injerto"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Finca</label>
+                            <input
+                              value={form.farmName}
+                              onChange={(e) => setForm((f) => ({ ...f, farmName: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                              placeholder="Nombre de la finca"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Certificaciones</label>
+                            <input
+                              value={form.certifications}
+                              onChange={(e) => setForm((f) => ({ ...f, certifications: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                              placeholder="Orgánico, Comercio Justo, Rainforest Alliance"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Cuerpo</label>
+                            <select
+                              value={form.body}
+                              onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                            >
+                              {['', 'Ligero', 'Medio', 'Completo'].map((o) => <option key={o} value={o}>{o || 'Seleccionar'}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Acidez</label>
+                            <select
+                              value={form.acidity}
+                              onChange={(e) => setForm((f) => ({ ...f, acidity: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                            >
+                              {['', 'Baja', 'Media', 'Alta'].map((o) => <option key={o} value={o}>{o || 'Seleccionar'}</option>)}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Método recomendado</label>
+                            <select
+                              value={form.recommendedBrewMethod}
+                              onChange={(e) => setForm((f) => ({ ...f, recommendedBrewMethod: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                            >
+                              {['', 'V60', 'AeroPress', 'Espresso', 'Chemex', 'French Press'].map((o) => <option key={o} value={o}>{o || 'Seleccionar'}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Temperatura (°C)</label>
+                            <input
+                              type="number"
+                              value={form.brewTemperature}
+                              onChange={(e) => setForm((f) => ({ ...f, brewTemperature: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                              placeholder="92"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Proporción</label>
+                            <input
+                              value={form.brewRatio}
+                              onChange={(e) => setForm((f) => ({ ...f, brewRatio: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                              placeholder="1:15"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Molido</label>
+                            <select
+                              value={form.grindSize}
+                              onChange={(e) => setForm((f) => ({ ...f, grindSize: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                            >
+                              {['', 'Fino', 'Medio-Fino', 'Medio', 'Grueso'].map((o) => <option key={o} value={o}>{o || 'Seleccionar'}</option>)}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4 mb-4">
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Año de cosecha</label>
+                            <input
+                              type="number"
+                              value={form.harvestYear}
+                              onChange={(e) => setForm((f) => ({ ...f, harvestYear: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                              placeholder="2025"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Descripción del proceso</label>
+                            <textarea
+                              value={form.processingDescription}
+                              onChange={(e) => setForm((f) => ({ ...f, processingDescription: e.target.value }))}
+                              rows={2}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none resize-none"
+                              placeholder="Detalles del proceso de producción..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Notas de cata detalladas</label>
+                            <textarea
+                              value={form.tastingNotes}
+                              onChange={(e) => setForm((f) => ({ ...f, tastingNotes: e.target.value }))}
+                              rows={2}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none resize-none"
+                              placeholder="Notas adicionales de cata..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Maridaje sugerido</label>
+                            <input
+                              value={form.pairingSuggestions}
+                              onChange={(e) => setForm((f) => ({ ...f, pairingSuggestions: e.target.value }))}
+                              className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
+                              placeholder="Chocolate oscuro, Frutos secos..."
+                            />
+                          </div>
+                        </div>
+
+                        <label className="flex items-center gap-2 cursor-pointer mb-4">
+                          <input type="checkbox" checked={form.isMemberExclusive} onChange={(e) => setForm((f) => ({ ...f, isMemberExclusive: e.target.checked }))} className="accent-gold-500" />
+                          <span className="text-sm text-coffee-700 dark:text-coffee-300">Exclusivo para miembros</span>
+                        </label>
+                      </>
+                    )}
                   </div>
                 )}
 

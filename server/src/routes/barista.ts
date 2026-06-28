@@ -83,30 +83,30 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
 
   // Method Collector: 5+ brews of 3 different methods
   const methodCounts = new Map<string, number>();
-  allBrews.forEach((b: any) => {
+  allBrews.forEach((b: typeof allBrews[number]) => {
     const method = b.recipe.method || 'Unknown';
     methodCounts.set(method, (methodCounts.get(method) ?? 0) + 1);
   });
   const methodCollectorMet = Array.from(methodCounts.values()).filter(c => c >= 5).length >= 3;
 
   // Master Taster: average rating >= 8
-  const avgRating = allBrews.length ? allBrews.reduce((s: number, b: any) => s + b.rating, 0) / allBrews.length : 0;
+  const avgRating = allBrews.length ? allBrews.reduce((s: number, b: typeof allBrews[number]) => s + b.rating, 0) / allBrews.length : 0;
   const masterTasterMet = avgRating >= 8 && allBrews.length >= 1;
 
   // Early Bird: 5 brews before 8am
-  const earlyBirdMet = allBrews.filter((b: any) => {
+  const earlyBirdMet = allBrews.filter((b: typeof allBrews[number]) => {
     const hour = new Date(b.createdAt).getHours();
     return hour < 8;
   }).length >= 5;
 
   // Night Owl: 5 brews after 9pm
-  const nightOwlMet = allBrews.filter((b: any) => {
+  const nightOwlMet = allBrews.filter((b: typeof allBrews[number]) => {
     const hour = new Date(b.createdAt).getHours();
     return hour >= 21;
   }).length >= 5;
 
   // Weekend Warrior: 10 brews on weekends (Sat/Sun)
-  const weekendBrews = allBrews.filter((b: any) => {
+  const weekendBrews = allBrews.filter((b: typeof allBrews[number]) => {
     const day = new Date(b.createdAt).getDay();
     return day === 0 || day === 6;
   }).length;
@@ -185,11 +185,11 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
 
     // If period filter, recompute XP from brewLogs in that period and re-sort
     if (dateFilter) {
-      leaderboard = leaderboard.map((entry: any) => ({
+      leaderboard = leaderboard.map((entry: (typeof leaderboard)[number]) => ({
         ...entry,
         totalXp: entry.brewLogs ? entry.brewLogs.reduce((sum: number, log: { xpEarned: number }) => sum + log.xpEarned, 0) : 0,
       }));
-      leaderboard.sort((a: any, b: any) => b.totalXp - a.totalXp || (a.createdAt.getTime() - b.createdAt.getTime()));
+      leaderboard.sort((a: (typeof leaderboard)[number], b: (typeof leaderboard)[number]) => b.totalXp - a.totalXp || (a.createdAt.getTime() - b.createdAt.getTime()));
     }
 
     res.json({ data: leaderboard });
@@ -369,7 +369,7 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
 
     // Favorite method (most brews)
     const methodCounts = new Map<string, number>();
-    brews.forEach((b: any) => {
+    brews.forEach((b: typeof brews[number]) => {
       const method = b.recipe.method || 'Unknown';
       methodCounts.set(method, (methodCounts.get(method) ?? 0) + 1);
     });
@@ -385,11 +385,11 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
     const favMethodEmoji = methodEmojis[favoriteMethod] || '☕';
 
     // Average rating
-    const avgRating = brews.reduce((s: number, b: any) => s + b.rating, 0) / brews.length;
+    const avgRating = brews.reduce((s: number, b: typeof brews[number]) => s + b.rating, 0) / brews.length;
 
     // XP per week (last 8 weeks)
     const weeklyXp = new Map<string, number>();
-    brews.forEach((b: any) => {
+    brews.forEach((b: typeof brews[number]) => {
       const date = new Date(b.createdAt);
       const weekStart = new Date(date);
       weekStart.setDate(date.getDate() - date.getDay());
@@ -480,9 +480,21 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
         favoriteMethod: null,
         achievements: [],
         brewLogs: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as any;
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as {
+        id: string;
+        userId: string;
+        user: { id: string; name: string; };
+        level: number;
+        totalXp: number;
+        totalBrews: number;
+        favoriteMethod: null;
+        achievements: never[];
+        brewLogs: never[];
+        createdAt: Date;
+        updatedAt: Date;
+      };
     }
 
     // Recompute current streak for profile response

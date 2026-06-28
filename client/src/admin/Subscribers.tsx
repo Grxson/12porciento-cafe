@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 import { subscriptionsApi, productsApi } from '../api';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminModal from './components/AdminModal';
-import type { Subscription, SubscriptionStatus } from '../types';
+import type { Product, Subscription, SubscriptionStatus } from '../types';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
@@ -73,7 +73,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
     productsApi.adminList()
       .then((r) => {
         // adminList returns the bare array directly
-        const list = Array.isArray(r.data) ? r.data : (r.data as any)?.data ?? [];
+        const list = Array.isArray(r.data) ? (r.data as Product[]) : ((r.data as { data: Product[] })?.data ?? []);
         setProducts(list);
         if (list.length > 0) {
           const firstNotSelected = list.find((p: any) => !selectedItemIds.includes(p.id));

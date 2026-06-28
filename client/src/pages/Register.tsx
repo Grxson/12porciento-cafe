@@ -60,7 +60,7 @@ export default function Register() {
       >
         <div className="text-center mb-10">
           <div className="font-serif text-5xl font-black text-coffee-900 dark:text-cream">12%</div>
-          <div className="text-[9px] tracking-[0.3em] text-gold-500 uppercase mt-1">
+          <div className="text-[10px] tracking-[0.3em] text-gold-500 uppercase mt-1">
             {step === 1 ? 'nueva cuenta' : 'dirección de envío'}
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function Register() {
                       <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
                       <input
                         name={name} type={type} required
-                        value={(form as any)[name]} onChange={handleChange}
+                        value={form[name as keyof typeof form]} onChange={handleChange}
                         autoComplete={autoComplete}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
                         placeholder={placeholder}

@@ -65,7 +65,7 @@ export default function AdminBundles() {
     productsApi
       .adminList()
       .then((res) => {
-        const list = Array.isArray(res.data) ? res.data : (res.data as any)?.data ?? [];
+        const list = Array.isArray(res.data) ? (res.data as Product[]) : ((res.data as { data: Product[] })?.data ?? []);
         setProducts(list);
       })
       .catch(() => addToast('No se pudieron cargar los productos', 'error'));

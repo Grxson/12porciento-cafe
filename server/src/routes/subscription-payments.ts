@@ -65,7 +65,7 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  let event: any;
+  let event: Stripe.Event;
   if (webhookSecret) {
     if (!sig) {
       return res.status(400).json({ error: 'Missing stripe-signature header' });
@@ -83,11 +83,11 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       return;
     }
     // Dev/test: no secret configured, trust body
-    event = req.body;
+    event = req.body as Stripe.Event;
   }
 
   if (event.type === 'invoice.payment_succeeded') {
-    const invoice = event.data.object as any;
+    const invoice = event.data.object as Stripe.Invoice;
     const stripeSubId: string = invoice.subscription;
     if (!stripeSubId) return res.json({ received: true });
 
@@ -128,7 +128,7 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
     }
 
   } else if (event.type === 'invoice.payment_failed') {
-    const invoice = event.data.object as any;
+    const invoice = event.data.object as Stripe.Invoice;
     const stripeSubId: string = invoice.subscription;
     if (!stripeSubId) return res.json({ received: true });
 

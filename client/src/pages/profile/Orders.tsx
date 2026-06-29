@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag } from 'lucide-react';
+import { Package, ShoppingBag, WifiOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { usersApi } from '../../api';
+import { useOrderHistory } from '../../context/OrderHistoryContext';
 import type { Order } from '../../types';
 import { PageMeta } from '../../hooks/usePageMeta';
 import PageSkeleton from '../../components/PageSkeleton';
@@ -17,23 +17,21 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   CANCELLED:  { label: 'Cancelado',   color: 'text-red-400' },
 };
 
+function OfflineBanner({ message }: { message: string }) {
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400/40 dark:border-yellow-500/30 text-yellow-800 dark:text-yellow-300 text-sm mb-4">
+      <WifiOff className="w-4 h-4 shrink-0" />
+      {message}
+    </div>
+  );
+}
+
 export default function Orders() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { orders, loading, error, isOffline, fetchOrders } = useOrderHistory();
   const addItem = useCart((s) => s.addItem);
   const { add: addToast } = useToast();
 
-  const load = () => {
-    setLoading(true);
-    setError('');
-    usersApi.myOrders()
-      .then((r) => { setOrders(r.data); })
-      .catch(() => { setError('No se pudieron cargar tus pedidos.'); })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, []);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   if (loading) {
     return (
@@ -44,12 +42,12 @@ export default function Orders() {
     );
   }
 
-  if (error) {
+  if (error && orders.length === 0) {
     return (
       <div className="text-center py-16">
         <PageMeta title="Mis Pedidos" />
         <p className="text-red-400 mb-4">{error}</p>
-        <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+        <button onClick={fetchOrders} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
           Reintentar
         </button>
       </div>
@@ -69,7 +67,10 @@ export default function Orders() {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
       <PageMeta title="Mis Pedidos" />
-      {orders.map((order, i) => (
+      {isOffline && (
+        <OfflineBanner message="Modo offline — pedidos guardados localmente." />
+      )}
+      {orders.map((order: Order, i: number) => (
         <motion.div key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">
           <div className="flex flex-wrap items-start justify-between gap-2 mb-3">

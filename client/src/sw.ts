@@ -3,6 +3,7 @@ import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate, NetworkFirst, CacheFirst } from 'workbox-strategies';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { ExpirationPlugin } from 'workbox-expiration';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -10,12 +11,24 @@ declare const self: ServiceWorkerGlobalScope;
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
-// Runtime caching (same as previous generateSW config)
+// Recipe list — SWR so new recipes appear without refresh
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/recipes'),
+  ({ url }) => url.pathname.startsWith('/api/recipes') && !/^\/api\/recipes\/[\w-]+$/.test(url.pathname),
   new StaleWhileRevalidate({
     cacheName: 'recipes-cache',
     plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
+  }),
+);
+
+// Recipe detail — CacheFirst so full recipe (steps, ingredients) works offline
+registerRoute(
+  ({ url }) => /^\/api\/recipes\/[\w-]+$/.test(url.pathname),
+  new CacheFirst({
+    cacheName: 'recipe-details',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 }),
+    ],
   }),
 );
 

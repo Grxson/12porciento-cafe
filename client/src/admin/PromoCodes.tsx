@@ -9,6 +9,13 @@ import AdminErrorState from './components/AdminErrorState';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useModuleList } from './hooks/useModuleList';
 
+const NOW = Date.now();
+
+const daysUntil = (date: string) => {
+  const diff = new Date(date).getTime() - NOW;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
 interface PromoCode {
   id: string;
   code: string;
@@ -104,12 +111,6 @@ export default function AdminPromoCodes() {
       setDeleting(false);
       setConfirmDelete(null);
     }
-  };
-
-  // Days until expiry (negative = already expired).
-  const daysUntil = (date: string) => {
-    const diff = new Date(date).getTime() - Date.now();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
   return (

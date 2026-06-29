@@ -49,7 +49,7 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    let items: { productId: string; quantity: number }[] = [];
+    let items: { productId: string; quantity: number }[];
     try {
       items = JSON.parse(intent.metadata?.items || '[]');
     } catch {

@@ -160,7 +160,7 @@ export default function AbandonedCarts() {
             <tbody>
               {carts.map((c) => {
                 let itemsCount = 0;
-                try { const parsed = JSON.parse(c.items); itemsCount = Array.isArray(parsed) ? parsed.length : 0; } catch {}
+                try { const parsed = JSON.parse(c.items); itemsCount = Array.isArray(parsed) ? parsed.length : 0; } catch { /* invalid JSON */ }
                 return (
                   <tr key={c.id} className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30">
                     <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">{c.email}</td>

@@ -245,7 +245,7 @@ router.put('/me/subscription/:id/status', requireUserAuth, async (req: UserAuthR
 // POST /api/users/me/payment-methods/setup — create SetupIntent (creates Stripe Customer if needed)
 router.post('/me/payment-methods/setup', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
-    let user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
     if (!user) { res.status(404).json({ error: 'Usuario no encontrado' }); return; }
 
     let stripeCustomerId = user.stripeCustomerId;

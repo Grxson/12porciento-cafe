@@ -223,7 +223,6 @@ router.post('/:reviewId/reply', replyLimiter, async (req: Request, res: Response
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const jwt = require('jsonwebtoken');
         const payload = jwt.verify(
           authHeader.replace('Bearer ', ''),
           process.env.JWT_SECRET!

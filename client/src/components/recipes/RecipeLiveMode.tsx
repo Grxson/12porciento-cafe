@@ -150,6 +150,17 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
   useEffect(() => { setTimerActive(null); }, [currentStepIndex]);
 
+  const goNext = () => {
+    if (hasNext) {
+      const updated = steps.find((s) => s.index === currentStepIndex)
+        ? steps.map((s) => s.index === currentStepIndex ? { ...s, completedAt: new Date().toISOString() } : s)
+        : [...steps, { index: currentStepIndex, completedAt: new Date().toISOString() }];
+      setSteps(updated);
+      persistDraft(updated, currentStepIndex + 1);
+      setCurrentStepIndex((c) => c + 1);
+    }
+  };
+
   // R8: Auto-advance countdown when timer reaches 0
   useEffect(() => {
     if (autoAdvanceCountdown === null) return;
@@ -187,17 +198,6 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  const goNext = () => {
-    if (hasNext) {
-      const updated = steps.find((s) => s.index === currentStepIndex)
-        ? steps.map((s) => s.index === currentStepIndex ? { ...s, completedAt: new Date().toISOString() } : s)
-        : [...steps, { index: currentStepIndex, completedAt: new Date().toISOString() }];
-      setSteps(updated);
-      persistDraft(updated, currentStepIndex + 1);
-      setCurrentStepIndex((c) => c + 1);
-    }
-  };
 
   const goPrev = () => {
     if (hasPrev) {

@@ -34,10 +34,6 @@ export default function ReviewThread({ reviewId }: Props) {
     };
   }, []);
 
-  useEffect(() => {
-    loadReplies();
-  }, [reviewId]);
-
   const loadReplies = async () => {
     try {
       const res = await reviewsApi.listReplies(reviewId);
@@ -46,6 +42,10 @@ export default function ReviewThread({ reviewId }: Props) {
       // silent — empty is fine
     }
   };
+
+  useEffect(() => {
+    loadReplies();
+  }, [reviewId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

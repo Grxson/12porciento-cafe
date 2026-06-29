@@ -57,39 +57,6 @@ export function usePushNotifications() {
       });
   }, []);
 
-  // Auto-subscribe on login if permission already granted
-  // Auto-unsubscribe on logout
-  useEffect(() => {
-    const prevUser = prevUserRef.current;
-    prevUserRef.current = user;
-
-    if (!state.supported) return;
-
-    // Login detected: null → non-null
-    if (!prevUser && user && state.permission === 'granted' && !state.subscribed) {
-      subscribe();
-      return;
-    }
-
-    // Logout detected: non-null → null
-    if (prevUser && !user && state.subscribed) {
-      unsubscribe();
-    }
-  }, [user]);
-
-  const requestPermission = useCallback(async () => {
-    try {
-      const result = await Notification.requestPermission();
-      setState((s) => ({ ...s, permission: result }));
-
-      if (result === 'granted') {
-        await subscribe();
-      }
-    } catch (err) {
-      console.error('[PUSH] requestPermission error:', err);
-    }
-  }, []);
-
   const subscribe = useCallback(async () => {
     try {
       setState((s) => ({ ...s, loading: true }));
@@ -149,6 +116,39 @@ export function usePushNotifications() {
       addToast('Error al desactivar notificaciones', 'error');
     }
   }, []);
+
+  const requestPermission = useCallback(async () => {
+    try {
+      const result = await Notification.requestPermission();
+      setState((s) => ({ ...s, permission: result }));
+
+      if (result === 'granted') {
+        await subscribe();
+      }
+    } catch (err) {
+      console.error('[PUSH] requestPermission error:', err);
+    }
+  }, []);
+
+  // Auto-subscribe on login if permission already granted
+  // Auto-unsubscribe on logout
+  useEffect(() => {
+    const prevUser = prevUserRef.current;
+    prevUserRef.current = user;
+
+    if (!state.supported) return;
+
+    // Login detected: null → non-null
+    if (!prevUser && user && state.permission === 'granted' && !state.subscribed) {
+      subscribe();
+      return;
+    }
+
+    // Logout detected: non-null → null
+    if (prevUser && !user && state.subscribed) {
+      unsubscribe();
+    }
+  }, [user]);
 
   return {
     ...state,

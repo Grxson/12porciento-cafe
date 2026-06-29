@@ -58,10 +58,6 @@ export default function Logistics() {
   const [trackingEdit, setTrackingEdit] = useState<TrackingEdit | null>(null);
   const [savingTracking, setSavingTracking] = useState(false);
 
-  useEffect(() => {
-    loadOrders();
-  }, [page, statusFilter]);
-
   const loadOrders = async () => {
     setLoading(true);
     setError('');
@@ -78,6 +74,10 @@ export default function Logistics() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadOrders();
+  }, [page, statusFilter]);
 
   const updateStatus = async (orderId: string, newStatus: string) => {
     try {

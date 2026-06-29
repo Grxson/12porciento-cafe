@@ -225,7 +225,7 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
     const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
     if (!recipe) return res.status(404).json({ error: 'Receta no encontrada' });
 
-    let profile = await prisma.baristaProfile.upsert({
+    const profile = await prisma.baristaProfile.upsert({
       where: { userId },
       create: { userId, favoriteMethod: recipe.method },
       update: {},
@@ -284,7 +284,7 @@ router.get('/achievements', async (req: Request, res: Response) => {
       try {
         const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; role: string };
         if (payload.role === 'USER') userId = payload.id;
-      } catch {}
+      } catch { /* invalid token — ignore */ }
     }
 
     const achievements = await prisma.achievement.findMany({

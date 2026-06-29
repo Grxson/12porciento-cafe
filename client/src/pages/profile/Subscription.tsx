@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { CreditCard, AlertTriangle, Edit3, Lock, Check, PauseCircle, PlayCircle } from 'lucide-react';
@@ -9,6 +9,12 @@ import SubscriptionBilling from './SubscriptionBilling';
 import CoffeePicker from '../../components/CoffeePicker';
 import type { Subscription as Sub, SubscriptionPlan } from '../../types';
 import { PLAN_SLOTS } from '../../types';
+
+const MIN_RESUME_DATE = (() => {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+})();
 import { resolveImageUrl } from '../../utils/imageUrl';
 import { useToast } from '../../context/ToastContext';
 import { PageMeta } from '../../hooks/usePageMeta';
@@ -35,7 +41,6 @@ export default function Subscription() {
   const [editGrind, setEditGrind] = useState<'MOLIDO' | 'GRANO'>('GRANO');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const minResumeDate = useMemo(() => new Date(Date.now() + 86400000).toISOString().split('T')[0], []);
   const setHasSubscription = useUser((s) => s.setHasSubscription);
   const { add: addToast } = useToast();
 
@@ -306,7 +311,7 @@ export default function Subscription() {
                       type="date"
                       value={pauseUntil}
                       onChange={(e) => setPauseUntil(e.target.value)}
-                      min={minResumeDate}
+                      min={MIN_RESUME_DATE}
                       className="input-dark !text-sm w-full"
                     />
                   </div>

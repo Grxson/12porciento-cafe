@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, X as IconX } from 'lucide-react';
 
 interface NotesCaptureProps {
@@ -24,7 +24,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
   const recognitionRef = useRef<any>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef(value);
-  valueRef.current = value;
+  useEffect(() => { valueRef.current = value; }, [value]);
 
   const startVoice = () => {
     if (!SpeechRecognition) return;

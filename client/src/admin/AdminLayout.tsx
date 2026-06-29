@@ -1,9 +1,30 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
-  LayoutDashboard, Package, ShoppingBag, Users, LogOut,
-  ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
-  Shield, Sun, Moon, Award, CreditCard, MessageCircle, Bell, ShoppingCart, Truck, ClipboardList,
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Users,
+  LogOut,
+  ExternalLink,
+  Star,
+  Gift,
+  Menu,
+  X,
+  Tag,
+  UserSearch,
+  Warehouse,
+  BookOpen,
+  Shield,
+  Sun,
+  Moon,
+  Award,
+  CreditCard,
+  MessageCircle,
+  Bell,
+  ShoppingCart,
+  Truck,
+  ClipboardList,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -11,45 +32,45 @@ import { ModuleProvider } from './context/ModuleContext';
 import ToastContainer from './components/ToastContainer';
 
 const navLinks = [
-  { to: '/admin/dashboard',    label: 'Dashboard',    icon: LayoutDashboard },
-  { to: '/admin/productos',    label: 'Productos',    icon: Package },
-  { to: '/admin/inventario',   label: 'Inventario',   icon: Warehouse },
-  { to: '/admin/recetas',      label: 'Recetas',      icon: BookOpen },
-  { to: '/admin/pedidos',      label: 'Pedidos',      icon: ShoppingBag },
-  { to: '/admin/logistica',    label: 'Logística',    icon: Truck },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/productos', label: 'Productos', icon: Package },
+  { to: '/admin/inventario', label: 'Inventario', icon: Warehouse },
+  { to: '/admin/recetas', label: 'Recetas', icon: BookOpen },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
+  { to: '/admin/logistica', label: 'Logística', icon: Truck },
   { to: '/admin/suscriptores', label: 'Suscriptores', icon: Users },
-  { to: '/admin/bundles',      label: 'Bundles',      icon: Gift },
-  { to: '/admin/resenas',      label: 'Reseñas',      icon: Star },
-  { to: '/admin/clientes',     label: 'Clientes',     icon: UserSearch },
-  { to: '/admin/usuarios',    label: 'Usuarios Admin', icon: Shield },
-  { to: '/admin/descuentos',   label: 'Descuentos',   icon: Tag },
-  { to: '/admin/logros',       label: 'Logros',       icon: Award },
+  { to: '/admin/bundles', label: 'Bundles', icon: Gift },
+  { to: '/admin/resenas', label: 'Reseñas', icon: Star },
+  { to: '/admin/clientes', label: 'Clientes', icon: UserSearch },
+  { to: '/admin/usuarios', label: 'Usuarios Admin', icon: Shield },
+  { to: '/admin/descuentos', label: 'Descuentos', icon: Tag },
+  { to: '/admin/logros', label: 'Logros', icon: Award },
   { to: '/admin/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
-  { to: '/admin/consultas-b2b',  label: 'Consultas B2B', icon: MessageCircle },
+  { to: '/admin/consultas-b2b', label: 'Consultas B2B', icon: MessageCircle },
   { to: '/admin/notificaciones', label: 'Notificaciones', icon: Bell },
   { to: '/admin/carritos-abandonados', label: 'Carritos Abandonados', icon: ShoppingCart },
-  { to: '/admin/auditoria',            label: 'Auditoría',            icon: ClipboardList },
+  { to: '/admin/auditoria', label: 'Auditoría', icon: ClipboardList },
 ];
 
 const pageTitles: Record<string, string> = {
-  '/admin/dashboard':    'Dashboard',
-  '/admin/productos':    'Productos',
-  '/admin/inventario':   'Inventario',
-  '/admin/recetas':      'Recetas',
-  '/admin/pedidos':      'Pedidos',
-  '/admin/logistica':    'Logística',
+  '/admin/dashboard': 'Dashboard',
+  '/admin/productos': 'Productos',
+  '/admin/inventario': 'Inventario',
+  '/admin/recetas': 'Recetas',
+  '/admin/pedidos': 'Pedidos',
+  '/admin/logistica': 'Logística',
   '/admin/suscriptores': 'Suscriptores',
-  '/admin/bundles':      'Bundles',
-  '/admin/resenas':      'Reseñas',
-  '/admin/clientes':     'Clientes',
-  '/admin/usuarios':    'Usuarios Admin',
-  '/admin/descuentos':   'Descuentos',
-  '/admin/logros':       'Logros',
+  '/admin/bundles': 'Bundles',
+  '/admin/resenas': 'Reseñas',
+  '/admin/clientes': 'Clientes',
+  '/admin/usuarios': 'Usuarios Admin',
+  '/admin/descuentos': 'Descuentos',
+  '/admin/logros': 'Logros',
   '/admin/pagos-suscripciones': 'Pagos Suscripciones',
   '/admin/consultas-b2b': 'Consultas B2B',
   '/admin/notificaciones': 'Notificaciones',
   '/admin/carritos-abandonados': 'Carritos Abandonados',
-  '/admin/auditoria':            'Auditoría',
+  '/admin/auditoria': 'Auditoría',
 };
 
 function AdminLayoutInner() {
@@ -84,7 +105,9 @@ function AdminLayoutInner() {
       >
         <div className="p-6 border-b border-coffee-200 dark:border-coffee-800 flex items-center justify-between">
           <div>
-            <div className="font-serif text-2xl font-black text-coffee-900 dark:text-cream">12%</div>
+            <div className="font-serif text-2xl font-black text-coffee-900 dark:text-cream">
+              12%
+            </div>
             <div className="text-xs tracking-widest text-gold-500 uppercase">panel admin</div>
           </div>
           <button
@@ -140,7 +163,11 @@ function AdminLayoutInner() {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 lg:ml-60 min-h-screen flex flex-col">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 lg:ml-60 min-h-screen flex flex-col focus:outline-none"
+      >
         {/* Top header */}
         <header className="sticky top-0 z-20 bg-coffee-50/95 dark:bg-coffee-950/95 backdrop-blur-sm border-b border-coffee-200 dark:border-coffee-800 h-14 flex items-center px-4 sm:px-6 gap-4">
           <button
@@ -153,11 +180,17 @@ function AdminLayoutInner() {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-coffee-500 text-sm hidden sm:inline">12%</span>
             <span className="text-coffee-500 text-sm hidden sm:inline">/</span>
-            <h1 className="text-coffee-900 dark:text-cream text-sm font-medium truncate">{currentTitle}</h1>
+            <h1 className="text-coffee-900 dark:text-cream text-sm font-medium truncate">
+              {currentTitle}
+            </h1>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-coffee-500 text-xs hidden md:block">
-              {new Date().toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })}
+              {new Date().toLocaleDateString('es-MX', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+              })}
             </span>
             <button
               onClick={adminTheme.toggle}

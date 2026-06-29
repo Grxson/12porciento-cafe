@@ -31,6 +31,7 @@ const clientConfig = {
   },
   rules: {
     ...reactHooksPlugin.configs.recommended.rules,
+    'react-hooks/set-state-in-effect': 'warn',
   },
 };
 

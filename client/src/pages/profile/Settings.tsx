@@ -5,6 +5,7 @@ import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { mexicanStates } from '../../constants/mexico';
 import NotificationSettings from '../../components/NotificationSettings';
+import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 
 function resizeToBase64(file: File, size = 256): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -80,6 +81,9 @@ export default function ProfileSettings() {
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Datos personales</h2>
+      {user && !user.emailVerified && (
+        <EmailVerificationBanner email={user.email} />
+      )}
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
 
         {/* Avatar */}

@@ -1,7 +1,12 @@
 import { sendMail } from './lib/mail';
+import crypto from 'crypto';
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+export function generateEmailVerificationToken(): string {
+  return crypto.randomBytes(32).toString('hex');
 }
 
 interface OrderEmailData {
@@ -213,5 +218,85 @@ export async function sendOrderStatusUpdate(data: StatusEmailData): Promise<void
   });
   if (sent) {
     console.log(`[email] Status update (${data.status}) sent to ${data.to}`);
+  }
+}
+
+interface VerifyEmailData {
+  to: string;
+  name: string;
+  verifyUrl: string;
+}
+
+function verifyEmailHtml(data: VerifyEmailData): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Verifica tu correo</title></head>
+<body style="margin:0;padding:0;background:#0d0704;font-family:Georgia,serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d0704;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#1a0e07;border:1px solid #2a1a0e;">
+        <tr>
+          <td style="padding:32px 40px 24px;border-bottom:1px solid #2a1a0e;text-align:center;">
+            <span style="font-size:28px;font-weight:bold;color:#f5ede3;letter-spacing:-0.5px;">12%</span><br>
+            <span style="font-size:10px;letter-spacing:4px;color:#c9a227;text-transform:uppercase;">doce por ciento</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 40px 24px;text-align:center;">
+            <div style="width:48px;height:48px;border:2px solid #c9a227;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+              <span style="color:#c9a227;font-size:22px;">&#9993;</span>
+            </div>
+            <h1 style="margin:0 0 8px;color:#f5ede3;font-size:22px;font-weight:normal;">Verifica tu correo</h1>
+            <p style="margin:0;color:#8c6a4a;font-size:13px;letter-spacing:1px;">CONFIRMACION DE CUENTA</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 40px 24px;">
+            <p style="margin:0;color:#d4b896;font-size:15px;line-height:1.7;">Hola ${esc(data.name)},</p>
+            <p style="margin:12px 0 0;color:#8c6a4a;font-size:14px;line-height:1.7;">
+              Gracias por crear tu cuenta en 12% Cafe. Para activar todas las funciones,
+              verifica tu correo haciendo clic en el boton de abajo.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 40px 32px;text-align:center;">
+            <a href="${data.verifyUrl}"
+               style="display:inline-block;background:#c9a227;color:#0d0704;font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;padding:14px 32px;text-decoration:none;">
+              Verificar correo
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 40px 8px;">
+            <p style="margin:0 0 8px;color:#8c6a4a;font-size:13px;line-height:1.6;">
+              Este enlace expira en <strong style="color:#d4b896;">24 horas</strong>.
+              Si no creaste esta cuenta, puedes ignorar este correo.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 40px;border-top:1px solid #2a1a0e;text-align:center;">
+            <p style="margin:0;color:#4a3020;font-size:12px;line-height:1.6;">
+              12% Cafe · Especialidad desde Mexico<br>
+              <span style="color:#2a1a0e;">¿Dudas? Responde este correo.</span>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendVerificationEmail(data: VerifyEmailData): Promise<void> {
+  const sent = await sendMail({
+    to: data.to,
+    subject: 'Confirma tu cuenta — 12% Cafe',
+    html: verifyEmailHtml(data),
+  });
+  if (sent) {
+    console.log(`[email] Verification email sent to ${data.to}`);
   }
 }

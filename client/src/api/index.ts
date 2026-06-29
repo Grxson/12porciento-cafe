@@ -202,6 +202,10 @@ export const usersApi = {
     api.post<{ ok: boolean; message: string }>('/users/forgot-password', { email }),
   resetPassword: (token: string, password: string) =>
     api.post<{ ok: boolean; message: string }>('/users/reset-password', { token, password }),
+  verifyEmail: (token: string) =>
+    api.post<{ ok: boolean; message: string }>(`/users/verify-email/${token}`),
+  resendVerification: () =>
+    api.post<{ ok: boolean; message: string }>('/users/resend-verification'),
 };
 
 export const giftCardsApi = {

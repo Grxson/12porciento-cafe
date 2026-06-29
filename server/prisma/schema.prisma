@@ -331,6 +331,9 @@ model User {
   state                        String?
   zipCode                      String?
   avatarUrl                    String?
+  emailVerified                Boolean        @default(false)
+  emailVerificationToken      String?
+  emailVerificationTokenExpires DateTime?
   resetToken                   String?
   resetTokenExpires            DateTime?
   stripeCustomerId             String?        @unique

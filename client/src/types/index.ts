@@ -199,6 +199,7 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
+  emailVerified: boolean;
   phone?: string;
   address?: string;
   city?: string;

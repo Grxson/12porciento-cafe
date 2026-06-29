@@ -56,6 +56,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 import Profile from './pages/Profile';
 import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
@@ -268,6 +269,7 @@ export default function App() {
                 <Route path="/registro" element={<Register />} />
                 <Route path="/olvide-contrasena" element={<ForgotPassword />} />
                 <Route path="/restablecer-contrasena/:token" element={<ResetPassword />} />
+                <Route path="/verificar-email/:token" element={<VerifyEmail />} />
                 <Route path="/quiz" element={<Quiz />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
 

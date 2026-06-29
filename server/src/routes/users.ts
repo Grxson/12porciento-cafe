@@ -9,6 +9,7 @@ import { prisma } from '../db';
 import { emitEvent } from '../socket';
 import { sendMail } from '../lib/mail';
 import { getErrorStatus } from '../lib/error-utils';
+import { sendVerificationEmail, generateEmailVerificationToken } from '../email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
@@ -51,16 +52,33 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
       return;
     }
     const hashed = await bcrypt.hash(password, 10);
+    const verificationToken = generateEmailVerificationToken();
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const user = await prisma.user.create({
-      data: { name: name.trim(), email: normalizedEmail, password: hashed },
-      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        password: hashed,
+        emailVerificationToken: hashedToken,
+        emailVerificationTokenExpires: expires,
+      },
+      select: { id: true, name: true, email: true, emailVerified: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
     });
+
+    // Send verification email (async — don't block response)
+    const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verificar-email/${verificationToken}`;
+    sendVerificationEmail({ to: normalizedEmail, name: name.trim(), verifyUrl }).catch((err) =>
+      console.error('[email] Verification email failed:', err),
+    );
+
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: 'USER' },
       process.env.JWT_SECRET!,
       { expiresIn: '30d' },
     );
-    res.status(201).json({ token, user });
+    res.status(201).json({ token, user, emailVerified: false });
   } catch {
     res.status(500).json({ error: 'Error al crear cuenta' });
   }
@@ -74,7 +92,15 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Email y contraseña requeridos' });
       return;
     }
-    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim() },
+      select: {
+        id: true, name: true, email: true, emailVerified: true,
+        phone: true, address: true, city: true, state: true, zipCode: true,
+        avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true,
+        password: true,
+      },
+    });
     if (!user) {
       res.status(401).json({ error: 'Credenciales inválidas' });
       return;
@@ -101,7 +127,7 @@ router.get('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) =
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
+      select: { id: true, name: true, email: true, emailVerified: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
     });
     if (!user) { res.status(404).json({ error: 'Usuario no encontrado' }); return; }
     res.json(user);
@@ -390,6 +416,65 @@ router.post('/forgot-password', resetLimiter, async (req: Request, res: Response
   } catch (err) {
     console.error('[password-reset] Failed:', err);
     res.status(500).json({ error: 'Error al enviar el correo. Intenta más tarde.' });
+  }
+});
+
+// GET /api/users/verify-email/:token — verify email with token
+router.get('/verify-email/:token', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ error: 'Token requerido' });
+    }
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: hashedToken,
+        emailVerificationTokenExpires: { gt: new Date() },
+        emailVerified: false,
+      },
+    });
+    if (!user) {
+      return res.status(400).json({ error: 'El enlace de verificación expiró o es inválido. Solicita uno nuevo.' });
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationTokenExpires: null,
+      },
+    });
+    console.log(`[email] Email verified for user ${user.id}`);
+    res.json({ ok: true, message: 'Correo verificado correctamente.' });
+  } catch (err) {
+    console.error('[verify-email] Failed:', err);
+    res.status(500).json({ error: 'Error al verificar el correo.' });
+  }
+});
+
+// POST /api/users/resend-verification — resend verification email
+const resendLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 3, message: { error: 'Demasiados intentos. Intenta en 15 minutos.' } });
+router.post('/resend-verification', resendLimiter, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as UserAuthRequest).user?.id;
+    if (!userId) return res.status(401).json({ error: 'No autenticado' });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (user.emailVerified) return res.json({ ok: true, message: 'Email ya verificado.' });
+    const verificationToken = generateEmailVerificationToken();
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { emailVerificationToken: hashedToken, emailVerificationTokenExpires: expires },
+    });
+    const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verificar-email/${verificationToken}`;
+    await sendVerificationEmail({ to: user.email, name: user.name, verifyUrl });
+    res.json({ ok: true, message: 'Email de verificación reenviado.' });
+  } catch (err) {
+    console.error('[resend-verification] Failed:', err);
+    res.status(500).json({ error: 'Error al reenviar el correo.' });
   }
 });
 

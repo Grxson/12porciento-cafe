@@ -37,7 +37,11 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Nombre debe tener entre 2 y 100 caracteres' });
       return;
     }
-    if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (
+      typeof email !== 'string' ||
+      email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
       res.status(400).json({ error: 'Email inválido' });
       return;
     }
@@ -64,7 +68,20 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
         emailVerificationToken: hashedToken,
         emailVerificationTokenExpires: expires,
       },
-      select: { id: true, name: true, email: true, emailVerified: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        avatarUrl: true,
+        stripeDefaultPaymentMethodId: true,
+        createdAt: true,
+      },
     });
 
     // Send verification email (async — don't block response)
@@ -79,7 +96,8 @@ router.post('/register', authLimiter, async (req: Request, res: Response) => {
       { expiresIn: '30d' },
     );
     res.status(201).json({ token, user, emailVerified: false });
-  } catch {
+  } catch (err) {
+    console.error('[/users/register]', err);
     res.status(500).json({ error: 'Error al crear cuenta' });
   }
 });
@@ -95,9 +113,18 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
       select: {
-        id: true, name: true, email: true, emailVerified: true,
-        phone: true, address: true, city: true, state: true, zipCode: true,
-        avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true,
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        avatarUrl: true,
+        stripeDefaultPaymentMethodId: true,
+        createdAt: true,
         password: true,
       },
     });
@@ -117,7 +144,8 @@ router.post('/login', authLimiter, async (req: Request, res: Response) => {
     );
     const { password: _pw, ...safeUser } = user;
     res.json({ token, user: safeUser });
-  } catch {
+  } catch (err) {
+    console.error('[/users/login]', err);
     res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 });
@@ -127,9 +155,25 @@ router.get('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) =
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      select: { id: true, name: true, email: true, emailVerified: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        avatarUrl: true,
+        stripeDefaultPaymentMethodId: true,
+        createdAt: true,
+      },
     });
-    if (!user) { res.status(404).json({ error: 'Usuario no encontrado' }); return; }
+    if (!user) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+      return;
+    }
     res.json(user);
   } catch {
     res.status(500).json({ error: 'Error al obtener perfil' });
@@ -140,31 +184,70 @@ router.get('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) =
 router.put('/me', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const { name, phone, address, city, state, zipCode, avatarUrl } = req.body;
-    if (name !== undefined && (typeof name !== 'string' || name.trim().length < 1 || name.length > 100)) {
+    if (
+      name !== undefined &&
+      (typeof name !== 'string' || name.trim().length < 1 || name.length > 100)
+    ) {
       return res.status(400).json({ error: 'Nombre inválido (máx 100 caracteres)' });
     }
     if (phone !== undefined && phone !== null && (typeof phone !== 'string' || phone.length > 20)) {
       return res.status(400).json({ error: 'Teléfono inválido (máx 20 caracteres)' });
     }
-    if (address !== undefined && address !== null && (typeof address !== 'string' || address.length > 200)) {
+    if (
+      address !== undefined &&
+      address !== null &&
+      (typeof address !== 'string' || address.length > 200)
+    ) {
       return res.status(400).json({ error: 'Dirección demasiado larga (máx 200 caracteres)' });
     }
     if (city !== undefined && city !== null && (typeof city !== 'string' || city.length > 100)) {
       return res.status(400).json({ error: 'Ciudad demasiado larga (máx 100 caracteres)' });
     }
-    if (state !== undefined && state !== null && (typeof state !== 'string' || state.length > 100)) {
+    if (
+      state !== undefined &&
+      state !== null &&
+      (typeof state !== 'string' || state.length > 100)
+    ) {
       return res.status(400).json({ error: 'Estado demasiado largo (máx 100 caracteres)' });
     }
-    if (zipCode !== undefined && zipCode !== null && (typeof zipCode !== 'string' || zipCode.length > 10)) {
+    if (
+      zipCode !== undefined &&
+      zipCode !== null &&
+      (typeof zipCode !== 'string' || zipCode.length > 10)
+    ) {
       return res.status(400).json({ error: 'Código postal inválido (máx 10 caracteres)' });
     }
-    if (avatarUrl !== undefined && avatarUrl !== null && (typeof avatarUrl !== 'string' || avatarUrl.length > 80_000)) {
+    if (
+      avatarUrl !== undefined &&
+      avatarUrl !== null &&
+      (typeof avatarUrl !== 'string' || avatarUrl.length > 80_000)
+    ) {
       return res.status(400).json({ error: 'Avatar demasiado grande' });
     }
     const user = await prisma.user.update({
       where: { id: req.user!.id },
-      data: { name, phone, address, city, state, zipCode, ...(avatarUrl !== undefined ? { avatarUrl } : {}) },
-      select: { id: true, name: true, email: true, phone: true, address: true, city: true, state: true, zipCode: true, avatarUrl: true, stripeDefaultPaymentMethodId: true, createdAt: true },
+      data: {
+        name,
+        phone,
+        address,
+        city,
+        state,
+        zipCode,
+        ...(avatarUrl !== undefined ? { avatarUrl } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        avatarUrl: true,
+        stripeDefaultPaymentMethodId: true,
+        createdAt: true,
+      },
     });
     res.json(user);
   } catch {
@@ -226,7 +309,14 @@ router.get('/me/subscription', requireUserAuth, async (req: UserAuthRequest, res
         items: {
           include: {
             product: {
-              select: { id: true, name: true, slug: true, imageUrl: true, price: true, scaScore: true },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                imageUrl: true,
+                price: true,
+                scaScore: true,
+              },
             },
           },
         },
@@ -239,70 +329,87 @@ router.get('/me/subscription', requireUserAuth, async (req: UserAuthRequest, res
 });
 
 // PUT /api/users/me/subscription/:id/status
-router.put('/me/subscription/:id/status', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const { status } = req.body;
-    if (!['CANCELLED', 'PAUSED', 'ACTIVE'].includes(status)) {
-      res.status(400).json({ error: 'Estado inválido' });
-      return;
-    }
-    const sub = await prisma.subscription.findFirst({
-      where: { id: req.params.id, userId: req.user!.id },
-    });
-    if (!sub) { res.status(404).json({ error: 'Suscripción no encontrada' }); return; }
-    const updated = await prisma.subscription.update({
-      where: { id: req.params.id },
-      data: { status },
-    });
-    if (status === 'CANCELLED') {
-      emitEvent({
-        event: 'subscription_cancelled',
-        title: 'Suscripción cancelada',
-        message: `Suscripción ${sub.plan} cancelada`,
-        data: { subscriptionId: sub.id, plan: sub.plan },
-        targetUserId: req.user!.id,
+router.put(
+  '/me/subscription/:id/status',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const { status } = req.body;
+      if (!['CANCELLED', 'PAUSED', 'ACTIVE'].includes(status)) {
+        res.status(400).json({ error: 'Estado inválido' });
+        return;
+      }
+      const sub = await prisma.subscription.findFirst({
+        where: { id: req.params.id, userId: req.user!.id },
       });
+      if (!sub) {
+        res.status(404).json({ error: 'Suscripción no encontrada' });
+        return;
+      }
+      const updated = await prisma.subscription.update({
+        where: { id: req.params.id },
+        data: { status },
+      });
+      if (status === 'CANCELLED') {
+        emitEvent({
+          event: 'subscription_cancelled',
+          title: 'Suscripción cancelada',
+          message: `Suscripción ${sub.plan} cancelada`,
+          data: { subscriptionId: sub.id, plan: sub.plan },
+          targetUserId: req.user!.id,
+        });
+      }
+      res.json(updated);
+    } catch {
+      res.status(500).json({ error: 'Error al actualizar suscripción' });
     }
-    res.json(updated);
-  } catch {
-    res.status(500).json({ error: 'Error al actualizar suscripción' });
-  }
-});
+  },
+);
 
 // POST /api/users/me/payment-methods/setup — create SetupIntent (creates Stripe Customer if needed)
-router.post('/me/payment-methods/setup', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-    if (!user) { res.status(404).json({ error: 'Usuario no encontrado' }); return; }
+router.post(
+  '/me/payment-methods/setup',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+      if (!user) {
+        res.status(404).json({ error: 'Usuario no encontrado' });
+        return;
+      }
 
-    let stripeCustomerId = user.stripeCustomerId;
-    if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
-        metadata: { userId: user.id },
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: user.name,
+          metadata: { userId: user.id },
+        });
+        stripeCustomerId = customer.id;
+        await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId } });
+      }
+
+      const setupIntent = await stripe.setupIntents.create({
+        customer: stripeCustomerId,
+        payment_method_types: ['card'],
       });
-      stripeCustomerId = customer.id;
-      await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId } });
+
+      res.json({ clientSecret: setupIntent.client_secret });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al crear intento de configuración' });
     }
-
-    const setupIntent = await stripe.setupIntents.create({
-      customer: stripeCustomerId,
-      payment_method_types: ['card'],
-    });
-
-    res.json({ clientSecret: setupIntent.client_secret });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al crear intento de configuración' });
-  }
-});
+  },
+);
 
 // GET /api/users/me/payment-methods — list saved payment methods
 router.get('/me/payment-methods', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-    if (!user?.stripeCustomerId) { res.json({ methods: [], defaultId: null }); return; }
+    if (!user?.stripeCustomerId) {
+      res.json({ methods: [], defaultId: null });
+      return;
+    }
 
     const methods = await stripe.paymentMethods.list({
       customer: user.stripeCustomerId,
@@ -326,47 +433,61 @@ router.get('/me/payment-methods', requireUserAuth, async (req: UserAuthRequest, 
 });
 
 // POST /api/users/me/payment-methods/default — set default payment method
-router.post('/me/payment-methods/default', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const { paymentMethodId } = req.body;
-    if (!paymentMethodId) return res.status(400).json({ error: 'paymentMethodId requerido' });
-    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-    if (!user?.stripeCustomerId) return res.status(404).json({ error: 'No hay métodos de pago' });
-    const pm = await stripe.paymentMethods.retrieve(paymentMethodId);
-    if (pm.customer !== user.stripeCustomerId) return res.status(403).json({ error: 'No autorizado' });
-    await prisma.user.update({
-      where: { id: req.user!.id },
-      data: { stripeDefaultPaymentMethodId: paymentMethodId },
-    });
-    res.json({ ok: true });
-  } catch (err: unknown) {
-    if (getErrorStatus(err) === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
-    res.status(500).json({ error: 'Error al guardar método de pago' });
-  }
-});
+router.post(
+  '/me/payment-methods/default',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const { paymentMethodId } = req.body;
+      if (!paymentMethodId) return res.status(400).json({ error: 'paymentMethodId requerido' });
+      const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+      if (!user?.stripeCustomerId) return res.status(404).json({ error: 'No hay métodos de pago' });
+      const pm = await stripe.paymentMethods.retrieve(paymentMethodId);
+      if (pm.customer !== user.stripeCustomerId)
+        return res.status(403).json({ error: 'No autorizado' });
+      await prisma.user.update({
+        where: { id: req.user!.id },
+        data: { stripeDefaultPaymentMethodId: paymentMethodId },
+      });
+      res.json({ ok: true });
+    } catch (err: unknown) {
+      if (getErrorStatus(err) === 404)
+        return res.status(404).json({ error: 'Método de pago no encontrado' });
+      res.status(500).json({ error: 'Error al guardar método de pago' });
+    }
+  },
+);
 
 // DELETE /api/users/me/payment-methods/:pmId — detach payment method
-router.delete('/me/payment-methods/:pmId', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-    if (!user?.stripeCustomerId) {
-      return res.status(404).json({ error: 'No hay métodos de pago' });
+router.delete(
+  '/me/payment-methods/:pmId',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+      if (!user?.stripeCustomerId) {
+        return res.status(404).json({ error: 'No hay métodos de pago' });
+      }
+      // Verify ownership before detaching
+      const pm = await stripe.paymentMethods.retrieve(req.params.pmId);
+      if (pm.customer !== user.stripeCustomerId) {
+        return res.status(403).json({ error: 'No autorizado' });
+      }
+      await stripe.paymentMethods.detach(req.params.pmId);
+      if (user.stripeDefaultPaymentMethodId === req.params.pmId) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { stripeDefaultPaymentMethodId: null },
+        });
+      }
+      res.json({ ok: true });
+    } catch (err: unknown) {
+      if (getErrorStatus(err) === 404)
+        return res.status(404).json({ error: 'Método de pago no encontrado' });
+      res.status(500).json({ error: 'Error al eliminar método de pago' });
     }
-    // Verify ownership before detaching
-    const pm = await stripe.paymentMethods.retrieve(req.params.pmId);
-    if (pm.customer !== user.stripeCustomerId) {
-      return res.status(403).json({ error: 'No autorizado' });
-    }
-    await stripe.paymentMethods.detach(req.params.pmId);
-    if (user.stripeDefaultPaymentMethodId === req.params.pmId) {
-      await prisma.user.update({ where: { id: user.id }, data: { stripeDefaultPaymentMethodId: null } });
-    }
-    res.json({ ok: true });
-  } catch (err: unknown) {
-    if (getErrorStatus(err) === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
-    res.status(500).json({ error: 'Error al eliminar método de pago' });
-  }
-});
+  },
+);
 
 const resetLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -387,7 +508,10 @@ router.post('/forgot-password', resetLimiter, async (req: Request, res: Response
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) {
       console.log(`[password-reset] Email not found (silent): ${normalizedEmail}`);
-      return res.json({ ok: true, message: 'Si el email existe, recibirás un enlace de recuperación.' });
+      return res.json({
+        ok: true,
+        message: 'Si el email existe, recibirás un enlace de recuperación.',
+      });
     }
     const token = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
@@ -437,7 +561,9 @@ router.get('/verify-email/:token', async (req: Request, res: Response) => {
       },
     });
     if (!user) {
-      return res.status(400).json({ error: 'El enlace de verificación expiró o es inválido. Solicita uno nuevo.' });
+      return res
+        .status(400)
+        .json({ error: 'El enlace de verificación expiró o es inválido. Solicita uno nuevo.' });
     }
     await prisma.user.update({
       where: { id: user.id },
@@ -456,7 +582,11 @@ router.get('/verify-email/:token', async (req: Request, res: Response) => {
 });
 
 // POST /api/users/resend-verification — resend verification email
-const resendLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 3, message: { error: 'Demasiados intentos. Intenta en 15 minutos.' } });
+const resendLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  message: { error: 'Demasiados intentos. Intenta en 15 minutos.' },
+});
 router.post('/resend-verification', resendLimiter, async (req: Request, res: Response) => {
   try {
     const userId = (req as UserAuthRequest).user?.id;
@@ -495,7 +625,9 @@ router.post('/reset-password', authLimiter, async (req: Request, res: Response) 
       where: { resetToken: hashedToken, resetTokenExpires: { gt: new Date() } },
     });
     if (!user) {
-      return res.status(400).json({ error: 'Token inválido o expirado. Solicita un nuevo enlace.' });
+      return res
+        .status(400)
+        .json({ error: 'Token inválido o expirado. Solicita un nuevo enlace.' });
     }
     const hashed = await bcrypt.hash(password, 10);
     await prisma.user.update({

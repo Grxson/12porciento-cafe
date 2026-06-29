@@ -9,6 +9,7 @@ import StepEditor from '../components/recipes/StepEditor';
 import ConfirmDialog from './components/ConfirmDialog';
 import type { Recipe, RecipeStep } from '../types';
 import type { RecipeFormData } from '../hooks/useRecipeForm';
+import { PageMeta } from '../hooks/usePageMeta';
 
 // ─── Step modal state shape ──────────────────────────────────────────────────
 interface StepModalState {
@@ -169,6 +170,7 @@ function RecipesContent() {
 
   return (
     <div className="p-8 space-y-6">
+      <PageMeta title="Recetas" noSuffix />
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream">Recetas</h1>
         <p className="text-coffee-600 dark:text-coffee-400 text-sm">

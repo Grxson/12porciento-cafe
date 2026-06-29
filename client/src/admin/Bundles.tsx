@@ -10,6 +10,7 @@ import ImageUploader from './components/ImageUploader';
 import AdminModal from './components/AdminModal';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import { PageMeta } from '../hooks/usePageMeta';
 
 // ── types ──────────────────────────────────────────────────────────────────
 type ModalMode = 'add' | 'edit';
@@ -234,6 +235,7 @@ export default function AdminBundles() {
   // ── render ─────────────────────────────────────────────────────────────
   return (
     <div className="p-8">
+      <PageMeta title="Bundles" noSuffix />
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

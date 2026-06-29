@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  TrendingUp, ShoppingBag, Users, Star, AlertTriangle, ArrowUpRight,
-  Package, Gift, Tag, Plus, Coffee,
+  TrendingUp, TrendingDown, ShoppingBag, Users, Star, AlertTriangle, ArrowUpRight,
+  Package, Gift, Tag, Plus, Coffee, DollarSign,
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { dashboardApi, baristaApi } from '../api';
+import { dashboardApi, baristaApi, adminApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
 import type { DashboardStats } from '../types';
 

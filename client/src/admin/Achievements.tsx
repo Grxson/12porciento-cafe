@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Award, Edit3, Plus, Search, Trash2 } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
 import { achievementsApi } from '../api';
@@ -8,6 +8,18 @@ import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
 import FormField from './components/FormField';
 import ConfirmDialog from './components/ConfirmDialog';
+import { useModuleList } from './hooks/useModuleList';
+
+// Normalize achievementsApi response to { data: { data: Achievement[] } } for useModuleList
+const fetchAchievementList = () =>
+  achievementsApi.list().then((r) => ({
+    ...r,
+    data: {
+      data: (r.data?.achievements ?? []).sort(
+        (a: Achievement, b: Achievement) => a.xpReward - b.xpReward,
+      ),
+    },
+  }));
 
 interface Achievement {
   id: string;
@@ -53,9 +65,15 @@ const slugFrom = (name: string) =>
 
 export default function Achievements() {
   const { addToast } = useModuleToast();
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [listError, setListError] = useState('');
+
+  const { items: achievements, loading, error: listError, reload } = useModuleList<Achievement>(
+    fetchAchievementList,
+    undefined,
+    undefined,
+    undefined,
+    { onError: (msg) => addToast(msg, 'error') },
+  );
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Achievement | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
@@ -65,25 +83,6 @@ export default function Achievements() {
   const [search, setSearch] = useState('');
   const [deleting, setDeleting] = useState(false);
   const slugEdited = useRef(false);
-
-  const load = () => {
-    setLoading(true);
-    setListError('');
-    achievementsApi.list()
-      .then((r) => {
-        const list = (r.data?.achievements ?? []).sort(
-          (a: Achievement, b: Achievement) => a.xpReward - b.xpReward,
-        );
-        setAchievements(list);
-      })
-      .catch(() => {
-        setListError('Error al cargar logros');
-        addToast('Error al cargar logros', 'error');
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -148,7 +147,7 @@ export default function Achievements() {
         addToast('Logro creado', 'success');
       }
       setModalOpen(false);
-      load();
+      reload();
     } catch (e: any) {
       const msg = e.response?.data?.error || 'Error al guardar logro';
       setError(msg);
@@ -163,7 +162,7 @@ export default function Achievements() {
     try {
       await achievementsApi.delete(id);
       addToast('Logro eliminado', 'success');
-      load();
+      reload();
     } catch {
       addToast('Error al eliminar', 'error');
     } finally {
@@ -205,7 +204,7 @@ export default function Achievements() {
       {loading ? (
         <AdminSkeleton rows={4} />
       ) : listError ? (
-        <AdminErrorState error={listError} onRetry={load} />
+        <AdminErrorState error={listError ?? ''} onRetry={reload} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Award className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />

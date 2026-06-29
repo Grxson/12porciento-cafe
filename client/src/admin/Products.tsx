@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShoppingBag, Plus, Edit2, Trash2, X, Star, ToggleLeft, ToggleRight, Tag, ChevronDown } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Search, ShoppingBag, Plus, Edit2, Trash2, Star, ToggleLeft, ToggleRight, Tag, ChevronDown } from 'lucide-react';
+import AdminModal from './components/AdminModal';
 import { productsApi } from '../api';
 import ConfirmDialog from './components/ConfirmDialog';
 import ImageUploader from './components/ImageUploader';
@@ -47,22 +47,29 @@ export default function AdminProducts() {
   const [formError, setFormError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [showCoffeeProfile, setShowCoffeeProfile] = useState(false);
 
-  const load = (overridePage?: number) => {
+  const load = useCallback((p: number) => {
     setLoading(true);
     setLoadError('');
-    const currentPage = overridePage ?? page;
-    productsApi.adminList({ page: String(currentPage), pageSize: '50' })
-      .then((r) => { setProducts(r.data.data); setTotalPages(r.data.totalPages ?? 1); setPage(currentPage); })
+    const params: Record<string, string> = { page: String(p), pageSize: '50' };
+    if (debouncedSearch) params.search = debouncedSearch;
+    if (catFilter && catFilter !== 'TODOS') params.category = catFilter;
+    productsApi.adminList(params)
+      .then((r) => {
+        setProducts(r.data.data);
+        setTotalPages(r.data.totalPages ?? 1);
+        setTotal(r.data.total ?? 0);
+      })
       .catch(() => { setLoadError('Error al cargar productos. Intenta de nuevo.'); })
       .finally(() => setLoading(false));
-  };
+  }, [debouncedSearch, catFilter]);
 
-  useEffect(load, []);
+  useEffect(() => { load(page); }, [load, page]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    const timer = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 300);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -108,7 +115,7 @@ export default function AdminProducts() {
       if (modal === 'add') await productsApi.create(data);
       else if (editId) await productsApi.update(editId, data);
       setModal(null);
-      load();
+      load(page);
     } catch (err: any) {
       setFormError(err?.response?.data?.error || 'Error al guardar el producto.');
     } finally {
@@ -126,7 +133,7 @@ export default function AdminProducts() {
     try {
       await productsApi.delete(deleteConfirm.id);
       setDeleteConfirm(null);
-      load();
+      load(page);
     } finally {
       setDeleting(false);
     }
@@ -136,7 +143,7 @@ export default function AdminProducts() {
     try {
       await productsApi.update(p.id, { isActive: !p.isActive });
       addToast(`${p.name} ${!p.isActive ? 'activado' : 'desactivado'}`, 'success');
-      load();
+      load(page);
     } catch {
       addToast('Error al cambiar estado', 'error');
     }
@@ -152,8 +159,8 @@ export default function AdminProducts() {
   };
 
   const toggleSelectAll = () => {
-    if (selected.size === filtered.length) setSelected(new Set());
-    else setSelected(new Set(filtered.map((p) => p.id)));
+    if (selected.size === products.length) setSelected(new Set());
+    else setSelected(new Set(products.map((p) => p.id)));
   };
 
   const handleBulkActive = async (active: boolean) => {
@@ -172,15 +179,10 @@ export default function AdminProducts() {
     if (fail > 0) addToast(`${fail} producto${fail !== 1 ? 's' : ''} fallaron`, 'error');
     setSelected(new Set());
     setBulkBusy(false);
-    load();
+    load(page);
   };
 
   const isCafe = form.category === 'CAFÉ';
-  const filtered = (catFilter === 'TODOS' ? products : products.filter((p) => p.category === catFilter))
-    .filter((p) =>
-      !debouncedSearch || p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      (p.region && p.region.toLowerCase().includes(debouncedSearch.toLowerCase()))
-    );
 
   return (
     <div className="p-8">
@@ -188,7 +190,7 @@ export default function AdminProducts() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Productos</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{products.length} en catálogo</p>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} en catálogo</p>
         </div>
         <button onClick={openAdd} className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 flex items-center gap-2">
           <Plus className="w-4 h-4" /> Agregar
@@ -211,7 +213,7 @@ export default function AdminProducts() {
         {['TODOS', 'CAFÉ', 'ACCESORIOS', 'MERCH'].map((cat) => (
           <button
             key={cat}
-            onClick={() => { setCatFilter(cat); setPage(1); }}
+            onClick={() => { setCatFilter(cat); setPage(1); setSelected(new Set()); }}
             className={`text-xs px-3 py-1.5 border transition-all ${
               catFilter === cat ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
             }`}
@@ -237,8 +239,8 @@ export default function AdminProducts() {
       {loading ? (
         <AdminSkeleton rows={4} />
       ) : loadError ? (
-        <AdminErrorState error={loadError} onRetry={load} />
-      ) : filtered.length === 0 ? (
+        <AdminErrorState error={loadError} onRetry={() => load(page)} />
+      ) : products.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
           <p className="text-coffee-500 dark:text-coffee-400">No hay productos con este filtro.</p>
@@ -251,7 +253,7 @@ export default function AdminProducts() {
                 <thead>
                   <tr className="border-b border-coffee-200 dark:border-coffee-800">
                     <th className="w-8 px-4 py-3">
-                      <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === filtered.length && filtered.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+                      <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === products.length && products.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
                     </th>
                     {['Producto', 'Categoría', 'Info', 'Precio', 'Stock', 'Estado', ''].map((h) => (
                       <th key={h} className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">{h}</th>
@@ -259,7 +261,7 @@ export default function AdminProducts() {
                   </tr>
                 </thead>
                 <tbody>
-                    {filtered.map((p) => (
+                    {products.map((p) => (
                       <tr key={p.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors">
                         <td className="px-4 py-3">
                           <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
@@ -308,7 +310,7 @@ export default function AdminProducts() {
               </table>
             </div>
           </div>
-          <Pagination page={page} totalPages={totalPages} onChange={(p) => load(p)} />
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </>
       )}
 
@@ -324,30 +326,21 @@ export default function AdminProducts() {
       />
 
       {/* Modal */}
-      <AnimatePresence>
-        {modal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-coffee-950/80 flex items-start justify-center z-50 p-4 overflow-y-auto"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 w-full max-w-2xl my-8"
-            >
-              <div className="flex items-center justify-between p-6 border-b border-coffee-200 dark:border-coffee-800">
-                <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream">
-                  {modal === 'add' ? 'Agregar producto' : 'Editar producto'}
-                </h2>
-                <button onClick={() => setModal(null)} className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 space-y-4" onReset={() => setFormError('')}>
+      <AdminModal
+        open={!!modal}
+        title={modal === 'add' ? 'Agregar producto' : 'Editar producto'}
+        onClose={() => setModal(null)}
+        maxWidth="max-w-2xl"
+        footer={
+          <div className="flex gap-3 w-full">
+            <button type="submit" form="product-form" disabled={saving} className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50">
+              {saving ? 'Guardando...' : modal === 'add' ? 'Agregar producto' : 'Guardar cambios'}
+            </button>
+            <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:bg-coffee-200 dark:hover:bg-coffee-800 transition-colors">Cancelar</button>
+          </div>
+        }
+      >
+        <form id="product-form" onSubmit={handleSubmit} className="space-y-4" onReset={() => setFormError('')}>
                 {/* Category */}
                 <div>
                   <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Categoría *</label>
@@ -640,18 +633,8 @@ export default function AdminProducts() {
                 </div>
 
                 {formError && <p className="text-red-400 text-sm">{formError}</p>}
-
-                <div className="flex gap-3 pt-2">
-                  <button type="submit" disabled={saving} className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50">
-                    {saving ? 'Guardando...' : modal === 'add' ? 'Agregar producto' : 'Guardar cambios'}
-                  </button>
-                  <button type="button" onClick={() => setModal(null)} className="px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:bg-coffee-200 dark:hover:bg-coffee-800 transition-colors">Cancelar</button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </form>
+      </AdminModal>
     </div>
   );
 }

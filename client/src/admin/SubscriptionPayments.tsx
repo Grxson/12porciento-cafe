@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { CreditCard } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { CreditCard, Search, X } from 'lucide-react';
+import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
 import { subscriptionPaymentsApi } from '../api';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -47,11 +48,15 @@ export default function SubscriptionPayments() {
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState('');
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 20, total: 0, pages: 0 });
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
-  const loadPage = (p: number) => {
+  const loadPage = useCallback((p: number) => {
     setLoading(true);
     setListError('');
-    subscriptionPaymentsApi.list({ page: p.toString(), limit: '20' })
+    const params: Record<string, string> = { page: p.toString(), limit: '20' };
+    if (search) params.search = search;
+    subscriptionPaymentsApi.list(params)
       .then((r) => {
         setPayments(r.data.data);
         setPagination(r.data.pagination);
@@ -61,16 +66,14 @@ export default function SubscriptionPayments() {
         addToast('Error al cargar pagos', 'error');
       })
       .finally(() => setLoading(false));
-  };
+  }, [search]);
 
-  useEffect(() => {
-    loadPage(1);
-  }, []);
+  useEffect(() => { loadPage(page); }, [loadPage, page]);
 
   return (
     <div className="p-8">
       <PageMeta title="Pagos de Suscripciones" noSuffix />
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-6">
         <CreditCard className="w-6 h-6 text-gold-500" />
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Pagos de Suscripciones</h1>
@@ -78,10 +81,27 @@ export default function SubscriptionPayments() {
         </div>
       </div>
 
+      {/* Search */}
+      <div className="relative max-w-sm mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          placeholder="Buscar por nombre, email o factura..."
+          className="w-full pl-9 pr-8 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
+        />
+        {search && (
+          <button onClick={() => { setSearch(''); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-600 dark:hover:text-cream">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <AdminSkeleton rows={5} />
       ) : listError ? (
-        <AdminErrorState error={listError} onRetry={() => loadPage(pagination.page)} />
+        <AdminErrorState error={listError} onRetry={() => loadPage(page)} />
       ) : payments.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <CreditCard className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
@@ -136,27 +156,7 @@ export default function SubscriptionPayments() {
             </div>
           </div>
 
-          {pagination.pages > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <button
-                onClick={() => loadPage(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-                className="px-3 py-1.5 text-sm border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Anterior
-              </button>
-              <span className="text-sm text-coffee-600 dark:text-coffee-400">
-                Página {pagination.page} de {pagination.pages}
-              </span>
-              <button
-                onClick={() => loadPage(pagination.page + 1)}
-                disabled={pagination.page >= pagination.pages}
-                className="px-3 py-1.5 text-sm border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
+          <Pagination page={page} totalPages={pagination.pages} onChange={setPage} />
         </>
       )}
     </div>

@@ -3,6 +3,7 @@ import { Bell, Loader2, Send } from 'lucide-react';
 import api from '../api';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import { PageMeta } from '../hooks/usePageMeta';
 
 const EVENT_TYPES = [
   { value: 'new_order', label: 'Nuevo pedido' },
@@ -41,9 +42,7 @@ export default function AdminNotificationSettings() {
     setSaving(true);
     setError('');
     try {
-      for (const [eventType, enabled] of Object.entries(preferences)) {
-        await api.put('/push/preferences', { eventType, enabled });
-      }
+      await api.put('/push/preferences/bulk', { preferences });
       setDirty(false);
     } catch {
       setError('Error al guardar preferencias');
@@ -71,10 +70,11 @@ export default function AdminNotificationSettings() {
 
   return (
     <div className="p-8">
+      <PageMeta title="Notificaciones" noSuffix />
       <div className="flex items-center gap-3 mb-6">
         <Bell className="w-5 h-5 text-gold-500" />
         <div>
-          <h2 className="text-lg font-semibold text-coffee-900 dark:text-cream">Notificaciones push</h2>
+          <h1 className="text-2xl font-bold text-coffee-900 dark:text-cream">Notificaciones</h1>
           <p className="text-sm text-coffee-500 dark:text-coffee-400 mt-0.5">Controla qué eventos generan notificaciones push en tus dispositivos suscritos.</p>
         </div>
       </div>

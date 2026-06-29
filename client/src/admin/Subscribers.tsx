@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Search, X } from 'lucide-react';
 import { subscriptionsApi, productsApi } from '../api';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminModal from './components/AdminModal';
@@ -249,22 +249,33 @@ export default function AdminSubscribers() {
   const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [cancelConfirm, setCancelConfirm] = useState<{ id: string; name: string } | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
 
-  const load = (overridePage?: number) => {
+  const load = useCallback((p: number) => {
     setLoading(true);
     setLoadError('');
-    const currentPage = overridePage ?? page;
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = { page: String(p) };
     if (filter) params.status = filter;
-    params.page = String(currentPage);
+    if (debouncedSearch) params.search = debouncedSearch;
     subscriptionsApi.list(params)
-      .then((r) => { setSubs(r.data.data); setTotalPages(r.data.totalPages ?? 1); setPage(currentPage); })
+      .then((r) => { setSubs(r.data.data); setTotalPages(r.data.totalPages ?? 1); })
       .catch(() => { setLoadError('Error al cargar suscriptores. Intenta de nuevo.'); })
       .finally(() => setLoading(false));
-  };
+  }, [filter, debouncedSearch]);
+
+  useEffect(() => { load(page); }, [load, page]);
+
+  // Debounce search → reset to page 1
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const confirmCancel = async () => {
     if (!cancelConfirm) return;
@@ -273,13 +284,11 @@ export default function AdminSubscribers() {
       await subscriptionsApi.updateStatus(cancelConfirm.id, 'CANCELLED');
       setCancelConfirm(null);
       addToast('Suscripción cancelada.', 'success');
-      load();
+      load(page);
     } catch {
       addToast('Error al cancelar la suscripción.', 'error');
     } finally { setCancelling(false); }
   };
-
-  useEffect(load, [filter]);
 
   const updateStatus = async (id: string, status: string) => {
     const prev = subs;
@@ -298,7 +307,7 @@ export default function AdminSubscribers() {
     try {
       await subscriptionsApi.updateFulfillment(id, fulfillmentStatus);
       addToast('Estado de entrega actualizado.', 'success');
-      load();
+      load(page);
     } catch {
       addToast('Error al actualizar el estado de entrega.', 'error');
     }
@@ -306,12 +315,6 @@ export default function AdminSubscribers() {
 
   const active = subs.filter((s) => s.status === 'ACTIVE').length;
   const paused = subs.filter((s) => s.status === 'PAUSED').length;
-
-  const filtered = subs.filter((s) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
-  });
 
   return (
     <div className="p-8">
@@ -325,7 +328,7 @@ export default function AdminSubscribers() {
 
         <select
           value={filter}
-          onChange={(e) => { setFilter(e.target.value); setPage(1); setLoading(true); }}
+          onChange={(e) => { setFilter(e.target.value); setPage(1); }}
           className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
         >
           <option value="">Todas</option>
@@ -341,15 +344,23 @@ export default function AdminSubscribers() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nombre o email..."
-          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2.5 focus:outline-none focus:border-gold-500/50"
+          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-9 py-2.5 focus:outline-none focus:border-gold-500/50"
         />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-700 dark:hover:text-cream transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {loading ? (
         <AdminSkeleton rows={5} />
       ) : loadError ? (
-        <AdminErrorState error={loadError} onRetry={load} />
-      ) : filtered.length === 0 ? (
+        <AdminErrorState error={loadError} onRetry={() => load(page)} />
+      ) : subs.length === 0 ? (
         <div className="text-center py-20 text-coffee-500">No hay suscriptores con ese filtro.</div>
       ) : (
         <>
@@ -371,7 +382,7 @@ export default function AdminSubscribers() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((sub) => {
+                  {subs.map((sub) => {
                     const cfg = statusConfig[sub.status as SubscriptionStatus] ?? statusConfig.ACTIVE;
                     return (
                       <tr key={sub.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors">
@@ -476,7 +487,7 @@ export default function AdminSubscribers() {
         <EditModal
           sub={editingSub}
           onClose={() => setEditingSub(null)}
-          onSaved={load}
+          onSaved={() => load(page)}
         />
       )}
 

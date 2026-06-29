@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Package, TrendingUp, TrendingDown, AlertTriangle, XCircle,
-  ArrowUpCircle, ArrowDownCircle, RefreshCw, Search, ChevronLeft, ChevronRight, SlidersHorizontal, Download,
+  ArrowUpCircle, ArrowDownCircle, RefreshCw, Search, SlidersHorizontal, Download,
   History,
 } from 'lucide-react';
 import api from '../api';
@@ -9,6 +9,9 @@ import { useModuleToast } from './context/ModuleContext';
 import QuickAdjustPopover from './components/QuickAdjustPopover';
 import { resolveImageUrl } from './utils/imageUrl';
 import AdminSkeleton from './components/AdminSkeleton';
+import AdminErrorState from './components/AdminErrorState';
+import AdminModal from './components/AdminModal';
+import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -59,6 +62,8 @@ export default function Inventory() {
   const [movPage, setMovPage] = useState(1);
   const [movTotalPages, setMovTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [overviewError, setOverviewError] = useState('');
   const [movLoading, setMovLoading] = useState(false);
   const [filterType, setFilterType] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
@@ -107,9 +112,10 @@ export default function Inventory() {
 
   const loadOverview = () => {
     setLoading(true);
+    setError('');
     api.get('/inventory')
       .then((r) => { setSummary(r.data.summary); setProducts(r.data.products); })
-      .catch(() => addToast('Error al cargar inventario', 'error'))
+      .catch(() => { setOverviewError('Error al cargar inventario'); addToast('Error al cargar inventario', 'error'); })
       .finally(() => setLoading(false));
   };
 
@@ -249,8 +255,15 @@ export default function Inventory() {
 
       {/* ── Overview tab ── */}
       {tab === 'overview' && (
-        loading ? (
+        overviewError ? (
+          <>
+            <AdminErrorState error={overviewError} onRetry={loadOverview} />
+            <AdminSkeleton rows={4} />
+          </>
+        ) : loading ? (
           <AdminSkeleton rows={4} />
+        ) : error ? (
+          <AdminErrorState error={error} onRetry={loadOverview} />
         ) : (
           <>
             <div className="flex items-center justify-between gap-4 mb-4">
@@ -433,16 +446,8 @@ export default function Inventory() {
               </div>
 
               {movTotalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-6">
-                  <button onClick={() => loadMovements(movPage - 1)} disabled={movPage === 1}
-                    className="p-2 border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500 disabled:opacity-40 transition-colors">
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="text-coffee-600 dark:text-coffee-400 text-sm">Página {movPage} de {movTotalPages}</span>
-                  <button onClick={() => loadMovements(movPage + 1)} disabled={movPage === movTotalPages}
-                    className="p-2 border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500 disabled:opacity-40 transition-colors">
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                <div>
+                  <Pagination page={movPage} totalPages={movTotalPages} onChange={(p) => loadMovements(p)} />
                 </div>
               )}
             </>
@@ -661,66 +666,59 @@ export default function Inventory() {
       )}
 
       {/* ── Per-product movement history modal ── */}
-      {historyProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setHistoryProduct(null)}>
-          <div className="bg-white dark:bg-coffee-950 border border-coffee-200 dark:border-coffee-800 w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-coffee-200 dark:border-coffee-800">
-              <div>
-                <p className="text-coffee-900 dark:text-cream font-medium">{historyProduct.name}</p>
-                <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-0.5">Historial de movimientos (últimos 100)</p>
-              </div>
-              <button onClick={() => setHistoryProduct(null)} className="text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-xl leading-none">✕</button>
-            </div>
-            <div className="overflow-y-auto flex-1">
-              {historyLoading ? (
-                <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>
-              ) : historyMovements.length === 0 ? (
-                <p className="text-center text-coffee-500 dark:text-coffee-400 text-sm py-12">Sin movimientos registrados</p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-white dark:bg-coffee-950">
-                    <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                      {['Fecha', 'Tipo', 'Cantidad', 'Antes → Después', 'Notas'].map((h) => (
-                        <th key={h} className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyMovements.map((m) => {
-                      const mt = MOVEMENT_TYPES[m.type] ?? MOVEMENT_TYPES.ADJUSTMENT;
-                      const Icon = mt.icon;
-                      return (
-                        <tr key={m.id} className="border-b border-coffee-200/40 dark:border-coffee-800/40 hover:bg-coffee-100 dark:hover:bg-coffee-800/20 transition-colors">
-                          <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs whitespace-nowrap">
-                            {new Date(m.createdAt).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <div className={`flex items-center gap-1.5 ${mt.color}`}>
-                              <Icon className="w-3.5 h-3.5" />
-                              <span className="text-xs font-medium">{mt.label}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs">
-                            {m.previousStock} → <span className="text-coffee-900 dark:text-cream font-medium">{m.newStock}</span>
-                          </td>
-                          <td className="px-4 py-2.5 text-coffee-500 dark:text-coffee-400 text-xs max-w-[160px] truncate">
-                            {m.notes ?? '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminModal
+        open={!!historyProduct}
+        title={historyProduct?.name ?? ''}
+        onClose={() => setHistoryProduct(null)}
+        maxWidth="max-w-2xl"
+      >
+        <p className="text-coffee-500 dark:text-coffee-400 text-xs -mt-2 mb-2">Historial de movimientos (últimos 100)</p>
+        {historyLoading ? (
+          <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>
+        ) : historyMovements.length === 0 ? (
+          <p className="text-center text-coffee-500 dark:text-coffee-400 text-sm py-12">Sin movimientos registrados</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-coffee-200 dark:border-coffee-800">
+                {['Fecha', 'Tipo', 'Cantidad', 'Antes → Después', 'Notas'].map((h) => (
+                  <th key={h} className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {historyMovements.map((m) => {
+                const mt = MOVEMENT_TYPES[m.type] ?? MOVEMENT_TYPES.ADJUSTMENT;
+                const Icon = mt.icon;
+                return (
+                  <tr key={m.id} className="border-b border-coffee-200/40 dark:border-coffee-800/40 hover:bg-coffee-100 dark:hover:bg-coffee-800/20 transition-colors">
+                    <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs whitespace-nowrap">
+                      {new Date(m.createdAt).toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className={`flex items-center gap-1.5 ${mt.color}`}>
+                        <Icon className="w-3.5 h-3.5" />
+                        <span className="text-xs font-medium">{mt.label}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs">
+                      {m.previousStock} → <span className="text-coffee-900 dark:text-cream font-medium">{m.newStock}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-coffee-500 dark:text-coffee-400 text-xs max-w-[160px] truncate">
+                      {m.notes ?? '—'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </AdminModal>
     </div>
   );
 }

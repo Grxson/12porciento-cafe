@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Search, X, ChevronLeft, ChevronRight as ChevronRightIcon, Download, ShoppingBag } from 'lucide-react';
+import { ChevronDown, Search, X, Download, ShoppingBag } from 'lucide-react';
+import Pagination from './components/Pagination';
 import { ordersApi } from '../api';
 import { exportToCsv } from './utils/csvExport';
 import { useModuleToast } from './context/ModuleContext';
@@ -324,19 +325,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-8">
-          <button onClick={() => setPage((p) => Math.max(p - 1, 1))} disabled={page === 1}
-            className="p-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500 disabled:opacity-40 transition-colors">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="text-coffee-600 dark:text-coffee-400 text-sm">Página {page} de {totalPages}</span>
-          <button onClick={() => setPage((p) => Math.min(p + 1, totalPages))} disabled={page === totalPages}
-            className="p-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500 disabled:opacity-40 transition-colors">
-            <ChevronRightIcon className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
 
       <ConfirmDialog
         open={!!confirmBulk}

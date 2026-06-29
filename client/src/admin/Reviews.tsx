@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Star, Check, Trash2, MessageSquare, X } from 'lucide-react';
 import { reviewsApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
@@ -17,6 +17,7 @@ export default function AdminReviews() {
   const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('pending');
   const [responding, setResponding] = useState<string | null>(null);
   const [responseText, setResponseText] = useState('');
@@ -26,23 +27,28 @@ export default function AdminReviews() {
   const [deleting, setDeleting] = useState(false);
   const [confirmBulkApprove, setConfirmBulkApprove] = useState(false);
 
-  const load = (overridePage?: number) => {
+  const load = useCallback((p: number) => {
     setLoading(true);
     setLoadError('');
-    const currentPage = overridePage ?? page;
-    reviewsApi.adminList({ page: String(currentPage), pageSize: '50' })
-      .then((r) => { setReviews(r.data.data); setTotalPages(r.data.totalPages ?? 1); setPage(currentPage); })
+    const params: Record<string, string> = { page: String(p), pageSize: '50' };
+    if (filter !== 'all') params.filter = filter;
+    reviewsApi.adminList(params)
+      .then((r) => {
+        setReviews(r.data.data);
+        setTotalPages(r.data.totalPages ?? 1);
+        setTotal(r.data.total ?? 0);
+      })
       .catch(() => setLoadError('Error al cargar reseñas. Intenta de nuevo.'))
       .finally(() => setLoading(false));
-  };
+  }, [filter]);
 
-  useEffect(load, []);
+  useEffect(() => { load(page); }, [load, page]);
 
   const approve = async (id: string) => {
     try {
       await reviewsApi.approve(id);
       addToast('Reseña aprobada', 'success');
-      load();
+      load(page);
     } catch {
       addToast('Error al aprobar', 'error');
     }
@@ -54,7 +60,7 @@ export default function AdminReviews() {
       await reviewsApi.delete(id);
       setSelected((prev) => { const n = new Set(prev); n.delete(id); return n; });
       addToast('Reseña eliminada', 'success');
-      load();
+      load(page);
     } catch {
       addToast('Error al eliminar', 'error');
     } finally {
@@ -70,7 +76,7 @@ export default function AdminReviews() {
       setResponding(null);
       setResponseText('');
       addToast('Respuesta enviada', 'success');
-      load();
+      load(page);
     } catch {
       addToast('Error al enviar respuesta', 'error');
     }
@@ -99,23 +105,19 @@ export default function AdminReviews() {
     setSelected(new Set());
     setConfirmBulkApprove(false);
     addToast(`${ok} reseña(s) aprobada(s)`, ok > 0 ? 'success' : 'error');
-    load();
+    load(page);
   };
 
-  const filtered = reviews.filter((r) => {
-    if (filter === 'pending') return !r.isApproved;
-    if (filter === 'approved') return r.isApproved;
-    return true;
-  });
-
-  const pendingSelected = filtered.filter((r) => !r.isApproved && selected.has(r.id)).length;
+  const pendingSelected = reviews.filter((r) => !r.isApproved && selected.has(r.id)).length;
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Reseñas</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{reviews.filter((r) => !r.isApproved).length} pendientes</p>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
+            {filter === 'pending' ? `${total} pendientes` : filter === 'approved' ? `${total} aprobadas` : `${total} reseñas`}
+          </p>
         </div>
         <div className="flex gap-2">
           {(['all', 'pending', 'approved'] as const).map((f) => (
@@ -157,13 +159,13 @@ export default function AdminReviews() {
       {loading ? (
         <AdminSkeleton rows={3} />
       ) : loadError ? (
-        <AdminErrorState error={loadError} onRetry={load} />
-      ) : filtered.length === 0 ? (
+        <AdminErrorState error={loadError} onRetry={() => load(page)} />
+      ) : reviews.length === 0 ? (
         <p className="text-center text-coffee-500 py-10">No hay reseñas.</p>
       ) : (
         <>
           <div className="space-y-3">
-            {filtered.map((r) => (
+            {reviews.map((r) => (
               <div key={r.id} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">
                 <div className="flex items-start justify-between gap-4">
                   {!r.isApproved && (

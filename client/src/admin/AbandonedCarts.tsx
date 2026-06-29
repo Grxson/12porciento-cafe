@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ShoppingBag, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { ShoppingBag, Send, CheckCircle, Loader2, Search, X } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
 import { abandonedCartApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
@@ -18,11 +18,15 @@ export default function AbandonedCarts() {
   const [listError, setListError] = useState('');
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [recoveringId, setRecoveringId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [recovered, setRecovered] = useState('');
 
-  const load = (p: number) => {
+  const load = useCallback((p: number) => {
     setLoading(true);
     setListError('');
-    abandonedCartApi.list(p)
+    abandonedCartApi.list({ page: p, email: search || undefined, from: dateFrom || undefined, to: dateTo || undefined, recovered: recovered || undefined })
       .then((res) => {
         setCarts(res.data.data);
         setTotal(res.data.total);
@@ -34,9 +38,9 @@ export default function AbandonedCarts() {
         addToast('Error al cargar carritos abandonados', 'error');
       })
       .finally(() => setLoading(false));
-  };
+  }, [search, dateFrom, dateTo, recovered]);
 
-  useEffect(() => { load(page); }, [page]);
+  useEffect(() => { load(page); }, [load, page]);
 
   const handleSendReminder = async (id: string) => {
     setSendingId(id);
@@ -74,12 +78,60 @@ export default function AbandonedCarts() {
   return (
     <div className="p-8">
       <PageMeta title="Carritos Abandonados" noSuffix />
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-6">
         <ShoppingBag className="w-6 h-6 text-gold-500" />
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Carritos Abandonados</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} carritos</p>
         </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Buscar por email..."
+            className="w-full pl-9 pr-8 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-600 dark:hover:text-cream">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+          className="px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
+        />
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+          className="px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
+        />
+        <select
+          value={recovered}
+          onChange={(e) => { setRecovered(e.target.value); setPage(1); }}
+          className="px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
+        >
+          <option value="">Todos</option>
+          <option value="0">Abandonados</option>
+          <option value="1">Recuperados</option>
+        </select>
+        {(search || dateFrom || dateTo || recovered) && (
+          <button
+            onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); setRecovered(''); setPage(1); }}
+            className="px-3 py-2 text-sm text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream border border-coffee-200 dark:border-coffee-700 transition-colors"
+          >
+            Limpiar
+          </button>
+        )}
       </div>
 
       {loading ? (

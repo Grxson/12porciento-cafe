@@ -204,9 +204,9 @@ export default function AdminUsers() {
               Cancelar
             </button>
             <button
-              type="button"
+              type="submit"
+              form="create-admin-form"
               disabled={saving}
-              onClick={submit}
               className="flex-1 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-coffee-950 text-sm font-semibold transition-colors disabled:opacity-50"
             >
               {saving ? 'Guardando...' : 'Crear'}
@@ -214,7 +214,7 @@ export default function AdminUsers() {
           </>
         }
       >
-        <form onSubmit={submit}>
+        <form id="create-admin-form">
           <div className="space-y-4">
             <FormField
               label="Nombre"

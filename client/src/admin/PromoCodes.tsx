@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Trash2, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
 import { promoCodesApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import { PageMeta } from '../hooks/usePageMeta';
+import { useModuleList } from './hooks/useModuleList';
 
 interface PromoCode {
   id: string;
@@ -25,28 +27,20 @@ const isFixed = (type: string) => type === 'FIXED';
 
 export default function AdminPromoCodes() {
   const { addToast } = useModuleToast();
-  const [codes, setCodes] = useState<PromoCode[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { items: codes, loading, error: listError, reload } = useModuleList<PromoCode>(
+    promoCodesApi.list,
+    undefined,
+    undefined,
+    undefined,
+    { onError: (msg) => addToast(msg, 'error') },
+  );
+
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [listError, setListError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const load = () => {
-    setLoading(true);
-    setListError('');
-    promoCodesApi.list()
-      .then((r) => { setCodes(r.data.data); })
-      .catch(() => {
-        setListError('Error al cargar códigos');
-        addToast('Error al cargar códigos', 'error');
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, []);
 
   const validateForm = (): string | null => {
     if (!form.code.trim()) return 'El código es requerido';
@@ -78,7 +72,7 @@ export default function AdminPromoCodes() {
       });
       setForm(emptyForm);
       addToast('Código creado', 'success');
-      load();
+      reload();
     } catch (e: any) {
       const msg = e.response?.data?.error || 'Error al crear código';
       setError(msg);
@@ -91,7 +85,7 @@ export default function AdminPromoCodes() {
   const toggle = async (id: string) => {
     try {
       await promoCodesApi.toggle(id);
-      load();
+      reload();
     } catch {
       addToast('Error al cambiar estado', 'error');
     }
@@ -102,7 +96,7 @@ export default function AdminPromoCodes() {
     try {
       await promoCodesApi.delete(id);
       addToast('Código eliminado', 'success');
-      load();
+      reload();
     } catch {
       addToast('Error al eliminar', 'error');
     } finally {
@@ -119,6 +113,7 @@ export default function AdminPromoCodes() {
 
   return (
     <div className="p-8">
+      <PageMeta title="Códigos de Descuento" noSuffix />
       <div className="flex items-center gap-3 mb-8">
         <Tag className="w-6 h-6 text-gold-500" />
         <div>
@@ -178,7 +173,7 @@ export default function AdminPromoCodes() {
       {loading ? (
         <AdminSkeleton rows={4} />
       ) : listError ? (
-        <AdminErrorState error={listError} onRetry={load} />
+        <AdminErrorState error={listError ?? ''} onRetry={reload} />
       ) : codes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Tag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />

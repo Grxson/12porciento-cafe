@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, Building2, Mail, Phone, Calendar, X, ChevronDown, Loader2, MessageCircle } from 'lucide-react';
+import { Search, Building2, Mail, Phone, Calendar, ChevronDown, Loader2, MessageCircle } from 'lucide-react';
+import AdminModal from './components/AdminModal';
 import { subscriptionsApi } from '../api';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
@@ -188,92 +189,83 @@ export default function B2BInquiries() {
           <Pagination page={page} totalPages={totalPages} onChange={(p) => setPage(p)} />
 
           {/* Detail panel */}
-          {selectedInquiry && (
-            <div className="fixed inset-0 bg-coffee-950/60 flex items-start justify-center z-50 p-4 overflow-y-auto" onClick={() => setSelectedInquiry(null)}>
-              <div
-                className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 w-full max-w-lg my-12"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between p-5 border-b border-coffee-200 dark:border-coffee-800">
-                  <div className="flex items-center gap-3">
-                    <Building2 className="w-5 h-5 text-gold-500" />
-                    <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">{selectedInquiry.empresa}</h2>
+          <AdminModal
+            open={!!selectedInquiry}
+            title={selectedInquiry?.empresa ?? ''}
+            onClose={() => setSelectedInquiry(null)}
+            footer={
+              selectedInquiry ? (
+                <div className="w-full">
+                  <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-3">Estado</p>
+                  <div className="flex flex-wrap gap-2">
+                    {STATUS_OPTIONS.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => handleStatusUpdate(selectedInquiry.id, s)}
+                        disabled={updating || selectedInquiry.status === s}
+                        className={`text-xs px-3 py-1.5 border transition-all flex items-center gap-1.5 ${
+                          selectedInquiry.status === s
+                            ? `${STATUS_LABELS[s]?.color ?? ''} border-current`
+                            : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
+                        }`}
+                      >
+                        {updating && selectedInquiry.status !== s ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                        {STATUS_LABELS[s]?.label ?? s}
+                      </button>
+                    ))}
                   </div>
-                  <button onClick={() => setSelectedInquiry(null)} className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
                 </div>
-
-                <div className="p-5 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">RFC</p>
-                      <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.rfc || '—'}</p>
+              ) : undefined
+            }
+          >
+            {selectedInquiry && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">RFC</p>
+                    <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.rfc || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Giro negocio</p>
+                    <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.giroNegocio || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Contacto</p>
+                    <div className="flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-coffee-400" />
+                      <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.contactoNombre}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Giro negocio</p>
-                      <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.giroNegocio || '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Contacto</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Email</p>
+                    {selectedInquiry.contactoEmail ? (
                       <div className="flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-coffee-400" />
-                        <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.contactoNombre}</p>
+                        <Mail className="w-3.5 h-3.5 text-coffee-400" />
+                        <a href={`mailto:${selectedInquiry.contactoEmail}`} className="text-gold-500 hover:text-gold-400 text-sm">{selectedInquiry.contactoEmail}</a>
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Email</p>
-                      {selectedInquiry.contactoEmail ? (
-                        <div className="flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-coffee-400" />
-                          <a href={`mailto:${selectedInquiry.contactoEmail}`} className="text-gold-500 hover:text-gold-400 text-sm">{selectedInquiry.contactoEmail}</a>
-                        </div>
-                      ) : <p className="text-coffee-500 text-sm">—</p>}
-                    </div>
-                    <div>
-                      <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Teléfono</p>
-                      {selectedInquiry.contactoTelefono ? (
-                        <div className="flex items-center gap-1.5">
-                          <Phone className="w-3.5 h-3.5 text-coffee-400" />
-                          <a href={`tel:${selectedInquiry.contactoTelefono}`} className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.contactoTelefono}</a>
-                        </div>
-                      ) : <p className="text-coffee-500 text-sm">—</p>}
-                    </div>
-                    <div>
-                      <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Volumen estimado</p>
-                      <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.volumenEstimado || '—'}</p>
-                    </div>
+                    ) : <p className="text-coffee-500 text-sm">—</p>}
                   </div>
-
-                  <div className="flex items-center gap-2 text-xs text-coffee-500 dark:text-coffee-400">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Creado: {new Date(selectedInquiry.createdAt).toLocaleString('es-MX')}</span>
+                  <div>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Teléfono</p>
+                    {selectedInquiry.contactoTelefono ? (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-coffee-400" />
+                        <a href={`tel:${selectedInquiry.contactoTelefono}`} className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.contactoTelefono}</a>
+                      </div>
+                    ) : <p className="text-coffee-500 text-sm">—</p>}
                   </div>
-
-                  <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
-                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-3">Estado</p>
-                    <div className="flex flex-wrap gap-2">
-                      {STATUS_OPTIONS.map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => handleStatusUpdate(selectedInquiry.id, s)}
-                          disabled={updating || selectedInquiry.status === s}
-                          className={`text-xs px-3 py-1.5 border transition-all flex items-center gap-1.5 ${
-                            selectedInquiry.status === s
-                              ? `${STATUS_LABELS[s]?.color ?? ''} border-current`
-                              : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
-                          }`}
-                        >
-                          {updating && selectedInquiry.status !== s ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-                          {STATUS_LABELS[s]?.label ?? s}
-                        </button>
-                      ))}
-                    </div>
+                  <div>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Volumen estimado</p>
+                    <p className="text-coffee-900 dark:text-cream text-sm">{selectedInquiry.volumenEstimado || '—'}</p>
                   </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-coffee-500 dark:text-coffee-400">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Creado: {new Date(selectedInquiry.createdAt).toLocaleString('es-MX')}</span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </AdminModal>
         </>
       )}
     </div>

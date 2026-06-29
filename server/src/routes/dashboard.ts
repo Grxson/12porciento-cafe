@@ -134,4 +134,131 @@ router.get('/stats', requireAuth, async (_req: AuthRequest, res: Response) => {
   }
 });
 
+router.get('/financial', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const now = new Date();
+    const startOfMonth   = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endLastMonth   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    const startOfWeek    = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay());
+    const startLastWeek  = new Date(startOfWeek); startLastWeek.setDate(startLastWeek.getDate() - 7);
+    const endLastWeek    = new Date(startOfWeek); endLastWeek.setMilliseconds(-1);
+    const sixMonthsAgo   = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    const [
+      revTotal,
+      revThisMonth,
+      revLastMonth,
+      revThisWeek,
+      revLastWeek,
+      mrrThisMonth,
+      mrrLastMonth,
+      ordersByStatus,
+      orderItemsRaw,
+      revLast6Months,
+    ] = await Promise.all([
+      prisma.order.aggregate({ _sum: { total: true } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { createdAt: { gte: startOfMonth } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { createdAt: { gte: startLastMonth, lte: endLastMonth } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { createdAt: { gte: startOfWeek } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { createdAt: { gte: startLastWeek, lte: endLastWeek } } }),
+      prisma.subscriptionPayment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCEEDED', billingDate: { gte: startOfMonth } } }),
+      prisma.subscriptionPayment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCEEDED', billingDate: { gte: startLastMonth, lte: endLastMonth } } }),
+      prisma.order.groupBy({ by: ['status'], _count: { id: true }, _sum: { total: true } }),
+      prisma.orderItem.findMany({
+        where: { order: { createdAt: { gte: sixMonthsAgo } } },
+        include: { product: { select: { costPrice: true, category: true, name: true } } },
+      }),
+      prisma.order.findMany({ where: { createdAt: { gte: sixMonthsAgo } }, select: { total: true, createdAt: true } }),
+    ]);
+
+    // Cost + profit (from order items with known costPrice)
+    let totalCostKnown = 0;
+    let totalRevKnown = 0;
+    const categoryMap = new Map<string, number>();
+    const productRevenueMap = new Map<string, { name: string; revenue: number; units: number }>();
+
+    for (const item of orderItemsRaw) {
+      const itemRevenue = item.price * item.quantity;
+      const category = item.product.category ?? 'Sin categoría';
+      categoryMap.set(category, (categoryMap.get(category) ?? 0) + itemRevenue);
+
+      const productName = item.product.name ?? item.productId;
+      const existing = productRevenueMap.get(item.productId) ?? { name: productName, revenue: 0, units: 0 };
+      existing.revenue += itemRevenue;
+      existing.units   += item.quantity;
+      productRevenueMap.set(item.productId, existing);
+
+      if (item.product.costPrice != null) {
+        totalCostKnown  += item.product.costPrice * item.quantity;
+        totalRevKnown   += itemRevenue;
+      }
+    }
+
+    const profitKnown  = totalRevKnown - totalCostKnown;
+    const marginKnown  = totalRevKnown > 0 ? parseFloat(((profitKnown / totalRevKnown) * 100).toFixed(1)) : null;
+
+    // Revenue by category (sorted desc)
+    const revenueByCategory = Array.from(categoryMap.entries())
+      .map(([category, revenue]) => ({ category, revenue: parseFloat(revenue.toFixed(2)) }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    // Top 5 products by revenue
+    const topRevenueProducts = Array.from(productRevenueMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+      .map((p) => ({ ...p, revenue: parseFloat(p.revenue.toFixed(2)) }));
+
+    // Revenue by month (last 6 months)
+    const monthMap = new Map<string, number>();
+    for (const order of revLast6Months) {
+      const key = `${order.createdAt.getFullYear()}-${String(order.createdAt.getMonth() + 1).padStart(2, '0')}`;
+      monthMap.set(key, (monthMap.get(key) ?? 0) + (order.total ?? 0));
+    }
+    const revenueByMonth = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      revenueByMonth.push({ key, month: d.getMonth(), year: d.getFullYear(), total: parseFloat((monthMap.get(key) ?? 0).toFixed(2)) });
+    }
+
+    // Order status breakdown
+    const statusBreakdown = ordersByStatus.reduce((acc, s) => ({
+      ...acc,
+      [s.status]: { count: s._count.id, revenue: parseFloat((s._sum.total ?? 0).toFixed(2)) },
+    }), {} as Record<string, { count: number; revenue: number }>);
+
+    const mrr     = parseFloat((mrrThisMonth._sum.amount ?? 0).toFixed(2));
+    const mrrLast = parseFloat((mrrLastMonth._sum.amount ?? 0).toFixed(2));
+
+    res.json({
+      revenue: {
+        total:      parseFloat((revTotal._sum.total ?? 0).toFixed(2)),
+        thisMonth:  parseFloat((revThisMonth._sum.total ?? 0).toFixed(2)),
+        lastMonth:  parseFloat((revLastMonth._sum.total ?? 0).toFixed(2)),
+        thisWeek:   parseFloat((revThisWeek._sum.total ?? 0).toFixed(2)),
+        lastWeek:   parseFloat((revLastWeek._sum.total ?? 0).toFixed(2)),
+      },
+      cost: {
+        known:     parseFloat(totalCostKnown.toFixed(2)),
+        coverage:  orderItemsRaw.length > 0
+          ? parseFloat(((orderItemsRaw.filter(i => i.product.costPrice != null).length / orderItemsRaw.length) * 100).toFixed(1))
+          : 0,
+      },
+      profit: {
+        known:     parseFloat(profitKnown.toFixed(2)),
+        margin:    marginKnown,
+      },
+      mrr: { current: mrr, lastMonth: mrrLast },
+      revenueByMonth,
+      revenueByCategory,
+      topRevenueProducts,
+      statusBreakdown,
+    });
+  } catch (error) {
+    console.error('[financial] Error:', error);
+    res.status(500).json({ error: 'Error al obtener datos financieros' });
+  }
+});
+
 export default router;

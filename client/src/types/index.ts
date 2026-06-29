@@ -113,6 +113,9 @@ export interface Order {
   total: number;
   status: OrderStatus;
   notes?: string;
+  trackingNumber?: string | null;
+  carrier?: string | null;
+  estimatedDelivery?: string | null;
   userId?: string;
   user?: { id: string; name: string; email: string; phone?: string };
   items: OrderItemFull[];

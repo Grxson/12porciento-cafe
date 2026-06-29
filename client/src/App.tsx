@@ -76,6 +76,7 @@ import AdminNotificationSettings from './admin/AdminNotificationSettings';
 import B2BInquiries from './admin/B2BInquiries';
 import AbandonedCarts from './admin/AbandonedCarts';
 import Logistics from './admin/Logistics';
+import AdminLog from './admin/AdminLog';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
 import BottomNav from './components/BottomNav';
@@ -247,6 +248,7 @@ export default function App() {
           <Route path="consultas-b2b" element={<B2BInquiries />} />
           <Route path="carritos-abandonados" element={<AbandonedCarts />} />
           <Route path="logistica" element={<Logistics />} />
+          <Route path="auditoria" element={<AdminLog />} />
         </Route>
       </Routes>
     </CartProvider>

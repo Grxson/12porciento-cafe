@@ -186,6 +186,34 @@ router.get('/preferences', requireAuth, async (req: AuthRequest, res: Response) 
   }
 });
 
+// PUT /api/push/preferences/bulk — update all preferences in one request
+router.put('/preferences/bulk', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const adminId = req.admin?.id;
+    if (!adminId) return res.status(401).json({ error: 'Admin ID not found' });
+
+    const { preferences } = req.body;
+    if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) {
+      return res.status(400).json({ error: 'preferences object required' });
+    }
+
+    const entries = Object.entries(preferences as Record<string, unknown>).filter(
+      ([, v]) => typeof v === 'boolean',
+    );
+    if (entries.length === 0) return res.status(400).json({ error: 'No valid entries' });
+
+    await Promise.all(
+      entries.map(([eventType, enabled]) =>
+        upsertAdminPreference(adminId, eventType, enabled as boolean),
+      ),
+    );
+    return res.json({ ok: true, updated: entries.length });
+  } catch (err) {
+    console.error('[PUSH] bulk update preferences error:', err);
+    return res.status(500).json({ error: 'Error al actualizar preferencias' });
+  }
+});
+
 // PUT /api/push/preferences — update admin notification preferences
 router.put('/preferences', requireAuth, async (req: AuthRequest, res: Response) => {
   try {

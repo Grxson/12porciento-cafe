@@ -3,7 +3,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogOut,
   ExternalLink, Star, Gift, Menu, X, Tag, UserSearch, Warehouse, BookOpen,
-  Shield, Sun, Moon, Award, CreditCard, MessageCircle, Bell, ShoppingCart, Truck,
+  Shield, Sun, Moon, Award, CreditCard, MessageCircle, Bell, ShoppingCart, Truck, ClipboardList,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -28,6 +28,7 @@ const navLinks = [
   { to: '/admin/consultas-b2b',  label: 'Consultas B2B', icon: MessageCircle },
   { to: '/admin/notificaciones', label: 'Notificaciones', icon: Bell },
   { to: '/admin/carritos-abandonados', label: 'Carritos Abandonados', icon: ShoppingCart },
+  { to: '/admin/auditoria',            label: 'Auditoría',            icon: ClipboardList },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -48,6 +49,7 @@ const pageTitles: Record<string, string> = {
   '/admin/consultas-b2b': 'Consultas B2B',
   '/admin/notificaciones': 'Notificaciones',
   '/admin/carritos-abandonados': 'Carritos Abandonados',
+  '/admin/auditoria':            'Auditoría',
 };
 
 function AdminLayoutInner() {

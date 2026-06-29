@@ -141,7 +141,7 @@ export const subscriptionPaymentsApi = {
         errorMessage?: string | null;
       }>;
     }>(`/subscription-payments/user/${subscriptionId}/payments`),
-  list: (params?: Record<string, string>) =>
+  list: (params?: { page?: string; limit?: string; search?: string }) =>
     api.get<{ data: any[]; pagination: any }>('/subscription-payments/admin/all', { params }),
 };
 
@@ -299,7 +299,15 @@ export const abandonedCartApi = {
   track: (data: { items: { productId: string; name: string; quantity: number; price: number }[]; email: string; couponCode?: string }) => api.post('/abandoned-cart/track', data),
   sendReminder: (id: string) => api.post('/abandoned-cart/send-reminder', { id }),
   recover: (id: string) => api.patch(`/abandoned-cart/${id}/recover`),
-  list: (page?: number) => api.get<{ data: AbandonedCart[]; total: number; page: number; totalPages: number }>(`/abandoned-cart?page=${page || 1}`),
+  list: (params?: { page?: number; email?: string; from?: string; to?: string; recovered?: string }) => {
+    const p = new URLSearchParams();
+    p.set('page', String(params?.page || 1));
+    if (params?.email) p.set('email', params.email);
+    if (params?.from) p.set('from', params.from);
+    if (params?.to) p.set('to', params.to);
+    if (params?.recovered) p.set('recovered', params.recovered);
+    return api.get<{ data: AbandonedCart[]; total: number; page: number; totalPages: number }>(`/abandoned-cart?${p.toString()}`);
+  },
 };
 
 export default api;
@@ -307,6 +315,10 @@ export const adminApi = {
   logistics: (params?: { status?: string; page?: number }) =>
     api.get<{ data: Order[]; total: number; page: number; totalPages: number; statusCounts: Record<string, number> }>('/admin/orders/logistics', { params }),
   updateOrderStatus: (id: string, status: string) => api.patch(`/admin/orders/${id}/status`, { status }),
+  updateOrderTracking: (id: string, data: { trackingNumber?: string; carrier?: string; estimatedDelivery?: string | null }) =>
+    api.patch(`/admin/orders/${id}/tracking`, data),
+  logs: (params?: Record<string, string>) => api.get('/admin/logs', { params }),
+  financial: () => api.get('/dashboard/financial'),
 };
 
 export { baristaApi } from './barista';

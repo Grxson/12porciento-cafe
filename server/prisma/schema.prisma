@@ -93,6 +93,9 @@ model Order {
   total            Float
   status           String      @default("PENDING")
   notes            String?
+  trackingNumber   String?
+  carrier          String?
+  estimatedDelivery DateTime?
   userId           String?
   paymentIntentId  String?     @unique
   user             User?       @relation(fields: [userId], references: [id])
@@ -292,11 +295,29 @@ model PromoCode {
 }
 
 model AdminUser {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  email     String   @unique
+  email     String     @unique
   password  String
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
+  adminLogs AdminLog[]
+}
+
+model AdminLog {
+  id        String     @id @default(cuid())
+  adminId   String?
+  admin     AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action    String     // CREATE | UPDATE | DELETE | TOGGLE | APPROVE | STATUS_CHANGE | ADJUST
+  entity    String     // Product | Order | Subscription | PromoCode | Recipe | Review | Inventory
+  entityId  String?
+  metadata  String?    // JSON: { before, after, notes, ... }
+  createdAt DateTime   @default(now())
+
+  @@index([adminId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_logs")
 }
 
 model User {

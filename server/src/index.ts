@@ -28,6 +28,7 @@ import recipeRatingsRouter from './routes/recipe-ratings';
 import giftCardsRouter from './routes/gift-cards';
 import abandonedCartRouter from './routes/abandoned-cart';
 import adminOrdersRouter from './routes/admin/orders';
+import adminLogsRouter from './routes/admin/logs';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import { initMail } from './lib/mail';
@@ -96,6 +97,7 @@ app.use('/api/recipe-ratings', recipeRatingsRouter);
 app.use('/api/gift-cards', giftCardsRouter);
 app.use('/api/abandoned-cart', abandonedCartRouter);
 app.use('/api/admin/orders', adminOrdersRouter);
+app.use('/api/admin/logs', adminLogsRouter);
 app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { dashboardApi, baristaApi, adminApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
-import type { DashboardStats } from '../types';
+import type { DashboardStats, FinancialData } from '../types';
 
 interface ChartColors {
   grid: string;
@@ -74,6 +74,7 @@ export default function Dashboard() {
     totalBrews: number;
     user: { id: string; name: string };
   }[]>([]);
+  const [financial, setFinancial] = useState<FinancialData | null>(null);
   const chartColors = useChartColors();
 
   useEffect(() => {
@@ -81,6 +82,9 @@ export default function Dashboard() {
       .then((r) => { setStats(r.data); })
       .catch((e) => { console.error(e); setStatsError('Error al cargar estadísticas.'); })
       .finally(() => setLoading(false));
+    adminApi.financial()
+      .then((r) => setFinancial(r.data))
+      .catch((e) => console.error('[financial]', e));
   }, []);
 
   useEffect(() => {
@@ -481,6 +485,103 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Financial Overview — only when data loaded */}
+      {financial && (
+        <div className="space-y-6">
+          <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream border-t border-coffee-200 dark:border-coffee-800 pt-6 mt-2">
+            Panorama Financiero
+          </h2>
+
+          {/* KPI row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-6 gap-4">
+            {[
+              { label: 'Utilidad conocida', value: `$${financial.profit.known.toLocaleString('es-MX')}`, accent: financial.profit.margin && financial.profit.margin > 20 },
+              { label: 'Margen', value: financial.profit.margin != null ? `${financial.profit.margin}%` : '—', accent: financial.profit.margin != null && financial.profit.margin > 20 },
+              { label: 'MRR (este mes)', value: `$${financial.mrr.current.toLocaleString('es-MX')}`, accent: financial.mrr.current > financial.mrr.lastMonth },
+              { label: 'MRR (mes ant.)', value: `$${financial.mrr.lastMonth.toLocaleString('es-MX')}`, accent: false },
+              { label: 'Costo conocido', value: `$${financial.cost.known.toLocaleString('es-MX')}`, accent: false },
+              { label: 'Cobertura costos', value: `${financial.cost.coverage}%`, accent: financial.cost.coverage > 80 },
+            ].map((kpi) => (
+              <div key={kpi.label} className={`bg-coffee-100 dark:bg-coffee-900 border p-4 ${kpi.accent ? 'border-green-500/40' : 'border-coffee-200 dark:border-coffee-800'}`}>
+                <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-2">{kpi.label}</p>
+                <p className={`font-serif text-xl font-semibold ${kpi.accent ? 'text-green-600 dark:text-green-400' : 'text-coffee-900 dark:text-cream'}`}>
+                  {kpi.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Revenue by category + Top products row */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">Ingresos por categoría</h3>
+              {financial.revenueByCategory.length === 0 ? (
+                <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
+              ) : (
+                <div className="space-y-2">
+                  {financial.revenueByCategory.map((cat) => {
+                    const pct = financial.revenue.total > 0 ? ((cat.revenue / financial.revenue.total) * 100).toFixed(1) : '0';
+                    return (
+                      <div key={cat.category} className="flex items-center gap-3 py-1.5">
+                        <span className="text-coffee-800 dark:text-coffee-200 text-sm w-32 truncate shrink-0">{cat.category}</span>
+                        <div className="flex-1 h-5 bg-coffee-200 dark:bg-coffee-800 relative">
+                          <div className="absolute inset-y-0 left-0 bg-gold-500/60" style={{ width: `${Math.min(100, parseFloat(pct))}%` }} />
+                        </div>
+                        <span className="text-coffee-600 dark:text-coffee-400 text-xs w-20 text-right shrink-0">${cat.revenue.toLocaleString('es-MX')}</span>
+                        <span className="text-coffee-500 text-xs w-12 text-right shrink-0">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">Top ingresos por producto</h3>
+              {financial.topRevenueProducts.length === 0 ? (
+                <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
+              ) : (
+                <div className="space-y-3">
+                  {financial.topRevenueProducts.map((p, i) => (
+                    <div key={p.name} className="flex items-center justify-between py-2 border-b border-coffee-200/50 dark:border-coffee-800/50 last:border-0">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-coffee-500 text-xs w-5 text-right shrink-0">{i + 1}</span>
+                        <p className="text-coffee-800 dark:text-coffee-200 text-sm truncate">{p.name}</p>
+                      </div>
+                      <div className="text-right shrink-0 ml-4">
+                        <p className="text-coffee-900 dark:text-cream text-sm font-medium">{p.units} uds</p>
+                        <p className="text-gold-500 text-xs">${p.revenue.toLocaleString('es-MX')}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Revenue by month mini chart (last 6 months) */}
+          {financial.revenueByMonth.length > 0 && (
+            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">Tendencia ingresos (6 meses)</h3>
+              <div className="flex items-end gap-2 h-32">
+                {financial.revenueByMonth.map((m) => {
+                  const max = Math.max(...financial.revenueByMonth.map((x) => x.total), 1);
+                  const h = (m.total / max) * 100;
+                  const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                  return (
+                    <div key={m.key} className="flex-1 flex flex-col items-center gap-1">
+                      <span className="text-coffee-600 dark:text-coffee-400 text-xs">${(m.total / 1000).toFixed(0)}k</span>
+                      <div className="w-full bg-gold-500/60 rounded-t" style={{ height: `${Math.max(h, 2)}%` }} />
+                      <span className="text-coffee-500 text-xs">{monthNames[m.month]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

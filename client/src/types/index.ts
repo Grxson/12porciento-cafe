@@ -339,4 +339,21 @@ export interface AbandonedCart {
   createdAt: string;
 }
 
+export interface FinancialData {
+  revenue: {
+    total: number;
+    thisMonth: number;
+    lastMonth: number;
+    thisWeek: number;
+    lastWeek: number;
+  };
+  cost: { known: number; coverage: number };
+  profit: { known: number; margin: number | null };
+  mrr: { current: number; lastMonth: number };
+  revenueByMonth: { key: string; month: number; year: number; total: number }[];
+  revenueByCategory: { category: string; revenue: number }[];
+  topRevenueProducts: { name: string; revenue: number; units: number }[];
+  statusBreakdown: Record<string, { count: number; revenue: number }>;
+}
+
 export type { RecipeDraft, StepDraft } from './recipeDraft';

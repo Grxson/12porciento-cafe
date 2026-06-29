@@ -1,6 +1,7 @@
 {
   "name": "cafe-12-porciento",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
     "setup": "pnpm install && pnpm --filter server db:setup",
@@ -8,14 +9,22 @@
     "typecheck": "pnpm --filter ./client exec tsc --noEmit && pnpm --filter ./server exec tsc --noEmit",
     "test": "pnpm --filter client test && pnpm --filter server test",
     "clean": "rm -rf node_modules client/dist server/dist client/node_modules server/node_modules",
-    "lint": "echo 'No linter configured. Run F1-T1 to set up ESLint.'",
-    "format": "echo 'No formatter configured. Run F1-T1 to set up Prettier.'",
+    "lint": "eslint 'client/src/**/*.{ts,tsx}' 'server/src/**/*.ts'",
+    "format": "prettier --check 'client/src/**/*.{ts,tsx,css}' 'server/src/**/*.ts'",
+    "format:fix": "prettier --write 'client/src/**/*.{ts,tsx,css}' 'server/src/**/*.ts'",
     "docker:up": "docker compose up -d",
     "docker:build": "docker compose build",
     "docker:down": "docker compose down"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^8.2.2",
-    "railway": "^3.3.2"
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.1",
+    "railway": "^3.3.2",
+    "typescript-eslint": "^8.62.0"
   }
 }

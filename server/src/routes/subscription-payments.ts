@@ -218,8 +218,8 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
     const where: any = {};
     if (search) {
       where.OR = [
-        { subscription: { name: { contains: search as string } } },
-        { subscription: { email: { contains: search as string } } },
+        { subscription: { name: { contains: search as string, mode: 'insensitive' } } },
+        { subscription: { email: { contains: search as string, mode: 'insensitive' } } },
         { stripeInvoiceId: { contains: search as string } },
       ];
     }

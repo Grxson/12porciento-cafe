@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
+import { logAdminAction } from '../lib/adminLog';
 
 const router = Router();
 
@@ -165,6 +166,7 @@ router.post('/adjust', requireAuth, async (req: AuthRequest, res: Response) => {
       }),
     ]);
 
+    logAdminAction({ adminId: req.admin?.id, action: 'ADJUST', entity: 'Inventory', entityId: productId, metadata: { type, quantity: delta, previousStock: product.stock, newStock } });
     res.json({ product: updatedProduct, movement });
   } catch (err) {
     console.error(err);

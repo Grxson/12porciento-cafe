@@ -111,14 +111,19 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
     const skip = (page - 1) * pageSize;
+    const filterParam = req.query.filter as string;
+    const where: any = {};
+    if (filterParam === 'pending') where.isApproved = false;
+    if (filterParam === 'approved') where.isApproved = true;
     const [reviews, total] = await Promise.all([
       prisma.review.findMany({
+        where,
         skip,
         take: pageSize,
         include: { product: { select: { name: true, slug: true } } },
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.review.count(),
+      prisma.review.count({ where }),
     ]);
     res.json({ data: reviews, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
   } catch {

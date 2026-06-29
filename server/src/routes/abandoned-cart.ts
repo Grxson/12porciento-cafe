@@ -106,18 +106,30 @@ router.patch('/:id/recover', requireAuth, async (req: AuthRequest, res: Response
   }
 });
 
-// GET / — list all abandoned carts (admin)
+// GET / — list all abandoned carts (admin) with optional email/date/recovered filters
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = 20;
+    const email = (req.query.email as string) || '';
+    const from = (req.query.from as string) || '';
+    const to = (req.query.to as string) || '';
+    const recovered = req.query.recovered as string;
+
+    const where: any = {};
+    if (email) where.email = { contains: email.toLowerCase(), mode: 'insensitive' };
+    if (from) where.createdAt = { ...(where.createdAt || {}), gte: new Date(from) };
+    if (to) where.createdAt = { ...(where.createdAt || {}), lte: new Date(to + 'T23:59:59') };
+    if (recovered !== undefined) where.recovered = recovered === '1';
+
     const [carts, total] = await Promise.all([
       prisma.abandonedCart.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.abandonedCart.count(),
+      prisma.abandonedCart.count({ where }),
     ]);
     res.json({ data: carts, total, page, totalPages: Math.ceil(total / limit) });
   } catch {

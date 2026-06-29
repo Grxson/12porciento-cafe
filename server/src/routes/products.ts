@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
+import { logAdminAction } from '../lib/adminLog';
 
 const router = Router();
 
@@ -159,11 +160,25 @@ router.get('/', async (req: Request, res: Response) => {
 
 router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const includeInactive = req.query.includeInactive === 'true';
-    const where = includeInactive ? {} : { isActive: true };
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
     const skip = (page - 1) * pageSize;
+    const search = (req.query.search as string) || '';
+    const category = (req.query.category as string) || '';
+
+    const where: any = {};
+    // Admin always sees all products (active + inactive) unless explicitly filtered
+    if (req.query.isActive === 'true') where.isActive = true;
+    if (req.query.isActive === 'false') where.isActive = false;
+    if (category && category !== 'TODOS') where.category = category;
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { region: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
     const [products, total] = await Promise.all([
       prisma.product.findMany({ where, skip, take: pageSize, orderBy: { createdAt: 'desc' } }),
       prisma.product.count({ where }),
@@ -235,6 +250,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
         minOrderQty: minOrderQty ? parseInt(minOrderQty) : 1,
       },
     });
+    logAdminAction({ adminId: req.admin?.id, action: 'CREATE', entity: 'Product', entityId: product.id, metadata: { name: product.name } });
     res.status(201).json(parseProduct(product));
   } catch (e: any) {
     res.status(500).json({ error: 'Error al crear producto', detail: e?.message });
@@ -275,6 +291,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       }).catch((e) => console.error('[priceRecord] Failed to log price change:', e));
     }
 
+    logAdminAction({ adminId: req.admin?.id, action: 'UPDATE', entity: 'Product', entityId: req.params.id, metadata: { name: product.name } });
     res.json(parseProduct(product));
   } catch (e: any) {
     res.status(500).json({ error: 'Error al actualizar producto', detail: e?.message });
@@ -301,6 +318,7 @@ router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     if (!product) { res.status(404).json({ error: 'Producto no encontrado' }); return; }
     if (!product.isActive) { res.status(400).json({ error: 'El producto ya está inactivo' }); return; }
     await prisma.product.update({ where: { id: req.params.id }, data: { isActive: false } });
+    logAdminAction({ adminId: req.admin?.id, action: 'DELETE', entity: 'Product', entityId: req.params.id });
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Error al eliminar producto' });

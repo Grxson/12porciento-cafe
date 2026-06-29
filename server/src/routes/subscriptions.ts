@@ -403,6 +403,13 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const { status } = req.query;
     const where: any = {};
     if (status) where.status = status;
+    const search = (req.query.search as string) || '';
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
     const skip = (page - 1) * pageSize;

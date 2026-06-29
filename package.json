@@ -4,7 +4,15 @@
   "scripts": {
     "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
     "setup": "pnpm install && pnpm --filter server db:setup",
-    "build": "pnpm --filter client build && pnpm --filter server build"
+    "build": "pnpm --filter client build && pnpm --filter server build",
+    "typecheck": "pnpm --filter ./client exec tsc --noEmit && pnpm --filter ./server exec tsc --noEmit",
+    "test": "pnpm --filter client test && pnpm --filter server test",
+    "clean": "rm -rf node_modules client/dist server/dist client/node_modules server/node_modules",
+    "lint": "echo 'No linter configured. Run F1-T1 to set up ESLint.'",
+    "format": "echo 'No formatter configured. Run F1-T1 to set up Prettier.'",
+    "docker:up": "docker compose up -d",
+    "docker:build": "docker compose build",
+    "docker:down": "docker compose down"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

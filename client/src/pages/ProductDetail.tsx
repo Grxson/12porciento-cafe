@@ -15,6 +15,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import BrewingGuideModal from '../components/BrewingGuideModal';
 import ReviewThread from '../components/ReviewThread';
 import PriceHistory from '../components/PriceHistory';
+import PageSkeleton from '../components/PageSkeleton';
 import type { Product, Review, Recipe } from '../types';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
@@ -127,11 +128,7 @@ export default function ProductDetail() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20 bg-coffee-50 dark:bg-coffee-950">
-        <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
-      </div>
-    );
+    return <PageSkeleton variant="product-detail" />;
   }
 
   if (!product) {

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import api from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
+import PageSkeleton from '../components/PageSkeleton';
 import GalleryLightbox from '../components/GalleryLightbox';
 
 interface GalleryImage {
@@ -68,11 +69,7 @@ export default function Gallery() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-        {loading && (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
-          </div>
-        )}
+        {loading && <PageSkeleton variant="gallery-grid" />}
 
         {error && (
           <div className="text-center py-24">

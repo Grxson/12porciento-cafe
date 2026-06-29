@@ -20,18 +20,39 @@ const staticUrls: Array<{ loc: string; changefreq: string; priority: string; las
 
 router.get('/sitemap.xml', async (_req, res) => {
   try {
-    const products = await prisma.product.findMany({
-      where: { isActive: true },
-      select: { slug: true, updatedAt: true },
-    });
+    const [products, recipes, baristaProfiles] = await Promise.all([
+      prisma.product.findMany({
+        where: { isActive: true },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.recipe.findMany({
+        where: { isPublished: true },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.baristaProfile.findMany({
+        select: { userId: true, updatedAt: true },
+      }),
+    ]);
 
     const urls = [
       ...staticUrls,
-      ...products.map((p: { slug: string; updatedAt: Date }) => ({
+      ...products.map((p) => ({
         loc: `/producto/${p.slug}`,
         changefreq: 'weekly' as const,
         priority: '0.7',
         lastmod: p.updatedAt.toISOString(),
+      })),
+      ...recipes.map((r) => ({
+        loc: `/recetas/${r.slug}`,
+        changefreq: 'weekly' as const,
+        priority: '0.6',
+        lastmod: r.updatedAt.toISOString(),
+      })),
+      ...baristaProfiles.map((b) => ({
+        loc: `/perfil/barista/${b.userId}`,
+        changefreq: 'daily' as const,
+        priority: '0.4',
+        lastmod: b.updatedAt.toISOString(),
       })),
     ];
 

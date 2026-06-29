@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Calendar, CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { subscriptionPaymentsApi } from '../../api';
+import { getApiError } from '../../lib/api-error';
 
 interface BillingInfo {
   nextBilling: string;
@@ -62,8 +63,8 @@ export default function SubscriptionBilling({ subscriptionId }: Props) {
         ]);
         setBillingInfo(infoRes.data);
         setPayments(historyRes.data.payments);
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Error al cargar facturación');
+      } catch (err: unknown) {
+        setError(getApiError(err, 'Error al cargar facturación'));
       } finally {
         setLoading(false);
       }

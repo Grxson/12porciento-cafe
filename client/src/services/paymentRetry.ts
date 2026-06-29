@@ -7,10 +7,11 @@ export async function retryWithBackoff<T>(fn: () => Promise<T>, maxRetries = 3):
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (err: any) {
+    } catch (err: unknown) {
       lastErr = err;
-      const code: string | undefined = err?.code || err?.type;
-      const isNetwork: boolean = err?.code === 'ERR_NETWORK' || err?.message === 'Network Error';
+      const e = err as { code?: string; type?: string; message?: string };
+      const code: string | undefined = e.code || e.type;
+      const isNetwork: boolean = e.code === 'ERR_NETWORK' || e.message === 'Network Error';
       const retryable = isNetwork || (code !== undefined && RETRYABLE.includes(code));
       if (!retryable || attempt === maxRetries - 1) throw err;
       await new Promise((r) => setTimeout(r, delays[attempt] ?? 3000));

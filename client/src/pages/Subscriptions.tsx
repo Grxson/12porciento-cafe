@@ -13,6 +13,7 @@ import { PLAN_SLOTS } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useToast } from '../context/ToastContext';
 import { mexicanStates } from '../constants/mexico';
+import { getApiError } from '../lib/api-error';
 
 const plans: Array<{
   id: SubscriptionPlan;
@@ -158,8 +159,8 @@ export default function Subscriptions() {
         useUser.getState().setHasSubscription(true);
         setCurrentPlan(selectedPlan.id);
         setSuccess(true);
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Error al actualizar plan.');
+      } catch (err: unknown) {
+        setError(getApiError(err, 'Error al actualizar plan.'));
       } finally {
         setLoading(false);
       }
@@ -173,8 +174,8 @@ export default function Subscriptions() {
       const res = await subscriptionsApi.createSetupIntent();
       setSetupClientSecret(res.data.clientSecret);
       goToStep(4);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al iniciar configuración de pago.');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al iniciar configuración de pago.'));
     }
   };
 
@@ -198,8 +199,8 @@ export default function Subscriptions() {
       });
       useUser.getState().setHasSubscription(true);
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al procesar suscripción. Intenta de nuevo.');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al procesar suscripción. Intenta de nuevo.'));
     } finally {
       setLoading(false);
     }
@@ -221,8 +222,8 @@ export default function Subscriptions() {
         giroNegocio: b2bForm.giroNegocio || undefined,
       });
       setShowB2BConfirm(true);
-    } catch (err: any) {
-      addToast(err.message || 'Error al procesar consulta. Intenta de nuevo.', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al procesar consulta. Intenta de nuevo.'), 'error');
     } finally {
       setLoading(false);
     }
@@ -728,8 +729,8 @@ export default function Subscriptions() {
                       });
                       useUser.getState().setHasSubscription(true);
                       setSuccess(true);
-                    } catch (err: any) {
-                      setError(err.response?.data?.error || 'Error al procesar suscripción.');
+                    } catch (err: unknown) {
+                      setError(getApiError(err, 'Error al procesar suscripción.'));
                     } finally {
                       setLoading(false);
                     }
@@ -816,8 +817,8 @@ function SubscriptionCardForm({ clientSecret, onSuccess, onError, loading }: {
       } else {
         onError('No se pudo configurar el método de pago.');
       }
-    } catch (err: any) {
-      onError(err.message || 'Error al procesar tarjeta.');
+    } catch (err: unknown) {
+      onError(getApiError(err, 'Error al procesar tarjeta.'));
     } finally {
       setSaving(false);
     }

@@ -13,6 +13,7 @@ import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
+import { getApiError } from '../lib/api-error';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -166,8 +167,8 @@ export default function Inventory() {
       setAdjQty(''); setAdjNotes(''); setAdjProduct('');
       setAdjUnitCost(''); setAdjBatchNumber(''); setAdjExpiryDate(''); setAdjSupplier('');
       loadOverview();
-    } catch (err: any) {
-      addToast(err.response?.data?.error ?? 'Error al ajustar stock', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al ajustar stock'), 'error');
     } finally { setAdjSaving(false); }
   };
 

@@ -8,6 +8,7 @@ import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
 import { sendMail } from '../lib/mail';
+import { getErrorStatus } from '../lib/error-utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
@@ -310,8 +311,8 @@ router.post('/me/payment-methods/default', requireUserAuth, async (req: UserAuth
       data: { stripeDefaultPaymentMethodId: paymentMethodId },
     });
     res.json({ ok: true });
-  } catch (err: any) {
-    if (err.statusCode === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
+  } catch (err: unknown) {
+    if (getErrorStatus(err) === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
     res.status(500).json({ error: 'Error al guardar método de pago' });
   }
 });
@@ -333,8 +334,8 @@ router.delete('/me/payment-methods/:pmId', requireUserAuth, async (req: UserAuth
       await prisma.user.update({ where: { id: user.id }, data: { stripeDefaultPaymentMethodId: null } });
     }
     res.json({ ok: true });
-  } catch (err: any) {
-    if (err.statusCode === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
+  } catch (err: unknown) {
+    if (getErrorStatus(err) === 404) return res.status(404).json({ error: 'Método de pago no encontrado' });
     res.status(500).json({ error: 'Error al eliminar método de pago' });
   }
 });

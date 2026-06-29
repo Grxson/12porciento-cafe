@@ -4,6 +4,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
 import { emitEvent } from '../socket';
+import { getErrorMessage } from '../lib/error-utils';
 
 const router = Router();
 export const webhookRouter = Router();
@@ -72,9 +73,10 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
     }
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-    } catch (err: any) {
-      console.error('[sub-webhook] Signature failed:', err.message);
-      return res.status(400).json({ error: err.message });
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      console.error('[sub-webhook] Signature failed:', msg);
+      return res.status(400).json({ error: msg });
     }
   } else {
     if (process.env.NODE_ENV === 'production') {

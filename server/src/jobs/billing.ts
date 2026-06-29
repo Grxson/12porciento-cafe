@@ -1,6 +1,7 @@
 import { schedule } from 'node-cron';
 import Stripe from 'stripe';
 import { prisma } from '../db';
+import { getErrorMessage } from '../lib/error-utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia' as any,
@@ -41,8 +42,8 @@ export function startBillingScheduler(): void {
           } else {
             console.log(`[billing-job] Skipping ${sub.id}: Stripe status is ${stripeSub.status}`);
           }
-        } catch (err: any) {
-          console.error(`[billing-job] Error syncing ${sub.id}:`, err.message);
+        } catch (err: unknown) {
+          console.error(`[billing-job] Error syncing ${sub.id}:`, getErrorMessage(err));
         }
       }
 

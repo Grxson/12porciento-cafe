@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { PageMeta } from '../hooks/usePageMeta';
 import { usersApi } from '../api';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
+import { getApiError, getErrorStatus } from '../lib/api-error';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -18,11 +19,11 @@ export default function ForgotPassword() {
     try {
       await usersApi.forgotPassword(email);
       setSubmitted(true);
-    } catch (err: any) {
-      if (err?.response?.status === 404) {
-        setError(err?.response?.data?.error || 'No encontramos una cuenta con ese correo.');
+    } catch (err: unknown) {
+      if (getErrorStatus(err) === 404) {
+        setError(getApiError(err, 'No encontramos una cuenta con ese correo.'));
       } else {
-        setError(err?.response?.data?.error || 'Error al enviar el correo. Intenta más tarde.');
+        setError(getApiError(err, 'Error al enviar el correo. Intenta más tarde.'));
       }
     } finally {
       setLoading(false);

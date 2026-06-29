@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { getApiError } from '../../lib/api-error';
 
 export interface ModuleListConfig {
   /** When true, fetchList receives { page, ...serverFilters } and response must include { data, total, page, totalPages } */
@@ -43,8 +44,8 @@ export function useModuleList<T extends { id: string }>(
       } else {
         setItems(res.data?.data ?? []);
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || 'Error al cargar';
+    } catch (err: unknown) {
+      const msg = getApiError(err, 'Error al cargar');
       setError(msg);
       config?.onError?.(msg);
     } finally {
@@ -85,8 +86,8 @@ export function useModuleList<T extends { id: string }>(
         }
         config?.onSuccess?.('create', 'Creado correctamente');
         return res.data.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || 'Error al crear';
+      } catch (err: unknown) {
+        const msg = getApiError(err, 'Error al crear');
         setError(msg);
         config?.onError?.(msg);
         throw err;
@@ -107,8 +108,8 @@ export function useModuleList<T extends { id: string }>(
         }
         config?.onSuccess?.('update', 'Actualizado correctamente');
         return res.data.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || 'Error al actualizar';
+      } catch (err: unknown) {
+        const msg = getApiError(err, 'Error al actualizar');
         setError(msg);
         config?.onError?.(msg);
         throw err;
@@ -133,8 +134,8 @@ export function useModuleList<T extends { id: string }>(
           return next;
         });
         config?.onSuccess?.('delete', 'Eliminado correctamente');
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || 'Error al eliminar';
+      } catch (err: unknown) {
+        const msg = getApiError(err, 'Error al eliminar');
         setError(msg);
         config?.onError?.(msg);
         throw err;

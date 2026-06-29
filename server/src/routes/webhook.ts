@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { sendOrderConfirmation } from '../email';
 import { emitEvent } from '../socket';
+import { getErrorMessage, getErrorCode } from '../lib/error-utils';
 
 const router = Router();
 
@@ -29,9 +30,10 @@ router.post('/', async (req: Request, res: Response) => {
   let event: ReturnType<typeof stripe.webhooks.constructEvent>;
   try {
     event = stripe.webhooks.constructEvent(req.body, sig as string, webhookSecret);
-  } catch (err: any) {
-    console.error('[webhook] Signature verification failed:', err.message);
-    res.status(400).json({ error: `Webhook error: ${err.message}` });
+  } catch (err: unknown) {
+    const msg = getErrorMessage(err);
+    console.error('[webhook] Signature verification failed:', msg);
+    res.status(400).json({ error: `Webhook error: ${msg}` });
     return;
   }
 
@@ -160,8 +162,8 @@ router.post('/', async (req: Request, res: Response) => {
           total,
         }).catch(() => {});
       }).catch(() => {});
-    } catch (err: any) {
-      if (err.code === 'P2002') {
+    } catch (err: unknown) {
+      if (getErrorCode(err) === 'P2002') {
         // Unique constraint — order already exists (race condition with frontend)
         console.log(`[webhook] Order already exists for ${intent.id}`);
       } else {

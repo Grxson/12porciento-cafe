@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import jwt from 'jsonwebtoken';
+import { getErrorCode } from '../lib/error-utils';
 
 const router = Router();
 
@@ -204,9 +205,10 @@ router.post('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
     });
 
     res.status(201).json({ data: recipe });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
-    if (err.code === 'P2002') return res.status(409).json({ error: 'Ya existe una receta con ese slug' });
+    const code = getErrorCode(err);
+    if (code === 'P2002') return res.status(409).json({ error: 'Ya existe una receta con ese slug' });
     res.status(500).json({ error: 'Error al crear receta' });
   }
 });
@@ -242,9 +244,10 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
     });
 
     res.json({ data: recipe });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
-    if (err.code === 'P2002') return res.status(409).json({ error: 'Slug ya existe' });
+    const code = getErrorCode(err);
+    if (code === 'P2002') return res.status(409).json({ error: 'Slug ya existe' });
     res.status(500).json({ error: 'Error al actualizar receta' });
   }
 });

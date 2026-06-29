@@ -269,7 +269,7 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
       : updatedProfile;
 
     res.status(201).json({ data: { brewLog, profile: finalProfile, newAchievements } });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     res.status(500).json({ error: 'Error al registrar brew' });
   }

@@ -12,6 +12,7 @@ import { PLAN_SLOTS } from '../../types';
 import { resolveImageUrl } from '../../utils/imageUrl';
 import { useToast } from '../../context/ToastContext';
 import { PageMeta } from '../../hooks/usePageMeta';
+import { getApiError } from '../../lib/api-error';
 
 const FULFILLMENT_LABELS: Record<string, { label: string; color: string }> = {
   PENDIENTE:  { label: 'Pendiente de envío', color: 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30' },
@@ -74,8 +75,8 @@ export default function Subscription() {
       setShowPauseConfirm(false);
       setPauseReason('');
       setPauseUntil('');
-    } catch (err: any) {
-      addToast(err.response?.data?.error || 'Error al pausar suscripción', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al pausar suscripción'), 'error');
     } finally { setPausing(false); }
   };
 
@@ -85,8 +86,8 @@ export default function Subscription() {
     try {
       const res = await subscriptionPauseApi.resume();
       setSub(res.data.data);
-    } catch (err: any) {
-      addToast(err.response?.data?.error || 'Error al reanudar suscripción', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al reanudar suscripción'), 'error');
     } finally { setPausing(false); }
   };
 
@@ -103,8 +104,8 @@ export default function Subscription() {
       setSub(updated.data);
       setEditing(false);
       addToast('Selección de cafés actualizada ✓', 'success');
-    } catch (err: any) {
-      setSaveError(err.response?.data?.error || 'Error al guardar cambios');
+    } catch (err: unknown) {
+      setSaveError(getApiError(err, 'Error al guardar cambios'));
     } finally { setSaving(false); }
   };
 

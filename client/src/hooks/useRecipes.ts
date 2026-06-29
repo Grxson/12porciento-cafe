@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { recipesApi } from '../api';
 import type { Recipe } from '../types';
+import { getApiError } from '../lib/api-error';
 
 export function useRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -13,8 +14,8 @@ export function useRecipes() {
     try {
       const res = await recipesApi.adminList();
       setRecipes(res.data.data);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al cargar recetas');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al cargar recetas'));
     } finally {
       setLoading(false);
     }
@@ -29,8 +30,8 @@ export function useRecipes() {
       const res = await recipesApi.create(data);
       setRecipes(prev => [...prev, res.data.data]);
       return res.data.data;
-    } catch (err: any) {
-      throw err.response?.data?.error || 'Error al crear receta';
+    } catch (err: unknown) {
+      throw getApiError(err, 'Error al crear receta');
     }
   }, []);
 
@@ -39,8 +40,8 @@ export function useRecipes() {
       const res = await recipesApi.update(id, data);
       setRecipes(prev => prev.map(r => r.id === id ? res.data.data : r));
       return res.data.data;
-    } catch (err: any) {
-      throw err.response?.data?.error || 'Error al actualizar receta';
+    } catch (err: unknown) {
+      throw getApiError(err, 'Error al actualizar receta');
     }
   }, []);
 
@@ -48,8 +49,8 @@ export function useRecipes() {
     try {
       await recipesApi.delete(id);
       setRecipes(prev => prev.filter(r => r.id !== id));
-    } catch (err: any) {
-      throw err.response?.data?.error || 'Error al eliminar receta';
+    } catch (err: unknown) {
+      throw getApiError(err, 'Error al eliminar receta');
     }
   }, []);
 

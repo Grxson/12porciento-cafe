@@ -10,6 +10,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 import type { Recipe, RecipeStep } from '../types';
 import type { RecipeFormData } from '../hooks/useRecipeForm';
 import { PageMeta } from '../hooks/usePageMeta';
+import { getApiError } from '../lib/api-error';
 
 // ─── Step modal state shape ──────────────────────────────────────────────────
 interface StepModalState {
@@ -64,8 +65,8 @@ function RecipesContent() {
       }
       setRecipeModal({ open: false });
       await refresh();
-    } catch (err: any) {
-      addToast(err?.response?.data?.error || 'Error al guardar receta', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al guardar receta'), 'error');
     } finally {
       setSavingRecipe(false);
     }
@@ -81,8 +82,8 @@ function RecipesContent() {
     try {
       await deleteRecipe(confirmRecipe.id);
       addToast('Receta eliminada', 'success');
-    } catch (err: any) {
-      addToast(err?.response?.data?.error || 'Error al eliminar', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al eliminar'), 'error');
     } finally {
       setDeletingRecipe(false);
       setConfirmRecipe(null);
@@ -110,8 +111,8 @@ function RecipesContent() {
       await recipesApi.deleteStep(confirmStep.recipeId, confirmStep.step.id);
       addToast('Paso eliminado', 'success');
       await refresh();
-    } catch (err: any) {
-      addToast(err?.response?.data?.error || 'Error al eliminar paso', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al eliminar paso'), 'error');
     } finally {
       setDeletingStep(false);
       setConfirmStep(null);
@@ -122,8 +123,8 @@ function RecipesContent() {
     try {
       await recipesApi.reorderSteps(recipeId, stepIds);
       await refresh();
-    } catch (err: any) {
-      addToast(err?.response?.data?.error || 'Error al reordenar', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al reordenar'), 'error');
     }
   };
 
@@ -142,8 +143,8 @@ function RecipesContent() {
       }
       setStepModal(null);
       await refresh();
-    } catch (err: any) {
-      addToast(err?.response?.data?.error || 'Error al guardar paso', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al guardar paso'), 'error');
     } finally {
       setSavingStep(false);
     }

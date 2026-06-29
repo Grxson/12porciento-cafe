@@ -4,6 +4,7 @@ import { PageMeta } from '../hooks/usePageMeta';
 import { usersApi } from '../api';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import PasswordField from '../components/PasswordField';
+import { getApiError } from '../lib/api-error';
 
 export default function ResetPassword() {
   const { token } = useParams<{ token: string }>();
@@ -34,8 +35,8 @@ export default function ResetPassword() {
       await usersApi.resetPassword(token, password);
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
-    } catch (err: any) {
-      setError(err?.response?.data?.error || 'Error al restablecer la contraseña');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al restablecer la contraseña'));
     } finally {
       setLoading(false);
     }

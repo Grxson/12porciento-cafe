@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { baristaApi } from '../api';
 import { useToast } from '../context/ToastContext';
 import type { BaristaProfile } from '../types';
+import { getApiError, getErrorStatus } from '../lib/api-error';
 
 interface UseBaristaResult {
   profile: BaristaProfile | null;
@@ -31,8 +32,8 @@ export function useBarista(userId?: string): UseBaristaResult {
     try {
       const res = await baristaApi.getProfile(userId);
       setProfile(res.data.data);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al cargar perfil');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al cargar perfil'));
     } finally {
       setLoading(false);
     }
@@ -103,9 +104,9 @@ export function useBarista(userId?: string): UseBaristaResult {
       }
 
       return { newAchievements: res.data.data.newAchievements ?? [] };
-    } catch (err: any) {
-      if (err.response?.status === 409) return { newAchievements: [] }; // duplicate, already synced
-      setError(err.response?.data?.error || 'Error al registrar brew');
+    } catch (err: unknown) {
+      if (getErrorStatus(err) === 409) return { newAchievements: [] }; // duplicate, already synced
+      setError(getApiError(err, 'Error al registrar brew'));
       throw err;
     }
   }, []);

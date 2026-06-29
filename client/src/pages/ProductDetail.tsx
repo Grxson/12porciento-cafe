@@ -17,6 +17,7 @@ import ReviewThread from '../components/ReviewThread';
 import PriceHistory from '../components/PriceHistory';
 import PageSkeleton from '../components/PageSkeleton';
 import type { Product, Review, Recipe } from '../types';
+import { getApiError } from '../lib/api-error';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
 
@@ -84,8 +85,8 @@ export default function ProductDetail() {
         setInWishlist(true);
         addToast('Agregado a lista de deseos', 'success');
       }
-    } catch (err: any) {
-      addToast(err.response?.data?.error || 'Error al actualizar lista de deseos', 'error');
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al actualizar lista de deseos'), 'error');
     } finally {
       setWishlistLoading(false);
     }
@@ -120,8 +121,8 @@ export default function ProductDetail() {
       await reviewsApi.create(product.id, { ...reviewForm, userId: loggedUser?.id });
       setReviewSuccess(true);
       setReviewForm({ name: loggedUser?.name ?? '', email: loggedUser?.email ?? '', rating: 0, comment: '' });
-    } catch (err: any) {
-      setReviewError(err.response?.data?.error || 'Error al enviar reseña.');
+    } catch (err: unknown) {
+      setReviewError(getApiError(err, 'Error al enviar reseña.'));
     } finally {
       setReviewSubmitting(false);
     }

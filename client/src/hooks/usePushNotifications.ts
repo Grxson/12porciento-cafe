@@ -116,11 +116,11 @@ export function usePushNotifications() {
 
       setState((s) => ({ ...s, subscribed: true, loading: false }));
       addToast('🔔 Notificaciones activadas', 'success');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[PUSH] subscribe error:', err);
       setState((s) => ({ ...s, loading: false }));
 
-      if (err.name === 'NotAllowedError') {
+      if ((err as Error).name === 'NotAllowedError') {
         addToast('Permiso de notificaciones denegado', 'error');
       } else {
         addToast('Error al activar notificaciones', 'error');

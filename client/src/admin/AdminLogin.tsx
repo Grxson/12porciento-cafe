@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { authApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
+import { getApiError } from '../lib/api-error';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -23,8 +24,8 @@ export default function AdminLogin() {
       const res = await authApi.login(email, password);
       localStorage.setItem('admin_token', res.data.token);
       navigate('/admin/dashboard', { replace: true });
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Credenciales inválidas');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Credenciales inválidas'));
     } finally {
       setLoading(false);
     }

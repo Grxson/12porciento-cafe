@@ -7,6 +7,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { sendOrderConfirmation, sendOrderStatusUpdate } from '../email';
 import { emitEvent } from '../socket';
+import { getErrorMessage, getErrorCode } from '../lib/error-utils';
 
 const router = Router();
 
@@ -253,21 +254,23 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
       });
 
       res.status(201).json(order);
-    } catch (err: any) {
-      if (err?.code === 'P2002' && paymentIntentId) {
+    } catch (err: unknown) {
+      const code = getErrorCode(err);
+      if (code === 'P2002' && paymentIntentId) {
         const existing = await prisma.order.findUnique({
           where: { paymentIntentId },
           include: { items: { include: { product: true } } },
         });
         if (existing) return res.json(existing);
       }
-      if (err?.message?.startsWith('VALIDATION:')) {
-        return res.status(400).json({ error: err.message.replace('VALIDATION:', '') });
+      const msg = getErrorMessage(err);
+      if (msg.startsWith('VALIDATION:')) {
+        return res.status(400).json({ error: msg.replace('VALIDATION:', '') });
       }
       throw err;
     }
-  } catch (err: any) {
-    res.status(500).json({ error: err?.message || 'Error al crear pedido' });
+  } catch (err: unknown) {
+    res.status(500).json({ error: getErrorMessage(err, 'Error al crear pedido') });
   }
 });
 

@@ -10,6 +10,7 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
+import { getApiError } from '../lib/api-error';
 
 function FulfillmentBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
@@ -125,8 +126,8 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
       addToast('Suscripción actualizada correctamente.', 'success');
       onSaved();
       onClose();
-    } catch (err: any) {
-      const msg = err?.response?.data?.error ?? 'Error al guardar cambios.';
+    } catch (err: unknown) {
+      const msg = getApiError(err, 'Error al guardar cambios.');
       addToast(msg, 'error');
     } finally {
       setSaving(false);

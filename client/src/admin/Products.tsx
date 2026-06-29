@@ -11,6 +11,7 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
+import { getApiError } from '../lib/api-error';
 import { exportToCsv } from './utils/csvExport';
 import type { Product } from '../types';
 
@@ -117,8 +118,8 @@ export default function AdminProducts() {
       else if (editId) await productsApi.update(editId, data);
       setModal(null);
       load(page);
-    } catch (err: any) {
-      setFormError(err?.response?.data?.error || 'Error al guardar el producto.');
+    } catch (err: unknown) {
+      setFormError(getApiError(err, 'Error al guardar el producto.'));
     } finally {
       setSaving(false);
     }

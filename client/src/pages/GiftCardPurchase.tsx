@@ -5,6 +5,7 @@ import { Gift, ChevronLeft, Check, Copy, Lock, Send } from 'lucide-react';
 import { paymentsApi, giftCardsApi } from '../api';
 import { useUser } from '../context/UserContext';
 import { friendlyStripeError } from '../services/paymentRetry';
+import { getApiError } from '../lib/api-error';
 import { PageMeta } from '../hooks/usePageMeta';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
@@ -44,8 +45,8 @@ export default function GiftCardPurchase() {
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId);
       setStep('payment');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al iniciar el pago');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al iniciar el pago'));
     } finally {
       setLoading(false);
     }
@@ -65,8 +66,8 @@ export default function GiftCardPurchase() {
       setGiftCode(res.data.data.code);
       setShowAmount(amount);
       setStep('success');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al registrar la gift card. Contacta soporte.');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al registrar la gift card. Contacta soporte.'));
     } finally {
       setLoading(false);
     }

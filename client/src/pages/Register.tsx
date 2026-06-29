@@ -6,6 +6,7 @@ import { useUser } from '../context/UserContext';
 import { mexicanStates } from '../constants/mexico';
 import { PageMeta } from '../hooks/usePageMeta';
 import PasswordField from '../components/PasswordField';
+import { getApiError } from '../lib/api-error';
 
 export default function Register() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -31,8 +32,8 @@ export default function Register() {
     try {
       await register(form.name, form.email, form.password);
       setStep(2);
-    } catch (err: any) {
-      setError(err.response?.data?.error ?? 'Error al crear cuenta');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al crear cuenta'));
     } finally {
       setLoading(false);
     }

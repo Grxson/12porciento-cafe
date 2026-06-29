@@ -13,6 +13,7 @@ import { mexicanStates } from '../constants/mexico';
 import type { PaymentMethod } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
 import PushPermissionBanner from '../components/PushPermissionBanner';
+import { getApiError, getErrorStatus } from '../lib/api-error';
 
 interface FormData {
   customerName: string;
@@ -173,8 +174,8 @@ export default function Checkout() {
       const discountAmt = type !== 'FIXED' ? sub * (discount / 100) : Math.min(discount, sub);
       setPromoCode(promoInput.trim().toUpperCase());
       setPromoDiscount(discountAmt);
-    } catch (err: any) {
-      setPromoError(err.response?.data?.error || 'Código inválido');
+    } catch (err: unknown) {
+      setPromoError(getApiError(err, 'Código inválido'));
     } finally {
       setPromoLoading(false);
     }
@@ -234,10 +235,10 @@ export default function Checkout() {
       setPaymentIntentId(res.data.paymentIntentId ?? '');
       setIntentAmount(res.data.amount);
       setStep(3);
-    } catch (err: any) {
-      const msg = err.response?.data?.error || 'Error al iniciar el pago. Intenta de nuevo.';
+    } catch (err: unknown) {
+      const msg = getApiError(err, 'Error al iniciar el pago. Intenta de nuevo.');
       setError(msg);
-      if (err.response?.status === 400 && /stock|máximo|maximo/i.test(msg)) {
+      if (getErrorStatus(err) === 400 && /stock|máximo|maximo/i.test(msg)) {
         addToast(msg, 'warning');
       }
     } finally {
@@ -267,8 +268,8 @@ export default function Checkout() {
       } else if (result.paymentIntent?.status === 'succeeded') {
         await handlePaymentSuccess();
       }
-    } catch (err: any) {
-      setError(err.message || 'Error al procesar el pago.');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al procesar el pago.'));
     } finally {
       setConfirmingSaved(false);
     }
@@ -290,7 +291,7 @@ export default function Checkout() {
       }));
       setSuccess(true);
       clearCart();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Order creation failed after payment:', err);
       setSuccess(true);
       addToast('Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte.', 'error', 8000);

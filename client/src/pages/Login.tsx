@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useUser } from '../context/UserContext';
 import { PageMeta } from '../hooks/usePageMeta';
 import PasswordField from '../components/PasswordField';
+import { getApiError } from '../lib/api-error';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -21,8 +22,8 @@ export default function Login() {
     try {
       await login(email, password);
       navigate(params.get('redirect') ?? '/', { replace: true });
-    } catch (err: any) {
-      setError(err.response?.data?.error ?? 'Error al iniciar sesión');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al iniciar sesión'));
     } finally {
       setLoading(false);
     }

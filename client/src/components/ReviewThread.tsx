@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Send, User } from 'lucide-react';
 import { reviewsApi } from '../api';
 import { useUser } from '../context/UserContext';
+import { getApiError } from '../lib/api-error';
 
 interface Reply {
   id: string;
@@ -71,8 +72,8 @@ export default function ReviewThread({ reviewId }: Props) {
       setSuccessMsg('Respuesta enviada. Será visible tras aprobación.');
       await loadReplies();
       successTimerRef.current = setTimeout(() => setSuccessMsg(null), 4000);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al enviar respuesta');
+    } catch (err: unknown) {
+      setError(getApiError(err, 'Error al enviar respuesta'));
     } finally {
       setSubmitting(false);
     }

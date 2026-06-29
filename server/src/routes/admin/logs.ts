@@ -30,7 +30,8 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
     ]);
 
     res.json({ data: logs, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
-  } catch {
+  } catch (err) {
+    console.error('[/admin/logs]', err);
     res.status(500).json({ error: 'Error al obtener logs de auditoría' });
   }
 });

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Star, Check, Trash2, MessageSquare, X } from 'lucide-react';
+import { Star, Check, Trash2, MessageSquare, X, Download } from 'lucide-react';
 import { reviewsApi } from '../api';
+import { exportToCsv } from './utils/csvExport';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -134,6 +135,20 @@ export default function AdminReviews() {
             </button>
           ))}
         </div>
+        <button
+          onClick={() => exportToCsv(reviews, 'resenas', [
+            { key: 'name', label: 'Nombre' },
+            { key: 'email', label: 'Email' },
+            { key: 'rating', label: 'Rating' },
+            { key: 'comment', label: 'Comentario' },
+            { key: 'isApproved', label: 'Aprobada' },
+            { key: 'createdAt', label: 'Creado' },
+          ])}
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
       </div>
 
       {pendingSelected > 0 && (

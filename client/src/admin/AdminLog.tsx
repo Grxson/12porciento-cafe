@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Download } from 'lucide-react';
+import { exportToCsv } from './utils/csvExport';
 import { PageMeta } from '../hooks/usePageMeta';
 import { adminApi } from '../api';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -69,15 +70,42 @@ export default function AdminLog() {
     }
   };
 
+  const handleExportCsv = () => {
+    const flat = logs.map((l) => ({
+      admin: l.admin?.name ?? l.admin?.email ?? '—',
+      accion: l.action,
+      entidad: l.entity,
+      entidadId: l.entityId ?? '',
+      metadata: l.metadata ?? '',
+      fecha: l.createdAt,
+    }));
+    exportToCsv(flat, 'auditoria', [
+      { key: 'admin', label: 'Admin' },
+      { key: 'accion', label: 'Acción' },
+      { key: 'entidad', label: 'Entidad' },
+      { key: 'entidadId', label: 'ID Entidad' },
+      { key: 'fecha', label: 'Fecha' },
+    ]);
+  };
+
   return (
     <div className="p-8">
       <PageMeta title="Auditoría" noSuffix />
-      <div className="flex items-center gap-3 mb-8">
-        <ClipboardList className="w-6 h-6 text-gold-500" />
-        <div>
-          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Auditoría</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} acciones registradas</p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <ClipboardList className="w-6 h-6 text-gold-500" />
+          <div>
+            <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Auditoría</h1>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} acciones registradas</p>
+          </div>
         </div>
+        <button
+          onClick={handleExportCsv}
+          className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
       </div>
 
       {/* Filters */}

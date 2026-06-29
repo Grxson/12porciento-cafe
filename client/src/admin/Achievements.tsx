@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Award, Edit3, Plus, Search, Trash2 } from 'lucide-react';
+import { Award, Edit3, Plus, Search, Trash2, Download } from 'lucide-react';
+import { exportToCsv } from './utils/csvExport';
 import { PageMeta } from '../hooks/usePageMeta';
 import { achievementsApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
@@ -186,10 +187,25 @@ export default function Achievements() {
         </div>
       </div>
 
-      <button onClick={openCreate} className="btn-primary flex items-center gap-2 mb-8">
-        <Plus className="w-4 h-4" />
-        Crear Logro
-      </button>
+      <div className="flex items-center gap-2 mb-8">
+        <button onClick={openCreate} className="btn-primary flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Crear Logro
+        </button>
+        <button
+          onClick={() => exportToCsv(achievements, 'logros', [
+            { key: 'slug', label: 'Slug' },
+            { key: 'name', label: 'Nombre' },
+            { key: 'description', label: 'Descripción' },
+            { key: 'rarity', label: 'Rareza' },
+            { key: 'xpReward', label: 'XP' },
+          ])}
+          className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
+      </div>
 
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />

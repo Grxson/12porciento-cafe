@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { CreditCard, Search, X } from 'lucide-react';
+import { CreditCard, Search, X, Download } from 'lucide-react';
+import { exportToCsv } from './utils/csvExport';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
 import { subscriptionPaymentsApi } from '../api';
@@ -70,15 +71,45 @@ export default function SubscriptionPayments() {
 
   useEffect(() => { loadPage(page); }, [loadPage, page]);
 
+  const handleExportCsv = () => {
+    const flat = payments.map((p) => ({
+      suscriptor: p.subscription?.name ?? '',
+      email: p.subscription?.email ?? '',
+      plan: p.subscription?.plan ?? '',
+      monto: p.amount,
+      estado: p.status,
+      fecha: p.billingDate,
+      factura: p.stripeInvoiceId,
+    }));
+    exportToCsv(flat, 'pagos-suscripciones', [
+      { key: 'suscriptor', label: 'Suscriptor' },
+      { key: 'email', label: 'Email' },
+      { key: 'plan', label: 'Plan' },
+      { key: 'monto', label: 'Monto' },
+      { key: 'estado', label: 'Estado' },
+      { key: 'fecha', label: 'Fecha' },
+      { key: 'factura', label: 'Factura' },
+    ]);
+  };
+
   return (
     <div className="p-8">
       <PageMeta title="Pagos de Suscripciones" noSuffix />
-      <div className="flex items-center gap-3 mb-6">
-        <CreditCard className="w-6 h-6 text-gold-500" />
-        <div>
-          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Pagos de Suscripciones</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{pagination.total} pagos</p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <CreditCard className="w-6 h-6 text-gold-500" />
+          <div>
+            <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Pagos de Suscripciones</h1>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{pagination.total} pagos</p>
+          </div>
         </div>
+        <button
+          onClick={handleExportCsv}
+          className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
       </div>
 
       {/* Search */}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, Building2, Mail, Phone, Calendar, ChevronDown, Loader2, MessageCircle } from 'lucide-react';
+import { Search, Building2, Mail, Phone, Calendar, ChevronDown, Loader2, MessageCircle, Download } from 'lucide-react';
+import { exportToCsv } from './utils/csvExport';
 import AdminModal from './components/AdminModal';
 import { subscriptionsApi } from '../api';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -96,6 +97,21 @@ export default function B2BInquiries() {
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Consultas B2B</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{inquiries.length} consultas</p>
         </div>
+        <button
+          onClick={() => exportToCsv(inquiries, 'consultas-b2b', [
+            { key: 'empresa', label: 'Empresa' },
+            { key: 'rfc', label: 'RFC' },
+            { key: 'contactoNombre', label: 'Contacto' },
+            { key: 'contactoEmail', label: 'Email' },
+            { key: 'contactoTelefono', label: 'Teléfono' },
+            { key: 'status', label: 'Estado' },
+            { key: 'createdAt', label: 'Creado' },
+          ])}
+          className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
       </div>
 
       {/* Search */}

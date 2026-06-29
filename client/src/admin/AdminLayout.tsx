@@ -85,7 +85,7 @@ function AdminLayoutInner() {
         <div className="p-6 border-b border-coffee-200 dark:border-coffee-800 flex items-center justify-between">
           <div>
             <div className="font-serif text-2xl font-black text-coffee-900 dark:text-cream">12%</div>
-            <div className="text-[10px] tracking-[0.3em] text-gold-500 uppercase">panel admin</div>
+            <div className="text-xs tracking-widest text-gold-500 uppercase">panel admin</div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}

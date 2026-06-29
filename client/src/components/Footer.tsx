@@ -9,7 +9,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <Link to="/" className="flex flex-col leading-none mb-4">
               <span className="font-serif text-3xl font-bold text-coffee-900 dark:text-cream">12%</span>
-              <span className="text-[10px] tracking-[0.3em] text-gold-600 dark:text-gold-500 uppercase">doce por ciento</span>
+              <span className="text-xs tracking-widest text-gold-600 dark:text-gold-500 uppercase">doce por ciento</span>
             </Link>
             <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed max-w-xs">
               Solo el 12% del café producido en el mundo es de especialidad. Ese es nuestro universo.

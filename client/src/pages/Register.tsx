@@ -60,7 +60,7 @@ export default function Register() {
       >
         <div className="text-center mb-10">
           <div className="font-serif text-5xl font-black text-coffee-900 dark:text-cream">12%</div>
-          <div className="text-[10px] tracking-[0.3em] text-gold-500 uppercase mt-1">
+          <div className="text-xs tracking-widest text-gold-500 uppercase mt-1">
             {step === 1 ? 'nueva cuenta' : 'dirección de envío'}
           </div>
         </div>

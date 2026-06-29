@@ -36,14 +36,14 @@ export default function BottomNav() {
               key={to}
               to={target}
               aria-label={isCart ? (count > 0 ? `Carrito, ${count} producto${count !== 1 ? 's' : ''}` : 'Carrito') : undefined}
-              className={`relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-[10px] tracking-wide transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-xs tracking-wide transition-colors ${
                 active ? 'text-gold-500' : 'text-coffee-500 dark:text-coffee-400'
               }`}
             >
               <span className="relative">
                 <Icon className="w-5 h-5" />
                 {badge && count > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-gold-500 text-coffee-950 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-2 bg-gold-500 text-coffee-950 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
                     {count}
                   </span>
                 )}

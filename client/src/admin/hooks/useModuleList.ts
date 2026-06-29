@@ -8,11 +8,29 @@ export interface ModuleListConfig {
   onError?: (message: string) => void;
 }
 
+export type FetchParams = Record<string, string | number | boolean | undefined>;
+export type ItemData = Record<string, unknown>;
+
+interface ApiListResponse {
+  data?: {
+    data?: unknown[];
+    totalPages?: number;
+    total?: number;
+    page?: number;
+  };
+}
+
+interface ApiItemResponse {
+  data?: {
+    data?: unknown;
+  };
+}
+
 export function useModuleList<T extends { id: string }>(
-  fetchList: (params?: Record<string, any>) => Promise<any>,
-  createItem?: (data: any) => Promise<any>,
-  updateItem?: (id: string, data: any) => Promise<any>,
-  deleteItem?: (id: string) => Promise<any>,
+  fetchList: (params?: FetchParams) => Promise<unknown>,
+  createItem?: (data: ItemData) => Promise<unknown>,
+  updateItem?: (id: string, data: ItemData) => Promise<unknown>,
+  deleteItem?: (id: string) => Promise<unknown>,
   config?: ModuleListConfig,
 ) {
   const serverSide = config?.serverSide ?? false;
@@ -21,9 +39,9 @@ export function useModuleList<T extends { id: string }>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // Client-side filters (legacy behaviour, no-op in serverSide mode)
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
   // Server-side filters + pagination
-  const [serverFilters, setServerFiltersRaw] = useState<Record<string, any>>({});
+  const [serverFilters, setServerFiltersRaw] = useState<Record<string, unknown>>({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -34,15 +52,15 @@ export function useModuleList<T extends { id: string }>(
     setError(null);
     try {
       const params = serverSide ? { page, ...serverFilters } : undefined;
-      const res = await fetchList(params);
+      const res = await fetchList(params) as ApiListResponse;
       if (serverSide) {
-        setItems(res.data?.data ?? []);
+        setItems((res.data?.data ?? []) as T[]);
         setTotalPages(res.data?.totalPages ?? 1);
         setTotal(res.data?.total ?? 0);
         // Trust server page echo if present, else keep local
         if (res.data?.page) setPage(res.data.page);
       } else {
-        setItems(res.data?.data ?? []);
+        setItems((res.data?.data ?? []) as T[]);
       }
     } catch (err: unknown) {
       const msg = getApiError(err, 'Error al cargar');
@@ -58,13 +76,13 @@ export function useModuleList<T extends { id: string }>(
   }, [load]);
 
   // Server-side filter setter — always resets to page 1
-  const setServerFilters = useCallback((f: Record<string, any>) => {
+  const setServerFilters = useCallback((f: Record<string, unknown>) => {
     setServerFiltersRaw(f);
     setPage(1);
   }, []);
 
   // Convenience: update one server filter key
-  const setServerFilter = useCallback((key: string, value: any) => {
+  const setServerFilter = useCallback((key: string, value: unknown) => {
     setServerFiltersRaw((prev) => ({ ...prev, [key]: value }));
     setPage(1);
   }, []);
@@ -74,18 +92,18 @@ export function useModuleList<T extends { id: string }>(
   }, []);
 
   const create = useCallback(
-    async (data: any) => {
+    async (data: ItemData) => {
       if (!createItem) throw new Error('Create not available');
       try {
-        const res = await createItem(data);
+        const res = await createItem(data) as ApiItemResponse;
         if (serverSide) {
           // Reload to get accurate server state
           load();
         } else {
-          setItems((prev) => [...prev, res.data.data]);
+          setItems((prev) => [...prev, res.data?.data as T]);
         }
         config?.onSuccess?.('create', 'Creado correctamente');
-        return res.data.data;
+        return res.data?.data as T;
       } catch (err: unknown) {
         const msg = getApiError(err, 'Error al crear');
         setError(msg);
@@ -97,17 +115,17 @@ export function useModuleList<T extends { id: string }>(
   );
 
   const update = useCallback(
-    async (id: string, data: any) => {
+    async (id: string, data: ItemData) => {
       if (!updateItem) throw new Error('Update not available');
       try {
-        const res = await updateItem(id, data);
+        const res = await updateItem(id, data) as ApiItemResponse;
         if (serverSide) {
           load();
         } else {
-          setItems((prev) => prev.map((i) => (i.id === id ? res.data.data : i)));
+          setItems((prev) => prev.map((i) => (i.id === id ? res.data?.data as T : i)));
         }
         config?.onSuccess?.('update', 'Actualizado correctamente');
-        return res.data.data;
+        return res.data?.data as T;
       } catch (err: unknown) {
         const msg = getApiError(err, 'Error al actualizar');
         setError(msg);
@@ -150,7 +168,7 @@ export function useModuleList<T extends { id: string }>(
     return items.filter((item) =>
       Object.entries(filters).every(([key, value]) => {
         if (value === undefined || value === null || value === '') return true;
-        return (item as any)[key] === value;
+        return (item as Record<string, unknown>)[key] === value;
       }),
     );
   }, [items, filters, serverSide]);

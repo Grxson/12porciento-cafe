@@ -193,7 +193,7 @@ export default function Recipes() {
     const interval = setInterval(() => {
       setTimerState((prev) => {
         if (!prev || prev.secondsLeft <= 1) {
-          const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+          const AudioCtx = window.AudioContext || (window as unknown as Record<string, unknown>).webkitAudioContext as typeof AudioContext | undefined;
           if (AudioCtx) {
             const ctx = new AudioCtx();
             const osc = ctx.createOscillator();

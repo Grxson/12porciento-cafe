@@ -87,8 +87,8 @@ export default function AdminUsers() {
       setFormOpen(false);
       addToast('Usuario admin creado', 'success');
       load();
-    } catch (e: any) {
-      const msg = e.response?.data?.error || 'Error al crear usuario admin';
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Error al crear usuario admin';
       setFormError(msg);
       addToast(msg, 'error');
     } finally {
@@ -102,8 +102,8 @@ export default function AdminUsers() {
       await adminUsersApi.delete(id);
       addToast('Usuario admin eliminado', 'success');
       load();
-    } catch (e: any) {
-      const msg = e.response?.data?.error || 'Error al eliminar usuario admin';
+    } catch (e: unknown) {
+      const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Error al eliminar usuario admin';
       addToast(msg, 'error');
     } finally {
       setDeleting(false);

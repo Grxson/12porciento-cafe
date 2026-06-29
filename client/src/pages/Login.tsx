@@ -47,8 +47,9 @@ export default function Login() {
           <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Iniciar sesión</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email</label>
+              <label htmlFor="login-email" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email</label>
               <input
+                id="login-email"
                 type="email" required value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -63,6 +64,7 @@ export default function Login() {
               placeholder="••••••••"
               autoComplete="current-password"
               showStrength={false}
+              id="login-password"
             />
             <div className="flex justify-end">
               <Link to="/olvide-contrasena" className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">

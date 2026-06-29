@@ -36,10 +36,9 @@ export function useRecipeForm(initialData?: RecipeFormData) {
   const [form, setForm] = useState<RecipeFormData>(initialData || EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof RecipeFormData, string>>>({});
 
-  const updateField = useCallback((field: keyof RecipeFormData, value: any) => {
+  const updateField = useCallback((field: keyof RecipeFormData, value: unknown) => {
     setForm(prev => {
-      const updated = { ...prev, [field]: value };
-      // Auto-generate slug from title if slug is empty
+      const updated = { ...prev, [field]: value as RecipeFormData[keyof RecipeFormData] };
       if (field === 'title' && !prev.slug) {
         updated.slug = (value as string).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       }

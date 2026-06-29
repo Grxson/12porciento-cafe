@@ -1,9 +1,9 @@
-export function exportToCsv<T extends Record<string, any>>(
+export function exportToCsv<T extends object>(
   data: T[],
   filename: string,
   columns: { key: keyof T; label: string }[],
 ) {
-  const escape = (val: any): string => {
+  const escape = (val: unknown): string => {
     if (val === null || val === undefined) return '';
     const s = String(val);
     if (s.includes(',') || s.includes('"') || s.includes('\n')) {

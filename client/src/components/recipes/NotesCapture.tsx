@@ -9,8 +9,8 @@ interface NotesCaptureProps {
 
 const TEMPLATES = ['Muy caliente', 'Frío', 'Amargo', 'Ácido', 'Perfecto', 'Ajustar dosis'];
 
-const SpeechRecognition =
-  (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SpeechRecognition = ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) as any;
 
 function appendNote(existing: string, addition: string): string {
   return existing ? `${existing} · ${addition}` : addition;
@@ -21,6 +21,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
   const [micDenied, setMicDenied] = useState(false);
   const [stepPhoto, setStepPhoto] = useState<string | null>(null); // R14: Per-step photo capture
   const [interim, setInterim] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef(value);

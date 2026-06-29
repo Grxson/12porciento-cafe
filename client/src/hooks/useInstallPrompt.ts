@@ -8,13 +8,13 @@ interface BeforeInstallPromptEvent extends Event {
 function getIsStandalone(): boolean {
   return (
     window.matchMedia?.('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true
+    (window.navigator as unknown as Record<string, unknown>).standalone === true
   );
 }
 
 function getIsIOS(): boolean {
   const ua = window.navigator.userAgent;
-  return /iphone|ipad|ipod/i.test(ua) && !(window as any).MSStream;
+  return /iphone|ipad|ipod/i.test(ua) && !(window as unknown as Record<string, unknown>).MSStream;
 }
 
 export function useInstallPrompt() {

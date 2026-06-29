@@ -20,9 +20,14 @@ function loadPersistedState(): State {
     if (!raw) return { notifications: [], unreadCount: 0 };
     const parsed = JSON.parse(raw);
     // Rehydrate timestamp strings into Date objects
-    const notifications: Notification[] = (parsed.notifications ?? []).map((n: any) => ({
-      ...n,
-      timestamp: new Date(n.timestamp),
+    const notifications: Notification[] = (parsed.notifications ?? []).map((n: Record<string, unknown>) => ({
+      id: String(n.id),
+      event: String(n.event),
+      title: String(n.title),
+      message: String(n.message),
+      data: n.data as Record<string, unknown> | undefined,
+      timestamp: new Date(n.timestamp as string | number | Date),
+      read: Boolean(n.read),
     }));
     const unread = notifications.filter((n) => !n.read).length;
     return { notifications, unreadCount: unread };

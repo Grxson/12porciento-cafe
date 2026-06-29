@@ -37,7 +37,7 @@ interface Movement {
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const MOVEMENT_TYPES: Record<string, { label: string; color: string; icon: React.FC<any> }> = {
+const MOVEMENT_TYPES: Record<string, { label: string; color: string; icon: React.FC<{ className?: string }> }> = {
   SALE:       { label: 'Venta',      color: 'text-red-600 dark:text-red-400',    icon: ArrowDownCircle },
   RESTOCK:    { label: 'Reabasto',   color: 'text-green-600 dark:text-green-400',  icon: ArrowUpCircle },
   ADJUSTMENT: { label: 'Ajuste',     color: 'text-blue-700 dark:text-blue-400',   icon: SlidersHorizontal },
@@ -82,10 +82,10 @@ export default function Inventory() {
 
   // Alerts
   const [alerts, setAlerts] = useState<{
-    outOfStock: any[];
-    lowStock: any[];
-    overstock: any[];
-    expiringBatches: any[];
+    outOfStock: { id: string; name: string; imageUrl: string; sku?: string }[];
+    lowStock: { id: string; name: string; imageUrl: string; stock: number; lowStockThreshold: number; supplier?: string }[];
+    overstock: { id: string; name: string; imageUrl: string; stock: number; lowStockThreshold: number }[];
+    expiringBatches: { productId: string; productName: string; batchNumber?: string; expiryDate: string }[];
     summary: { outOfStockCount: number; lowStockCount: number; overstockCount: number; expiringCount: number };
   } | null>(null);
 
@@ -122,7 +122,7 @@ export default function Inventory() {
 
   const loadMovements = (page = 1) => {
     setMovLoading(true);
-    const params: any = { page, pageSize: 50 };
+    const params: Record<string, string | number> = { page, pageSize: 50 };
     if (filterType) params.type = filterType;
     if (filterProduct) params.productId = filterProduct;
     if (filterFrom) params.dateFrom = filterFrom;
@@ -464,8 +464,8 @@ export default function Inventory() {
           </p>
           <form onSubmit={handleAdjust} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 space-y-5">
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Producto *</label>
-              <select value={adjProduct} onChange={(e) => setAdjProduct(e.target.value)} required
+              <label htmlFor="inventory-product" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Producto *</label>
+              <select id="inventory-product" value={adjProduct} onChange={(e) => setAdjProduct(e.target.value)} required
                 className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none">
                 <option value="">Seleccionar producto</option>
                 {products.map((p) => (
@@ -499,13 +499,13 @@ export default function Inventory() {
             </div>
 
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+              <label htmlFor="inventory-qty" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
                 Cantidad *
                 <span className="text-coffee-600 dark:text-coffee-400 ml-2 normal-case tracking-normal">
                   {adjType === 'ADJUSTMENT' ? '(+ para agregar, − para quitar)' : '(número positivo)'}
                 </span>
               </label>
-              <input type="number" value={adjQty} onChange={(e) => setAdjQty(e.target.value)} required
+              <input id="inventory-qty" type="number" value={adjQty} onChange={(e) => setAdjQty(e.target.value)} required
                 min={adjType === 'ADJUSTMENT' ? undefined : 1}
                 placeholder={adjType === 'ADJUSTMENT' ? 'ej: -5 o 10' : 'ej: 50'}
                 className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
@@ -524,33 +524,33 @@ export default function Inventory() {
             </div>
 
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Notas / razón</label>
-              <textarea value={adjNotes} onChange={(e) => setAdjNotes(e.target.value)} rows={2}
+              <label htmlFor="inventory-notes" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Notas / razón</label>
+              <textarea id="inventory-notes" value={adjNotes} onChange={(e) => setAdjNotes(e.target.value)} rows={2}
                 placeholder="Ej: Llegó pedido proveedor, mercancía dañada en transporte..."
                 className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none resize-none" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Costo unitario (MXN)</label>
-                <input type="number" step="0.01" value={adjUnitCost} onChange={(e) => setAdjUnitCost(e.target.value)}
+                <label htmlFor="inventory-unit-cost" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Costo unitario (MXN)</label>
+                <input id="inventory-unit-cost" type="number" step="0.01" value={adjUnitCost} onChange={(e) => setAdjUnitCost(e.target.value)}
                   placeholder="0.00"
                   className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
               </div>
               <div>
-                <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Número de lote</label>
-                <input value={adjBatchNumber} onChange={(e) => setAdjBatchNumber(e.target.value)}
+                <label htmlFor="inventory-batch" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Número de lote</label>
+                <input id="inventory-batch" value={adjBatchNumber} onChange={(e) => setAdjBatchNumber(e.target.value)}
                   placeholder="LOT-2026-001"
                   className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
               </div>
               <div>
-                <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Fecha de caducidad</label>
-                <input type="date" value={adjExpiryDate} onChange={(e) => setAdjExpiryDate(e.target.value)}
+                <label htmlFor="inventory-expiry" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Fecha de caducidad</label>
+                <input id="inventory-expiry" type="date" value={adjExpiryDate} onChange={(e) => setAdjExpiryDate(e.target.value)}
                   className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
               </div>
               <div>
-                <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Proveedor</label>
-                <input value={adjSupplier} onChange={(e) => setAdjSupplier(e.target.value)}
+                <label htmlFor="inventory-supplier" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Proveedor</label>
+                <input id="inventory-supplier" value={adjSupplier} onChange={(e) => setAdjSupplier(e.target.value)}
                   placeholder="Nombre del proveedor"
                   className="w-full bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none" />
               </div>
@@ -576,7 +576,7 @@ export default function Inventory() {
                   <XCircle className="w-4 h-4" /> Agotados ({alerts.outOfStock.length})
                 </h3>
                 <div className="space-y-2">
-                  {alerts.outOfStock.map((p: any) => (
+                  {alerts.outOfStock.map((p) => (
                     <div key={p.id} className="flex items-center justify-between bg-red-100 dark:bg-red-900/10 border border-red-300 dark:border-red-500/20 p-3">
                       <div className="flex items-center gap-3">
                         <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
@@ -598,7 +598,7 @@ export default function Inventory() {
                   <AlertTriangle className="w-4 h-4" /> Stock bajo ({alerts.lowStock.length})
                 </h3>
                 <div className="space-y-2">
-                  {alerts.lowStock.map((p: any) => (
+                  {alerts.lowStock.map((p) => (
                     <div key={p.id} className="flex items-center justify-between bg-yellow-100 dark:bg-yellow-900/10 border border-yellow-300 dark:border-yellow-500/20 p-3">
                       <div className="flex items-center gap-3">
                         <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />
@@ -623,7 +623,7 @@ export default function Inventory() {
                   Lotes por vencer (próximos 30 días) ({alerts.expiringBatches.length})
                 </h3>
                 <div className="space-y-2">
-                  {alerts.expiringBatches.map((b: any, i: number) => (
+                  {alerts.expiringBatches.map((b, i) => (
                     <div key={`${b.productId}-${b.batchNumber ?? i}`} className="flex items-center justify-between bg-orange-100 dark:bg-orange-900/10 border border-orange-300 dark:border-orange-500/20 p-3">
                       <p className="text-coffee-900 dark:text-cream text-sm">{b.productName}</p>
                       <div className="text-right">
@@ -642,7 +642,7 @@ export default function Inventory() {
                   <TrendingUp className="w-4 h-4" /> Sobreabasto ({alerts.overstock.length})
                 </h3>
                 <div className="space-y-2">
-                  {alerts.overstock.map((p: any) => (
+                  {alerts.overstock.map((p) => (
                     <div key={p.id} className="flex items-center justify-between bg-blue-100 dark:bg-blue-900/10 border border-blue-300 dark:border-blue-500/20 p-3">
                       <div className="flex items-center gap-3">
                         <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-cover" />

@@ -75,8 +75,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
         {/* Campos básicos */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Título *</label>
+            <label htmlFor="recipe-title" className={labelCls}>Título *</label>
             <input
+              id="recipe-title"
               type="text"
               value={form.title}
               onChange={(e) => updateField('title', e.target.value)}
@@ -87,8 +88,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label className={labelCls}>Slug *</label>
+            <label htmlFor="recipe-slug" className={labelCls}>Slug *</label>
             <input
+              id="recipe-slug"
               type="text"
               value={form.slug}
               onChange={(e) => updateField('slug', e.target.value)}
@@ -100,8 +102,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
         </div>
 
         <div>
-          <label className={labelCls}>Descripción</label>
+          <label htmlFor="recipe-description" className={labelCls}>Descripción</label>
           <textarea
+            id="recipe-description"
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
             rows={2}
@@ -113,8 +116,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
         {/* Método y dificultad */}
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className={labelCls}>Método *</label>
+            <label htmlFor="recipe-method" className={labelCls}>Método *</label>
             <select
+              id="recipe-method"
               value={form.method}
               onChange={(e) => updateField('method', e.target.value)}
               className={inputCls}
@@ -124,8 +128,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label className={labelCls}>Dificultad</label>
+            <label htmlFor="recipe-difficulty" className={labelCls}>Dificultad</label>
             <select
+              id="recipe-difficulty"
               value={form.difficulty}
               onChange={(e) => updateField('difficulty', e.target.value as typeof DIFFICULTIES[number])}
               className={inputCls}
@@ -135,8 +140,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label className={labelCls}>Tiempo (min)</label>
+            <label htmlFor="recipe-prep-time" className={labelCls}>Tiempo (min)</label>
             <input
+              id="recipe-prep-time"
               type="number"
               value={form.prepTime}
               onChange={(e) => updateField('prepTime', e.target.value)}
@@ -149,8 +155,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
         {/* Parámetros técnicos */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Rendimiento</label>
+            <label htmlFor="recipe-yield" className={labelCls}>Rendimiento</label>
             <input
+              id="recipe-yield"
               type="text"
               value={form.yield}
               onChange={(e) => updateField('yield', e.target.value)}
@@ -160,7 +167,7 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label className={labelCls}>Café relacionado</label>
+            <label htmlFor="recipe-product" className={labelCls}>Café relacionado</label>
             <SearchableProductSelect
               value={form.productId}
               onChange={(id) => updateField('productId', id)}
@@ -171,8 +178,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className={labelCls}>Temperatura</label>
+            <label htmlFor="recipe-temp" className={labelCls}>Temperatura</label>
             <input
+              id="recipe-temp"
               type="text"
               value={form.temp}
               onChange={(e) => updateField('temp', e.target.value)}
@@ -182,8 +190,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label className={labelCls}>Molido</label>
+            <label htmlFor="recipe-grind" className={labelCls}>Molido</label>
             <input
+              id="recipe-grind"
               type="text"
               value={form.grind}
               onChange={(e) => updateField('grind', e.target.value)}
@@ -193,8 +202,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label className={labelCls}>Ratio</label>
+            <label htmlFor="recipe-ratio" className={labelCls}>Ratio</label>
             <input
+              id="recipe-ratio"
               type="text"
               value={form.ratio}
               onChange={(e) => updateField('ratio', e.target.value)}

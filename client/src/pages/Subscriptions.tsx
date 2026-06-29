@@ -491,15 +491,16 @@ export default function Subscriptions() {
                     <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Solicitud de asesoría</h3>
 
                     {[
-                      { name: 'empresa', label: 'Empresa *', type: 'text', required: true, placeholder: 'Nombre de tu empresa' },
-                      { name: 'rfc', label: 'RFC *', type: 'text', required: true, placeholder: 'RFC de tu empresa' },
-                      { name: 'contactoNombre', label: 'Nombre del contacto *', type: 'text', required: true, placeholder: 'Tu nombre completo' },
-                      { name: 'contactoEmail', label: 'Email corporativo *', type: 'email', required: true, placeholder: 'contacto@empresa.com' },
-                      { name: 'contactoTelefono', label: 'Teléfono *', type: 'tel', required: true, placeholder: '55 1234 5678' },
-                    ].map(({ name, label, type, required, placeholder }) => (
+                      { name: 'empresa', label: 'Empresa *', type: 'text', required: true, placeholder: 'Nombre de tu empresa', id: 'b2b-empresa' },
+                      { name: 'rfc', label: 'RFC *', type: 'text', required: true, placeholder: 'RFC de tu empresa', id: 'b2b-rfc' },
+                      { name: 'contactoNombre', label: 'Nombre del contacto *', type: 'text', required: true, placeholder: 'Tu nombre completo', id: 'b2b-contacto-nombre' },
+                      { name: 'contactoEmail', label: 'Email corporativo *', type: 'email', required: true, placeholder: 'contacto@empresa.com', id: 'b2b-contacto-email' },
+                      { name: 'contactoTelefono', label: 'Teléfono *', type: 'tel', required: true, placeholder: '55 1234 5678', id: 'b2b-contacto-telefono' },
+                    ].map(({ name, label, type, required, placeholder, id }) => (
                       <div key={name}>
-                        <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">{label}</label>
+                        <label htmlFor={id} className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">{label}</label>
                         <input
+                          id={id}
                           type={type} required={required} placeholder={placeholder}
                           value={b2bForm[name as keyof B2BFormData]}
                           onChange={(e) => setB2BForm((f) => ({ ...f, [name]: e.target.value }))}
@@ -509,8 +510,9 @@ export default function Subscriptions() {
                     ))}
 
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Volumen estimado *</label>
+                      <label htmlFor="b2b-volumen" className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Volumen estimado *</label>
                       <select
+                        id="b2b-volumen"
                         required
                         value={b2bForm.volumenEstimado}
                         onChange={(e) => setB2BForm((f) => ({ ...f, volumenEstimado: e.target.value as B2BFormData['volumenEstimado'] }))}
@@ -523,8 +525,9 @@ export default function Subscriptions() {
                     </div>
 
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Giro del negocio</label>
+                      <label htmlFor="b2b-giro" className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">Giro del negocio</label>
                       <input
+                        id="b2b-giro"
                         type="text" placeholder="Ej: Oficina, Café, Restaurante, etc."
                         value={b2bForm.giroNegocio || ''}
                         onChange={(e) => setB2BForm((f) => ({ ...f, giroNegocio: e.target.value }))}

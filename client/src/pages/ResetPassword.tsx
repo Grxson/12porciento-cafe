@@ -74,6 +74,8 @@ export default function ResetPassword() {
                   onConfirmChange={(e) => setConfirm(e.target.value)}
                   confirmLabel="Confirmar contraseña"
                   confirmPlaceholder="Repite la contraseña"
+                  id="reset-password"
+                  confirmId="reset-confirm-password"
                 />
                 {error && (
                   <div className="flex items-start gap-2 text-red-500 text-xs">

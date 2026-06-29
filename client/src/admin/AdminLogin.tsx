@@ -50,8 +50,9 @@ export default function AdminLogin() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email</label>
+              <label htmlFor="admin-login-email" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email</label>
               <input
+                id="admin-login-email"
                 type="email"
                 required
                 value={email}
@@ -62,8 +63,9 @@ export default function AdminLogin() {
               />
             </div>
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Contraseña</label>
+              <label htmlFor="admin-login-password" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Contraseña</label>
               <input
+                id="admin-login-password"
                 type="password"
                 required
                 value={password}

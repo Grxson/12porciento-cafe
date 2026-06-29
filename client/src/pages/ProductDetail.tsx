@@ -149,7 +149,7 @@ export default function ProductDetail() {
   const isCafe = product.category === 'CAFÉ';
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
-  const tabs: { id: Tab; label: string; icon: any; count?: number }[] = [
+  const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
     { id: 'info', label: 'Descripción', icon: Coffee },
     ...(isCafe ? [{ id: 'ficha' as Tab, label: 'Ficha Técnica', icon: FlaskConical }] : []),
     ...(isCafe && productRecipes.length > 0 ? [{ id: 'recipes' as Tab, label: 'Recetas', icon: BookOpen, count: productRecipes.length }] : []),
@@ -640,13 +640,14 @@ export default function ProductDetail() {
                           />
                         </div>
 
-                        {!loggedUser && [
-                          { key: 'name', label: 'Nombre *', required: true, type: 'text' },
-                          { key: 'email', label: 'Email *', required: true, type: 'email' },
-                        ].map(({ key, label, required, type }) => (
+{!loggedUser && [
+                          { key: 'name', label: 'Nombre *', required: true, type: 'text', id: 'review-name' },
+                          { key: 'email', label: 'Email *', required: true, type: 'email', id: 'review-email' },
+                        ].map(({ key, label, required, type, id }) => (
                           <div key={key}>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1">{label}</label>
+                            <label htmlFor={id} className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1">{label}</label>
                             <input
+                              id={id}
                               required={required}
                               type={type}
                               value={(reviewForm as any)[key]}
@@ -657,8 +658,9 @@ export default function ProductDetail() {
                         ))}
 
                         <div>
-                          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1">Comentario *</label>
+                          <label htmlFor="review-comment" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1">Comentario *</label>
                           <textarea
+                            id="review-comment"
                             required
                             rows={4}
                             value={reviewForm.comment}

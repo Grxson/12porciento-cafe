@@ -25,9 +25,9 @@ export function useRecipes() {
     load();
   }, [load]);
 
-  const createRecipe = useCallback(async (data: any) => {
+  const createRecipe = useCallback(async (data: Record<string, unknown>) => {
     try {
-      const res = await recipesApi.create(data);
+      const res = await recipesApi.create(data as Partial<Recipe> & { title: string; slug: string; method: string });
       setRecipes(prev => [...prev, res.data.data]);
       return res.data.data;
     } catch (err: unknown) {
@@ -35,9 +35,9 @@ export function useRecipes() {
     }
   }, []);
 
-  const updateRecipe = useCallback(async (id: string, data: any) => {
+  const updateRecipe = useCallback(async (id: string, data: Record<string, unknown>) => {
     try {
-      const res = await recipesApi.update(id, data);
+      const res = await recipesApi.update(id, data as Partial<Recipe> & { title: string; slug: string; method: string });
       setRecipes(prev => prev.map(r => r.id === id ? res.data.data : r));
       return res.data.data;
     } catch (err: unknown) {

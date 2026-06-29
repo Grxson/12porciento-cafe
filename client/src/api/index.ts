@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { UserProfile, Order, Review, Subscription, PaymentMethod, Recipe, RecipeStep, WishlistItem, Product, RecipeRating, GiftCard, AbandonedCart } from '../types';
+import type { UserProfile, Order, Review, Subscription, PaymentMethod, Recipe, RecipeStep, WishlistItem, Product, RecipeRating, GiftCard, AbandonedCart, Bundle, Achievement } from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -44,16 +44,21 @@ export interface ProductsListResponse {
 
 export const productsApi = {
   list: (params?: Record<string, string>) => api.get<ProductsListResponse>('/products', { params }),
-  adminList: (params?: Record<string, any>) => api.get('/products/admin/all', { params }),
+  adminList: (params?: Record<string, string>) => api.get('/products/admin/all', { params }),
   getBySlug: (slug: string) => api.get(`/products/${slug}`),
-  create: (data: any) => api.post('/products', data),
-  update: (id: string, data: any) => api.put(`/products/${id}`, data),
+  create: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => api.post('/products', data),
+  update: (id: string, data: Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>) => api.put(`/products/${id}`, data),
   delete: (id: string) => api.delete(`/products/${id}`),
   priceHistory: (id: string) => api.get<{ data: { id: string; price: number; createdAt: string }[] }>(`/products/${id}/price-history`),
 };
 
 export const ordersApi = {
-  create: (data: any) => api.post('/orders', data),
+  create: (data: {
+    customerName: string; email: string; phone?: string; address: string;
+    city: string; state: string; zipCode: string; notes?: string;
+    userId?: string; paymentIntentId?: string; promoCode?: string;
+    items: { productId: string; quantity: number }[];
+  }) => api.post('/orders', data),
   list: (params?: Record<string, string>) => api.get('/orders', { params }),
   getById: (id: string) => api.get(`/orders/${id}`),
   updateStatus: (id: string, status: string) => api.put(`/orders/${id}/status`, { status }),
@@ -142,21 +147,29 @@ export const subscriptionPaymentsApi = {
       }>;
     }>(`/subscription-payments/user/${subscriptionId}/payments`),
   list: (params?: { page?: string; limit?: string; search?: string }) =>
-    api.get<{ data: any[]; pagination: any }>('/subscription-payments/admin/all', { params }),
+    api.get<{
+      data: Array<{
+        id: string; status: string; amount: number; billingDate: string;
+        stripeInvoiceId: string; subscription: { name: string; email: string; plan: string };
+      }>;
+      pagination: { page: number; limit: number; total: number; pages: number };
+    }>('/subscription-payments/admin/all', { params }),
 };
 
 export const bundlesApi = {
-  list: () => api.get('/bundles'),
-  getById: (id: string) => api.get(`/bundles/${id}`),
-  create: (data: any) => api.post('/bundles', data),
-  update: (id: string, data: any) => api.put(`/bundles/${id}`, data),
+  list: () => api.get<{ data: Bundle[] }>('/bundles'),
+  getById: (id: string) => api.get<{ data: Bundle }>(`/bundles/${id}`),
+  create: (data: Omit<Bundle, 'id' | 'createdAt' | 'updatedAt'>) => api.post<{ data: Bundle }>('/bundles', data),
+  update: (id: string, data: Partial<Omit<Bundle, 'id' | 'createdAt' | 'updatedAt'>>) => api.put<{ data: Bundle }>(`/bundles/${id}`, data),
   delete: (id: string) => api.delete(`/bundles/${id}`),
 };
 
 export const reviewsApi = {
-  listByProduct: (productId: string) => api.get(`/reviews/product/${productId}`),
-  create: (productId: string, data: any) => api.post(`/reviews/product/${productId}`, data),
-  adminList: (params?: Record<string, any>) => api.get('/reviews/admin/all', { params }),
+  listByProduct: (productId: string) => api.get<{ data: Review[] }>(`/reviews/product/${productId}`),
+  create: (productId: string, data: { rating: number; comment?: string; name?: string; email?: string; userId?: string }) =>
+    api.post<{ data: Review }>(`/reviews/product/${productId}`, data),
+  adminList: (params?: Record<string, string>) =>
+    api.get<{ data: Review[]; totalPages?: number; total?: number }>('/reviews/admin/all', { params }),
   approve: (id: string) => api.put(`/reviews/${id}/approve`),
   respond: (id: string, adminResponse: string) => api.put(`/reviews/${id}/respond`, { adminResponse }),
   delete: (id: string) => api.delete(`/reviews/${id}`),
@@ -270,19 +283,26 @@ export const uploadsApi = {
   },
 };
 
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
 export const adminUsersApi = {
-  list: () => api.get<any[]>('/admin-users'),
+  list: () => api.get<AdminUser[]>('/admin-users'),
   create: (data: { name: string; email: string; password: string }) =>
-    api.post<any>('/admin-users', data),
+    api.post<AdminUser>('/admin-users', data),
   delete: (id: string) => api.delete(`/admin-users/${id}`),
 };
 
 export const achievementsApi = {
-  list: () => api.get<{ achievements: any[] }>('/barista/achievements'),
+  list: () => api.get<{ achievements: Achievement[] }>('/barista/achievements'),
   create: (data: { name: string; slug: string; description?: string; icon?: string; rarity?: string; xpReward?: number }) =>
-    api.post<any>('/barista/admin-achievements', data),
-  update: (id: string, data: any) =>
-    api.put<any>(`/barista/admin-achievements/${id}`, data),
+    api.post<{ data: Achievement }>('/barista/admin-achievements', data),
+  update: (id: string, data: { name: string; slug: string; description?: string; icon?: string; rarity?: string; xpReward?: number }) =>
+    api.put<{ data: Achievement }>(`/barista/admin-achievements/${id}`, data),
   delete: (id: string) => api.delete(`/barista/admin-achievements/${id}`),
 };
 

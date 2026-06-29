@@ -43,8 +43,8 @@ export default function AdminBundles() {
   const { addToast } = useModuleToast();
 
   const fetchList = useCallback(() => bundlesApi.list(), []);
-  const createItem = useCallback((data: any) => bundlesApi.create(data), []);
-  const updateItem = useCallback((id: string, data: any) => bundlesApi.update(id, data), []);
+  const createItem = useCallback((data: Record<string, unknown>) => bundlesApi.create(data as Parameters<typeof bundlesApi.create>[0]), []);
+  const updateItem = useCallback((id: string, data: Record<string, unknown>) => bundlesApi.update(id, data as Parameters<typeof bundlesApi.update>[1]), []);
   const deleteItem = useCallback((id: string) => bundlesApi.delete(id), []);
 
   const {

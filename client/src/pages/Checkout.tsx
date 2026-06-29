@@ -437,8 +437,9 @@ export default function Checkout() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Nombre completo *</label>
+                      <label htmlFor="checkout-customername" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Nombre completo *</label>
                       <input
+                        id="checkout-customername"
                         name="customerName" type="text" required
                         value={form.customerName} onChange={handleChange}
                         className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.customerName ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
@@ -447,8 +448,9 @@ export default function Checkout() {
                       {fieldErrors.customerName && <p className="text-red-400 text-xs mt-1">{fieldErrors.customerName}</p>}
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email *</label>
+                      <label htmlFor="checkout-email" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email *</label>
                       <input
+                        id="checkout-email"
                         name="email" type="email" required
                         value={form.email} onChange={handleChange}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
@@ -458,38 +460,38 @@ export default function Checkout() {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
-                    <input name="phone" value={form.phone} onChange={handleChange}
+                    <label htmlFor="checkout-phone" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
+                    <input id="checkout-phone" name="phone" value={form.phone} onChange={handleChange}
                       className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                       placeholder="55 1234 5678" />
                     {fieldErrors.phone && <p className="text-red-400 text-xs mt-1">{fieldErrors.phone}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Dirección *</label>
-                    <input name="address" required value={form.address} onChange={handleChange}
+                    <label htmlFor="checkout-address" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Dirección *</label>
+                    <input id="checkout-address" name="address" required value={form.address} onChange={handleChange}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                       placeholder="Calle, número, colonia" />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
-                      <input name="city" required value={form.city} onChange={handleChange}
+                      <label htmlFor="checkout-city" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
+                      <input id="checkout-city" name="city" required value={form.city} onChange={handleChange}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                         placeholder="Ciudad" />
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
-                      <select name="state" required value={form.state} onChange={handleChange}
+                      <label htmlFor="checkout-state" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
+                      <select id="checkout-state" name="state" required value={form.state} onChange={handleChange}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none">
                         <option value="">Seleccionar</option>
                         {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
-                      <input name="zipCode" required value={form.zipCode} onChange={handleChange}
+                      <label htmlFor="checkout-zipcode" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
+                      <input id="checkout-zipcode" name="zipCode" required value={form.zipCode} onChange={handleChange}
                         className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                         placeholder="12345" />
                       {fieldErrors.zipCode && <p className="text-red-400 text-xs mt-1">{fieldErrors.zipCode}</p>}
@@ -497,8 +499,8 @@ export default function Checkout() {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Notas adicionales</label>
-                    <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
+                    <label htmlFor="checkout-notes" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Notas adicionales</label>
+                    <textarea id="checkout-notes" name="notes" value={form.notes} onChange={handleChange} rows={3}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base focus:border-gold-500 focus:outline-none resize-none"
                       placeholder="Instrucciones especiales..." />
                   </div>

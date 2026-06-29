@@ -80,8 +80,8 @@ export default function AchievementGallery() {
           // Count method-specific brews
           if (profile.brewLogs) {
             const methodCounts: Record<string, number> = {};
-            profile.brewLogs.forEach((log: any) => {
-              const method = log.recipe?.method;
+            profile.brewLogs.forEach((log: Record<string, unknown>) => {
+              const method = (log.recipe as Record<string, unknown>)?.method as string | undefined;
               if (method) methodCounts[method] = (methodCounts[method] || 0) + 1;
             });
             progress['v60_5'] = { current: Math.min(methodCounts['V60'] || 0, 5), target: 5 };

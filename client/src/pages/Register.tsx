@@ -87,12 +87,13 @@ export default function Register() {
                 <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Crear cuenta</h1>
                 <form onSubmit={handleStep1} className="space-y-4">
                   {[
-                    { name: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', autoComplete: 'name' },
-                    { name: 'email', label: 'Email', type: 'email', placeholder: 'tu@email.com', autoComplete: 'email' },
-                  ].map(({ name, label, type, placeholder, autoComplete }) => (
+                    { name: 'name', label: 'Nombre completo', type: 'text', placeholder: 'Tu nombre', autoComplete: 'name', id: 'register-name' },
+                    { name: 'email', label: 'Email', type: 'email', placeholder: 'tu@email.com', autoComplete: 'email', id: 'register-email' },
+                  ].map(({ name, label, type, placeholder, autoComplete, id }) => (
                     <div key={name}>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
+                      <label htmlFor={id} className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
                       <input
+                        id={id}
                         name={name} type={type} required
                         value={form[name as keyof typeof form]} onChange={handleChange}
                         autoComplete={autoComplete}
@@ -109,6 +110,7 @@ export default function Register() {
                     autoComplete="new-password"
                     name="password"
                     showStrength
+                    id="register-password"
                   />
                   {error && <p className="text-red-400 text-sm">{error}</p>}
                   <button type="submit" disabled={loading}
@@ -129,33 +131,33 @@ export default function Register() {
                 <p className="text-coffee-500 text-xs mb-6">Para recibir tus pedidos y suscripciones.</p>
                 <form onSubmit={handleStep2} className="space-y-4">
                   <div>
-                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
-                    <input name="phone" type="tel" value={address.phone} onChange={handleAddressChange}
+                    <label htmlFor="register-phone" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
+                    <input id="register-phone" name="phone" type="tel" value={address.phone} onChange={handleAddressChange}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
                       placeholder="55 1234 5678" />
                   </div>
                   <div>
-                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Calle y número *</label>
-                    <input name="address" required value={address.address} onChange={handleAddressChange}
+                    <label htmlFor="register-address" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Calle y número *</label>
+                    <input id="register-address" name="address" required value={address.address} onChange={handleAddressChange}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
                       placeholder="Calle, número, colonia" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
-                      <input name="city" required value={address.city} onChange={handleAddressChange}
+                      <label htmlFor="register-city" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
+                      <input id="register-city" name="city" required value={address.city} onChange={handleAddressChange}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none" />
                     </div>
                     <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
-                      <input name="zipCode" required value={address.zipCode} onChange={handleAddressChange}
+                      <label htmlFor="register-zipcode" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
+                      <input id="register-zipcode" name="zipCode" required value={address.zipCode} onChange={handleAddressChange}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none"
                         placeholder="12345" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
-                    <select name="state" required value={address.state} onChange={handleAddressChange}
+                    <label htmlFor="register-state" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
+                    <select id="register-state" name="state" required value={address.state} onChange={handleAddressChange}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none">
                       <option value="">Seleccionar</option>
                       {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}

@@ -17,6 +17,8 @@ interface PasswordFieldProps {
   onConfirmChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   confirmLabel?: string;
   confirmPlaceholder?: string;
+  id?: string;
+  confirmId?: string;
 }
 
 function getStrength(password: string): { level: 0 | 1 | 2 | 3; label: string; color: string; width: string } {
@@ -38,18 +40,20 @@ export default function PasswordField({
   value, onChange, label = 'Contraseña', placeholder = 'Mínimo 6 caracteres',
   autoComplete = 'new-password', name = 'password', showStrength = false,
   error, autoFocus, confirmValue, onConfirmChange, confirmLabel = 'Confirmar contraseña',
-  confirmPlaceholder = 'Repite la contraseña',
+  confirmPlaceholder = 'Repite la contraseña', id, confirmId,
 }: PasswordFieldProps) {
   const [show, setShow] = useState(false);
   const strength = getStrength(value);
+  const inputId = id ?? name;
 
   return (
     <div className="space-y-4">
       {/* Primary password field */}
       <div>
-        <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
+        <label htmlFor={inputId} className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{label}</label>
         <div className="relative">
           <input
+            id={inputId}
             name={name}
             type={show ? 'text' : 'password'}
             required
@@ -90,9 +94,10 @@ export default function PasswordField({
       {/* Confirm password field */}
       {onConfirmChange !== undefined && (
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{confirmLabel}</label>
+          <label htmlFor={confirmId ?? 'confirmPassword'} className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">{confirmLabel}</label>
           <div className="relative">
             <input
+              id={confirmId ?? 'confirmPassword'}
               name="confirmPassword"
               type={show ? 'text' : 'password'}
               required

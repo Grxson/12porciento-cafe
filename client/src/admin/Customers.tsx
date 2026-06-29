@@ -20,9 +20,9 @@ interface CustomerSummary {
 }
 
 interface CustomerDetail extends CustomerSummary {
-  orders: any[];
-  subscriptions: any[];
-  reviews: any[];
+  orders: { id: string; items: { product?: { name: string } }[]; createdAt: string; total: number; status: string }[];
+  subscriptions: { id: string }[];
+  reviews: { id: string; product?: { name: string }; createdAt: string; rating: number; comment?: string; content?: string }[];
 }
 
 export default function AdminCustomers() {
@@ -106,10 +106,10 @@ export default function AdminCustomers() {
                 <p className="text-coffee-600 dark:text-coffee-400 text-sm">Sin pedidos.</p>
               ) : (
                 <div className="space-y-2">
-                  {selected.orders.map((o: any) => (
+                  {selected.orders.map((o) => (
                     <div key={o.id} className="flex justify-between items-center text-sm py-2 border-b border-coffee-200 dark:border-coffee-800 last:border-0">
                       <div>
-                        <p className="text-coffee-800 dark:text-coffee-200">{o.items.map((i: any) => i.product?.name).join(', ')}</p>
+                        <p className="text-coffee-800 dark:text-coffee-200">{o.items.map((i) => i.product?.name).join(', ')}</p>
                         <p className="text-coffee-500 text-xs">{new Date(o.createdAt).toLocaleDateString('es-MX')}</p>
                       </div>
                       <div className="text-right">
@@ -128,7 +128,7 @@ export default function AdminCustomers() {
                 <p className="text-coffee-600 dark:text-coffee-400 text-sm">Sin reseñas.</p>
               ) : (
                 <div className="space-y-3">
-                  {selected.reviews.map((r: any) => (
+                  {selected.reviews.map((r) => (
                     <div key={r.id} className="py-3 border-b border-coffee-200 dark:border-coffee-800 last:border-0">
                       <div className="flex justify-between items-start mb-1">
                         <p className="text-coffee-800 dark:text-coffee-200 text-sm font-medium">{r.product?.name}</p>

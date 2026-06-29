@@ -103,19 +103,19 @@ export default function AdminProducts() {
     if (!form.price || form.price <= 0) { setFormError('El precio debe ser mayor a 0.'); return; }
     if (form.stock === undefined || form.stock < 0) { setFormError('El stock no puede ser negativo.'); return; }
     setSaving(true);
-    const data: any = {
+    const data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
       ...form,
       flavors: form.category === 'CAFÉ' ? form.flavors.split(',').map((f: string) => f.trim()).filter(Boolean) : [],
-      altitude: form.altitude !== '' ? Number(form.altitude) : null,
-      scaScore: form.scaScore !== '' ? Number(form.scaScore) : null,
-      weight: form.weight !== '' ? Number(form.weight) : null,
-      harvestYear: form.harvestYear !== '' ? Number(form.harvestYear) : null,
-      brewTemperature: form.brewTemperature !== '' ? Number(form.brewTemperature) : null,
-      certifications: form.certifications ? JSON.stringify(form.certifications.split(',').map((c: string) => c.trim()).filter(Boolean)) : null,
+      altitude: form.altitude !== '' ? Number(form.altitude) : undefined,
+      scaScore: form.scaScore !== '' ? Number(form.scaScore) : undefined,
+      weight: form.weight !== '' ? Number(form.weight) : undefined,
+      harvestYear: form.harvestYear !== '' ? Number(form.harvestYear) : undefined,
+      brewTemperature: form.brewTemperature !== '' ? Number(form.brewTemperature) : undefined,
+      certifications: form.certifications ? JSON.stringify(form.certifications.split(',').map((c: string) => c.trim()).filter(Boolean)) : undefined,
     };
     try {
-      if (modal === 'add') await productsApi.create(data);
-      else if (editId) await productsApi.update(editId, data);
+      if (modal === 'add') await productsApi.create(data as Parameters<typeof productsApi.create>[0]);
+      else if (editId) await productsApi.update(editId, data as Parameters<typeof productsApi.update>[1]);
       setModal(null);
       load(page);
     } catch (err: unknown) {
@@ -382,17 +382,18 @@ export default function AdminProducts() {
 
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { name: 'name', label: 'Nombre', required: true },
-                    { name: 'slug', label: 'Slug (URL)', required: true },
+                    { name: 'name', label: 'Nombre', required: true, id: 'product-name' },
+                    { name: 'slug', label: 'Slug (URL)', required: true, id: 'product-slug' },
                     ...(isCafe ? [
-                      { name: 'origin', label: 'Origen' },
-                      { name: 'region', label: 'Región' },
-                      { name: 'variety', label: 'Variedad' },
+                      { name: 'origin', label: 'Origen', id: 'product-origin' },
+                      { name: 'region', label: 'Región', id: 'product-region' },
+                      { name: 'variety', label: 'Variedad', id: 'product-variety' },
                     ] : []),
-                  ].map(({ name, label, required }) => (
+                  ].map(({ name, label, required, id }) => (
                     <div key={name}>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
+                      <label htmlFor={id} className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
                       <input
+                        id={id}
                         required={required}
                         value={String(form[name as keyof typeof emptyForm] ?? '')}
                         onChange={(e) => setForm((f) => ({ ...f, [name]: e.target.value }))}
@@ -401,11 +402,12 @@ export default function AdminProducts() {
                     </div>
                   ))}
 
-                  {isCafe && (
+{isCafe && (
                     <>
                       <div>
-                        <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Proceso</label>
+                        <label htmlFor="product-process" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Proceso</label>
                         <select
+                          id="product-process"
                           value={form.process}
                           onChange={(e) => setForm((f) => ({ ...f, process: e.target.value }))}
                           className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -414,8 +416,9 @@ export default function AdminProducts() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Tueste</label>
+                        <label htmlFor="product-roast" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Tueste</label>
                         <select
+                          id="product-roast"
                           value={form.roastLevel}
                           onChange={(e) => setForm((f) => ({ ...f, roastLevel: e.target.value }))}
                           className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -428,16 +431,17 @@ export default function AdminProducts() {
 
                   {[
                     ...(isCafe ? [
-                      { name: 'scaScore', label: 'SCA Score', type: 'number', step: '0.1' },
-                      { name: 'altitude', label: 'Altitud (msnm)', type: 'number' },
+                      { name: 'scaScore', label: 'SCA Score', type: 'number', step: '0.1', id: 'product-sca-score' },
+                      { name: 'altitude', label: 'Altitud (msnm)', type: 'number', id: 'product-altitude' },
                     ] : []),
-                    { name: 'price', label: 'Precio (MXN)', type: 'number', required: true },
-                    { name: 'weight', label: 'Gramaje (g)', type: 'number' },
-                    { name: 'stock', label: 'Stock', type: 'number', required: true },
-                  ].map(({ name, label, type, step, required }: any) => (
+                    { name: 'price', label: 'Precio (MXN)', type: 'number', required: true, id: 'product-price' },
+                    { name: 'weight', label: 'Gramaje (g)', type: 'number', id: 'product-weight' },
+                    { name: 'stock', label: 'Stock', type: 'number', required: true, id: 'product-stock' },
+                  ].map(({ name, label, type, step, required, id }: any) => (
                     <div key={name}>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
+                      <label htmlFor={id} className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">{label}</label>
                       <input
+                        id={id}
                         type={type}
                         step={step}
                         required={required}
@@ -462,8 +466,9 @@ export default function AdminProducts() {
 
                 {isCafe && (
                   <div>
-                    <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Notas de cata (separadas por coma)</label>
+                    <label htmlFor="product-flavors" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Notas de cata (separadas por coma)</label>
                     <input
+                      id="product-flavors"
                       value={form.flavors}
                       onChange={(e) => setForm((f) => ({ ...f, flavors: e.target.value }))}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -487,8 +492,9 @@ export default function AdminProducts() {
                       <>
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Productor</label>
+                            <label htmlFor="product-producer" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Productor</label>
                             <input
+                              id="product-producer"
                               value={form.producer}
                               onChange={(e) => setForm((f) => ({ ...f, producer: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -496,8 +502,9 @@ export default function AdminProducts() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Finca</label>
+                            <label htmlFor="product-farm" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Finca</label>
                             <input
+                              id="product-farm"
                               value={form.farmName}
                               onChange={(e) => setForm((f) => ({ ...f, farmName: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -508,8 +515,9 @@ export default function AdminProducts() {
 
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Certificaciones</label>
+                            <label htmlFor="product-certifications" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Certificaciones</label>
                             <input
+                              id="product-certifications"
                               value={form.certifications}
                               onChange={(e) => setForm((f) => ({ ...f, certifications: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -517,8 +525,9 @@ export default function AdminProducts() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Cuerpo</label>
+                            <label htmlFor="product-body" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Cuerpo</label>
                             <select
+                              id="product-body"
                               value={form.body}
                               onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -527,8 +536,9 @@ export default function AdminProducts() {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Acidez</label>
+                            <label htmlFor="product-acidity" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Acidez</label>
                             <select
+                              id="product-acidity"
                               value={form.acidity}
                               onChange={(e) => setForm((f) => ({ ...f, acidity: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -540,8 +550,9 @@ export default function AdminProducts() {
 
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Método recomendado</label>
+                            <label htmlFor="product-brew-method" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Método recomendado</label>
                             <select
+                              id="product-brew-method"
                               value={form.recommendedBrewMethod}
                               onChange={(e) => setForm((f) => ({ ...f, recommendedBrewMethod: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -550,8 +561,9 @@ export default function AdminProducts() {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Temperatura (°C)</label>
+                            <label htmlFor="product-brew-temp" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Temperatura (°C)</label>
                             <input
+                              id="product-brew-temp"
                               type="number"
                               value={form.brewTemperature}
                               onChange={(e) => setForm((f) => ({ ...f, brewTemperature: e.target.value }))}
@@ -560,8 +572,9 @@ export default function AdminProducts() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Proporción</label>
+                            <label htmlFor="product-brew-ratio" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Proporción</label>
                             <input
+                              id="product-brew-ratio"
                               value={form.brewRatio}
                               onChange={(e) => setForm((f) => ({ ...f, brewRatio: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -569,8 +582,9 @@ export default function AdminProducts() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Molido</label>
+                            <label htmlFor="product-grind-size" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Molido</label>
                             <select
+                              id="product-grind-size"
                               value={form.grindSize}
                               onChange={(e) => setForm((f) => ({ ...f, grindSize: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -582,8 +596,9 @@ export default function AdminProducts() {
 
                         <div className="space-y-4 mb-4">
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Año de cosecha</label>
+                            <label htmlFor="product-harvest-year" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Año de cosecha</label>
                             <input
+                              id="product-harvest-year"
                               type="number"
                               value={form.harvestYear}
                               onChange={(e) => setForm((f) => ({ ...f, harvestYear: e.target.value }))}
@@ -592,8 +607,9 @@ export default function AdminProducts() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Descripción del proceso</label>
+                            <label htmlFor="product-processing-desc" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Descripción del proceso</label>
                             <textarea
+                              id="product-processing-desc"
                               value={form.processingDescription}
                               onChange={(e) => setForm((f) => ({ ...f, processingDescription: e.target.value }))}
                               rows={2}
@@ -602,8 +618,9 @@ export default function AdminProducts() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Notas de cata detalladas</label>
+                            <label htmlFor="product-tasting-notes" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Notas de cata detalladas</label>
                             <textarea
+                              id="product-tasting-notes"
                               value={form.tastingNotes}
                               onChange={(e) => setForm((f) => ({ ...f, tastingNotes: e.target.value }))}
                               rows={2}
@@ -612,8 +629,9 @@ export default function AdminProducts() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Maridaje sugerido</label>
+                            <label htmlFor="product-pairing" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Maridaje sugerido</label>
                             <input
+                              id="product-pairing"
                               value={form.pairingSuggestions}
                               onChange={(e) => setForm((f) => ({ ...f, pairingSuggestions: e.target.value }))}
                               className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500/60 focus:outline-none"
@@ -632,8 +650,9 @@ export default function AdminProducts() {
                 )}
 
                 <div>
-                  <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Descripción</label>
+                  <label htmlFor="product-description" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1.5">Descripción</label>
                   <textarea
+                    id="product-description"
                     value={form.description}
                     onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     rows={3}

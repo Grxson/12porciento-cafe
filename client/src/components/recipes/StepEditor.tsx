@@ -72,8 +72,9 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
     >
       <form id="step-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className={labelCls}>Título *</label>
+          <label htmlFor="step-title" className={labelCls}>Título *</label>
           <input
+            id="step-title"
             type="text"
             value={form.title}
             onChange={(e) => { setForm(f => ({ ...f, title: e.target.value })); setErrors((prev) => ({ ...prev, title: '' })); }}
@@ -84,8 +85,9 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
         </div>
 
         <div>
-          <label className={labelCls}>Descripción *</label>
+          <label htmlFor="step-description" className={labelCls}>Descripción *</label>
           <textarea
+            id="step-description"
             value={form.description}
             onChange={(e) => { setForm(f => ({ ...f, description: e.target.value })); setErrors((prev) => ({ ...prev, description: '' })); }}
             rows={4}
@@ -97,8 +99,9 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Imagen URL</label>
+            <label htmlFor="step-image-url" className={labelCls}>Imagen URL</label>
             <input
+              id="step-image-url"
               type="url"
               value={form.imageUrl}
               onChange={(e) => setForm(f => ({ ...f, imageUrl: e.target.value }))}
@@ -108,8 +111,9 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
           </div>
 
           <div>
-            <label className={labelCls}>Video URL</label>
+            <label htmlFor="step-video-url" className={labelCls}>Video URL</label>
             <input
+              id="step-video-url"
               type="url"
               value={form.videoUrl}
               onChange={(e) => setForm(f => ({ ...f, videoUrl: e.target.value }))}
@@ -120,8 +124,9 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
         </div>
 
         <div>
-          <label className={labelCls}>Duración (segundos)</label>
+          <label htmlFor="step-duration" className={labelCls}>Duración (segundos)</label>
           <input
+            id="step-duration"
             type="number"
             value={form.duration}
             onChange={(e) => setForm(f => ({ ...f, duration: e.target.value }))}

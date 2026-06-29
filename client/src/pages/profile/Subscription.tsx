@@ -49,7 +49,7 @@ export default function Subscription() {
       .then((r) => {
         setSub(r.data);
         if (r.data) {
-          setEditCoffees(r.data.items?.map((i: any) => i.productId) ?? []);
+          setEditCoffees(r.data.items?.map((i) => String((i as unknown as Record<string, unknown>).productId)) ?? []);
           setEditGrind((r.data.grindPreference as 'MOLIDO' | 'GRANO') ?? 'GRANO');
         }
       })

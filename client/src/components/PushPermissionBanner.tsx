@@ -7,7 +7,7 @@ const PROMPT_COUNT_KEY = 'push_prompt_count';
 const MAX_PROMPTS = 2;
 
 function isIOS(): boolean {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as Record<string, unknown>).MSStream;
 }
 
 interface Props {

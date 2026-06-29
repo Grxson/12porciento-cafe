@@ -64,10 +64,10 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
   const [frequency, setFrequency] = useState<string>(sub.frequency ?? 'monthly');
   const [grindPreference, setGrindPreference] = useState<string>(sub.grindPreference ?? 'GRANO');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>(
-    sub.items ? sub.items.map((it: any) => it.productId) : [],
+    sub.items ? sub.items.map((it) => it.productId) : [],
   );
   const [productToAdd, setProductToAdd] = useState('');
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -79,7 +79,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
         const list = Array.isArray(r.data) ? (r.data as Product[]) : ((r.data as { data: Product[] })?.data ?? []);
         setProducts(list);
         if (list.length > 0) {
-          const firstNotSelected = list.find((p: any) => !selectedItemIds.includes(p.id));
+          const firstNotSelected = list.find((p) => !selectedItemIds.includes(p.id));
           setProductToAdd(firstNotSelected?.id ?? list[0].id);
         }
       })
@@ -97,7 +97,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
     const newSelected = [...selectedItemIds, productToAdd];
     setSelectedItemIds(newSelected);
     // Move selector to next unselected product (use the post-add array, not stale state)
-    const next = products.find((p: any) => !newSelected.includes(p.id));
+    const next = products.find((p) => !newSelected.includes(p.id));
     setProductToAdd(next ? next.id : '');
   };
 
@@ -106,7 +106,7 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
   };
 
   const getProductName = (pid: string) => {
-    const p = products.find((pr: any) => pr.id === pid);
+    const p = products.find((pr) => pr.id === pid);
     return p?.name ?? pid;
   };
 
@@ -158,8 +158,8 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
       <div className="space-y-4">
         {/* Plan */}
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
-          <select value={plan} onChange={(e) => setPlan(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+          <label htmlFor="subscriber-plan" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
+          <select id="subscriber-plan" value={plan} onChange={(e) => setPlan(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
             {Object.entries(planLabels).map(([key, label]) => (
               <option key={key} value={key}>{label}</option>
             ))}
@@ -168,8 +168,8 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
         {/* Frequency */}
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
-          <select value={frequency} onChange={(e) => setFrequency(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+          <label htmlFor="subscriber-frequency" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
+          <select id="subscriber-frequency" value={frequency} onChange={(e) => setFrequency(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
             <option value="monthly">Mensual</option>
             <option value="bimonthly">Bimestral</option>
           </select>
@@ -177,8 +177,8 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
         {/* Grind */}
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
-          <select value={grindPreference} onChange={(e) => setGrindPreference(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+          <label htmlFor="subscriber-grind" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
+          <select id="subscriber-grind" value={grindPreference} onChange={(e) => setGrindPreference(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
             <option value="GRANO">Grano</option>
             <option value="MOLIDO">Molido</option>
           </select>
@@ -217,19 +217,20 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
           ) : (
             <div className="flex gap-2">
               <select
+                id="subscriber-add-product"
                 value={productToAdd}
                 onChange={(e) => setProductToAdd(e.target.value)}
                 className={`flex-1 ${SELECT_CLASS}`}
               >
                 {products
-                  .filter((p: any) => !selectedItemIds.includes(p.id))
-                  .map((p: any) => (
+                  .filter((p) => !selectedItemIds.includes(p.id))
+                  .map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
               </select>
               <button
                 onClick={addProduct}
-                disabled={!productToAdd || products.filter((p: any) => !selectedItemIds.includes(p.id)).length === 0}
+                disabled={!productToAdd || products.filter((p) => !selectedItemIds.includes(p.id)).length === 0}
                 className="px-3 py-2 text-xs bg-coffee-200 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-gold-500 hover:border-gold-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Agregar
@@ -457,7 +458,7 @@ export default function AdminSubscribers() {
                         <td className="hidden lg:table-cell px-4 py-3">
                           {sub.items && sub.items.length > 0 && (
                             <div className="flex flex-wrap gap-1">
-                              {sub.items.map((item: any) => (
+                              {sub.items.map((item) => (
                                 <div key={item.id} className="flex items-center gap-1 bg-coffee-200 dark:bg-coffee-800 px-2 py-0.5">
                                   <img src={item.product?.imageUrl} className="w-4 h-4 object-cover" alt="" />
                                   <span className="text-xs text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>

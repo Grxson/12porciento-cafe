@@ -6,8 +6,8 @@ interface RecipesContextType {
   recipes: Recipe[];
   loading: boolean;
   error: string | null;
-  createRecipe: (data: any) => Promise<Recipe>;
-  updateRecipe: (id: string, data: any) => Promise<Recipe>;
+  createRecipe: (data: Record<string, unknown>) => Promise<Recipe>;
+  updateRecipe: (id: string, data: Record<string, unknown>) => Promise<Recipe>;
   deleteRecipe: (id: string) => Promise<void>;
   refresh: () => Promise<void>;
 }

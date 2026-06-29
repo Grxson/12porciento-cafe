@@ -29,7 +29,7 @@ async function syncBrews(): Promise<void> {
         notes: brew.notes,
         photoUrl: photoUrl ?? undefined,
         clientBrewId: brew.id,
-      } as any);
+      } as unknown as Parameters<typeof baristaApi.submitBrewLog>[0]);
 
       await removeBrew(brew.id);
 
@@ -71,7 +71,7 @@ export async function initBrewSync(): Promise<void> {
   // Register Background Sync (Chromium only; gracefully ignored elsewhere)
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready
-      .then((reg) => (reg as any).sync.register('brew-sync'))
+      .then((reg) => ((reg as unknown as { sync: { register: (name: string) => Promise<void> } }).sync).register('brew-sync'))
       .catch(console.error);
   }
 

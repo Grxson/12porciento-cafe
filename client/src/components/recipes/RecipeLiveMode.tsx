@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Clock, Wifi } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Recipe } from '../../types';
 import type { RecipeDraft, StepDraft } from '../../types';
@@ -7,7 +7,6 @@ import { saveDraft, loadDraft, clearDraft } from '../../hooks/useRecipeDraft';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { useBarista } from '../../hooks/useBarista';
-import { recipesApi } from '../../api';
 import RatingSlider from './RatingSlider';
 import NotesCapture from './NotesCapture';
 import GestureHints from './GestureHints';
@@ -47,9 +46,9 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [stepPhotos, setStepPhotos] = useState<Record<number, { preview: string; blob: Blob }>>({});
+  const [_stepPhotos, setStepPhotos] = useState<Record<number, { preview: string; blob: Blob }>>({});
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
-  const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]);
+  const [relatedRecipes, _setRelatedRecipes] = useState<Recipe[]>([]);
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const objectUrlRef = useRef<string | null>(null);

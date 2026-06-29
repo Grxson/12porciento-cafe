@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -112,7 +113,7 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
     const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 50));
     const skip = (page - 1) * pageSize;
     const filterParam = req.query.filter as string;
-    const where: any = {};
+    const where: Prisma.ReviewWhereInput = {};
     if (filterParam === 'pending') where.isApproved = false;
     if (filterParam === 'approved') where.isApproved = true;
     const [reviews, total] = await Promise.all([

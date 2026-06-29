@@ -146,14 +146,15 @@ async function dispatchPushNotifications(event: SocketEvent): Promise<void> {
         payload,
       );
       sent++;
-    } catch (pushErr: any) {
-      if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+    } catch (pushErr: unknown) {
+      const webPushErr = pushErr as { statusCode?: number; message?: string };
+      if (webPushErr.statusCode === 410 || webPushErr.statusCode === 404) {
         await cleanupSubscription(sub.id);
         expired++;
         console.log(`[PUSH] expired subscription cleaned: ${sub.id}`);
       } else {
         failed++;
-        console.warn(`[PUSH] send error for ${sub.id}: ${pushErr.message}`);
+        console.warn(`[PUSH] send error for ${sub.id}: ${webPushErr.message}`);
       }
     }
   }

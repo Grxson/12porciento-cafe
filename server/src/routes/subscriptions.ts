@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import Stripe from 'stripe';
@@ -265,7 +266,7 @@ router.put('/:id/items', requireUserAuth, async (req: UserAuthRequest, res: Resp
       }),
     ]);
 
-    const updateData: any = {};
+    const updateData: Prisma.SubscriptionUpdateInput = {};
     if (grindPreference) updateData.grindPreference = grindPreference;
 
     const updated = await prisma.subscription.update({
@@ -283,7 +284,7 @@ router.put('/:id/items', requireUserAuth, async (req: UserAuthRequest, res: Resp
 
 // PUT /:id/admin — admin: edit plan, frequency, grindPreference, and coffee items
 router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) => {
-  async function syncStripeSubscription(subId: string, newPlan: string | undefined, newFrequency: string | undefined, newItems: string[] | undefined) {
+  async function syncStripeSubscription(subId: string, _newPlan: string | undefined, _newFrequency: string | undefined, _newItems: string[] | undefined) {
     const current = await prisma.subscription.findUnique({
       where: { id: subId },
       include: { items: { include: { product: { select: { price: true } } } } },
@@ -356,7 +357,7 @@ router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) =>
       }
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.SubscriptionUpdateInput = {};
     if (plan) updateData.plan = plan;
     if (frequency) updateData.frequency = frequency;
     if (grindPreference) updateData.grindPreference = grindPreference;
@@ -401,8 +402,8 @@ router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) =>
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { status } = req.query;
-    const where: any = {};
-    if (status) where.status = status;
+    const where: Prisma.SubscriptionWhereInput = {};
+    if (status) where.status = status as string;
     const search = (req.query.search as string) || '';
     if (search) {
       where.OR = [
@@ -458,7 +459,7 @@ router.put('/:id/fulfillment', requireAuth, async (req: AuthRequest, res: Respon
       return;
     }
 
-    const updateData: any = { fulfillmentStatus };
+    const updateData: Prisma.SubscriptionUpdateInput = { fulfillmentStatus };
 
     const updated = await prisma.subscription.update({
       where: { id: req.params.id },
@@ -553,9 +554,9 @@ router.post('/setup-intent', async (req: Request, res: Response) => {
 router.get('/b2b-inquiries', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { status, search, page, pageSize } = req.query;
-    const where: any = {};
+    const where: Prisma.B2BInquiryWhereInput = {};
 
-    if (status) where.status = status;
+    if (status) where.status = status as string;
     if (search) {
       where.OR = [
         { empresa: { contains: search as string } },

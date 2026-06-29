@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 
@@ -7,7 +8,7 @@ const router = Router();
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { search, page, pageSize } = req.query;
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
     if (search) {
       where.OR = [
         { name: { contains: search as string } },
@@ -60,7 +61,7 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       },
     });
     if (!user) { res.status(404).json({ error: 'Cliente no encontrado' }); return; }
-    const { password, ...safeUser } = user;
+    const { password: _password, ...safeUser } = user;
     res.json({ data: safeUser });
   } catch {
     res.status(500).json({ error: 'Error al obtener cliente' });

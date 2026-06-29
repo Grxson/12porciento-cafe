@@ -54,7 +54,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
           const Icon = STEP_ICONS[step];
           const isCompleted = idx < currentIdx;
           const isActive = idx === currentIdx;
-          const isPending = idx > currentIdx;
+          const _isPending = idx > currentIdx;
 
           return (
             <div key={step} className="flex items-start gap-4 pb-6 last:pb-0 relative">

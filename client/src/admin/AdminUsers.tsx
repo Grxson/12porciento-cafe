@@ -67,7 +67,7 @@ export default function AdminUsers() {
     return null;
   };
 
-  const submit = async (e: React.FormEvent) => {
+  const _submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationError = validateForm();
     if (validationError) {

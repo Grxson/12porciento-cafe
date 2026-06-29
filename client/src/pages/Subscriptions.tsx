@@ -6,7 +6,6 @@ import { loadStripe } from '@stripe/stripe-js';
 import { CardElement, useStripe, useElements, Elements } from '@stripe/react-stripe-js';
 import { subscriptionsApi, usersApi } from '../api';
 import { useUser } from '../context/UserContext';
-import ScrollReveal from '../components/ScrollReveal';
 import CoffeePicker from '../components/CoffeePicker';
 import type { SubscriptionPlan } from '../types';
 import { PLAN_SLOTS } from '../types';
@@ -96,7 +95,7 @@ export default function Subscriptions() {
     zipCode: user?.zipCode ?? '',
   });
   const [setupClientSecret, setSetupClientSecret] = useState('');
-  const [paymentMethodId, setPaymentMethodId] = useState('');
+  const [_paymentMethodId, setPaymentMethodId] = useState('');
   const [paymentError, setPaymentError] = useState('');
   const [b2bForm, setB2BForm] = useState<B2BFormData>({
     empresa: '',
@@ -169,7 +168,7 @@ export default function Subscriptions() {
     }
   };
 
-  const handleSetupIntent = async () => {
+  const _handleSetupIntent = async () => {
     try {
       const res = await subscriptionsApi.createSetupIntent();
       setSetupClientSecret(res.data.clientSecret);
@@ -790,7 +789,7 @@ export default function Subscriptions() {
   );
 }
 
-function SubscriptionCardForm({ clientSecret, onSuccess, onError, loading }: {
+function SubscriptionCardForm({ clientSecret: _clientSecret, onSuccess, onError, loading }: {
   clientSecret: string;
   onSuccess: (pmId: string) => void;
   onError: (msg: string) => void;

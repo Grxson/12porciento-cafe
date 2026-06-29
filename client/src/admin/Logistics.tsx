@@ -48,7 +48,7 @@ interface TrackingEdit {
 export default function Logistics() {
   const { addToast } = useModuleToast();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [total, setTotal] = useState(0);
+  const [_total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
@@ -67,7 +67,7 @@ export default function Logistics() {
       setTotal(res.data.total);
       setTotalPages(res.data.totalPages);
       setStatusCounts(res.data.statusCounts);
-    } catch (err) {
+    } catch {
       setError('Error al cargar pedidos');
       addToast('Error al cargar pedidos', 'error');
     } finally {
@@ -83,7 +83,7 @@ export default function Logistics() {
     try {
       await adminApi.updateOrderStatus(orderId, newStatus);
       loadOrders();
-    } catch (err) {
+    } catch {
       addToast('Error al actualizar estado', 'error');
     }
   };

@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../../middleware/auth';
 import { prisma } from '../../db';
 
@@ -13,7 +14,7 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const entity = (req.query.entity as string) || '';
     const action = (req.query.action as string) || '';
 
-    const where: any = {};
+    const where: Prisma.AdminLogWhereInput = {};
     if (entity) where.entity = entity;
     if (action) where.action = action;
 

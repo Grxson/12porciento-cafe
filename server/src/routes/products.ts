@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { logAdminAction } from '../lib/adminLog';
@@ -7,7 +8,7 @@ const router = Router();
 
 const VALID_CATEGORIES = ['CAFÉ', 'ACCESORIOS', 'MERCH'];
 
-function validateProduct(body: any, isCreate: boolean): string | null {
+function validateProduct(body: Record<string, unknown>, isCreate: boolean): string | null {
   const { name, slug, description, price, stock, imageUrl, weight, scaScore, category } = body;
 
   if (isCreate || name !== undefined) {
@@ -54,7 +55,7 @@ function validateProduct(body: any, isCreate: boolean): string | null {
       return 'SCA score debe ser entre 0 y 100';
     }
   }
-  if (category !== undefined && category !== null && !VALID_CATEGORIES.includes(category)) {
+  if (category !== undefined && category !== null && !VALID_CATEGORIES.includes(category as string)) {
     return 'Categoría inválida';
   }
 
@@ -81,30 +82,30 @@ function validateProduct(body: any, isCreate: boolean): string | null {
     const costNum = Number(body.costPrice);
     if (!Number.isFinite(costNum) || costNum < 0) return 'Costo debe ser mayor o igual a 0';
   }
-  if (body.minOrderQty !== undefined && body.minOrderQty !== null && (!Number.isInteger(Number(body.minOrderQty)) || body.minOrderQty < 1)) {
+  if (body.minOrderQty !== undefined && body.minOrderQty !== null && (!Number.isInteger(Number(body.minOrderQty)) || (body.minOrderQty as number) < 1)) {
     return 'Cantidad mínima de orden debe ser al menos 1';
   }
-  if (body.lowStockThreshold !== undefined && body.lowStockThreshold !== null && (!Number.isInteger(Number(body.lowStockThreshold)) || body.lowStockThreshold < 0)) {
+  if (body.lowStockThreshold !== undefined && body.lowStockThreshold !== null && (!Number.isInteger(Number(body.lowStockThreshold)) || (body.lowStockThreshold as number) < 0)) {
     return 'Umbral de stock bajo debe ser mayor o igual a 0';
   }
 
   return null;
 }
 
-const parseProduct = (p: any) => ({
+const parseProduct = (p: Record<string, unknown>) => ({
   ...p,
-  flavors: p.flavors ? JSON.parse(p.flavors) : [],
-  images: p.images ? JSON.parse(p.images) : [],
+  flavors: p.flavors ? JSON.parse(p.flavors as string) : [],
+  images: p.images ? JSON.parse(p.images as string) : [],
 });
 
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { process, roast, limited, limit, category, sort, search, flavors, page, pageSize } = req.query;
-    const where: any = { isActive: true };
-    if (process) where.process = process;
-    if (roast) where.roastLevel = roast;
+    const where: Prisma.ProductWhereInput = { isActive: true };
+    if (process) where.process = process as string;
+    if (roast) where.roastLevel = roast as string;
     if (limited === 'true') where.isLimited = true;
-    if (category && category !== 'TODOS') where.category = category;
+    if (category && category !== 'TODOS') where.category = category as string;
     if (search) {
       where.OR = [
         { name: { contains: search as string } },
@@ -124,7 +125,7 @@ router.get('/', async (req: Request, res: Response) => {
       }
     }
 
-    const orderBy: any =
+    const orderBy: Prisma.ProductOrderByWithRelationInput =
       sort === 'sca'        ? { scaScore: 'desc' } :
       sort === 'price_asc'  ? { price: 'asc' } :
       sort === 'price_desc' ? { price: 'desc' } :
@@ -166,7 +167,7 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
     const search = (req.query.search as string) || '';
     const category = (req.query.category as string) || '';
 
-    const where: any = {};
+    const where: Prisma.ProductWhereInput = {};
     // Admin always sees all products (active + inactive) unless explicitly filtered
     if (req.query.isActive === 'true') where.isActive = true;
     if (req.query.isActive === 'false') where.isActive = false;
@@ -238,7 +239,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const validationError = validateProduct(req.body, true);
     if (validationError) { res.status(400).json({ error: validationError }); return; }
 
-    const { flavors, images, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
+    const { flavors, images, recipes: _recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
     const product = await prisma.product.create({
       data: {
         ...data,
@@ -252,8 +253,8 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     });
     logAdminAction({ adminId: req.admin?.id, action: 'CREATE', entity: 'Product', entityId: product.id, metadata: { name: product.name } });
     res.status(201).json(parseProduct(product));
-  } catch (e: any) {
-    res.status(500).json({ error: 'Error al crear producto', detail: e?.message });
+  } catch (e: unknown) {
+    res.status(500).json({ error: 'Error al crear producto', detail: e instanceof Error ? e.message : undefined });
   }
 });
 
@@ -262,7 +263,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     const validationError = validateProduct(req.body, false);
     if (validationError) { res.status(400).json({ error: validationError }); return; }
 
-    const { flavors, images, recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
+    const { flavors, images, recipes: _recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
 
     // Fetch old price for PriceRecord logging
     const oldProduct = await prisma.product.findUnique({
@@ -293,8 +294,8 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
 
     logAdminAction({ adminId: req.admin?.id, action: 'UPDATE', entity: 'Product', entityId: req.params.id, metadata: { name: product.name } });
     res.json(parseProduct(product));
-  } catch (e: any) {
-    res.status(500).json({ error: 'Error al actualizar producto', detail: e?.message });
+  } catch (e: unknown) {
+    res.status(500).json({ error: 'Error al actualizar producto', detail: e instanceof Error ? e.message : undefined });
   }
 });
 

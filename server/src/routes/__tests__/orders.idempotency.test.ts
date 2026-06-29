@@ -105,7 +105,7 @@ describe('POST /orders — idempotency', () => {
     };
 
     // $transaction creates the order via the callback
-    mockTransaction.mockImplementation(async (fn: (tx: any) => Promise<any>) =>
+    mockTransaction.mockImplementation(async (fn: (tx: Record<string, unknown>) => Promise<unknown>) =>
       fn({
         order: {
           create: vi.fn().mockResolvedValue(newOrder),

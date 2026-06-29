@@ -31,7 +31,7 @@ const ELEMENTS_APPEARANCE = {
   },
 };
 
-function AddCardForm({ clientSecret, onSuccess, onCancel }: { clientSecret: string; onSuccess: () => void; onCancel: () => void }) {
+function AddCardForm({ clientSecret: _clientSecret, onSuccess, onCancel }: { clientSecret: string; onSuccess: () => void; onCancel: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
   const { add } = useToast();

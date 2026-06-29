@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 
@@ -77,7 +78,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
         finalPrice,
         imageUrl,
         items: {
-          create: items.map((item: any) => ({
+          create: items.map((item: { productId: string; quantity?: number }) => ({
             productId: item.productId,
             quantity: item.quantity || 1,
           })),
@@ -87,8 +88,8 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     });
 
     res.status(201).json({ data: bundle });
-  } catch (e: any) {
-    res.status(500).json({ error: 'Error al crear bundle', detail: e?.message });
+  } catch (e: unknown) {
+    res.status(500).json({ error: 'Error al crear bundle', detail: e instanceof Error ? e.message : undefined });
   }
 });
 
@@ -109,7 +110,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     const effectiveDiscount = discountPct ?? existing.discountPct;
     const finalPrice = Math.max(effectiveBase * (1 - effectiveDiscount / 100), 0);
 
-    const updateData: any = {};
+    const updateData: Prisma.BundleUpdateInput = {};
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     if (basePrice !== undefined) { updateData.basePrice = basePrice; updateData.finalPrice = finalPrice; }
@@ -124,8 +125,8 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     });
 
     res.json({ data: bundle });
-  } catch (e: any) {
-    res.status(500).json({ error: 'Error al actualizar bundle', detail: e?.message });
+  } catch (e: unknown) {
+    res.status(500).json({ error: 'Error al actualizar bundle', detail: e instanceof Error ? e.message : undefined });
   }
 });
 

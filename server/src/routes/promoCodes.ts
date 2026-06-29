@@ -65,8 +65,9 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       },
     });
     res.status(201).json({ data: promo });
-  } catch (e: any) {
-    if (e.code === 'P2002') {
+  } catch (e: unknown) {
+    const prismaErr = e as { code?: string };
+    if (prismaErr.code === 'P2002') {
       res.status(409).json({ error: 'Ese código ya existe' });
       return;
     }

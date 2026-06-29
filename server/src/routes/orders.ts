@@ -23,7 +23,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
 });
 
-function validateOrderFields(data: any): string | null {
+function validateOrderFields(data: Record<string, unknown>): string | null {
   if (!data.customerName || typeof data.customerName !== 'string' || data.customerName.trim().length < 2 || data.customerName.length > 100) {
     return 'Nombre debe tener entre 2 y 100 caracteres';
   }
@@ -277,9 +277,9 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { status, search, dateFrom, dateTo, page, pageSize } = req.query;
-    const where: any = {};
+    const where: Prisma.OrderWhereInput = {};
 
-    if (status) where.status = status;
+    if (status) where.status = status as string;
 
     if (search) {
       where.OR = [

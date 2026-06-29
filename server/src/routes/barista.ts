@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
@@ -64,8 +65,6 @@ async function checkAndUnlockAchievements(userId: string): Promise<{ id: string;
   }
 
   // Determine if streak is active (includes today or yesterday)
-  const streakActive = uniqueDates.length > 0 && (uniqueDates[0] === today || uniqueDates[0] === yesterday);
-
   // G10 achievements: Compute conditions for new achievements
   // Coffee Connoisseur: 50 brews
   const coffeeConnoisseurMet = brewCount >= 50;
@@ -166,7 +165,7 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
     const period = (req.query.period as string || 'all-time').toLowerCase();
 
     // Calculate cutoff date based on period
-    let dateFilter: any = undefined;
+    let dateFilter: { gte: Date } | undefined;
     if (period === 'this-week') {
       dateFilter = { gte: new Date(Date.now() - 7 * 86400000) };
     } else if (period === 'this-month') {
@@ -225,7 +224,7 @@ router.post('/brew-logs', brewLogLimiter, requireUserAuth, async (req: UserAuthR
     const recipe = await prisma.recipe.findUnique({ where: { id: recipeId } });
     if (!recipe) return res.status(404).json({ error: 'Receta no encontrada' });
 
-    const profile = await prisma.baristaProfile.upsert({
+    await prisma.baristaProfile.upsert({
       where: { userId },
       create: { userId, favoriteMethod: recipe.method },
       update: {},
@@ -373,7 +372,7 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
       const method = b.recipe.method || 'Unknown';
       methodCounts.set(method, (methodCounts.get(method) ?? 0) + 1);
     });
-    const [favoriteMethod, count] = Array.from(methodCounts.entries()).sort((a, b) => b[1] - a[1])[0];
+    const [favoriteMethod] = Array.from(methodCounts.entries()).sort((a, b) => b[1] - a[1])[0];
 
     // Method emojis
     const methodEmojis: Record<string, string> = {
@@ -556,7 +555,7 @@ router.post('/admin-achievements', requireAuth, async (req: AuthRequest, res: Re
 router.put('/admin-achievements/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { name, slug, description, icon, rarity, xpReward } = req.body;
-    const data: any = {};
+    const data: Prisma.AchievementUpdateInput = {};
     if (name !== undefined) data.name = name;
     if (slug !== undefined) data.slug = slug;
     if (description !== undefined) data.description = description;

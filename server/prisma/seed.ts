@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -2305,7 +2304,7 @@ const products = [
 ];
 
 // Map products by slug for bundle reference
-const productMap = new Map(products.map(p => [p.slug, p]));
+const _productMap = new Map(products.map(p => [p.slug, p]));
 
 // Bundles: 10 themed packages
 const bundles = [

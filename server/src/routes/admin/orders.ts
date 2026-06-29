@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../../middleware/auth';
 import { prisma } from '../../db';
 import { logAdminAction } from '../../lib/adminLog';
@@ -13,7 +14,7 @@ router.get('/logistics', requireAuth, async (req: AuthRequest, res: Response) =>
     const page = parseInt(req.query.page as string) || 1;
     const limit = 30;
 
-    const where: any = {};
+    const where: Prisma.OrderWhereInput = {};
     if (statusFilter) where.status = statusFilter;
 
     const [orders, total] = await Promise.all([
@@ -85,7 +86,7 @@ router.patch('/:id/tracking', requireAuth, async (req: AuthRequest, res: Respons
       if (isNaN(d.getTime())) return res.status(400).json({ error: 'Fecha de entrega inválida' });
     }
 
-    const data: any = {};
+    const data: Prisma.OrderUpdateInput = {};
     if (trackingNumber !== undefined) data.trackingNumber = trackingNumber?.trim() || null;
     if (carrier !== undefined) data.carrier = carrier?.trim() || null;
     if (estimatedDelivery !== undefined) data.estimatedDelivery = estimatedDelivery ? new Date(estimatedDelivery) : null;

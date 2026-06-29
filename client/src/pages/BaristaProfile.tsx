@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Zap, Coffee, Flame, Star } from 'lucide-react';
+import { Trophy, Zap, Coffee, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useBarista } from '../hooks/useBarista';
 import PushPermissionBanner from '../components/PushPermissionBanner';

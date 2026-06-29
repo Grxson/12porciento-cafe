@@ -14,7 +14,7 @@ function generateCode(): string {
 // POST /purchase — confirm gift card purchase after Stripe payment
 router.post('/purchase', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
-    const { amount, recipientName, recipientEmail, senderName, message, paymentIntentId } = req.body;
+    const { amount, recipientName, recipientEmail, senderName, message, paymentIntentId: _paymentIntentId } = req.body;
 
     if (!amount || amount < 50 || amount > 5000) {
       return res.status(400).json({ error: 'El monto debe ser entre $50 y $5,000' });

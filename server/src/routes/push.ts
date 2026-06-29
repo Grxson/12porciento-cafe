@@ -18,12 +18,14 @@ import {
 const router = Router();
 
 // Validation helper
-function isValidSubscription(body: any): body is { endpoint: string; keys: { p256dh: string; auth: string } } {
+function isValidSubscription(body: unknown): body is { endpoint: string; keys: { p256dh: string; auth: string } } {
   if (!body || typeof body !== 'object') return false;
-  if (typeof body.endpoint !== 'string' || !body.endpoint.startsWith('https://')) return false;
-  if (!body.keys || typeof body.keys !== 'object') return false;
-  if (typeof body.keys.p256dh !== 'string' || body.keys.p256dh.length < 20) return false;
-  if (typeof body.keys.auth !== 'string' || body.keys.auth.length < 8) return false;
+  const b = body as Record<string, unknown>;
+  if (typeof b.endpoint !== 'string' || !b.endpoint.startsWith('https://')) return false;
+  if (!b.keys || typeof b.keys !== 'object') return false;
+  const keys = b.keys as Record<string, unknown>;
+  if (typeof keys.p256dh !== 'string' || keys.p256dh.length < 20) return false;
+  if (typeof keys.auth !== 'string' || keys.auth.length < 8) return false;
   return true;
 }
 
@@ -132,8 +134,9 @@ router.post('/test', requireAuth, async (_req: AuthRequest, res: Response) => {
           }),
         );
         sent++;
-      } catch (pushErr: any) {
-        if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+      } catch (pushErr: unknown) {
+        const webPushErr = pushErr as { statusCode?: number };
+        if (webPushErr.statusCode === 410 || webPushErr.statusCode === 404) {
           await cleanupSubscription(sub.id);
           console.log(`[PUSH] cleaned up expired subscription: ${sub.id}`);
         }

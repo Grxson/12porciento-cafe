@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import Stripe from 'stripe';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
@@ -12,6 +13,11 @@ export const webhookRouter = Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2026-05-27.dahlia',
 });
+
+interface StripeWebhookEvent {
+  type: string;
+  data: { object: Record<string, unknown> };
+}
 
 // GET /user/:subscriptionId/next-billing
 router.get('/user/:subscriptionId/next-billing', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
@@ -66,13 +72,13 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  let event: any;
+  let event: StripeWebhookEvent;
   if (webhookSecret) {
     if (!sig) {
       return res.status(400).json({ error: 'Missing stripe-signature header' });
     }
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret) as unknown as StripeWebhookEvent;
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       console.error('[sub-webhook] Signature failed:', msg);
@@ -85,19 +91,19 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       return;
     }
     // Dev/test: no secret configured, trust body
-    event = req.body as any;
+    event = req.body as StripeWebhookEvent;
   }
 
   if (event.type === 'invoice.payment_succeeded') {
-    const invoice: any = event.data.object;
-    const stripeSubId: string = invoice.subscription;
+    const invoice = event.data.object;
+    const stripeSubId = invoice.subscription as string;
     if (!stripeSubId) return res.json({ received: true });
 
     const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSubId } });
     if (!sub) return res.json({ received: true, status: 'not_found' });
 
     const existing = invoice.id
-      ? await prisma.subscriptionPayment.findUnique({ where: { stripeInvoiceId: invoice.id } })
+      ? await prisma.subscriptionPayment.findUnique({ where: { stripeInvoiceId: invoice.id as string } })
       : null;
     if (existing) return res.json({ received: true, status: 'already_processed' });
 
@@ -109,9 +115,9 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       const payment = await prisma.subscriptionPayment.create({
         data: {
           subscriptionId: sub.id,
-          stripeInvoiceId: invoice.id || null,
-          stripeChargeId: invoice.charge || null,
-          amount: (invoice.amount_paid || 0) / 100,
+          stripeInvoiceId: (invoice.id as string) || null,
+          stripeChargeId: (invoice.charge as string) || null,
+          amount: ((invoice.amount_paid as number) || 0) / 100,
           status: 'SUCCEEDED',
           billingDate: new Date(),
         },
@@ -130,8 +136,8 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
     }
 
   } else if (event.type === 'invoice.payment_failed') {
-    const invoice: any = event.data.object;
-    const stripeSubId: string = invoice.subscription;
+    const invoice = event.data.object;
+    const stripeSubId = invoice.subscription as string;
     if (!stripeSubId) return res.json({ received: true });
 
     const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSubId } });
@@ -140,19 +146,21 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
     // Idempotency check for failed payments
     if (invoice.id) {
       const existingFailed = await prisma.subscriptionPayment.findUnique({
-        where: { stripeInvoiceId: invoice.id },
+        where: { stripeInvoiceId: invoice.id as string },
       });
       if (existingFailed) return res.json({ received: true, status: 'already_processed' });
     }
 
+    const lastFinalizationError = invoice.last_finalization_error as { message?: string } | undefined;
+
     await prisma.subscriptionPayment.create({
       data: {
         subscriptionId: sub.id,
-        stripeInvoiceId: invoice.id || null,
-        amount: (invoice.amount_due || 0) / 100,
+        stripeInvoiceId: (invoice.id as string) || null,
+        amount: ((invoice.amount_due as number) || 0) / 100,
         status: 'FAILED',
         billingDate: new Date(),
-        errorMessage: invoice.last_finalization_error?.message || 'Payment failed',
+        errorMessage: lastFinalizationError?.message || 'Payment failed',
       },
     });
 
@@ -160,7 +168,7 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       where: { id: sub.id },
       data: {
         failedAttempts: { increment: 1 },
-        lastFailureReason: invoice.last_finalization_error?.message || 'Payment failed',
+        lastFailureReason: lastFinalizationError?.message || 'Payment failed',
       },
     });
 
@@ -168,7 +176,7 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
     res.json({ received: true, status: 'failure_processed' });
 
   } else if (event.type === 'customer.subscription.deleted') {
-    const stripeSub = event.data.object as { id: string };
+    const stripeSub = event.data.object as unknown as { id: string };
     if (!stripeSub.id) { res.json({ received: true }); return; }
 
     const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSub.id } });
@@ -189,7 +197,7 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
     res.json({ received: true, status: 'cancelled' });
 
   } else if (event.type === 'customer.subscription.updated') {
-    const stripeSub = event.data.object as { id: string; status?: string; items?: { data: { price?: { unit_amount?: number } }[] } };
+    const stripeSub = event.data.object as unknown as { id: string; status?: string; items?: { data: { price?: { unit_amount?: number } }[] } };
     if (!stripeSub.id) { res.json({ received: true }); return; }
 
     const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSub.id } });
@@ -217,7 +225,7 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const { search, status, plan, startDate, endDate } = req.query;
 
-    const where: any = {};
+    const where: Prisma.SubscriptionPaymentWhereInput = {};
     if (search) {
       where.OR = [
         { subscription: { name: { contains: search as string, mode: 'insensitive' } } },
@@ -226,9 +234,13 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
       ];
     }
     if (status) where.status = status as string;
-    if (plan) where.subscription = { ...where.subscription, plan: plan as string };
-    if (startDate) where.billingDate = { ...where.billingDate, gte: new Date(startDate as string) };
-    if (endDate) where.billingDate = { ...where.billingDate, lte: new Date(endDate as string) };
+    if (plan) where.subscription = { plan: plan as string };
+    if (startDate || endDate) {
+      const billingDate: Prisma.DateTimeFilter = {};
+      if (startDate) billingDate.gte = new Date(startDate as string);
+      if (endDate) billingDate.lte = new Date(endDate as string);
+      where.billingDate = billingDate;
+    }
 
     const [payments, total] = await Promise.all([
       prisma.subscriptionPayment.findMany({

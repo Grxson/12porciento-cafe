@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Coffee, GlassWater, Snowflake, Wrench, Lock, Star,
+  GlassWater, Lock, Star,
   Clock, ChevronDown, ChevronUp, Download, Play,
 } from 'lucide-react';
 import jsPDF from 'jspdf';

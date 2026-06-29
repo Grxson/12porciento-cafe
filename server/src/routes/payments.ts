@@ -112,8 +112,8 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
       }
       return totalAmount;
     });
-  } catch (error: any) {
-    return res.status(400).json({ error: error.message || 'Error al verificar stock' });
+  } catch (error: unknown) {
+    return res.status(400).json({ error: error instanceof Error ? error.message : 'Error al verificar stock' });
   }
 
   try {
@@ -164,7 +164,7 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
       subtotal: amount,
       discountAmount,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Stripe error:', error);
     return res.status(500).json({ error: 'Error al crear intento de pago' });
   }
@@ -187,7 +187,7 @@ router.post('/create-gift-intent', paymentLimiter, async (req, res) => {
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Stripe gift intent error:', error);
     res.status(500).json({ error: 'Error al crear intento de pago' });
   }

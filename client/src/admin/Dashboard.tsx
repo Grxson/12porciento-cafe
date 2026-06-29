@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  TrendingUp, TrendingDown, ShoppingBag, Users, Star, AlertTriangle, ArrowUpRight,
-  Package, Gift, Tag, Plus, Coffee, DollarSign,
+  TrendingUp, ShoppingBag, Users, Star, AlertTriangle, ArrowUpRight,
+  Package, Gift, Tag, Plus, Coffee,
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,

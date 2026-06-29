@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
@@ -116,10 +117,14 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const to = (req.query.to as string) || '';
     const recovered = req.query.recovered as string;
 
-    const where: any = {};
+    const where: Prisma.AbandonedCartWhereInput = {};
     if (email) where.email = { contains: email.toLowerCase(), mode: 'insensitive' };
-    if (from) where.createdAt = { ...(where.createdAt || {}), gte: new Date(from) };
-    if (to) where.createdAt = { ...(where.createdAt || {}), lte: new Date(to + 'T23:59:59') };
+    if (from || to) {
+      const createdAt: Prisma.DateTimeFilter = {};
+      if (from) createdAt.gte = new Date(from);
+      if (to) createdAt.lte = new Date(to + 'T23:59:59');
+      where.createdAt = createdAt;
+    }
     if (recovered !== undefined) where.recovered = recovered === '1';
 
     const [carts, total] = await Promise.all([

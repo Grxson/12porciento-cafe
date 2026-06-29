@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { logAdminAction } from '../lib/adminLog';
@@ -50,9 +51,9 @@ router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
 router.get('/movements', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { productId, type, dateFrom, dateTo, page, pageSize } = req.query;
-    const where: any = {};
-    if (productId) where.productId = productId;
-    if (type) where.type = type;
+    const where: Prisma.StockMovementWhereInput = {};
+    if (productId) where.productId = productId as string;
+    if (type) where.type = type as string;
     if (dateFrom || dateTo) {
       where.createdAt = {};
       if (dateFrom) where.createdAt.gte = new Date(dateFrom as string);
@@ -274,7 +275,7 @@ router.get('/export-csv', requireAuth, async (_req: AuthRequest, res: Response) 
     ]);
 
     const csv = [headers, ...rows]
-      .map((row) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .map((row) => row.map((cell: string | number | boolean | null) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');

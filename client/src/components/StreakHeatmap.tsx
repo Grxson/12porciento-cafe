@@ -52,7 +52,7 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
       <div className="flex">
         {/* Day labels */}
         <div className="flex flex-col mr-1 text-xs text-coffee-500 leading-none">
-          {DAY_LABELS.map((d, i) => (
+          {DAY_LABELS.map((d) => (
             <div key={d} style={{ height: cellSize, marginBottom: gap, lineHeight: `${cellSize}px` }}>{d}</div>
           ))}
         </div>
@@ -67,9 +67,7 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
               gap,
             }}
           >
-            {data.map((d, i) => {
-              const row = i % 7;
-              const col = Math.floor(i / 7);
+            {data.map((d) => {
               return (
                 <div
                   key={d.date}

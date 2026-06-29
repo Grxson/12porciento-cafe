@@ -25,7 +25,7 @@ const unlockHints: Record<string, string> = {
 };
 
 // Progress targets for method-specific achievements
-const progressTargets: Record<string, number> = {
+const _progressTargets: Record<string, number> = {
   'v60_5': 5,
   'aeropress_5': 5,
   'espresso_5': 5,

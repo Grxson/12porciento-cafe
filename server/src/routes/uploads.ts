@@ -14,9 +14,9 @@ const uploadLimiter = rateLimit({
 });
 
 router.post('/', uploadLimiter, requireAnyAuth, (req: AnyAuthRequest, res: Response) => {
-  uploadMiddleware(req, res, async (err: any) => {
+  uploadMiddleware(req, res, async (err: unknown) => {
     if (err) {
-      res.status(400).json({ error: err.message || 'Error al subir imagen' });
+      res.status(400).json({ error: err instanceof Error ? err.message : 'Error al subir imagen' });
       return;
     }
     if (!req.file) {

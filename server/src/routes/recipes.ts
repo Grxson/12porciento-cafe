@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import jwt from 'jsonwebtoken';
@@ -47,12 +48,12 @@ async function hasRecipeAccess(authHeader: string | undefined): Promise<boolean>
 }
 
 // Helper: strip premium step details for locked recipes
-function lockRecipe(recipe: any) {
+function lockRecipe(recipe: { steps: Array<Record<string, unknown>>; [key: string]: unknown }) {
   return {
     ...recipe,
-    steps: recipe.steps.slice(0, 1).map((s: any) => ({
+    steps: recipe.steps.slice(0, 1).map((s: Record<string, unknown>) => ({
       ...s,
-      description: s.description.substring(0, 80) + '…',
+      description: (s.description as string).substring(0, 80) + '…',
       imageUrl: null,
       videoUrl: null,
     })),
@@ -66,8 +67,8 @@ function lockRecipe(recipe: any) {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { method, productId, premium, difficulty } = req.query;
-    const where: any = { isPublished: true };
-    if (method) where.method = method;
+    const where: Prisma.RecipeWhereInput = { isPublished: true };
+    if (method) where.method = method as string;
     if (productId) where.productId = productId as string;
     if (premium === 'true') where.isPremium = true;
     if (premium === 'false') where.isPremium = false;
@@ -222,7 +223,7 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
       isPremium, isPublished, productId,
     } = req.body;
 
-    const data: any = {};
+    const data: Prisma.RecipeUncheckedUpdateInput = {};
     if (title !== undefined) data.title = title.trim();
     if (slug !== undefined) data.slug = slug.trim().toLowerCase().replace(/\s+/g, '-');
     if (description !== undefined) data.description = description?.trim() ?? null;
@@ -329,7 +330,7 @@ router.put('/admin/:id/steps/reorder', requireAuth, async (req: AuthRequest, res
 router.put('/admin/:id/steps/:stepId', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { title, description, imageUrl, videoUrl, duration, order } = req.body;
-    const data: any = {};
+    const data: Prisma.RecipeStepUpdateInput = {};
     if (title !== undefined) data.title = title.trim();
     if (description !== undefined) data.description = description.trim();
     if (imageUrl !== undefined) data.imageUrl = imageUrl?.trim() ?? null;

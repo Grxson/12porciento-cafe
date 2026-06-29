@@ -122,7 +122,7 @@ router.post('/', async (req: Request, res: Response) => {
           }
         }
 
-        const created = await tx.order.create({
+        await tx.order.create({
           data: {
             customerName: intent.metadata?.customerName || 'Cliente',
             email: intent.metadata?.email || '',

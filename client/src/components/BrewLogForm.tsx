@@ -15,7 +15,7 @@ interface BrewLogFormProps {
 
 export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormProps) {
   const user = useUser((s) => s.user);
-  const { submitBrewLog, loading, error } = useBarista(user?.id);
+  const { submitBrewLog, error } = useBarista(user?.id);
   const addToast = useToast((s) => s.add);
 
   const [rating, setRating] = useState(3);

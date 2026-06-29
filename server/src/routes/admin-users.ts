@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';

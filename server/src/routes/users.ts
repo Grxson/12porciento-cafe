@@ -181,7 +181,8 @@ router.get('/me/orders', requireUserAuth, async (req: UserAuthRequest, res: Resp
       orderBy: { createdAt: 'desc' },
     });
     res.json(orders);
-  } catch {
+  } catch (err) {
+    console.error('[/me/orders]', err);
     res.status(500).json({ error: 'Error al obtener pedidos' });
   }
 });
@@ -318,7 +319,8 @@ router.get('/me/payment-methods', requireUserAuth, async (req: UserAuthRequest, 
       })),
       defaultId: user.stripeDefaultPaymentMethodId,
     });
-  } catch {
+  } catch (err) {
+    console.error('[/me/payment-methods]', err);
     res.status(500).json({ error: 'Error al obtener métodos de pago' });
   }
 });

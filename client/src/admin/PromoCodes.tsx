@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Tag } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Tag, Download } from 'lucide-react';
+import { exportToCsv } from './utils/csvExport';
 import { promoCodesApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -114,12 +115,30 @@ export default function AdminPromoCodes() {
   return (
     <div className="p-8">
       <PageMeta title="Códigos de Descuento" noSuffix />
-      <div className="flex items-center gap-3 mb-8">
-        <Tag className="w-6 h-6 text-gold-500" />
-        <div>
-          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Códigos de Descuento</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{codes.length} códigos</p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <Tag className="w-6 h-6 text-gold-500" />
+          <div>
+            <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Códigos de Descuento</h1>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{codes.length} códigos</p>
+          </div>
         </div>
+        <button
+          onClick={() => exportToCsv(codes, 'codigos-descuento', [
+            { key: 'code', label: 'Código' },
+            { key: 'discount', label: 'Descuento' },
+            { key: 'type', label: 'Tipo' },
+            { key: 'maxUses', label: 'Usos máx' },
+            { key: 'usedCount', label: 'Usado' },
+            { key: 'isActive', label: 'Activo' },
+            { key: 'expiresAt', label: 'Expira' },
+            { key: 'createdAt', label: 'Creado' },
+          ])}
+          className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
       </div>
 
       <form onSubmit={submit} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-8">

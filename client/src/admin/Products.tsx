@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Search, ShoppingBag, Plus, Edit2, Trash2, Star, ToggleLeft, ToggleRight, Tag, ChevronDown } from 'lucide-react';
+import { Search, ShoppingBag, Plus, Edit2, Trash2, Star, ToggleLeft, ToggleRight, Tag, ChevronDown, Download } from 'lucide-react';
 import AdminModal from './components/AdminModal';
 import { productsApi } from '../api';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -11,6 +11,7 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
+import { exportToCsv } from './utils/csvExport';
 import type { Product } from '../types';
 
 const emptyForm = {
@@ -192,9 +193,27 @@ export default function AdminProducts() {
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Productos</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} en catálogo</p>
         </div>
-        <button onClick={openAdd} className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Agregar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportToCsv(products, 'productos', [
+              { key: 'name', label: 'Nombre' },
+              { key: 'category', label: 'Categoría' },
+              { key: 'price', label: 'Precio' },
+              { key: 'stock', label: 'Stock' },
+              { key: 'sku', label: 'SKU' },
+              { key: 'isActive', label: 'Activo' },
+              { key: 'isLimited', label: 'Limitado' },
+              { key: 'createdAt', label: 'Creado' },
+            ])}
+            className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            title="Exportar CSV"
+          >
+            <Download size={14} /> CSV
+          </button>
+          <button onClick={openAdd} className="px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Agregar
+          </button>
+        </div>
       </div>
 
       {/* Search */}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Download } from 'lucide-react';
+import { exportToCsv } from './utils/csvExport';
 import { subscriptionsApi, productsApi } from '../api';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminModal from './components/AdminModal';
@@ -317,6 +318,20 @@ export default function AdminSubscribers() {
   const active = subs.filter((s) => s.status === 'ACTIVE').length;
   const paused = subs.filter((s) => s.status === 'PAUSED').length;
 
+  const handleExportCsv = () => {
+    exportToCsv(subs, 'suscriptores', [
+      { key: 'name', label: 'Nombre' },
+      { key: 'email', label: 'Email' },
+      { key: 'plan', label: 'Plan' },
+      { key: 'status', label: 'Estado' },
+      { key: 'frequency', label: 'Frecuencia' },
+      { key: 'grindPreference', label: 'Molienda' },
+      { key: 'nextBilling', label: 'Próximo cobro' },
+      { key: 'fulfillmentStatus', label: 'Envío' },
+      { key: 'createdAt', label: 'Creado' },
+    ]);
+  };
+
   return (
     <div className="p-8">
       <PageMeta title="Suscriptores" noSuffix />
@@ -328,16 +343,26 @@ export default function AdminSubscribers() {
           </p>
         </div>
 
-        <select
-          value={filter}
-          onChange={(e) => { setFilter(e.target.value); setPage(1); }}
-          className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
-        >
-          <option value="">Todas</option>
-          <option value="ACTIVE">Activas</option>
-          <option value="PAUSED">Pausadas</option>
-          <option value="CANCELLED">Canceladas</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-400 dark:hover:border-coffee-500 transition-colors"
+            title="Exportar CSV"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">CSV</span>
+          </button>
+          <select
+            value={filter}
+            onChange={(e) => { setFilter(e.target.value); setPage(1); }}
+            className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
+          >
+            <option value="">Todas</option>
+            <option value="ACTIVE">Activas</option>
+            <option value="PAUSED">Pausadas</option>
+            <option value="CANCELLED">Canceladas</option>
+          </select>
+        </div>
       </div>
 
       <div className="relative mb-6">

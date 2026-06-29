@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { useToast } from './ToastContext';
+import { idbStorage } from '../lib/idb-storage';
 import type { CartItem, BundleCartItem, Bundle, Product } from '../types';
 
 export const MAX_QTY_PER_PRODUCT = 10;
@@ -126,6 +127,7 @@ export const useCart = create<CartStore>()(
     }),
     {
       name: 'cafe-12-cart',
+      storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({ items: state.items }),
     },
   ),

@@ -141,9 +141,7 @@ All initiatives shipped:
 Last updated: 2026-06-28 (Sprint 003 + 004 — Design Refinement + Light Mode Audit & Fix + Admin Improvement)
 
 <!-- SPECKIT START -->
-## Previous Features
-- **PWA Push Notifications**: [specs/003-pwa-push-notifications/](specs/003-pwa-push-notifications/) — SHIPPED ✅
-- **Typography Standardization**: [specs/004-typography-standardization/](specs/004-typography-standardization/) — SHIPPED ✅
-- **Dark Mode Audit & PWA Update Notifications**: [specs/002-dark-mode-audit-and-pwa-updates/](specs/002-dark-mode-audit-and-pwa-updates/) — SHIPPED ✅
-- **PWA Responsive Mobile Fixes**: [specs/001-pwa-responsive-mobile/](specs/001-pwa-responsive-mobile/) — SHIPPED ✅
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+at specs/004-typography-standardization/plan.md
 <!-- SPECKIT END -->

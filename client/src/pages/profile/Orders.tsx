@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { usersApi } from '../../api';
 import type { Order } from '../../types';
 import { PageMeta } from '../../hooks/usePageMeta';
+import PageSkeleton from '../../components/PageSkeleton';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 
@@ -36,9 +37,9 @@ export default function Orders() {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="py-4">
         <PageMeta title="Mis Pedidos" />
-        <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+        <PageSkeleton variant="profile-list" />
       </div>
     );
   }

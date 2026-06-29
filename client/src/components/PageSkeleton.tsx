@@ -1,5 +1,5 @@
 interface PageSkeletonProps {
-  variant?: 'product-detail' | 'gallery-grid' | 'profile';
+  variant?: 'product-detail' | 'gallery-grid' | 'profile' | 'profile-list';
 }
 
 function ProductDetailSkeleton() {
@@ -78,12 +78,31 @@ function ProfileSkeleton() {
   );
 }
 
+function ProfileListSkeleton() {
+  return (
+    <div className="space-y-3 py-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 flex items-center gap-4">
+          <div className="shimmer dark:shimmer-dark h-12 w-12 rounded" />
+          <div className="flex-1 space-y-2">
+            <div className="shimmer dark:shimmer-dark h-4 w-3/4" />
+            <div className="shimmer dark:shimmer-dark h-3 w-1/2" />
+          </div>
+          <div className="shimmer dark:shimmer-dark h-4 w-16" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function PageSkeleton({ variant = 'product-detail' }: PageSkeletonProps) {
   switch (variant) {
     case 'gallery-grid':
       return <GalleryGridSkeleton />;
     case 'profile':
       return <ProfileSkeleton />;
+    case 'profile-list':
+      return <ProfileListSkeleton />;
     default:
       return <ProductDetailSkeleton />;
   }

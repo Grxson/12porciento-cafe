@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { CreditCard, AlertTriangle, Edit3, Lock, Check, PauseCircle, PlayCircle } from 'lucide-react';
 import { usersApi, subscriptionsApi, subscriptionPauseApi } from '../../api';
 import { useUser } from '../../context/UserContext';
+import PageSkeleton from '../../components/PageSkeleton';
 import SubscriptionBilling from './SubscriptionBilling';
 import CoffeePicker from '../../components/CoffeePicker';
 import type { Subscription as Sub, SubscriptionPlan } from '../../types';
@@ -33,6 +34,7 @@ export default function Subscription() {
   const [editGrind, setEditGrind] = useState<'MOLIDO' | 'GRANO'>('GRANO');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const minResumeDate = useMemo(() => new Date(Date.now() + 86400000).toISOString().split('T')[0], []);
   const setHasSubscription = useUser((s) => s.setHasSubscription);
   const { add: addToast } = useToast();
 
@@ -107,7 +109,7 @@ export default function Subscription() {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-12"><PageMeta title="Mi Suscripción" /><div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" /></div>;
+    return <div className="py-4"><PageMeta title="Mi Suscripción" /><PageSkeleton variant="profile-list" /></div>;
   }
 
   if (!sub) {
@@ -303,7 +305,7 @@ export default function Subscription() {
                       type="date"
                       value={pauseUntil}
                       onChange={(e) => setPauseUntil(e.target.value)}
-                      min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                      min={minResumeDate}
                       className="input-dark !text-sm w-full"
                     />
                   </div>

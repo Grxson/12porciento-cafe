@@ -8,6 +8,7 @@ import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
+import { PageMeta } from '../hooks/usePageMeta';
 
 function FulfillmentBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
@@ -318,6 +319,7 @@ export default function AdminSubscribers() {
 
   return (
     <div className="p-8">
+      <PageMeta title="Suscriptores" noSuffix />
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Suscriptores</h1>

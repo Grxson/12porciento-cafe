@@ -6,6 +6,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
+import { PageMeta } from '../hooks/usePageMeta';
 import type { Review } from '../types';
 
 type ReviewWithResponse = Review & { adminResponse?: string };
@@ -112,6 +113,7 @@ export default function AdminReviews() {
 
   return (
     <div className="p-8">
+      <PageMeta title="Reseñas" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Reseñas</h1>

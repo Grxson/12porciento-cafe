@@ -6,6 +6,7 @@ import { exportToCsv } from './utils/csvExport';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
+import { PageMeta } from '../hooks/usePageMeta';
 
 interface CustomerSummary {
   id: string;
@@ -150,6 +151,7 @@ export default function AdminCustomers() {
 
   return (
     <div className="p-8">
+      <PageMeta title="Clientes" noSuffix />
       <div className="flex items-center gap-3 mb-6">
         <Users className="w-6 h-6 text-gold-500" />
         <div>

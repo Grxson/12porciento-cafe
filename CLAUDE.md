@@ -76,15 +76,25 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 - **Execution:** 6 caveman:cavecrew-builder subagents in parallel, 1 commit (37fc044), 60 insertions/71 deletions across 9 files
 - **Key fix:** Every color class now has `dark:` variant or is unconditional. Light mode contrast ratio ≥ WCAG AA.
 
+### Admin Improvement Sprint (June 2026) - SHIPPED
+- **8 core features:** Wishlist, Recipe Ratings, Subscription Pause/Skip, Price History, Gift Cards, Abandoned Cart, Enhanced Analytics, Logistics Panel
+- **AdminLog audit trail:** Prisma model, server utility, API endpoints, client viewer, nav integration
+- **Order tracking fields:** trackingNumber, carrier, estimatedDelivery schema + API + email notification
+- **Fase 0 admin polish:** PageMeta in all pages, AdminSkeleton/AdminErrorState everywhere, AbandonedCarts filters (search, date range, recovered), Logistics overhaul (tracking modal, carrier selector, Pagination, light mode), Inventory error states, SubscriptionPayments insensitive search, AdminUsers submit fix
+- **Financial dashboard:** `/api/dashboard/financial` endpoint (profit, margin, MRR, category breakdown), client integration in Dashboard.tsx
+- **Bulk push preferences:** `PUT /api/push/preferences/bulk` for admin notification settings
+- **Execution:** 6 commits, 35 files, 1400+ insertions
+
 ### Roadmap Status
-All 4 master initiatives already shipped:
+All initiatives shipped:
 - ✅ Gallery/showcase
 - ✅ Stripe payments
 - ✅ Recipes feature
 - ✅ PWA support
 - ✅ Gamification (Barista Levels)
-
-**Note:** Do not trust unchecked plan checkboxes — features may already be implemented.
+- ✅ PWA Push Notifications
+- ✅ Typography Standardization
+- ✅ Admin enhancements (8 features + Fase 0-2)
 
 ## Project Structure
 ```
@@ -128,23 +138,12 @@ All 4 master initiatives already shipped:
 - Run type checking & tests if available
 
 ---
-Last updated: 2026-06-23 (Sprint 003 + 004 — Design Refinement + Light Mode Audit & Fix)
+Last updated: 2026-06-28 (Sprint 003 + 004 — Design Refinement + Light Mode Audit & Fix + Admin Improvement)
 
 <!-- SPECKIT START -->
-## Current Feature Plan
-
-**Active feature**: PWA Push Notifications — **PLANNED**
-**Spec**: [specs/003-pwa-push-notifications/spec.md](specs/003-pwa-push-notifications/spec.md)
-**Plan**: [specs/003-pwa-push-notifications/plan.md](specs/003-pwa-push-notifications/plan.md)
-**Tasks**: [specs/003-pwa-push-notifications/tasks.md](specs/003-pwa-push-notifications/tasks.md)
-**Data Model**: [specs/003-pwa-push-notifications/data-model.md](specs/003-pwa-push-notifications/data-model.md)
-**Research**: [specs/003-pwa-push-notifications/research.md](specs/003-pwa-push-notifications/research.md)
-**UI Contracts**: [specs/003-pwa-push-notifications/contracts/ui-contracts.md](specs/003-pwa-push-notifications/contracts/ui-contracts.md)
-**Quickstart**: [specs/003-pwa-push-notifications/quickstart.md](specs/003-pwa-push-notifications/quickstart.md)
-
-Real native PWA push notifications. VAPID keys, Prisma PushSubscription, custom SW `push`/`notificationclick`, contextual permission prompt, admin toggles. 53 tasks across 8 phases. No Firebase dependency.
-
-### Previous Features
+## Previous Features
+- **PWA Push Notifications**: [specs/003-pwa-push-notifications/](specs/003-pwa-push-notifications/) — SHIPPED ✅
+- **Typography Standardization**: [specs/004-typography-standardization/](specs/004-typography-standardization/) — SHIPPED ✅
 - **Dark Mode Audit & PWA Update Notifications**: [specs/002-dark-mode-audit-and-pwa-updates/](specs/002-dark-mode-audit-and-pwa-updates/) — SHIPPED ✅
 - **PWA Responsive Mobile Fixes**: [specs/001-pwa-responsive-mobile/](specs/001-pwa-responsive-mobile/) — SHIPPED ✅
 <!-- SPECKIT END -->

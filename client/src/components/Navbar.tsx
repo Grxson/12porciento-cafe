@@ -31,6 +31,7 @@ const primaryLinks = [
 const secondaryLinks = [
   { to: '/paquetes', label: 'Paquetes' },
   { to: '/galeria', label: 'Galería' },
+  { to: '/b2b', label: 'Empresas' },
   { to: '/leaderboard', label: 'Ranking' },
   { to: '/logros', label: 'Logros' },
   { to: '/quiz', label: 'Quiz' },
@@ -70,7 +71,9 @@ export default function Navbar() {
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [open]);
 
   useEffect(() => {
@@ -84,166 +87,195 @@ export default function Navbar() {
 
   return (
     <>
-    <header
-      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'bg-coffee-50/98 dark:bg-coffee-950/98 backdrop-blur-sm shadow-lg shadow-coffee-400/20 dark:shadow-coffee-950/20 border-b border-coffee-200/60 dark:border-coffee-800/60'
-          : 'bg-coffee-50/85 dark:bg-coffee-950/85 backdrop-blur-sm'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
-        <Link to="/" className="flex flex-col leading-none">
-          <span className="font-serif text-2xl font-bold text-coffee-900 dark:text-cream tracking-tight">12%</span>
-          <span className="text-xs tracking-widest text-gold-600 dark:text-gold-400 uppercase">doce por ciento</span>
-        </Link>
+      <header
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? 'bg-coffee-50/98 dark:bg-coffee-950/98 backdrop-blur-sm shadow-lg shadow-coffee-400/20 dark:shadow-coffee-950/20 border-b border-coffee-200/60 dark:border-coffee-800/60'
+            : 'bg-coffee-50/85 dark:bg-coffee-950/85 backdrop-blur-sm'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
+          <Link to="/" className="flex flex-col leading-none">
+            <span className="font-serif text-2xl font-bold text-coffee-900 dark:text-cream tracking-tight">
+              12%
+            </span>
+            <span className="text-xs tracking-widest text-gold-600 dark:text-gold-400 uppercase">
+              doce por ciento
+            </span>
+          </Link>
 
-        <nav className="hidden md:flex items-center gap-8 relative">
-          {primaryLinks.map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `text-sm tracking-widest uppercase transition-colors duration-200 relative ${
-                  isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-                }`
-              }
-            >
-              {label}
-              {to === '/suscripciones' && hasSubscription && (
-                <span className="absolute -top-1.5 -right-3 w-2 h-2 bg-gold-500 rounded-full" />
-              )}
-            </NavLink>
-          ))}
+          <nav className="hidden md:flex items-center gap-8 relative">
+            {primaryLinks.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `text-sm tracking-widest uppercase transition-colors duration-200 relative ${
+                    isActive
+                      ? 'text-gold-500'
+                      : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                  }`
+                }
+              >
+                {label}
+                {to === '/suscripciones' && hasSubscription && (
+                  <span className="absolute -top-1.5 -right-3 w-2 h-2 bg-gold-500 rounded-full" />
+                )}
+              </NavLink>
+            ))}
 
-          <div ref={moreRef} className="relative">
+            <div ref={moreRef} className="relative">
+              <button
+                onClick={() => setMoreOpen(!moreOpen)}
+                className={`text-sm tracking-widest uppercase transition-colors duration-200 ${
+                  moreOpen
+                    ? 'text-gold-500'
+                    : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                }`}
+              >
+                Más
+              </button>
+
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full right-0 mt-2 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 rounded-lg shadow-lg min-w-[160px] z-50"
+                  >
+                    <nav className="flex flex-col py-2">
+                      {secondaryLinks.map(({ to, label }) => (
+                        <NavLink
+                          key={to}
+                          to={to}
+                          onClick={() => setMoreOpen(false)}
+                          className={({ isActive }) =>
+                            `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
+                              isActive
+                                ? 'text-gold-500'
+                                : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                            }`
+                          }
+                        >
+                          {label}
+                        </NavLink>
+                      ))}
+                    </nav>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </nav>
+
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setMoreOpen(!moreOpen)}
-              className={`text-sm tracking-widest uppercase transition-colors duration-200 ${
-                moreOpen ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-              }`}
+              onClick={toggle}
+              className="text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              aria-label="Cambiar tema"
             >
-              Más
+              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <UserMenu />
+            {user && <NotificationBell />}
+            <button
+              onClick={openDrawer}
+              className="relative text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              aria-label="Carrito"
+            >
+              <ShoppingBag className="w-5 h-5" />
+              {count > 0 && (
+                <motion.span
+                  key={count}
+                  initial={{ scale: 0.5 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-gold-500 text-coffee-950 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center"
+                >
+                  {count}
+                </motion.span>
+              )}
             </button>
 
-            <AnimatePresence>
-              {moreOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 mt-2 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 rounded-lg shadow-lg min-w-[160px] z-50"
-                >
-                  <nav className="flex flex-col py-2">
-                    {secondaryLinks.map(({ to, label }) => (
-                      <NavLink
-                        key={to}
-                        to={to}
-                        onClick={() => setMoreOpen(false)}
-                        className={({ isActive }) =>
-                          `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
-                            isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-                          }`
-                        }
-                      >
-                        {label}
-                      </NavLink>
-                    ))}
-                  </nav>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <button
+              onClick={() => setOpen(!open)}
+              className="md:hidden text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              aria-label="Menú"
+            >
+              <AnimatePresence>
+                {open ? (
+                  <motion.span
+                    key="x"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <X className="w-5 h-5" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="m"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Menu className="w-5 h-5" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggle}
-            className="text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
-            aria-label="Cambiar tema"
-          >
-            {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <UserMenu />
-          {user && <NotificationBell />}
-          <button
-            onClick={openDrawer}
-            className="relative text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
-            aria-label="Carrito"
-          >
-            <ShoppingBag className="w-5 h-5" />
-            {count > 0 && (
-              <motion.span
-                key={count}
-                initial={{ scale: 0.5 }}
-                animate={{ scale: 1 }}
-                className="absolute -top-2 -right-2 bg-gold-500 text-coffee-950 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center"
-              >
-                {count}
-              </motion.span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setOpen(!open)}
-            className="md:hidden text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
-            aria-label="Menú"
-          >
-            <AnimatePresence>
-              {open
-                ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X className="w-5 h-5" /></motion.span>
-                : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Menu className="w-5 h-5" /></motion.span>
-              }
-            </AnimatePresence>
-          </button>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-coffee-950/70 backdrop-blur-sm md:hidden"
-            onClick={() => setOpen(false)}
-          />
-          <motion.div
-            ref={menuRef}
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 bottom-0 z-50 max-w-[18rem] w-full bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-20 pb-[max(2rem,env(safe-area-inset-bottom,0px))] md:hidden outline-none"
-            tabIndex={-1}
-          >
-            <nav className="flex flex-col px-6 gap-1">
-                  {links.map(({ to, label }) => (
-                    <NavLink
-                      key={to}
-                      to={to}
-                      onClick={() => setOpen(false)}
-                      className={({ isActive }) =>
-                        `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors relative ${
-                          isActive ? 'text-gold-500' : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-                        }`
-                      }
-                    >
-                      {label}
-                      {to === '/suscripciones' && hasSubscription && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 w-2 h-2 bg-gold-500 rounded-full" />
-                      )}
-                    </NavLink>
-                  ))}
-            </nav>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-    <CartDrawer />
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-coffee-950/70 backdrop-blur-sm md:hidden"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              ref={menuRef}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed top-0 right-0 bottom-0 z-50 max-w-[18rem] w-full bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-20 pb-[max(2rem,env(safe-area-inset-bottom,0px))] md:hidden outline-none"
+              tabIndex={-1}
+            >
+              <nav className="flex flex-col px-6 gap-1">
+                {links.map(({ to, label }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors relative ${
+                        isActive
+                          ? 'text-gold-500'
+                          : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                      }`
+                    }
+                  >
+                    {label}
+                    {to === '/suscripciones' && hasSubscription && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 w-2 h-2 bg-gold-500 rounded-full" />
+                    )}
+                  </NavLink>
+                ))}
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      <CartDrawer />
     </>
   );
 }

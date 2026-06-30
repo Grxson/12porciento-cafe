@@ -19,17 +19,21 @@ const paymentLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-async function applyPromo(subtotal: number, promoCode?: string): Promise<{ finalAmount: number; discountAmount: number }> {
+async function applyPromo(
+  subtotal: number,
+  promoCode?: string,
+): Promise<{ finalAmount: number; discountAmount: number }> {
   if (!promoCode) return { finalAmount: subtotal, discountAmount: 0 };
   const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
   if (!promo || !promo.isActive) return { finalAmount: subtotal, discountAmount: 0 };
-  if (promo.expiresAt && new Date() > promo.expiresAt) return { finalAmount: subtotal, discountAmount: 0 };
-  if (promo.maxUses && promo.usedCount >= promo.maxUses) return { finalAmount: subtotal, discountAmount: 0 };
+  if (promo.expiresAt && new Date() > promo.expiresAt)
+    return { finalAmount: subtotal, discountAmount: 0 };
+  if (promo.maxUses && promo.usedCount >= promo.maxUses)
+    return { finalAmount: subtotal, discountAmount: 0 };
   // Any non-FIXED type is a percentage (schema/admin form historically used both
   // 'PERCENT' and 'PERCENTAGE'; only 'FIXED' is a flat amount).
-  const discount = promo.type === 'FIXED'
-    ? Math.min(promo.discount, subtotal)
-    : subtotal * (promo.discount / 100);
+  const discount =
+    promo.type === 'FIXED' ? Math.min(promo.discount, subtotal) : subtotal * (promo.discount / 100);
   return { finalAmount: Math.max(subtotal - discount, 0), discountAmount: discount };
 }
 
@@ -67,19 +71,29 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith('Bearer ')) {
     try {
-      const payload = jwt.verify(
-        authHeader.replace('Bearer ', ''),
-        process.env.JWT_SECRET!,
-      ) as { id: string; role?: string };
+      const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as {
+        id: string;
+        role?: string;
+      };
       if (payload.role === 'USER') userId = payload.id;
-    } catch { /* guest checkout */ }
+    } catch {
+      /* guest checkout */
+    }
   }
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Items requeridos' });
   }
   const MAX_QTY_PER_PRODUCT = 10;
-  if (items.some((i) => !i.productId || !Number.isInteger(i.quantity) || i.quantity < 1 || i.quantity > MAX_QTY_PER_PRODUCT)) {
+  if (
+    items.some(
+      (i) =>
+        !i.productId ||
+        !Number.isInteger(i.quantity) ||
+        i.quantity < 1 ||
+        i.quantity > MAX_QTY_PER_PRODUCT,
+    )
+  ) {
     return res.status(400).json({ error: `Cantidad máxima por producto: ${MAX_QTY_PER_PRODUCT}` });
   }
 
@@ -97,14 +111,26 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
           throw new Error(`Producto ${item.productId} no disponible`);
         }
         if (product.stock < item.quantity) {
-          throw new Error(`Stock insuficiente para "${product.name}" (disponible: ${product.stock})`);
+          console.error('[create-intent] Stock fail:', {
+            productId: item.productId,
+            productName: product.name,
+            stock: product.stock,
+            quantity: item.quantity,
+            type: typeof product.stock,
+            qtyType: typeof item.quantity,
+          });
+          throw new Error(
+            `Stock insuficiente para "${product.name}" (disponible: ${product.stock})`,
+          );
         }
         totalAmount += product.price * item.quantity;
       }
       return totalAmount;
     });
   } catch (error: unknown) {
-    return res.status(400).json({ error: error instanceof Error ? error.message : 'Error al verificar stock' });
+    return res
+      .status(400)
+      .json({ error: error instanceof Error ? error.message : 'Error al verificar stock' });
   }
 
   try {
@@ -116,37 +142,52 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
     }
 
     if (paymentMethodId && !stripeCustomerId) {
-      return res.status(400).json({ error: 'Tu método de pago guardado requiere información de cliente. Intenta actualizar tu perfil o usar un método de pago nuevo.' });
+      return res
+        .status(400)
+        .json({
+          error:
+            'Tu método de pago guardado requiere información de cliente. Intenta actualizar tu perfil o usar un método de pago nuevo.',
+        });
     }
 
     const s = (v?: string) => (v ? v.slice(0, 500) : undefined);
     const rawIdempotencyKey = (req.headers['idempotency-key'] as string)?.trim();
-    if (!rawIdempotencyKey || !/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(rawIdempotencyKey)) {
-      return res.status(400).json({ error: 'idempotency-key header required and must be valid UUID' });
+    if (
+      !rawIdempotencyKey ||
+      !/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(rawIdempotencyKey)
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'idempotency-key header required and must be valid UUID' });
     }
     const idempotencyKey = rawIdempotencyKey;
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amountCentavos,
-      currency: 'mxn',
-      ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
-      ...(paymentMethodId
-        ? { payment_method: paymentMethodId }
-        : { automatic_payment_methods: { enabled: true } }),
-      metadata: {
-        items: JSON.stringify(items.map((i) => ({ productId: i.productId, quantity: i.quantity }))),
-        ...(promoCode ? { promoCode } : {}),
-        ...(s(customerName) ? { customerName: s(customerName)! } : {}),
-        ...(s(email) ? { email: s(email)! } : {}),
-        ...(s(phone) ? { phone: s(phone)! } : {}),
-        ...(s(address) ? { address: s(address)! } : {}),
-        ...(s(city) ? { city: s(city)! } : {}),
-        ...(s(state) ? { state: s(state)! } : {}),
-        ...(s(zipCode) ? { zipCode: s(zipCode)! } : {}),
-        ...(s(notes) ? { notes: s(notes)! } : {}),
-        ...(s(userId) ? { userId: s(userId)! } : {}),
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: amountCentavos,
+        currency: 'mxn',
+        ...(stripeCustomerId ? { customer: stripeCustomerId } : {}),
+        ...(paymentMethodId
+          ? { payment_method: paymentMethodId }
+          : { automatic_payment_methods: { enabled: true } }),
+        metadata: {
+          items: JSON.stringify(
+            items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          ),
+          ...(promoCode ? { promoCode } : {}),
+          ...(s(customerName) ? { customerName: s(customerName)! } : {}),
+          ...(s(email) ? { email: s(email)! } : {}),
+          ...(s(phone) ? { phone: s(phone)! } : {}),
+          ...(s(address) ? { address: s(address)! } : {}),
+          ...(s(city) ? { city: s(city)! } : {}),
+          ...(s(state) ? { state: s(state)! } : {}),
+          ...(s(zipCode) ? { zipCode: s(zipCode)! } : {}),
+          ...(s(notes) ? { notes: s(notes)! } : {}),
+          ...(s(userId) ? { userId: s(userId)! } : {}),
+        },
       },
-    }, { idempotencyKey });
+      { idempotencyKey },
+    );
 
     return res.json({
       clientSecret: paymentIntent.client_secret,

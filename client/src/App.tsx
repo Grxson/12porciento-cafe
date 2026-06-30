@@ -74,6 +74,7 @@ import AdminRecipesPage from './admin/Recipes';
 import Achievements from './admin/Achievements';
 import SubscriptionPayments from './admin/SubscriptionPayments';
 import AdminNotificationSettings from './admin/AdminNotificationSettings';
+import AdminB2BOrders from './admin/B2BOrders';
 import B2BInquiries from './admin/B2BInquiries';
 import AbandonedCarts from './admin/AbandonedCarts';
 import Logistics from './admin/Logistics';
@@ -87,6 +88,7 @@ import BottomNav from './components/BottomNav';
 import InstallPrompt from './components/InstallPrompt';
 import OfflineBanner from './components/OfflineBanner';
 import Quiz from './pages/Quiz';
+import B2BCatalog from './pages/B2BCatalog';
 import Gallery from './pages/Gallery';
 import BaristaProfile from './pages/BaristaProfile';
 import Leaderboard from './pages/Leaderboard';
@@ -247,6 +249,7 @@ export default function App() {
                     }
                   />
                   <Route path="/perfil/barista/:userId" element={<BaristaProfile />} />
+                  <Route path="/b2b" element={<B2BCatalog />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route
                     path="/logros"
@@ -300,6 +303,7 @@ export default function App() {
                   <Route path="logros" element={<Achievements />} />
                   <Route path="pagos-suscripciones" element={<SubscriptionPayments />} />
                   <Route path="notificaciones" element={<AdminNotificationSettings />} />
+                  <Route path="b2b" element={<AdminB2BOrders />} />
                   <Route path="consultas-b2b" element={<B2BInquiries />} />
                   <Route path="carritos-abandonados" element={<AbandonedCarts />} />
                   <Route path="logistica" element={<Logistics />} />

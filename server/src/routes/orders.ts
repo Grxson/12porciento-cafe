@@ -24,22 +24,47 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 });
 
 function validateOrderFields(data: Record<string, unknown>): string | null {
-  if (!data.customerName || typeof data.customerName !== 'string' || data.customerName.trim().length < 2 || data.customerName.length > 100) {
+  if (
+    !data.customerName ||
+    typeof data.customerName !== 'string' ||
+    data.customerName.trim().length < 2 ||
+    data.customerName.length > 100
+  ) {
     return 'Nombre debe tener entre 2 y 100 caracteres';
   }
-  if (!data.email || typeof data.email !== 'string' || data.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+  if (
+    !data.email ||
+    typeof data.email !== 'string' ||
+    data.email.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
+  ) {
     return 'Email inválido';
   }
   if (data.phone && !/^\d{10}$/.test(String(data.phone).replace(/[\s\-()]/g, ''))) {
     return 'Teléfono debe tener 10 dígitos';
   }
-  if (!data.address || typeof data.address !== 'string' || data.address.trim().length < 5 || data.address.length > 200) {
+  if (
+    !data.address ||
+    typeof data.address !== 'string' ||
+    data.address.trim().length < 5 ||
+    data.address.length > 200
+  ) {
     return 'Dirección debe tener entre 5 y 200 caracteres';
   }
-  if (!data.city || typeof data.city !== 'string' || data.city.trim().length < 2 || data.city.length > 100) {
+  if (
+    !data.city ||
+    typeof data.city !== 'string' ||
+    data.city.trim().length < 2 ||
+    data.city.length > 100
+  ) {
     return 'Ciudad inválida';
   }
-  if (!data.state || typeof data.state !== 'string' || data.state.trim().length < 2 || data.state.length > 100) {
+  if (
+    !data.state ||
+    typeof data.state !== 'string' ||
+    data.state.trim().length < 2 ||
+    data.state.length > 100
+  ) {
     return 'Estado inválido';
   }
   if (!data.zipCode || !/^\d{5}$/.test(String(data.zipCode))) {
@@ -51,7 +76,10 @@ function validateOrderFields(data: Record<string, unknown>): string | null {
   return null;
 }
 
-async function applyPromo(subtotal: number, promoCode?: string): Promise<{ total: number; promoId: string | null }> {
+async function applyPromo(
+  subtotal: number,
+  promoCode?: string,
+): Promise<{ total: number; promoId: string | null }> {
   if (!promoCode) return { total: subtotal, promoId: null };
   const promo = await prisma.promoCode.findUnique({ where: { code: promoCode.toUpperCase() } });
   if (!promo || !promo.isActive) return { total: subtotal, promoId: null };
@@ -60,17 +88,24 @@ async function applyPromo(subtotal: number, promoCode?: string): Promise<{ total
   // Treat anything that isn't an explicit FIXED amount as a percentage. Historic rows
   // and the admin form have used both 'PERCENT' and 'PERCENTAGE' for percentage promos.
   const isFixed = promo.type === 'FIXED';
-  const discount = isFixed
-    ? Math.min(promo.discount, subtotal)
-    : subtotal * (promo.discount / 100);
+  const discount = isFixed ? Math.min(promo.discount, subtotal) : subtotal * (promo.discount / 100);
   return { total: Math.max(subtotal - discount, 0), promoId: promo.id };
 }
 
 router.post('/', orderLimiter, async (req: Request, res: Response) => {
   try {
     const {
-      items: clientItems, paymentIntentId, promoCode,
-      customerName, email, phone, address, city, state, zipCode, notes,
+      items: clientItems,
+      paymentIntentId,
+      promoCode,
+      customerName,
+      email,
+      phone,
+      address,
+      city,
+      state,
+      zipCode,
+      notes,
     } = req.body;
 
     if (!paymentIntentId) {
@@ -88,12 +123,14 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const payload = jwt.verify(
-          authHeader.replace('Bearer ', ''),
-          process.env.JWT_SECRET!,
-        ) as { id: string; role?: string };
+        const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as {
+          id: string;
+          role?: string;
+        };
         if (payload.role === 'USER') userId = payload.id;
-      } catch { /* invalid token */ }
+      } catch {
+        /* invalid token */
+      }
     }
 
     let intent: Awaited<ReturnType<typeof stripe.paymentIntents.retrieve>>;
@@ -117,10 +154,18 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
     }
 
     const MAX_QTY_PER_PRODUCT = 10;
-    if (clientItems?.some((item: { productId: string; quantity: number }) =>
-      !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QTY_PER_PRODUCT
-    )) {
-      return res.status(400).json({ error: `Cantidad máxima por producto: ${MAX_QTY_PER_PRODUCT}` });
+    if (
+      clientItems?.some(
+        (item: { productId: string; quantity: number }) =>
+          !item.productId ||
+          !Number.isInteger(item.quantity) ||
+          item.quantity < 1 ||
+          item.quantity > MAX_QTY_PER_PRODUCT,
+      )
+    ) {
+      return res
+        .status(400)
+        .json({ error: `Cantidad máxima por producto: ${MAX_QTY_PER_PRODUCT}` });
     }
 
     const existing = await prisma.order.findUnique({
@@ -140,7 +185,17 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
           throw new Error(`VALIDATION:Producto no disponible`);
         }
         if (prod.stock < item.quantity) {
-          throw new Error(`VALIDATION:Stock insuficiente para "${prod.name}" (disponible: ${prod.stock})`);
+          console.error('[orders] Stock fail (subtotal tx):', {
+            productName: prod.name,
+            stock: prod.stock,
+            quantity: item.quantity,
+            stockType: typeof prod.stock,
+            qtyType: typeof item.quantity,
+            pid: item.productId,
+          });
+          throw new Error(
+            `VALIDATION:Stock insuficiente para "${prod.name}" (disponible: ${prod.stock})`,
+          );
         }
         total += Number(prod.price) * item.quantity;
       }
@@ -174,7 +229,10 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
             select: { price: true, stock: true, isActive: true, name: true },
           });
           if (!prod || !prod.isActive) throw new Error(`VALIDATION:Producto no disponible`);
-          if (prod.stock < item.quantity) throw new Error(`VALIDATION:Stock insuficiente para "${prod.name}" (disponible: ${prod.stock})`);
+          if (prod.stock < item.quantity)
+            throw new Error(
+              `VALIDATION:Stock insuficiente para "${prod.name}" (disponible: ${prod.stock})`,
+            );
           priceMap[item.productId] = Number(prod.price);
         }
 
@@ -201,10 +259,18 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
             data: { stock: { decrement: item.quantity } },
           });
           if (updated.count === 0) {
-            const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { name: true, stock: true } });
-            throw new Error(`VALIDATION:Stock insuficiente para "${prod?.name || 'Producto'}" (disponible: ${prod?.stock ?? 0})`);
+            const prod = await tx.product.findUnique({
+              where: { id: item.productId },
+              select: { name: true, stock: true },
+            });
+            throw new Error(
+              `VALIDATION:Stock insuficiente para "${prod?.name || 'Producto'}" (disponible: ${prod?.stock ?? 0})`,
+            );
           }
-          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true, price: true, name: true, lowStockThreshold: true } });
+          const prod = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true, price: true, name: true, lowStockThreshold: true },
+          });
           if (prod) {
             const newStock = prod.stock;
             await tx.stockMovement.create({
@@ -223,13 +289,22 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
                 event: 'low_stock',
                 title: 'Stock bajo',
                 message: `${prod.name}: ${newStock} unidades (umbral: ${prod.lowStockThreshold})`,
-                data: { productId: item.productId, productName: prod.name, stock: newStock, threshold: prod.lowStockThreshold },
+                data: {
+                  productId: item.productId,
+                  productName: prod.name,
+                  stock: newStock,
+                  threshold: prod.lowStockThreshold,
+                },
               });
             }
           }
         }
 
-        if (promoId) await tx.promoCode.update({ where: { id: promoId }, data: { usedCount: { increment: 1 } } });
+        if (promoId)
+          await tx.promoCode.update({
+            where: { id: promoId },
+            data: { usedCount: { increment: 1 } },
+          });
 
         return created;
       });
@@ -238,11 +313,13 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
         to: order.email,
         customerName: order.customerName,
         orderId: order.id,
-        items: order.items.map((i: { product: { name: string }; quantity: number; price: number }) => ({
-          name: i.product.name,
-          quantity: i.quantity,
-          price: i.price,
-        })),
+        items: order.items.map(
+          (i: { product: { name: string }; quantity: number; price: number }) => ({
+            name: i.product.name,
+            quantity: i.quantity,
+            price: i.price,
+          }),
+        ),
         total: order.total,
       }).catch(() => {});
 
@@ -314,7 +391,13 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
       prisma.order.count({ where }),
     ]);
 
-    res.json({ data: orders, total, page: pg + 1, pageSize: ps, totalPages: Math.ceil(total / ps) });
+    res.json({
+      data: orders,
+      total,
+      page: pg + 1,
+      pageSize: ps,
+      totalPages: Math.ceil(total / ps),
+    });
   } catch {
     res.status(500).json({ error: 'Error al obtener pedidos' });
   }
@@ -326,7 +409,10 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       where: { id: req.params.id },
       include: { items: { include: { product: true } } },
     });
-    if (!order) { res.status(404).json({ error: 'Pedido no encontrado' }); return; }
+    if (!order) {
+      res.status(404).json({ error: 'Pedido no encontrado' });
+      return;
+    }
     res.json(order);
   } catch {
     res.status(500).json({ error: 'Error al obtener pedido' });
@@ -347,14 +433,26 @@ router.put('/:id/status', requireAuth, async (req: AuthRequest, res: Response) =
         where: { id: req.params.id },
         include: { items: { include: { product: true } } },
       });
-      if (!orderWithItems) { res.status(404).json({ error: 'Pedido no encontrado' }); return; }
-      if (orderWithItems.status === 'CANCELLED') { res.status(400).json({ error: 'El pedido ya está cancelado' }); return; }
+      if (!orderWithItems) {
+        res.status(404).json({ error: 'Pedido no encontrado' });
+        return;
+      }
+      if (orderWithItems.status === 'CANCELLED') {
+        res.status(400).json({ error: 'El pedido ya está cancelado' });
+        return;
+      }
 
       await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         for (const item of orderWithItems.items) {
-          const prod = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true } });
+          const prod = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true },
+          });
           if (prod) {
-            await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stock: { increment: item.quantity } },
+            });
             await tx.stockMovement.create({
               data: {
                 productId: item.productId,

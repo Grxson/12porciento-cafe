@@ -524,3 +524,15 @@ export const productVersionsApi = {
   create: (productId: string, data: Partial<ProductVersion>) =>
     api.post(`/product-versions/${productId}`, data),
 };
+
+export const b2bApi = {
+  catalog: () => api.get('/b2b/catalog'),
+  getTiers: (productId: string) => api.get(`/b2b/tiers/${productId}`),
+  createTier: (
+    productId: string,
+    data: { minQty: number; maxQty?: number; pricePerUnit: number },
+  ) => api.post(`/b2b/tiers/${productId}`, data),
+  deleteTier: (tierId: string) => api.delete(`/b2b/tiers/item/${tierId}`),
+  orders: (params?: Record<string, unknown>) => api.get('/b2b/orders', { params }),
+  inquiry: (data: Record<string, string>) => api.post('/b2b/inquiry', data),
+};

@@ -26,6 +26,7 @@ import {
   Truck,
   ClipboardList,
   DollarSign,
+  Briefcase,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -36,6 +37,7 @@ const navLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/inventario', label: 'Inventario', icon: Warehouse },
+  { to: '/admin/b2b', label: 'B2B', icon: Briefcase },
   { to: '/admin/lotes', label: 'Lotes', icon: Package },
   { to: '/admin/caficultores', label: 'Caficultores', icon: Users },
   { to: '/admin/recetas', label: 'Recetas', icon: BookOpen },
@@ -75,6 +77,7 @@ const pageTitles: Record<string, string> = {
   '/admin/notificaciones': 'Notificaciones',
   '/admin/carritos-abandonados': 'Carritos Abandonados',
   '/admin/auditoria': 'Auditoría',
+  '/admin/b2b': 'Canal B2B',
   '/admin/lotes': 'Gestión de Lotes',
   '/admin/caficultores': 'Caficultores',
   '/admin/pricing': 'Motor de Precios',

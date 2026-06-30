@@ -474,3 +474,24 @@ export interface ProductVersion {
   isActive: boolean;
   createdAt: string;
 }
+
+export interface B2BPriceTier {
+  id: string;
+  productId: string;
+  minQty: number;
+  maxQty: number | null;
+  pricePerUnit: number;
+  createdAt: string;
+}
+
+export interface B2BProduct {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl: string;
+  description: string;
+  origin: string | null;
+  weight: number | null;
+  sku: string | null;
+  b2bPriceTiers: B2BPriceTier[];
+}

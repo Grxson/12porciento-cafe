@@ -17,6 +17,7 @@ import type {
   LoteFormData,
   Caficultor,
   PricingConfig,
+  ProductVersion,
 } from '../types';
 
 const api = axios.create({
@@ -516,4 +517,10 @@ export const caficultoresApi = {
   create: (data: Partial<Caficultor>) => api.post('/caficultores', data),
   update: (id: string, data: Partial<Caficultor>) => api.put(`/caficultores/${id}`, data),
   delete: (id: string) => api.delete(`/caficultores/${id}`),
+};
+
+export const productVersionsApi = {
+  list: (productId: string) => api.get(`/product-versions/${productId}`),
+  create: (productId: string, data: Partial<ProductVersion>) =>
+    api.post(`/product-versions/${productId}`, data),
 };

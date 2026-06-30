@@ -22,7 +22,12 @@ function validateProduct(body: Record<string, unknown>, isCreate: boolean): stri
     }
   }
   if (isCreate || description !== undefined) {
-    if (!description || typeof description !== 'string' || description.trim().length < 5 || description.length > 1000) {
+    if (
+      !description ||
+      typeof description !== 'string' ||
+      description.trim().length < 5 ||
+      description.length > 1000
+    ) {
       return 'Descripción debe tener entre 5 y 1000 caracteres';
     }
   }
@@ -39,7 +44,12 @@ function validateProduct(body: Record<string, unknown>, isCreate: boolean): stri
     }
   }
   if (isCreate || imageUrl !== undefined) {
-    if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim().length < 5 || imageUrl.length > 500) {
+    if (
+      !imageUrl ||
+      typeof imageUrl !== 'string' ||
+      imageUrl.trim().length < 5 ||
+      imageUrl.length > 500
+    ) {
       return 'URL de imagen inválida';
     }
   }
@@ -55,7 +65,11 @@ function validateProduct(body: Record<string, unknown>, isCreate: boolean): stri
       return 'SCA score debe ser entre 0 y 100';
     }
   }
-  if (category !== undefined && category !== null && !VALID_CATEGORIES.includes(category as string)) {
+  if (
+    category !== undefined &&
+    category !== null &&
+    !VALID_CATEGORIES.includes(category as string)
+  ) {
     return 'Categoría inválida';
   }
 
@@ -75,17 +89,29 @@ function validateProduct(body: Record<string, unknown>, isCreate: boolean): stri
     }
   }
 
-  if (body.altitude !== undefined && body.altitude !== null && !Number.isInteger(Number(body.altitude))) {
+  if (
+    body.altitude !== undefined &&
+    body.altitude !== null &&
+    !Number.isInteger(Number(body.altitude))
+  ) {
     return 'Altitud debe ser un número entero';
   }
   if (body.costPrice !== undefined && body.costPrice !== null) {
     const costNum = Number(body.costPrice);
     if (!Number.isFinite(costNum) || costNum < 0) return 'Costo debe ser mayor o igual a 0';
   }
-  if (body.minOrderQty !== undefined && body.minOrderQty !== null && (!Number.isInteger(Number(body.minOrderQty)) || (body.minOrderQty as number) < 1)) {
+  if (
+    body.minOrderQty !== undefined &&
+    body.minOrderQty !== null &&
+    (!Number.isInteger(Number(body.minOrderQty)) || (body.minOrderQty as number) < 1)
+  ) {
     return 'Cantidad mínima de orden debe ser al menos 1';
   }
-  if (body.lowStockThreshold !== undefined && body.lowStockThreshold !== null && (!Number.isInteger(Number(body.lowStockThreshold)) || (body.lowStockThreshold as number) < 0)) {
+  if (
+    body.lowStockThreshold !== undefined &&
+    body.lowStockThreshold !== null &&
+    (!Number.isInteger(Number(body.lowStockThreshold)) || (body.lowStockThreshold as number) < 0)
+  ) {
     return 'Umbral de stock bajo debe ser mayor o igual a 0';
   }
 
@@ -100,7 +126,8 @@ const parseProduct = (p: Record<string, unknown>) => ({
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { process, roast, limited, limit, category, sort, search, flavors, page, pageSize } = req.query;
+    const { process, roast, limited, limit, category, sort, search, flavors, page, pageSize } =
+      req.query;
     const where: Prisma.ProductWhereInput = { isActive: true };
     if (process) where.process = process as string;
     if (roast) where.roastLevel = roast as string;
@@ -113,7 +140,10 @@ router.get('/', async (req: Request, res: Response) => {
       ];
     }
     if (flavors) {
-      const flavorArray = (flavors as string).split(',').map((f) => f.trim()).filter(Boolean);
+      const flavorArray = (flavors as string)
+        .split(',')
+        .map((f) => f.trim())
+        .filter(Boolean);
       if (flavorArray.length > 0) {
         const flavorConditions = flavorArray.map((f) => ({ flavors: { contains: f } }));
         if (where.OR) {
@@ -126,10 +156,13 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     const orderBy: Prisma.ProductOrderByWithRelationInput =
-      sort === 'sca'        ? { scaScore: 'desc' } :
-      sort === 'price_asc'  ? { price: 'asc' } :
-      sort === 'price_desc' ? { price: 'desc' } :
-                              { createdAt: 'desc' };
+      sort === 'sca'
+        ? { scaScore: 'desc' }
+        : sort === 'price_asc'
+          ? { price: 'asc' }
+          : sort === 'price_desc'
+            ? { price: 'desc' }
+            : { createdAt: 'desc' };
 
     const psRaw = parseInt(pageSize as string);
     const ps = Number.isInteger(psRaw) ? Math.min(psRaw, 100) : undefined;
@@ -184,7 +217,13 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
       prisma.product.findMany({ where, skip, take: pageSize, orderBy: { createdAt: 'desc' } }),
       prisma.product.count({ where }),
     ]);
-    res.json({ data: products.map(parseProduct), total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
+    res.json({
+      data: products.map(parseProduct),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    });
   } catch {
     res.status(500).json({ error: 'Error al obtener productos' });
   }
@@ -205,16 +244,24 @@ router.get('/gallery', async (_req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    const images = products.flatMap((p: { id: string; name: string; slug: string; imageUrl: string | null; images: string | null }) => {
-      const urls = [p.imageUrl, ...(p.images ? JSON.parse(p.images) : [])].filter(Boolean);
-      return urls.map((url: string) => ({
-        id: `${p.id}-${url}`,
-        url,
-        alt: p.name,
-        productName: p.name,
-        productSlug: p.slug,
-      }));
-    });
+    const images = products.flatMap(
+      (p: {
+        id: string;
+        name: string;
+        slug: string;
+        imageUrl: string | null;
+        images: string | null;
+      }) => {
+        const urls = [p.imageUrl, ...(p.images ? JSON.parse(p.images) : [])].filter(Boolean);
+        return urls.map((url: string) => ({
+          id: `${p.id}-${url}`,
+          url,
+          alt: p.name,
+          productName: p.name,
+          productSlug: p.slug,
+        }));
+      },
+    );
     res.json({ images });
   } catch (err) {
     console.error('[gallery] Error:', err);
@@ -226,9 +273,21 @@ router.get('/gallery', async (_req: Request, res: Response) => {
 
 router.get('/:slug', async (req: Request, res: Response) => {
   try {
-    const product = await prisma.product.findUnique({ where: { slug: req.params.slug } });
-    if (!product) { res.status(404).json({ error: 'Producto no encontrado' }); return; }
-    res.json(parseProduct(product));
+    const product = await prisma.product.findUnique({
+      where: { slug: req.params.slug },
+      include: {
+        versions: {
+          where: { isActive: true },
+          include: { caficultor: { select: { nombre: true, region: true } } },
+          take: 1,
+        },
+      },
+    });
+    if (!product) {
+      res.status(404).json({ error: 'Producto no encontrado' });
+      return;
+    }
+    res.json(parseProduct(product as unknown as Record<string, unknown>));
   } catch {
     res.status(500).json({ error: 'Error al obtener producto' });
   }
@@ -237,9 +296,21 @@ router.get('/:slug', async (req: Request, res: Response) => {
 router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const validationError = validateProduct(req.body, true);
-    if (validationError) { res.status(400).json({ error: validationError }); return; }
+    if (validationError) {
+      res.status(400).json({ error: validationError });
+      return;
+    }
 
-    const { flavors, images, recipes: _recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
+    const {
+      flavors,
+      images,
+      recipes: _recipes,
+      sku,
+      costPrice,
+      supplier,
+      minOrderQty,
+      ...data
+    } = req.body;
     const product = await prisma.product.create({
       data: {
         ...data,
@@ -251,19 +322,42 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
         minOrderQty: minOrderQty ? parseInt(minOrderQty) : 1,
       },
     });
-    logAdminAction({ adminId: req.admin?.id, action: 'CREATE', entity: 'Product', entityId: product.id, metadata: { name: product.name } });
+    logAdminAction({
+      adminId: req.admin?.id,
+      action: 'CREATE',
+      entity: 'Product',
+      entityId: product.id,
+      metadata: { name: product.name },
+    });
     res.status(201).json(parseProduct(product));
   } catch (e: unknown) {
-    res.status(500).json({ error: 'Error al crear producto', detail: e instanceof Error ? e.message : undefined });
+    res
+      .status(500)
+      .json({
+        error: 'Error al crear producto',
+        detail: e instanceof Error ? e.message : undefined,
+      });
   }
 });
 
 router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const validationError = validateProduct(req.body, false);
-    if (validationError) { res.status(400).json({ error: validationError }); return; }
+    if (validationError) {
+      res.status(400).json({ error: validationError });
+      return;
+    }
 
-    const { flavors, images, recipes: _recipes, sku, costPrice, supplier, minOrderQty, ...data } = req.body;
+    const {
+      flavors,
+      images,
+      recipes: _recipes,
+      sku,
+      costPrice,
+      supplier,
+      minOrderQty,
+      ...data
+    } = req.body;
 
     // Fetch old price for PriceRecord logging
     const oldProduct = await prisma.product.findUnique({
@@ -276,26 +370,45 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       data: {
         ...data,
         ...(flavors !== undefined && { flavors: JSON.stringify(flavors) }),
-        ...(images !== undefined && { images: images && images.length ? JSON.stringify(images) : null }),
+        ...(images !== undefined && {
+          images: images && images.length ? JSON.stringify(images) : null,
+        }),
         ...(sku !== undefined && { sku: sku?.trim() || null }),
-        ...(costPrice !== undefined && { costPrice: costPrice !== '' ? parseFloat(costPrice) : null }),
+        ...(costPrice !== undefined && {
+          costPrice: costPrice !== '' ? parseFloat(costPrice) : null,
+        }),
         ...(supplier !== undefined && { supplier: supplier?.trim() || null }),
-        ...(minOrderQty !== undefined && { minOrderQty: minOrderQty ? parseInt(minOrderQty) : null }),
+        ...(minOrderQty !== undefined && {
+          minOrderQty: minOrderQty ? parseInt(minOrderQty) : null,
+        }),
       },
     });
 
     // Log PriceRecord if price changed
     const newPrice = data.price !== undefined ? Number(data.price) : undefined;
     if (newPrice !== undefined && oldProduct && oldProduct.price !== newPrice) {
-      await prisma.priceRecord.create({
-        data: { productId: req.params.id, price: newPrice },
-      }).catch((e) => console.error('[priceRecord] Failed to log price change:', e));
+      await prisma.priceRecord
+        .create({
+          data: { productId: req.params.id, price: newPrice },
+        })
+        .catch((e) => console.error('[priceRecord] Failed to log price change:', e));
     }
 
-    logAdminAction({ adminId: req.admin?.id, action: 'UPDATE', entity: 'Product', entityId: req.params.id, metadata: { name: product.name } });
+    logAdminAction({
+      adminId: req.admin?.id,
+      action: 'UPDATE',
+      entity: 'Product',
+      entityId: req.params.id,
+      metadata: { name: product.name },
+    });
     res.json(parseProduct(product));
   } catch (e: unknown) {
-    res.status(500).json({ error: 'Error al actualizar producto', detail: e instanceof Error ? e.message : undefined });
+    res
+      .status(500)
+      .json({
+        error: 'Error al actualizar producto',
+        detail: e instanceof Error ? e.message : undefined,
+      });
   }
 });
 
@@ -315,11 +428,25 @@ router.get('/:id/price-history', async (req: Request, res: Response) => {
 
 router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const product = await prisma.product.findUnique({ where: { id: req.params.id }, select: { isActive: true } });
-    if (!product) { res.status(404).json({ error: 'Producto no encontrado' }); return; }
-    if (!product.isActive) { res.status(400).json({ error: 'El producto ya está inactivo' }); return; }
+    const product = await prisma.product.findUnique({
+      where: { id: req.params.id },
+      select: { isActive: true },
+    });
+    if (!product) {
+      res.status(404).json({ error: 'Producto no encontrado' });
+      return;
+    }
+    if (!product.isActive) {
+      res.status(400).json({ error: 'El producto ya está inactivo' });
+      return;
+    }
     await prisma.product.update({ where: { id: req.params.id }, data: { isActive: false } });
-    logAdminAction({ adminId: req.admin?.id, action: 'DELETE', entity: 'Product', entityId: req.params.id });
+    logAdminAction({
+      adminId: req.admin?.id,
+      action: 'DELETE',
+      entity: 'Product',
+      entityId: req.params.id,
+    });
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Error al eliminar producto' });

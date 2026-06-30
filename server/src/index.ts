@@ -34,6 +34,7 @@ import adminLogsRouter from './routes/admin/logs';
 import lotesRouter from './routes/lotes';
 import caficultoresRouter from './routes/caficultores';
 import pricingRouter from './routes/pricing';
+import productVersionsRouter from './routes/product-versions';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import { initMail } from './lib/mail';
@@ -112,6 +113,7 @@ app.use('/api/admin/logs', adminLogsRouter);
 app.use('/api/lotes', adminLimiter, lotesRouter);
 app.use('/api/caficultores', adminLimiter, caficultoresRouter);
 app.use('/api/pricing', adminLimiter, pricingRouter);
+app.use('/api/product-versions', adminLimiter, productVersionsRouter);
 app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

@@ -82,6 +82,7 @@ export interface Product {
   tastingNotes?: string;
   pairingSuggestions?: string;
   isMemberExclusive: boolean;
+  versions?: ProductVersion[];
   createdAt: string;
   updatedAt: string;
 }
@@ -458,4 +459,18 @@ export interface Caficultor {
   isActive: boolean;
   createdAt: string;
   _count?: { lotes: number };
+}
+
+export interface ProductVersion {
+  id: string;
+  productId: string;
+  version: number;
+  cosecha: string | null;
+  caficultorId: string | null;
+  caficultor: { id: string; nombre: string; region: string } | null;
+  loteId: string | null;
+  scoreFinal: number | null;
+  notasSabor: string | null;
+  isActive: boolean;
+  createdAt: string;
 }

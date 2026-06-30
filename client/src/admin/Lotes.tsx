@@ -229,13 +229,15 @@ export default function AdminLotes() {
           <p>No hay lotes en esta vista</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {lotes.map((lote) => (
             <div
               key={lote.id}
-              className="bg-white dark:bg-coffee-900 rounded-xl border border-coffee-100 dark:border-coffee-700 overflow-hidden"
+              className={`bg-white dark:bg-coffee-900 rounded-xl border border-coffee-100 dark:border-coffee-700 overflow-hidden transition-all duration-200 ${
+                expandedId === lote.id ? 'md:col-span-2' : ''
+              }`}
             >
-              <div className="flex items-center justify-between p-4 gap-4">
+              <div className="flex items-center justify-between p-3 md:p-4 gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <Package className="w-5 h-5 text-coffee-500 shrink-0" />
                   <div className="min-w-0">

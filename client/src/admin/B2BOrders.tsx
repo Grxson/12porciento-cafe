@@ -161,13 +161,13 @@ export default function AdminB2BOrders() {
           ) : tiersError ? (
             <AdminErrorState error={tiersError} onRetry={fetchProducts} />
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {products.map((p) => (
                 <div
                   key={p.id}
-                  className="bg-white dark:bg-coffee-900 rounded-xl border border-coffee-100 dark:border-coffee-700 overflow-hidden"
+                  className={`bg-white dark:bg-coffee-900 rounded-xl border border-coffee-100 dark:border-coffee-700 overflow-hidden transition-all duration-200 ${expandedProduct === p.id ? 'md:col-span-2' : ''}`}
                 >
-                  <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center justify-between p-3 md:p-4 gap-3">
                     <div className="min-w-0">
                       <p className="font-medium text-coffee-900 dark:text-cream truncate">
                         {p.name}

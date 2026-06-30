@@ -113,7 +113,7 @@ export default function AdminPricing() {
       ) : error ? (
         <AdminErrorState error={error} onRetry={fetchProducts} />
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {products.map((p) => {
             const form = getForm(p);
             const isExpanded = expandedId === p.id;
@@ -123,34 +123,36 @@ export default function AdminPricing() {
             return (
               <div
                 key={p.id}
-                className={`bg-white dark:bg-coffee-900 rounded-xl border overflow-hidden ${hasAlert ? 'border-amber-300 dark:border-amber-700' : 'border-coffee-100 dark:border-coffee-700'}`}
+                className={`bg-white dark:bg-coffee-900 rounded-xl border overflow-hidden transition-all duration-200 ${
+                  isExpanded ? 'md:col-span-2' : ''
+                } ${hasAlert ? 'border-amber-300 dark:border-amber-700' : 'border-coffee-100 dark:border-coffee-700'}`}
               >
-                <div className="flex items-center justify-between p-4 gap-4">
+                <div className="flex items-center justify-between p-3 md:p-4 gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-coffee-900 dark:text-cream truncate">
+                      <p className="font-medium text-coffee-900 dark:text-cream truncate text-sm md:text-base">
                         {p.name}
                       </p>
                       {hasAlert && <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />}
                     </div>
                     <p className="text-xs text-coffee-500 dark:text-cream/50 mt-0.5">
-                      Precio actual: <strong>${p.price.toFixed(2)}</strong>
-                      {p.costPrice && ` · Costo materia: $${p.costPrice.toFixed(2)}/kg`}
+                      ${p.price.toFixed(2)}
+                      {p.costPrice && ` · materia: $${p.costPrice.toFixed(2)}/kg`}
                       {p.weight && ` · ${p.weight}g`}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0 text-sm">
+                  <div className="flex items-center gap-2 shrink-0">
                     {calc ? (
-                      <div className="text-right hidden sm:block">
-                        <p className="text-green-600 dark:text-green-400 font-medium">
-                          ${calc.suggestedRetailPrice.toFixed(2)} retail
+                      <div className="text-right hidden md:block leading-tight">
+                        <p className="text-green-600 dark:text-green-400 font-medium text-xs">
+                          retail ${calc.suggestedRetailPrice.toFixed(2)}
                         </p>
-                        <p className="text-coffee-500 dark:text-cream/50 text-xs">
-                          ${calc.suggestedB2bPrice.toFixed(2)} B2B
+                        <p className="text-coffee-500 dark:text-cream/50 text-[10px]">
+                          B2B ${calc.suggestedB2bPrice.toFixed(2)}
                         </p>
                       </div>
                     ) : (
-                      <span className="text-xs text-coffee-400 dark:text-cream/30 hidden sm:block">
+                      <span className="text-[10px] text-coffee-400 dark:text-cream/30 hidden md:block">
                         Sin config
                       </span>
                     )}
@@ -168,7 +170,7 @@ export default function AdminPricing() {
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t border-coffee-100 dark:border-coffee-700 p-4 bg-coffee-50/50 dark:bg-coffee-950/50 space-y-4">
+                  <div className="border-t border-coffee-100 dark:border-coffee-700 p-3 md:p-4 bg-coffee-50/50 dark:bg-coffee-950/50 space-y-4">
                     {!p.costPrice && (
                       <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2">
                         Este producto no tiene costo de materia prima (costPrice). Los precios
@@ -220,7 +222,7 @@ export default function AdminPricing() {
                       </div>
                     )}
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => handleSave(p)}
                         disabled={saving === p.id}

@@ -58,6 +58,7 @@ model Product {
   linkedRecipes Recipe[] @relation("productRecipes")
   wishlistItems  WishlistItem[]
   priceRecords   PriceRecord[]
+  lotes           Lote[]
 }
 
 model StockMovement {
@@ -533,5 +534,39 @@ model B2BInquiry {
   updatedAt DateTime @updatedAt
 
   @@index([contactoEmail])
+  @@index([status])
+}
+
+model Lote {
+  id              String    @id @default(cuid())
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id])
+  batchNumber     String    @unique
+  quantity        Int
+  costPerKg       Float?
+  unitCost        Float?
+  supplier        String?
+  origin          String?
+  receivedAt      DateTime  @default(now())
+  expiryDate      DateTime?
+  status          String    @default("CUARENTENA")
+  notes           String?
+  humedad         Float?
+  defectos        Int?
+  scoreAroma      Float?
+  scoreSabor      Float?
+  scoreAcidez     Float?
+  scoreBody       Float?
+  scoreFinal      Float?
+  evaluadoPor     String?
+  approvedAt      DateTime?
+  approvedBy      String?
+  rejectedAt      DateTime?
+  rejectedBy      String?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([productId])
   @@index([status])
 }

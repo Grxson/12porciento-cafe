@@ -16,7 +16,9 @@ import promoCodesRouter from './routes/promoCodes';
 import customersRouter from './routes/customers';
 import webhookRouter from './routes/webhook';
 import inventoryRouter from './routes/inventory';
-import subscriptionPaymentsRouter, { webhookRouter as subWebhookRouter } from './routes/subscription-payments';
+import subscriptionPaymentsRouter, {
+  webhookRouter as subWebhookRouter,
+} from './routes/subscription-payments';
 import adminUsersRouter from './routes/admin-users';
 import recipesRouter from './routes/recipes';
 import uploadsRouter from './routes/uploads';
@@ -29,6 +31,7 @@ import giftCardsRouter from './routes/gift-cards';
 import abandonedCartRouter from './routes/abandoned-cart';
 import adminOrdersRouter from './routes/admin/orders';
 import adminLogsRouter from './routes/admin/logs';
+import lotesRouter from './routes/lotes';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import { initMail } from './lib/mail';
@@ -60,15 +63,21 @@ const PORT = process.env.PORT || 3001;
 
 app.set('trust proxy', 1);
 
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+  }),
+);
 
 // Webhooks must receive raw body — register before express.json()
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRouter);
 // Subscription invoice webhook — dedicated router with raw body middleware
-app.use('/api/subscription-payments/webhook/invoice', express.raw({ type: 'application/json' }), subWebhookRouter);
+app.use(
+  '/api/subscription-payments/webhook/invoice',
+  express.raw({ type: 'application/json' }),
+  subWebhookRouter,
+);
 
 app.use(express.json({ limit: '50kb' }));
 
@@ -98,6 +107,7 @@ app.use('/api/gift-cards', giftCardsRouter);
 app.use('/api/abandoned-cart', abandonedCartRouter);
 app.use('/api/admin/orders', adminOrdersRouter);
 app.use('/api/admin/logs', adminLogsRouter);
+app.use('/api/lotes', adminLimiter, lotesRouter);
 app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

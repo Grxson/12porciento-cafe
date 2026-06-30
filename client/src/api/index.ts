@@ -1,5 +1,21 @@
 import axios from 'axios';
-import type { UserProfile, Order, Review, Subscription, PaymentMethod, Recipe, RecipeStep, WishlistItem, Product, RecipeRating, GiftCard, AbandonedCart, Bundle, Achievement } from '../types';
+import type {
+  UserProfile,
+  Order,
+  Review,
+  Subscription,
+  PaymentMethod,
+  Recipe,
+  RecipeStep,
+  WishlistItem,
+  Product,
+  RecipeRating,
+  GiftCard,
+  AbandonedCart,
+  Bundle,
+  Achievement,
+  LoteFormData,
+} from '../types';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -47,16 +63,28 @@ export const productsApi = {
   adminList: (params?: Record<string, string>) => api.get('/products/admin/all', { params }),
   getBySlug: (slug: string) => api.get(`/products/${slug}`),
   create: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => api.post('/products', data),
-  update: (id: string, data: Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>) => api.put(`/products/${id}`, data),
+  update: (id: string, data: Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>) =>
+    api.put(`/products/${id}`, data),
   delete: (id: string) => api.delete(`/products/${id}`),
-  priceHistory: (id: string) => api.get<{ data: { id: string; price: number; createdAt: string }[] }>(`/products/${id}/price-history`),
+  priceHistory: (id: string) =>
+    api.get<{ data: { id: string; price: number; createdAt: string }[] }>(
+      `/products/${id}/price-history`,
+    ),
 };
 
 export const ordersApi = {
   create: (data: {
-    customerName: string; email: string; phone?: string; address: string;
-    city: string; state: string; zipCode: string; notes?: string;
-    userId?: string; paymentIntentId?: string; promoCode?: string;
+    customerName: string;
+    email: string;
+    phone?: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    notes?: string;
+    userId?: string;
+    paymentIntentId?: string;
+    promoCode?: string;
     items: { productId: string; quantity: number }[];
   }) => api.post('/orders', data),
   list: (params?: Record<string, string>) => api.get('/orders', { params }),
@@ -66,9 +94,15 @@ export const ordersApi = {
 
 export const subscriptionsApi = {
   create: (data: {
-    name: string; email: string; phone?: string; plan: string;
-    frequency: string; grindPreference: string; items: string[];
-    userId?: string; paymentMethodId?: string;
+    name: string;
+    email: string;
+    phone?: string;
+    plan: string;
+    frequency: string;
+    grindPreference: string;
+    items: string[];
+    userId?: string;
+    paymentMethodId?: string;
   }) => api.post('/subscriptions', data),
   createSetupIntent: () => api.post<{ clientSecret: string }>('/subscriptions/setup-intent'),
   list: (params?: Record<string, string>) => api.get('/subscriptions', { params }),
@@ -77,13 +111,23 @@ export const subscriptionsApi = {
     api.put(`/subscriptions/${id}/items`, { items, grindPreference }),
   updateFulfillment: (id: string, fulfillmentStatus: string) =>
     api.put(`/subscriptions/${id}/fulfillment`, { fulfillmentStatus }),
-  adminUpdate: (id: string, data: { plan?: string; frequency?: string; grindPreference?: string; items?: string[] }) =>
-    api.put(`/subscriptions/${id}/admin`, data),
-  b2bInquiry: (data: { empresa: string; rfc: string; contactoNombre: string; contactoEmail?: string; contactoTelefono?: string; volumenEstimado?: string; giroNegocio?: string }) =>
-    api.post('/subscriptions/b2b-inquiry', data),
+  adminUpdate: (
+    id: string,
+    data: { plan?: string; frequency?: string; grindPreference?: string; items?: string[] },
+  ) => api.put(`/subscriptions/${id}/admin`, data),
+  b2bInquiry: (data: {
+    empresa: string;
+    rfc: string;
+    contactoNombre: string;
+    contactoEmail?: string;
+    contactoTelefono?: string;
+    volumenEstimado?: string;
+    giroNegocio?: string;
+  }) => api.post('/subscriptions/b2b-inquiry', data),
   b2bList: (params?: Record<string, string>) => api.get('/subscriptions/b2b-inquiries', { params }),
   b2bGet: (id: string) => api.get(`/subscriptions/b2b-inquiries/${id}`),
-  b2bUpdateStatus: (id: string, status: string) => api.put(`/subscriptions/b2b-inquiries/${id}/status`, { status }),
+  b2bUpdateStatus: (id: string, status: string) =>
+    api.put(`/subscriptions/b2b-inquiries/${id}/status`, { status }),
 };
 
 export const recipesApi = {
@@ -112,8 +156,14 @@ export const inventoryApi = {
   movements: (params?: Record<string, string>) => api.get('/inventory/movements', { params }),
   alerts: () => api.get('/inventory/alerts'),
   adjust: (data: {
-    productId: string; type: string; quantity: number; notes?: string;
-    unitCost?: number; batchNumber?: string; expiryDate?: string; supplier?: string;
+    productId: string;
+    type: string;
+    quantity: number;
+    notes?: string;
+    unitCost?: number;
+    batchNumber?: string;
+    expiryDate?: string;
+    supplier?: string;
   }) => api.post('/inventory/adjust', data),
   updateThreshold: (productId: string, threshold: number) =>
     api.put(`/inventory/products/${productId}/threshold`, { threshold }),
@@ -122,7 +172,18 @@ export const inventoryApi = {
 export const subscriptionPauseApi = {
   pause: (data?: { reason?: string; until?: string }) => api.patch('/subscriptions/pause', data),
   resume: () => api.patch('/subscriptions/resume'),
-  pauseInfo: () => api.get<{ data: { id: string; status: string; pausedAt: string | null; pausedUntil: string | null; pausedReason: string | null; skipCount: number; maxSkips: number } }>('/subscriptions/pause-info'),
+  pauseInfo: () =>
+    api.get<{
+      data: {
+        id: string;
+        status: string;
+        pausedAt: string | null;
+        pausedUntil: string | null;
+        pausedReason: string | null;
+        skipCount: number;
+        maxSkips: number;
+      };
+    }>('/subscriptions/pause-info'),
 };
 
 export const subscriptionPaymentsApi = {
@@ -149,8 +210,12 @@ export const subscriptionPaymentsApi = {
   list: (params?: { page?: string; limit?: string; search?: string }) =>
     api.get<{
       data: Array<{
-        id: string; status: string; amount: number; billingDate: string;
-        stripeInvoiceId: string; subscription: { name: string; email: string; plan: string };
+        id: string;
+        status: string;
+        amount: number;
+        billingDate: string;
+        stripeInvoiceId: string;
+        subscription: { name: string; email: string; plan: string };
       }>;
       pagination: { page: number; limit: number; total: number; pages: number };
     }>('/subscription-payments/admin/all', { params }),
@@ -159,19 +224,27 @@ export const subscriptionPaymentsApi = {
 export const bundlesApi = {
   list: () => api.get<{ data: Bundle[] }>('/bundles'),
   getById: (id: string) => api.get<{ data: Bundle }>(`/bundles/${id}`),
-  create: (data: Omit<Bundle, 'id' | 'createdAt' | 'updatedAt'>) => api.post<{ data: Bundle }>('/bundles', data),
-  update: (id: string, data: Partial<Omit<Bundle, 'id' | 'createdAt' | 'updatedAt'>>) => api.put<{ data: Bundle }>(`/bundles/${id}`, data),
+  create: (data: Omit<Bundle, 'id' | 'createdAt' | 'updatedAt'>) =>
+    api.post<{ data: Bundle }>('/bundles', data),
+  update: (id: string, data: Partial<Omit<Bundle, 'id' | 'createdAt' | 'updatedAt'>>) =>
+    api.put<{ data: Bundle }>(`/bundles/${id}`, data),
   delete: (id: string) => api.delete(`/bundles/${id}`),
 };
 
 export const reviewsApi = {
-  listByProduct: (productId: string) => api.get<{ data: Review[] }>(`/reviews/product/${productId}`),
-  create: (productId: string, data: { rating: number; comment?: string; name?: string; email?: string; userId?: string }) =>
-    api.post<{ data: Review }>(`/reviews/product/${productId}`, data),
+  listByProduct: (productId: string) =>
+    api.get<{ data: Review[] }>(`/reviews/product/${productId}`),
+  create: (
+    productId: string,
+    data: { rating: number; comment?: string; name?: string; email?: string; userId?: string },
+  ) => api.post<{ data: Review }>(`/reviews/product/${productId}`, data),
   adminList: (params?: Record<string, string>) =>
-    api.get<{ data: Review[]; totalPages?: number; total?: number }>('/reviews/admin/all', { params }),
+    api.get<{ data: Review[]; totalPages?: number; total?: number }>('/reviews/admin/all', {
+      params,
+    }),
   approve: (id: string) => api.put(`/reviews/${id}/approve`),
-  respond: (id: string, adminResponse: string) => api.put(`/reviews/${id}/respond`, { adminResponse }),
+  respond: (id: string, adminResponse: string) =>
+    api.put(`/reviews/${id}/respond`, { adminResponse }),
   delete: (id: string) => api.delete(`/reviews/${id}`),
   listReplies: (reviewId: string) => api.get(`/reviews/${reviewId}/replies`),
   createReply: (reviewId: string, data: { name?: string; content: string }) =>
@@ -203,14 +276,12 @@ export const usersApi = {
     api.put(`/users/me/subscription/${id}/status`, { status: 'PAUSED' }),
   resumeSubscription: (id: string) =>
     api.put(`/users/me/subscription/${id}/status`, { status: 'ACTIVE' }),
-  setupPaymentMethod: () =>
-    api.post<{ clientSecret: string }>('/users/me/payment-methods/setup'),
+  setupPaymentMethod: () => api.post<{ clientSecret: string }>('/users/me/payment-methods/setup'),
   listPaymentMethods: () =>
     api.get<{ methods: PaymentMethod[]; defaultId: string | null }>('/users/me/payment-methods'),
   setDefaultPaymentMethod: (paymentMethodId: string) =>
     api.post('/users/me/payment-methods/default', { paymentMethodId }),
-  deletePaymentMethod: (pmId: string) =>
-    api.delete(`/users/me/payment-methods/${pmId}`),
+  deletePaymentMethod: (pmId: string) => api.delete(`/users/me/payment-methods/${pmId}`),
   forgotPassword: (email: string) =>
     api.post<{ ok: boolean; message: string }>('/users/forgot-password', { email }),
   resetPassword: (token: string, password: string) =>
@@ -222,7 +293,14 @@ export const usersApi = {
 };
 
 export const giftCardsApi = {
-  purchase: (data: { amount: number; recipientName?: string; recipientEmail: string; senderName?: string; message?: string; paymentIntentId: string }) => api.post('/gift-cards/purchase', data),
+  purchase: (data: {
+    amount: number;
+    recipientName?: string;
+    recipientEmail: string;
+    senderName?: string;
+    message?: string;
+    paymentIntentId: string;
+  }) => api.post('/gift-cards/purchase', data),
   my: () => api.get<{ data: { sent: GiftCard[]; received: GiftCard[] } }>('/gift-cards/my'),
   redeem: (code: string) => api.post('/gift-cards/redeem', { code }),
   list: () => api.get<{ data: GiftCard[] }>('/gift-cards'),
@@ -230,7 +308,10 @@ export const giftCardsApi = {
 };
 
 export const paymentsApi = {
-  createGiftIntent: (amount: number) => api.post<{ clientSecret: string; paymentIntentId: string }>('/payments/create-gift-intent', { amount }),
+  createGiftIntent: (amount: number) =>
+    api.post<{ clientSecret: string; paymentIntentId: string }>('/payments/create-gift-intent', {
+      amount,
+    }),
   createIntent: (
     data: {
       items: { productId: string; quantity: number }[];
@@ -249,7 +330,13 @@ export const paymentsApi = {
     },
     idempotencyKey?: string,
   ) =>
-    api.post<{ clientSecret: string; paymentIntentId: string; amount: number; subtotal: number; discountAmount: number }>(
+    api.post<{
+      clientSecret: string;
+      paymentIntentId: string;
+      amount: number;
+      subtotal: number;
+      discountAmount: number;
+    }>(
       '/payments/create-intent',
       data,
       idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined,
@@ -258,8 +345,13 @@ export const paymentsApi = {
 
 export const promoCodesApi = {
   list: () => api.get('/promo-codes'),
-  create: (data: { code: string; discount: number; type: string; maxUses?: number; expiresAt?: string }) =>
-    api.post('/promo-codes', data),
+  create: (data: {
+    code: string;
+    discount: number;
+    type: string;
+    maxUses?: number;
+    expiresAt?: string;
+  }) => api.post('/promo-codes', data),
   toggle: (id: string) => api.put(`/promo-codes/${id}/toggle`),
   delete: (id: string) => api.delete(`/promo-codes/${id}`),
   validate: (code: string) => api.post('/promo-codes/validate', { code }),
@@ -299,10 +391,25 @@ export const adminUsersApi = {
 
 export const achievementsApi = {
   list: () => api.get<{ achievements: Achievement[] }>('/barista/achievements'),
-  create: (data: { name: string; slug: string; description?: string; icon?: string; rarity?: string; xpReward?: number }) =>
-    api.post<{ data: Achievement }>('/barista/admin-achievements', data),
-  update: (id: string, data: { name: string; slug: string; description?: string; icon?: string; rarity?: string; xpReward?: number }) =>
-    api.put<{ data: Achievement }>(`/barista/admin-achievements/${id}`, data),
+  create: (data: {
+    name: string;
+    slug: string;
+    description?: string;
+    icon?: string;
+    rarity?: string;
+    xpReward?: number;
+  }) => api.post<{ data: Achievement }>('/barista/admin-achievements', data),
+  update: (
+    id: string,
+    data: {
+      name: string;
+      slug: string;
+      description?: string;
+      icon?: string;
+      rarity?: string;
+      xpReward?: number;
+    },
+  ) => api.put<{ data: Achievement }>(`/barista/admin-achievements/${id}`, data),
   delete: (id: string) => api.delete(`/barista/admin-achievements/${id}`),
 };
 
@@ -314,35 +421,82 @@ export const wishlistApi = {
 };
 
 export const recipeRatingsApi = {
-  get: (recipeId: string) => api.get<{ data: RecipeRating[]; average: number; count: number }>(`/recipe-ratings/${recipeId}`),
-  upsert: (recipeId: string, data: { rating: number; comment?: string }) => api.post(`/recipe-ratings/${recipeId}`, data),
+  get: (recipeId: string) =>
+    api.get<{ data: RecipeRating[]; average: number; count: number }>(
+      `/recipe-ratings/${recipeId}`,
+    ),
+  upsert: (recipeId: string, data: { rating: number; comment?: string }) =>
+    api.post(`/recipe-ratings/${recipeId}`, data),
   remove: (recipeId: string) => api.delete(`/recipe-ratings/${recipeId}`),
 };
 
 export const abandonedCartApi = {
-  track: (data: { items: { productId: string; name: string; quantity: number; price: number }[]; email: string; couponCode?: string }) => api.post('/abandoned-cart/track', data),
+  track: (data: {
+    items: { productId: string; name: string; quantity: number; price: number }[];
+    email: string;
+    couponCode?: string;
+  }) => api.post('/abandoned-cart/track', data),
   sendReminder: (id: string) => api.post('/abandoned-cart/send-reminder', { id }),
   recover: (id: string) => api.patch(`/abandoned-cart/${id}/recover`),
-  list: (params?: { page?: number; email?: string; from?: string; to?: string; recovered?: string }) => {
+  list: (params?: {
+    page?: number;
+    email?: string;
+    from?: string;
+    to?: string;
+    recovered?: string;
+  }) => {
     const p = new URLSearchParams();
     p.set('page', String(params?.page || 1));
     if (params?.email) p.set('email', params.email);
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     if (params?.recovered) p.set('recovered', params.recovered);
-    return api.get<{ data: AbandonedCart[]; total: number; page: number; totalPages: number }>(`/abandoned-cart?${p.toString()}`);
+    return api.get<{ data: AbandonedCart[]; total: number; page: number; totalPages: number }>(
+      `/abandoned-cart?${p.toString()}`,
+    );
   },
 };
 
 export default api;
 export const adminApi = {
   logistics: (params?: { status?: string; page?: number }) =>
-    api.get<{ data: Order[]; total: number; page: number; totalPages: number; statusCounts: Record<string, number> }>('/admin/orders/logistics', { params }),
-  updateOrderStatus: (id: string, status: string) => api.patch(`/admin/orders/${id}/status`, { status }),
-  updateOrderTracking: (id: string, data: { trackingNumber?: string; carrier?: string; estimatedDelivery?: string | null }) =>
-    api.patch(`/admin/orders/${id}/tracking`, data),
+    api.get<{
+      data: Order[];
+      total: number;
+      page: number;
+      totalPages: number;
+      statusCounts: Record<string, number>;
+    }>('/admin/orders/logistics', { params }),
+  updateOrderStatus: (id: string, status: string) =>
+    api.patch(`/admin/orders/${id}/status`, { status }),
+  updateOrderTracking: (
+    id: string,
+    data: { trackingNumber?: string; carrier?: string; estimatedDelivery?: string | null },
+  ) => api.patch(`/admin/orders/${id}/tracking`, data),
   logs: (params?: Record<string, string>) => api.get('/admin/logs', { params }),
   financial: () => api.get('/dashboard/financial'),
 };
 
 export { baristaApi } from './barista';
+
+export const lotesApi = {
+  list: (params?: Record<string, unknown>) => api.get('/lotes', { params }),
+  get: (id: string) => api.get(`/lotes/${id}`),
+  create: (data: LoteFormData) => api.post('/lotes', data),
+  update: (
+    id: string,
+    data: Partial<LoteFormData> & {
+      humedad?: number;
+      defectos?: number;
+      scoreAroma?: number;
+      scoreSabor?: number;
+      scoreAcidez?: number;
+      scoreBody?: number;
+      scoreFinal?: number;
+    },
+  ) => api.put(`/lotes/${id}`, data),
+  aprobar: (id: string, notes?: string) => api.patch(`/lotes/${id}/aprobar`, { notes }),
+  rechazar: (id: string, rejectionReason: string) =>
+    api.patch(`/lotes/${id}/rechazar`, { rejectionReason }),
+  delete: (id: string) => api.delete(`/lotes/${id}`),
+};

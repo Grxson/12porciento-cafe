@@ -1,13 +1,7 @@
 import { prisma } from '../db';
 
 export type AdminAction =
-  | 'CREATE'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'TOGGLE'
-  | 'APPROVE'
-  | 'STATUS_CHANGE'
-  | 'ADJUST';
+  'CREATE' | 'UPDATE' | 'DELETE' | 'TOGGLE' | 'APPROVE' | 'STATUS_CHANGE' | 'ADJUST';
 
 export type AdminEntity =
   | 'Product'
@@ -16,7 +10,12 @@ export type AdminEntity =
   | 'PromoCode'
   | 'Recipe'
   | 'Review'
-  | 'Inventory';
+  | 'Inventory'
+  | 'Lote'
+  | 'Caficultor'
+  | 'PricingConfig'
+  | 'ProductVersion'
+  | 'B2BPriceTier';
 
 export interface LogAdminActionParams {
   adminId?: string;

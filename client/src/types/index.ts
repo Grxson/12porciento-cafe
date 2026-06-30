@@ -123,7 +123,8 @@ export interface Order {
   updatedAt: string;
 }
 
-export type OrderStatus = 'PENDING' | 'PROCESSING' | 'CONFIRMED' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type OrderStatus =
+  'PENDING' | 'PROCESSING' | 'CONFIRMED' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
 export interface OrderItemFull {
   id: string;
@@ -188,11 +189,14 @@ export interface Subscription {
 export type SubscriptionPlan = 'FUNDADOR' | 'EXPLORADOR' | 'CONNOISSEUR' | 'EMPRESARIAL';
 export type SubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
 
-export const PLAN_SLOTS: Record<SubscriptionPlan, { min: number; max: number; price: number; allowLimited: boolean }> = {
-  FUNDADOR:    { min: 2, max: 2,  price: 350,  allowLimited: false },
-  EXPLORADOR:  { min: 2, max: 3,  price: 650,  allowLimited: true },
-  CONNOISSEUR: { min: 3, max: 3,  price: 890,  allowLimited: true },
-  EMPRESARIAL: { min: 10, max: 99, price: 0,   allowLimited: true },
+export const PLAN_SLOTS: Record<
+  SubscriptionPlan,
+  { min: number; max: number; price: number; allowLimited: boolean }
+> = {
+  FUNDADOR: { min: 2, max: 2, price: 350, allowLimited: false },
+  EXPLORADOR: { min: 2, max: 3, price: 650, allowLimited: true },
+  CONNOISSEUR: { min: 3, max: 3, price: 890, allowLimited: true },
+  EMPRESARIAL: { min: 10, max: 99, price: 0, allowLimited: true },
 };
 
 export interface UserProfile {
@@ -358,3 +362,51 @@ export interface FinancialData {
 }
 
 export type { RecipeDraft, StepDraft } from './recipeDraft';
+
+export type LoteStatus = 'CUARENTENA' | 'APROBADO' | 'RECHAZADO';
+
+export interface Lote {
+  id: string;
+  productId: string;
+  product: { id: string; name: string; sku: string | null };
+  caficultorId?: string | null;
+  batchNumber: string;
+  quantity: number;
+  costPerKg: number | null;
+  unitCost: number | null;
+  supplier: string | null;
+  origin: string | null;
+  receivedAt: string;
+  expiryDate: string | null;
+  status: LoteStatus;
+  notes: string | null;
+  humedad: number | null;
+  defectos: number | null;
+  scoreAroma: number | null;
+  scoreSabor: number | null;
+  scoreAcidez: number | null;
+  scoreBody: number | null;
+  scoreFinal: number | null;
+  evaluadoPor: string | null;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  rejectedAt: string | null;
+  rejectedBy: string | null;
+  rejectionReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LoteFormData {
+  productId: string;
+  batchNumber: string;
+  quantity: number;
+  caficultorId?: string;
+  costPerKg?: number;
+  unitCost?: number;
+  supplier?: string;
+  origin?: string;
+  receivedAt?: string;
+  expiryDate?: string;
+  notes?: string;
+}

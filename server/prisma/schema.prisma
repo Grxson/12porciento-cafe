@@ -537,10 +537,31 @@ model B2BInquiry {
   @@index([status])
 }
 
+model Caficultor {
+  id              String    @id @default(cuid())
+  nombre          String
+  region          String
+  altitud         Int?
+  variedad        String?
+  foto            String?
+  contacto        String?
+  bio             String?
+  acuerdoPrecioKg Float?
+  modalidad       String    @default("DIRECTO")
+  fairTrade       Boolean   @default(false)
+  notas           String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lotes           Lote[]
+}
+
 model Lote {
   id              String    @id @default(cuid())
   productId       String
   product         Product   @relation(fields: [productId], references: [id])
+  caficultorId    String?
+  caficultor      Caficultor? @relation(fields: [caficultorId], references: [id])
   batchNumber     String    @unique
   quantity        Int
   costPerKg       Float?

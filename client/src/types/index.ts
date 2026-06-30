@@ -410,3 +410,21 @@ export interface LoteFormData {
   expiryDate?: string;
   notes?: string;
 }
+
+export interface Caficultor {
+  id: string;
+  nombre: string;
+  region: string;
+  altitud: number | null;
+  variedad: string | null;
+  foto: string | null;
+  contacto: string | null;
+  bio: string | null;
+  acuerdoPrecioKg: number | null;
+  modalidad: 'DIRECTO' | 'COOPERATIVA' | 'INTERMEDIARIO';
+  fairTrade: boolean;
+  notas: string | null;
+  isActive: boolean;
+  createdAt: string;
+  _count?: { lotes: number };
+}

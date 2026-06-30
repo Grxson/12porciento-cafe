@@ -15,6 +15,7 @@ import type {
   Bundle,
   Achievement,
   LoteFormData,
+  Caficultor,
 } from '../types';
 
 const api = axios.create({
@@ -499,4 +500,12 @@ export const lotesApi = {
   rechazar: (id: string, rejectionReason: string) =>
     api.patch(`/lotes/${id}/rechazar`, { rejectionReason }),
   delete: (id: string) => api.delete(`/lotes/${id}`),
+};
+
+export const caficultoresApi = {
+  list: (params?: Record<string, unknown>) => api.get('/caficultores', { params }),
+  get: (id: string) => api.get(`/caficultores/${id}`),
+  create: (data: Partial<Caficultor>) => api.post('/caficultores', data),
+  update: (id: string, data: Partial<Caficultor>) => api.put(`/caficultores/${id}`, data),
+  delete: (id: string) => api.delete(`/caficultores/${id}`),
 };

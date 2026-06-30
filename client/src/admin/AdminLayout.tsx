@@ -36,6 +36,7 @@ const navLinks = [
   { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/inventario', label: 'Inventario', icon: Warehouse },
   { to: '/admin/lotes', label: 'Lotes', icon: Package },
+  { to: '/admin/caficultores', label: 'Caficultores', icon: Users },
   { to: '/admin/recetas', label: 'Recetas', icon: BookOpen },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
   { to: '/admin/logistica', label: 'Logística', icon: Truck },
@@ -73,6 +74,7 @@ const pageTitles: Record<string, string> = {
   '/admin/carritos-abandonados': 'Carritos Abandonados',
   '/admin/auditoria': 'Auditoría',
   '/admin/lotes': 'Gestión de Lotes',
+  '/admin/caficultores': 'Caficultores',
 };
 
 function AdminLayoutInner() {

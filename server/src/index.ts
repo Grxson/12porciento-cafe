@@ -32,6 +32,7 @@ import abandonedCartRouter from './routes/abandoned-cart';
 import adminOrdersRouter from './routes/admin/orders';
 import adminLogsRouter from './routes/admin/logs';
 import lotesRouter from './routes/lotes';
+import caficultoresRouter from './routes/caficultores';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import { initMail } from './lib/mail';
@@ -108,6 +109,7 @@ app.use('/api/abandoned-cart', abandonedCartRouter);
 app.use('/api/admin/orders', adminOrdersRouter);
 app.use('/api/admin/logs', adminLogsRouter);
 app.use('/api/lotes', adminLimiter, lotesRouter);
+app.use('/api/caficultores', adminLimiter, caficultoresRouter);
 app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

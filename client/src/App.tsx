@@ -79,6 +79,7 @@ import AbandonedCarts from './admin/AbandonedCarts';
 import Logistics from './admin/Logistics';
 import AdminLog from './admin/AdminLog';
 import AdminLotes from './admin/Lotes';
+import AdminCaficultores from './admin/Caficultores';
 import ToastContainer from './components/Toast';
 import NotFound from './pages/NotFound';
 import BottomNav from './components/BottomNav';
@@ -303,6 +304,7 @@ export default function App() {
                   <Route path="logistica" element={<Logistics />} />
                   <Route path="auditoria" element={<AdminLog />} />
                   <Route path="lotes" element={<AdminLotes />} />
+                  <Route path="caficultores" element={<AdminCaficultores />} />
                 </Route>
               </Routes>
             </CartProvider>

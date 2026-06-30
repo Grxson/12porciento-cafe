@@ -363,6 +363,37 @@ export interface FinancialData {
 
 export type { RecipeDraft, StepDraft } from './recipeDraft';
 
+export interface PricingConfig {
+  id: string;
+  productId: string;
+  roastingCostPerUnit: number;
+  packagingCostPerUnit: number;
+  overheadFixed: number;
+  marginRetailPct: number;
+  marginB2bPct: number;
+  minAlertMarginPct: number;
+}
+
+export interface PricingCalculation {
+  rawCostPerUnit: number;
+  totalCostPerUnit: number;
+  suggestedRetailPrice: number;
+  suggestedB2bPrice: number;
+  retailMarginAmount: number;
+  b2bMarginAmount: number;
+}
+
+export interface ProductWithPricing {
+  id: string;
+  name: string;
+  sku: string | null;
+  price: number;
+  costPrice: number | null;
+  weight: number | null;
+  pricingConfig: PricingConfig | null;
+  calculated: PricingCalculation | null;
+}
+
 export type LoteStatus = 'CUARENTENA' | 'APROBADO' | 'RECHAZADO';
 
 export interface Lote {

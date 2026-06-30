@@ -16,6 +16,7 @@ import type {
   Achievement,
   LoteFormData,
   Caficultor,
+  PricingConfig,
 } from '../types';
 
 const api = axios.create({
@@ -476,6 +477,13 @@ export const adminApi = {
   ) => api.patch(`/admin/orders/${id}/tracking`, data),
   logs: (params?: Record<string, string>) => api.get('/admin/logs', { params }),
   financial: () => api.get('/dashboard/financial'),
+};
+
+export const pricingApi = {
+  list: () => api.get('/pricing'),
+  calculate: (inputs: Record<string, number>) => api.post('/pricing/calculate', inputs),
+  save: (productId: string, config: Partial<PricingConfig>) =>
+    api.put(`/pricing/${productId}`, config),
 };
 
 export { baristaApi } from './barista';

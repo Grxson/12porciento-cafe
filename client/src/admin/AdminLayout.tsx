@@ -25,6 +25,7 @@ import {
   ShoppingCart,
   Truck,
   ClipboardList,
+  DollarSign,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -52,6 +53,7 @@ const navLinks = [
   { to: '/admin/notificaciones', label: 'Notificaciones', icon: Bell },
   { to: '/admin/carritos-abandonados', label: 'Carritos Abandonados', icon: ShoppingCart },
   { to: '/admin/auditoria', label: 'Auditoría', icon: ClipboardList },
+  { to: '/admin/pricing', label: 'Precios', icon: DollarSign },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -75,6 +77,7 @@ const pageTitles: Record<string, string> = {
   '/admin/auditoria': 'Auditoría',
   '/admin/lotes': 'Gestión de Lotes',
   '/admin/caficultores': 'Caficultores',
+  '/admin/pricing': 'Motor de Precios',
 };
 
 function AdminLayoutInner() {

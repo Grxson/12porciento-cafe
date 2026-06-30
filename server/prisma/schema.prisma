@@ -59,6 +59,7 @@ model Product {
   wishlistItems  WishlistItem[]
   priceRecords   PriceRecord[]
   lotes           Lote[]
+  pricingConfig  PricingConfig?
 }
 
 model StockMovement {
@@ -590,4 +591,17 @@ model Lote {
 
   @@index([productId])
   @@index([status])
+}
+
+model PricingConfig {
+  id                   String   @id @default(cuid())
+  productId            String   @unique
+  product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  roastingCostPerUnit  Float    @default(0)
+  packagingCostPerUnit Float    @default(0)
+  overheadFixed        Float    @default(0)
+  marginRetailPct      Float    @default(60)
+  marginB2bPct         Float    @default(30)
+  minAlertMarginPct    Float    @default(20)
+  updatedAt            DateTime @updatedAt
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Search, X, Download } from 'lucide-react';
 import { exportToCsv } from './utils/csvExport';
 import { subscriptionsApi, productsApi } from '../api';
+import SearchableProductSelect from '../components/SearchableProductSelect';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminModal from './components/AdminModal';
 import type { Product, Subscription, SubscriptionStatus } from '../types';
@@ -14,42 +15,52 @@ import { getApiError } from '../lib/api-error';
 
 function FulfillmentBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-  PENDIENTE:  'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-600 dark:border-yellow-500/30',
-  PREPARANDO: 'text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/20 border-blue-600 dark:border-blue-500/30',
-    ENVIADO:    'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-500/30',
-    ENTREGADO:  'text-coffee-600 dark:text-coffee-300 bg-coffee-100 dark:bg-coffee-800/40 border-coffee-300 dark:border-coffee-700',
+    PENDIENTE:
+      'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-600 dark:border-yellow-500/30',
+    PREPARANDO:
+      'text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/20 border-blue-600 dark:border-blue-500/30',
+    ENVIADO:
+      'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-500/30',
+    ENTREGADO:
+      'text-coffee-600 dark:text-coffee-300 bg-coffee-100 dark:bg-coffee-800/40 border-coffee-300 dark:border-coffee-700',
   };
   const labels: Record<string, string> = {
-    PENDIENTE: 'Pendiente', PREPARANDO: 'Preparando', ENVIADO: 'Enviado', ENTREGADO: 'Entregado',
+    PENDIENTE: 'Pendiente',
+    PREPARANDO: 'Preparando',
+    ENVIADO: 'Enviado',
+    ENTREGADO: 'Entregado',
   };
   return (
-    <span className={`text-xs px-2 py-0.5 border rounded-sm whitespace-nowrap ${styles[status] ?? styles.PENDIENTE}`}>
+    <span
+      className={`text-xs px-2 py-0.5 border rounded-sm whitespace-nowrap ${styles[status] ?? styles.PENDIENTE}`}
+    >
       {labels[status] ?? status}
     </span>
   );
 }
 
 const statusConfig: Record<SubscriptionStatus, { label: string; color: string }> = {
-  ACTIVE:    { label: 'Activa',     color: 'text-green-600 dark:text-green-400' },
-  PAUSED:    { label: 'Pausada',    color: 'text-yellow-700 dark:text-yellow-400' },
-  CANCELLED: { label: 'Cancelada',  color: 'text-red-600 dark:text-red-400' },
+  ACTIVE: { label: 'Activa', color: 'text-green-600 dark:text-green-400' },
+  PAUSED: { label: 'Pausada', color: 'text-yellow-700 dark:text-yellow-400' },
+  CANCELLED: { label: 'Cancelada', color: 'text-red-600 dark:text-red-400' },
 };
 
 const planLabels: Record<string, string> = {
-  FUNDADOR:    'Fundador',
-  EXPLORADOR:  'Explorador',
+  FUNDADOR: 'Fundador',
+  EXPLORADOR: 'Explorador',
   CONNOISSEUR: 'Connoisseur',
   EMPRESARIAL: 'Empresarial',
 };
 
 const PLAN_SLOTS: Record<string, { min: number; max: number }> = {
-  FUNDADOR:    { min: 2, max: 2 },
-  EXPLORADOR:  { min: 2, max: 3 },
+  FUNDADOR: { min: 2, max: 2 },
+  EXPLORADOR: { min: 2, max: 3 },
   CONNOISSEUR: { min: 3, max: 3 },
   EMPRESARIAL: { min: 10, max: 99 },
 };
 
-const SELECT_CLASS = 'bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
+const SELECT_CLASS =
+  'bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
 
 interface EditModalProps {
   sub: Subscription;
@@ -73,10 +84,13 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
   useEffect(() => {
     setLoadingProducts(true);
-    productsApi.adminList()
+    productsApi
+      .adminList()
       .then((r) => {
         // adminList returns the bare array directly
-        const list = Array.isArray(r.data) ? (r.data as Product[]) : ((r.data as { data: Product[] })?.data ?? []);
+        const list = Array.isArray(r.data)
+          ? (r.data as Product[])
+          : ((r.data as { data: Product[] })?.data ?? []);
         setProducts(list);
         if (list.length > 0) {
           const firstNotSelected = list.find((p) => !selectedItemIds.includes(p.id));
@@ -112,7 +126,10 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
   const handleSave = async () => {
     if (!countValid) {
-      addToast(`El plan ${planLabels[plan] ?? plan} requiere entre ${slots.min} y ${slots.max} cafés.`, 'error');
+      addToast(
+        `El plan ${planLabels[plan] ?? plan} requiere entre ${slots.min} y ${slots.max} cafés.`,
+        'error',
+      );
       return;
     }
     setSaving(true);
@@ -135,7 +152,10 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
   };
 
   return (
-    <AdminModal open title="Editar suscripción" onClose={onClose}
+    <AdminModal
+      open
+      title="Editar suscripción"
+      onClose={onClose}
       footer={
         <div className="flex justify-end gap-3 flex-1">
           <button
@@ -154,22 +174,46 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
         </div>
       }
     >
-      <p className="text-coffee-600 dark:text-coffee-400 text-xs mb-4">{sub.name} · {sub.email}</p>
+      <p className="text-coffee-600 dark:text-coffee-400 text-xs mb-4">
+        {sub.name} · {sub.email}
+      </p>
       <div className="space-y-4">
         {/* Plan */}
         <div>
-          <label htmlFor="subscriber-plan" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Plan</label>
-          <select id="subscriber-plan" value={plan} onChange={(e) => setPlan(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+          <label
+            htmlFor="subscriber-plan"
+            className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1"
+          >
+            Plan
+          </label>
+          <select
+            id="subscriber-plan"
+            value={plan}
+            onChange={(e) => setPlan(e.target.value)}
+            className={`w-full ${SELECT_CLASS}`}
+          >
             {Object.entries(planLabels).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
+              <option key={key} value={key}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
 
         {/* Frequency */}
         <div>
-          <label htmlFor="subscriber-frequency" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Frecuencia</label>
-          <select id="subscriber-frequency" value={frequency} onChange={(e) => setFrequency(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+          <label
+            htmlFor="subscriber-frequency"
+            className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1"
+          >
+            Frecuencia
+          </label>
+          <select
+            id="subscriber-frequency"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            className={`w-full ${SELECT_CLASS}`}
+          >
             <option value="monthly">Mensual</option>
             <option value="bimonthly">Bimestral</option>
           </select>
@@ -177,8 +221,18 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
         {/* Grind */}
         <div>
-          <label htmlFor="subscriber-grind" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Molienda</label>
-          <select id="subscriber-grind" value={grindPreference} onChange={(e) => setGrindPreference(e.target.value)} className={`w-full ${SELECT_CLASS}`}>
+          <label
+            htmlFor="subscriber-grind"
+            className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1"
+          >
+            Molienda
+          </label>
+          <select
+            id="subscriber-grind"
+            value={grindPreference}
+            onChange={(e) => setGrindPreference(e.target.value)}
+            className={`w-full ${SELECT_CLASS}`}
+          >
             <option value="GRANO">Grano</option>
             <option value="MOLIDO">Molido</option>
           </select>
@@ -186,19 +240,26 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
 
         {/* Coffee items */}
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Cafés seleccionados</label>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">
+            Cafés seleccionados
+          </label>
 
           {/* Slot hint */}
-          <p className={`text-xs mb-2 ${countValid ? 'text-coffee-600 dark:text-coffee-400' : 'text-red-400'}`}>
-            El plan {planLabels[plan] ?? plan} requiere entre {slots.min} y {slots.max} cafés
-            {' '}— actualmente {selectedItemIds.length}
+          <p
+            className={`text-xs mb-2 ${countValid ? 'text-coffee-600 dark:text-coffee-400' : 'text-red-400'}`}
+          >
+            El plan {planLabels[plan] ?? plan} requiere entre {slots.min} y {slots.max} cafés —
+            actualmente {selectedItemIds.length}
           </p>
 
           {/* Selected chips */}
           {selectedItemIds.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-3">
               {selectedItemIds.map((pid) => (
-                <span key={pid} className="flex items-center gap-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-2 py-0.5 text-xs text-coffee-900 dark:text-cream">
+                <span
+                  key={pid}
+                  className="flex items-center gap-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-2 py-0.5 text-xs text-coffee-900 dark:text-cream"
+                >
                   {getProductName(pid)}
                   <button
                     onClick={() => removeProduct(pid)}
@@ -216,21 +277,20 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
             <p className="text-xs text-coffee-500 dark:text-coffee-400">Cargando productos…</p>
           ) : (
             <div className="flex gap-2">
-              <select
-                id="subscriber-add-product"
-                value={productToAdd}
-                onChange={(e) => setProductToAdd(e.target.value)}
-                className={`flex-1 ${SELECT_CLASS}`}
-              >
-                {products
-                  .filter((p) => !selectedItemIds.includes(p.id))
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-              </select>
+              <div className="flex-1">
+                <SearchableProductSelect
+                  value={productToAdd}
+                  onChange={(id) => setProductToAdd(id)}
+                  initialLabel="-- Seleccionar producto --"
+                  excludeIds={selectedItemIds}
+                />
+              </div>
               <button
                 onClick={addProduct}
-                disabled={!productToAdd || products.filter((p) => !selectedItemIds.includes(p.id)).length === 0}
+                disabled={
+                  !productToAdd ||
+                  products.filter((p) => !selectedItemIds.includes(p.id)).length === 0
+                }
                 className="px-3 py-2 text-xs bg-coffee-200 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-gold-500 hover:border-gold-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Agregar
@@ -258,19 +318,30 @@ export default function AdminSubscribers() {
   const [cancelling, setCancelling] = useState(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
 
-  const load = useCallback((p: number) => {
-    setLoading(true);
-    setLoadError('');
-    const params: Record<string, string> = { page: String(p) };
-    if (filter) params.status = filter;
-    if (debouncedSearch) params.search = debouncedSearch;
-    subscriptionsApi.list(params)
-      .then((r) => { setSubs(r.data.data); setTotalPages(r.data.totalPages ?? 1); })
-      .catch(() => { setLoadError('Error al cargar suscriptores. Intenta de nuevo.'); })
-      .finally(() => setLoading(false));
-  }, [filter, debouncedSearch]);
+  const load = useCallback(
+    (p: number) => {
+      setLoading(true);
+      setLoadError('');
+      const params: Record<string, string> = { page: String(p) };
+      if (filter) params.status = filter;
+      if (debouncedSearch) params.search = debouncedSearch;
+      subscriptionsApi
+        .list(params)
+        .then((r) => {
+          setSubs(r.data.data);
+          setTotalPages(r.data.totalPages ?? 1);
+        })
+        .catch(() => {
+          setLoadError('Error al cargar suscriptores. Intenta de nuevo.');
+        })
+        .finally(() => setLoading(false));
+    },
+    [filter, debouncedSearch],
+  );
 
-  useEffect(() => { load(page); }, [load, page]);
+  useEffect(() => {
+    load(page);
+  }, [load, page]);
 
   // Debounce search → reset to page 1
   useEffect(() => {
@@ -291,13 +362,17 @@ export default function AdminSubscribers() {
       load(page);
     } catch {
       addToast('Error al cancelar la suscripción.', 'error');
-    } finally { setCancelling(false); }
+    } finally {
+      setCancelling(false);
+    }
   };
 
   const updateStatus = async (id: string, status: string) => {
     const prev = subs;
     // Optimistic: reflect the new status immediately, revert on failure
-    setSubs((list) => list.map((s) => (s.id === id ? { ...s, status: status as SubscriptionStatus } : s)));
+    setSubs((list) =>
+      list.map((s) => (s.id === id ? { ...s, status: status as SubscriptionStatus } : s)),
+    );
     try {
       await subscriptionsApi.updateStatus(id, status);
       addToast(status === 'ACTIVE' ? 'Suscripción activada.' : 'Suscripción pausada.', 'success');
@@ -356,7 +431,10 @@ export default function AdminSubscribers() {
           </button>
           <select
             value={filter}
-            onChange={(e) => { setFilter(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setPage(1);
+            }}
             className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
           >
             <option value="">Todas</option>
@@ -398,28 +476,54 @@ export default function AdminSubscribers() {
               <table className="w-full min-w-[700px] text-sm">
                 <thead>
                   <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Nombre</th>
-                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Email</th>
-                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Plan</th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Molienda</th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Frecuencia</th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Próximo cobro</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Estado</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Entrega</th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Cafés</th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">Acciones</th>
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Nombre
+                    </th>
+                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Email
+                    </th>
+                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Plan
+                    </th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Molienda
+                    </th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Frecuencia
+                    </th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Próximo cobro
+                    </th>
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Estado
+                    </th>
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Entrega
+                    </th>
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Cafés
+                    </th>
+                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {subs.map((sub) => {
-                    const cfg = statusConfig[sub.status as SubscriptionStatus] ?? statusConfig.ACTIVE;
+                    const cfg =
+                      statusConfig[sub.status as SubscriptionStatus] ?? statusConfig.ACTIVE;
                     return (
-                      <tr key={sub.id} className="border-b border-coffee-200/50 dark:border-coffee-800/50 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors">
+                      <tr
+                        key={sub.id}
+                        className="border-b border-coffee-200/50 dark:border-coffee-800/50 bg-white dark:bg-coffee-800 hover:bg-coffee-50 dark:hover:bg-coffee-700 transition-colors"
+                      >
                         <td className="px-4 py-3">
                           <p className="text-coffee-900 dark:text-cream font-medium">{sub.name}</p>
                           {sub.phone && <p className="text-coffee-500 text-xs">{sub.phone}</p>}
                         </td>
-                        <td className="hidden sm:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">{sub.email}</td>
+                        <td className="hidden sm:table-cell px-4 py-3 text-coffee-700 dark:text-coffee-300">
+                          {sub.email}
+                        </td>
                         <td className="hidden sm:table-cell px-4 py-3">
                           <span className="text-gold-500 text-xs font-medium uppercase tracking-wider">
                             {planLabels[sub.plan] ?? sub.plan}
@@ -449,8 +553,10 @@ export default function AdminSubscribers() {
                               }}
                               className="text-xs bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-2 py-1 focus:outline-none focus:border-gold-500"
                             >
-                              {['PENDIENTE','PREPARANDO','ENVIADO','ENTREGADO'].map((s) => (
-                                <option key={s} value={s}>{s}</option>
+                              {['PENDIENTE', 'PREPARANDO', 'ENVIADO', 'ENTREGADO'].map((s) => (
+                                <option key={s} value={s}>
+                                  {s}
+                                </option>
                               ))}
                             </select>
                           </div>
@@ -459,9 +565,18 @@ export default function AdminSubscribers() {
                           {sub.items && sub.items.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {sub.items.map((item) => (
-                                <div key={item.id} className="flex items-center gap-1 bg-coffee-200 dark:bg-coffee-800 px-2 py-0.5">
-                                  <img src={item.product?.imageUrl} className="w-4 h-4 object-cover" alt="" />
-                                  <span className="text-xs text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">{item.product?.name}</span>
+                                <div
+                                  key={item.id}
+                                  className="flex items-center gap-1 bg-coffee-200 dark:bg-coffee-800 px-2 py-0.5"
+                                >
+                                  <img
+                                    src={item.product?.imageUrl}
+                                    className="w-4 h-4 object-cover"
+                                    alt=""
+                                  />
+                                  <span className="text-xs text-coffee-700 dark:text-coffee-300 truncate max-w-[80px]">
+                                    {item.product?.name}
+                                  </span>
                                 </div>
                               ))}
                             </div>

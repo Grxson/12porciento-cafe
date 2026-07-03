@@ -4,6 +4,7 @@ import { bundlesApi, productsApi } from '../api';
 import type { Bundle, Product } from '../types';
 import { useModuleList } from './hooks/useModuleList';
 import { useModuleToast } from './context/ModuleContext';
+import SearchableProductSelect from '../components/SearchableProductSelect';
 import ConfirmDialog from './components/ConfirmDialog';
 import FormField from './components/FormField';
 import ImageUploader from './components/ImageUploader';
@@ -43,8 +44,16 @@ export default function AdminBundles() {
   const { addToast } = useModuleToast();
 
   const fetchList = useCallback(() => bundlesApi.list(), []);
-  const createItem = useCallback((data: Record<string, unknown>) => bundlesApi.create(data as Parameters<typeof bundlesApi.create>[0]), []);
-  const updateItem = useCallback((id: string, data: Record<string, unknown>) => bundlesApi.update(id, data as Parameters<typeof bundlesApi.update>[1]), []);
+  const createItem = useCallback(
+    (data: Record<string, unknown>) =>
+      bundlesApi.create(data as Parameters<typeof bundlesApi.create>[0]),
+    [],
+  );
+  const updateItem = useCallback(
+    (id: string, data: Record<string, unknown>) =>
+      bundlesApi.update(id, data as Parameters<typeof bundlesApi.update>[1]),
+    [],
+  );
   const deleteItem = useCallback((id: string) => bundlesApi.delete(id), []);
 
   const {
@@ -66,7 +75,9 @@ export default function AdminBundles() {
     productsApi
       .adminList()
       .then((res) => {
-        const list = Array.isArray(res.data) ? (res.data as Product[]) : ((res.data as { data: Product[] })?.data ?? []);
+        const list = Array.isArray(res.data)
+          ? (res.data as Product[])
+          : ((res.data as { data: Product[] })?.data ?? []);
         setProducts(list);
       })
       .catch(() => addToast('No se pudieron cargar los productos', 'error'));
@@ -240,7 +251,9 @@ export default function AdminBundles() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Bundles</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{bundles.length} paquetes configurados</p>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
+            {bundles.length} paquetes configurados
+          </p>
         </div>
         <button onClick={openAdd} className="btn-primary flex items-center gap-2 text-sm">
           <Plus size={16} /> Nuevo bundle
@@ -253,7 +266,7 @@ export default function AdminBundles() {
       ) : error ? (
         <AdminErrorState error={error} onRetry={retry} />
       ) : bundles.length === 0 ? (
-          <div className="text-center py-20 text-coffee-500 dark:text-coffee-400">
+        <div className="text-center py-20 text-coffee-500 dark:text-coffee-400">
           <Package size={40} className="mx-auto mb-4 text-coffee-700 dark:text-coffee-300" />
           <p>No hay bundles configurados.</p>
         </div>
@@ -266,7 +279,9 @@ export default function AdminBundles() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-serif text-lg text-coffee-900 dark:text-cream">{bundle.name}</h3>
+                  <h3 className="font-serif text-lg text-coffee-900 dark:text-cream">
+                    {bundle.name}
+                  </h3>
                   <div className="flex items-center gap-2 mt-1">
                     {bundle.discountPct > 0 && (
                       <span className="bg-gold-500/20 text-gold-400 text-xs px-2 py-0.5">
@@ -304,16 +319,23 @@ export default function AdminBundles() {
                 </div>
               </div>
 
-              <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">{bundle.description}</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">
+                {bundle.description}
+              </p>
 
               <div className="space-y-1 mb-4">
                 {bundle.items.map((item) => (
-                  <div key={item.id} className="text-xs text-coffee-700 dark:text-coffee-300 flex justify-between">
+                  <div
+                    key={item.id}
+                    className="text-xs text-coffee-700 dark:text-coffee-300 flex justify-between"
+                  >
                     <span>
                       • {item.quantity > 1 ? `${item.quantity}x ` : ''}
                       {item.product.name}
                     </span>
-                    <span className="text-coffee-500 dark:text-coffee-400">${item.product.price}</span>
+                    <span className="text-coffee-500 dark:text-coffee-400">
+                      ${item.product.price}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -360,164 +382,168 @@ export default function AdminBundles() {
           </>
         }
       >
-            {/* Base fields */}
-            <div className="space-y-4">
-              <FormField
-                label="Nombre"
-                value={form.name}
-                onChange={(v) => setField('name', String(v))}
-                required
-                placeholder="Ej. Pack Espresso Clásico"
-                error={nameError}
-              />
+        {/* Base fields */}
+        <div className="space-y-4">
+          <FormField
+            label="Nombre"
+            value={form.name}
+            onChange={(v) => setField('name', String(v))}
+            required
+            placeholder="Ej. Pack Espresso Clásico"
+            error={nameError}
+          />
 
-              <FormField
-                label="Descripción"
-                value={form.description}
-                onChange={(v) => setField('description', String(v))}
-                type="textarea"
-                placeholder="Breve descripción del bundle..."
-                rows={3}
-              />
+          <FormField
+            label="Descripción"
+            value={form.description}
+            onChange={(v) => setField('description', String(v))}
+            type="textarea"
+            placeholder="Breve descripción del bundle..."
+            rows={3}
+          />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  label="Precio base"
-                  value={form.basePrice}
-                  onChange={(v) => setField('basePrice', v === '' ? '' : Number(v))}
-                  type="number"
-                  required
-                  placeholder="0"
-                  error={priceError}
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              label="Precio base"
+              value={form.basePrice}
+              onChange={(v) => setField('basePrice', v === '' ? '' : Number(v))}
+              type="number"
+              required
+              placeholder="0"
+              error={priceError}
+            />
+            <FormField
+              label="Descuento (%)"
+              value={form.discountPct}
+              onChange={(v) => setField('discountPct', v === '' ? '' : Number(v))}
+              type="number"
+              placeholder="0"
+            />
+          </div>
+
+          <ImageUploader
+            label="Imagen del bundle"
+            value={form.imageUrl}
+            onChange={(url) => setField('imageUrl', url)}
+          />
+
+          {/* isActive toggle — edit only */}
+          {modalMode === 'edit' && (
+            <div className="flex items-center gap-3">
+              <label className="text-xs text-coffee-600 dark:text-coffee-400">Estado</label>
+              <button
+                type="button"
+                onClick={() => setField('isActive', !form.isActive)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  form.isActive ? 'bg-gold-500' : 'bg-coffee-400 dark:bg-coffee-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                    form.isActive ? 'translate-x-5' : 'translate-x-1'
+                  }`}
                 />
-                <FormField
-                  label="Descuento (%)"
-                  value={form.discountPct}
-                  onChange={(v) => setField('discountPct', v === '' ? '' : Number(v))}
-                  type="number"
-                  placeholder="0"
+              </button>
+              <span className="text-xs text-coffee-700 dark:text-coffee-300">
+                {form.isActive ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+          )}
+
+          {/* ── Item selector (add mode only) ─────────────────────── */}
+          {modalMode === 'add' && (
+            <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
+              <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-3">
+                Productos del bundle *
+              </p>
+
+              {/* Selector row */}
+              <div className="flex gap-2 mb-3">
+                <SearchableProductSelect
+                  value={selectedProductId}
+                  onChange={(id) => setSelectedProductId(id)}
+                  initialLabel="-- Seleccionar producto --"
                 />
+                <button
+                  type="button"
+                  onClick={addItem}
+                  disabled={!selectedProductId}
+                  className="px-3 py-2 bg-gold-500 hover:bg-gold-600 text-coffee-950 text-sm font-semibold disabled:opacity-40 transition-colors"
+                >
+                  Agregar
+                </button>
               </div>
 
-              <ImageUploader
-                label="Imagen del bundle"
-                value={form.imageUrl}
-                onChange={(url) => setField('imageUrl', url)}
-              />
-
-              {/* isActive toggle — edit only */}
-              {modalMode === 'edit' && (
-                <div className="flex items-center gap-3">
-                  <label className="text-xs text-coffee-600 dark:text-coffee-400">Estado</label>
-                  <button
-                    type="button"
-                    onClick={() => setField('isActive', !form.isActive)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      form.isActive ? 'bg-gold-500' : 'bg-coffee-400 dark:bg-coffee-700'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                        form.isActive ? 'translate-x-5' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                  <span className="text-xs text-coffee-700 dark:text-coffee-300">
-                    {form.isActive ? 'Activo' : 'Inactivo'}
-                  </span>
-                </div>
-              )}
-
-              {/* ── Item selector (add mode only) ─────────────────────── */}
-              {modalMode === 'add' && (
-                <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
-                  <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-3">Productos del bundle *</p>
-
-                  {/* Selector row */}
-                  <div className="flex gap-2 mb-3">
-                    <select
-                      value={selectedProductId}
-                      onChange={(e) => setSelectedProductId(e.target.value)}
-                      className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
-                    >
-                      <option value="">-- Seleccionar producto --</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} — ${p.price}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={addItem}
-                      disabled={!selectedProductId}
-                      className="px-3 py-2 bg-gold-500 hover:bg-gold-600 text-coffee-950 text-sm font-semibold disabled:opacity-40 transition-colors"
-                    >
-                      Agregar
-                    </button>
-                  </div>
-
-                  {/* Chosen items */}
-                  {formItems.length === 0 ? (
-                    <p className="text-xs text-coffee-600 dark:text-coffee-400 italic">Ningún producto agregado aún.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {formItems.map((fi) => {
-                        const product = products.find((p) => p.id === fi.productId);
-                        return (
-                          <div
-                            key={fi.productId}
-                            className="flex items-center gap-2 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-3 py-2"
-                          >
-                            <span className="flex-1 text-xs text-coffee-700 dark:text-coffee-300 truncate">
-                              {product?.name}
-                              <span className="text-coffee-500 dark:text-coffee-400 ml-2">${product?.price}</span>
-                            </span>
-                            <input
-                              type="number"
-                              min={1}
-                              value={fi.quantity}
-                              onChange={(e) =>
-                                updateItemQty(fi.productId, Math.max(1, Number(e.target.value)))
-                              }
-                              className="w-14 bg-white dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-600 text-coffee-900 dark:text-cream text-xs text-center px-2 py-1 focus:outline-none focus:border-gold-500"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeItem(fi.productId)}
-                              className="text-red-400 hover:text-red-300 transition-colors ml-1"
-                              aria-label="Quitar producto"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Edit-mode read-only items note */}
-              {modalMode === 'edit' && editTarget && (
-                <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
-                  <p className="text-xs text-coffee-500 dark:text-coffee-400 italic mb-2">
-                    Los productos del paquete no se pueden editar después de crearlo.
-                  </p>
-                  <div className="space-y-1">
-                    {editTarget.items.map((item) => (
-                      <div key={item.id} className="text-xs text-coffee-600 dark:text-coffee-400 flex justify-between">
-                        <span>
-                          {item.quantity > 1 ? `${item.quantity}x ` : ''}
-                          {item.product.name}
+              {/* Chosen items */}
+              {formItems.length === 0 ? (
+                <p className="text-xs text-coffee-600 dark:text-coffee-400 italic">
+                  Ningún producto agregado aún.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {formItems.map((fi) => {
+                    const product = products.find((p) => p.id === fi.productId);
+                    return (
+                      <div
+                        key={fi.productId}
+                        className="flex items-center gap-2 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-3 py-2"
+                      >
+                        <span className="flex-1 text-xs text-coffee-700 dark:text-coffee-300 truncate">
+                          {product?.name}
+                          <span className="text-coffee-500 dark:text-coffee-400 ml-2">
+                            ${product?.price}
+                          </span>
                         </span>
-                        <span className="text-coffee-600 dark:text-coffee-400">${item.product.price}</span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={fi.quantity}
+                          onChange={(e) =>
+                            updateItemQty(fi.productId, Math.max(1, Number(e.target.value)))
+                          }
+                          className="w-14 bg-white dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-600 text-coffee-900 dark:text-cream text-xs text-center px-2 py-1 focus:outline-none focus:border-gold-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeItem(fi.productId)}
+                          className="text-red-400 hover:text-red-300 transition-colors ml-1"
+                          aria-label="Quitar producto"
+                        >
+                          <X size={14} />
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
+          )}
+
+          {/* Edit-mode read-only items note */}
+          {modalMode === 'edit' && editTarget && (
+            <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
+              <p className="text-xs text-coffee-500 dark:text-coffee-400 italic mb-2">
+                Los productos del paquete no se pueden editar después de crearlo.
+              </p>
+              <div className="space-y-1">
+                {editTarget.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="text-xs text-coffee-600 dark:text-coffee-400 flex justify-between"
+                  >
+                    <span>
+                      {item.quantity > 1 ? `${item.quantity}x ` : ''}
+                      {item.product.name}
+                    </span>
+                    <span className="text-coffee-600 dark:text-coffee-400">
+                      ${item.product.price}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </AdminModal>
 
       {/* ── Delete ConfirmDialog ─────────────────────────────────────────── */}

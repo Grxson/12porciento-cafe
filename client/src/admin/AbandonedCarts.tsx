@@ -23,24 +23,36 @@ export default function AbandonedCarts() {
   const [dateTo, setDateTo] = useState('');
   const [recovered, setRecovered] = useState('');
 
-  const load = useCallback((p: number) => {
-    setLoading(true);
-    setListError('');
-    abandonedCartApi.list({ page: p, email: search || undefined, from: dateFrom || undefined, to: dateTo || undefined, recovered: recovered || undefined })
-      .then((res) => {
-        setCarts(res.data.data);
-        setTotal(res.data.total);
-        setPage(res.data.page);
-        setTotalPages(res.data.totalPages);
-      })
-      .catch(() => {
-        setListError('Error al cargar carritos abandonados');
-        addToast('Error al cargar carritos abandonados', 'error');
-      })
-      .finally(() => setLoading(false));
-  }, [search, dateFrom, dateTo, recovered]);
+  const load = useCallback(
+    (p: number) => {
+      setLoading(true);
+      setListError('');
+      abandonedCartApi
+        .list({
+          page: p,
+          email: search || undefined,
+          from: dateFrom || undefined,
+          to: dateTo || undefined,
+          recovered: recovered || undefined,
+        })
+        .then((res) => {
+          setCarts(res.data.data);
+          setTotal(res.data.total);
+          setPage(res.data.page);
+          setTotalPages(res.data.totalPages);
+        })
+        .catch(() => {
+          setListError('Error al cargar carritos abandonados');
+          addToast('Error al cargar carritos abandonados', 'error');
+        })
+        .finally(() => setLoading(false));
+    },
+    [search, dateFrom, dateTo, recovered],
+  );
 
-  useEffect(() => { load(page); }, [load, page]);
+  useEffect(() => {
+    load(page);
+  }, [load, page]);
 
   const handleSendReminder = async (id: string) => {
     setSendingId(id);
@@ -73,15 +85,23 @@ export default function AbandonedCarts() {
   };
 
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    new Date(d).toLocaleDateString('es-MX', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Carritos Abandonados" noSuffix />
       <div className="flex items-center gap-3 mb-6">
         <ShoppingBag className="w-6 h-6 text-gold-500" />
         <div>
-          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Carritos Abandonados</h1>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">
+            Carritos Abandonados
+          </h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} carritos</p>
         </div>
       </div>
@@ -93,12 +113,18 @@ export default function AbandonedCarts() {
           <input
             type="text"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             placeholder="Buscar por email..."
             className="w-full pl-9 pr-8 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-600 dark:hover:text-cream">
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-600 dark:hover:text-cream"
+            >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -106,18 +132,27 @@ export default function AbandonedCarts() {
         <input
           type="date"
           value={dateFrom}
-          onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setDateFrom(e.target.value);
+            setPage(1);
+          }}
           className="px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
         />
         <input
           type="date"
           value={dateTo}
-          onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setDateTo(e.target.value);
+            setPage(1);
+          }}
           className="px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
         />
         <select
           value={recovered}
-          onChange={(e) => { setRecovered(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setRecovered(e.target.value);
+            setPage(1);
+          }}
           className="px-3 py-2 text-sm bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 text-coffee-900 dark:text-cream focus:border-gold-500/50 focus:outline-none"
         >
           <option value="">Todos</option>
@@ -126,7 +161,13 @@ export default function AbandonedCarts() {
         </select>
         {(search || dateFrom || dateTo || recovered) && (
           <button
-            onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); setRecovered(''); setPage(1); }}
+            onClick={() => {
+              setSearch('');
+              setDateFrom('');
+              setDateTo('');
+              setRecovered('');
+              setPage(1);
+            }}
             className="px-3 py-2 text-sm text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream border border-coffee-200 dark:border-coffee-700 transition-colors"
           >
             Limpiar
@@ -160,23 +201,43 @@ export default function AbandonedCarts() {
             <tbody>
               {carts.map((c) => {
                 let itemsCount = 0;
-                try { const parsed = JSON.parse(c.items); itemsCount = Array.isArray(parsed) ? parsed.length : 0; } catch { /* invalid JSON */ }
+                try {
+                  const parsed = JSON.parse(c.items);
+                  itemsCount = Array.isArray(parsed) ? parsed.length : 0;
+                } catch {
+                  /* invalid JSON */
+                }
                 return (
-                  <tr key={c.id} className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30">
-                    <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">{c.email}</td>
-                    <td className="px-4 py-3 text-coffee-600 dark:text-coffee-400">{itemsCount} productos</td>
-                    <td className="px-4 py-3 text-coffee-600 dark:text-coffee-400">{c.couponCode || '—'}</td>
+                  <tr
+                    key={c.id}
+                    className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30"
+                  >
+                    <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">
+                      {c.email}
+                    </td>
+                    <td className="px-4 py-3 text-coffee-600 dark:text-coffee-400">
+                      {itemsCount} productos
+                    </td>
+                    <td className="px-4 py-3 text-coffee-600 dark:text-coffee-400">
+                      {c.couponCode || '—'}
+                    </td>
                     <td className="px-4 py-3 text-coffee-600 dark:text-coffee-400">
                       {c.reminderCount > 0 ? (
-                        <span>{c.reminderCount} ({c.reminderSentAt ? formatDate(c.reminderSentAt) : ''})</span>
-                      ) : '—'}
+                        <span>
+                          {c.reminderCount} ({c.reminderSentAt ? formatDate(c.reminderSentAt) : ''})
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 text-xs font-medium ${
-                        c.recovered
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                      }`}>
+                      <span
+                        className={`inline-block px-2 py-0.5 text-xs font-medium ${
+                          c.recovered
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                        }`}
+                      >
                         {c.recovered ? 'Recuperado' : 'Abandonado'}
                       </span>
                     </td>
@@ -191,7 +252,11 @@ export default function AbandonedCarts() {
                               className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors text-xs disabled:opacity-50"
                               aria-label="Enviar recordatorio"
                             >
-                              {sendingId === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                              {sendingId === c.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Send className="w-3.5 h-3.5" />
+                              )}
                               Recordatorio
                             </button>
                             <button
@@ -200,7 +265,11 @@ export default function AbandonedCarts() {
                               className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 hover:text-green-500 transition-colors text-xs disabled:opacity-50"
                               aria-label="Marcar recuperado"
                             >
-                              {recoveringId === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                              {recoveringId === c.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <CheckCircle className="w-3.5 h-3.5" />
+                              )}
                               Recuperado
                             </button>
                           </>

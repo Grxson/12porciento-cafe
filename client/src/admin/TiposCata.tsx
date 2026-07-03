@@ -118,7 +118,7 @@ export default function AdminTiposCata() {
   };
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Tipos de Cata" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>

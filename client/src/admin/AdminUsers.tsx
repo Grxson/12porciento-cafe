@@ -46,7 +46,8 @@ export default function AdminUsers() {
   const load = () => {
     setLoading(true);
     setListError('');
-    adminUsersApi.list()
+    adminUsersApi
+      .list()
       .then((r) => setUsers(r.data))
       .catch(() => {
         setListError('Error al cargar usuarios admin');
@@ -88,7 +89,9 @@ export default function AdminUsers() {
       addToast('Usuario admin creado', 'success');
       load();
     } catch (e: unknown) {
-      const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Error al crear usuario admin';
+      const msg =
+        (e as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        'Error al crear usuario admin';
       setFormError(msg);
       addToast(msg, 'error');
     } finally {
@@ -103,7 +106,9 @@ export default function AdminUsers() {
       addToast('Usuario admin eliminado', 'success');
       load();
     } catch (e: unknown) {
-      const msg = (e as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Error al eliminar usuario admin';
+      const msg =
+        (e as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        'Error al eliminar usuario admin';
       addToast(msg, 'error');
     } finally {
       setDeleting(false);
@@ -120,7 +125,7 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Usuarios Admin" noSuffix />
 
       <div className="flex items-center gap-3 mb-2">
@@ -135,7 +140,11 @@ export default function AdminUsers() {
 
       <div className="mb-6">
         <button
-          onClick={() => { setForm(emptyForm); setFormError(''); setFormOpen(true); }}
+          onClick={() => {
+            setForm(emptyForm);
+            setFormError('');
+            setFormOpen(true);
+          }}
           className="btn-primary flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -169,9 +178,13 @@ export default function AdminUsers() {
                   key={u.id}
                   className="border-b border-coffee-200/50 dark:border-coffee-800/50 last:border-b-0 hover:bg-coffee-200/40 dark:hover:bg-coffee-800/40 transition-colors"
                 >
-                  <td className="px-5 py-4 text-coffee-900 dark:text-cream font-medium">{u.name}</td>
+                  <td className="px-5 py-4 text-coffee-900 dark:text-cream font-medium">
+                    {u.name}
+                  </td>
                   <td className="px-5 py-4 text-coffee-700 dark:text-coffee-300">{u.email}</td>
-                  <td className="px-5 py-4 text-coffee-600 dark:text-coffee-400">{formatDate(u.createdAt)}</td>
+                  <td className="px-5 py-4 text-coffee-600 dark:text-coffee-400">
+                    {formatDate(u.createdAt)}
+                  </td>
                   <td className="px-5 py-4 text-right">
                     {u.email !== currentEmail && (
                       <button

@@ -36,13 +36,14 @@ const isFixed = (type: string) => type === 'FIXED';
 export default function AdminPromoCodes() {
   const { addToast } = useModuleToast();
 
-  const { items: codes, loading, error: listError, reload } = useModuleList<PromoCode>(
-    promoCodesApi.list,
-    undefined,
-    undefined,
-    undefined,
-    { onError: (msg) => addToast(msg, 'error') },
-  );
+  const {
+    items: codes,
+    loading,
+    error: listError,
+    reload,
+  } = useModuleList<PromoCode>(promoCodesApi.list, undefined, undefined, undefined, {
+    onError: (msg) => addToast(msg, 'error'),
+  });
 
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -55,7 +56,8 @@ export default function AdminPromoCodes() {
     const discount = parseFloat(form.discount);
     if (isNaN(discount) || discount <= 0) return 'El descuento debe ser mayor a 0';
     if (!isFixed(form.type) && discount > 100) return 'El porcentaje no puede ser mayor a 100';
-    if (form.maxUses && parseInt(form.maxUses) <= 0) return 'Los usos máximos deben ser mayores a 0';
+    if (form.maxUses && parseInt(form.maxUses) <= 0)
+      return 'Los usos máximos deben ser mayores a 0';
     if (form.expiresAt && new Date(form.expiresAt) < new Date(new Date().toDateString())) {
       return 'La fecha de expiración debe ser futura';
     }
@@ -69,7 +71,8 @@ export default function AdminPromoCodes() {
       setError(validationError);
       return;
     }
-    setSaving(true); setError('');
+    setSaving(true);
+    setError('');
     try {
       await promoCodesApi.create({
         code: form.code,
@@ -114,27 +117,33 @@ export default function AdminPromoCodes() {
   };
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Códigos de Descuento" noSuffix />
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <Tag className="w-6 h-6 text-gold-500" />
           <div>
-            <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Códigos de Descuento</h1>
-            <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{codes.length} códigos</p>
+            <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">
+              Códigos de Descuento
+            </h1>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
+              {codes.length} códigos
+            </p>
           </div>
         </div>
         <button
-          onClick={() => exportToCsv(codes, 'codigos-descuento', [
-            { key: 'code', label: 'Código' },
-            { key: 'discount', label: 'Descuento' },
-            { key: 'type', label: 'Tipo' },
-            { key: 'maxUses', label: 'Usos máx' },
-            { key: 'usedCount', label: 'Usado' },
-            { key: 'isActive', label: 'Activo' },
-            { key: 'expiresAt', label: 'Expira' },
-            { key: 'createdAt', label: 'Creado' },
-          ])}
+          onClick={() =>
+            exportToCsv(codes, 'codigos-descuento', [
+              { key: 'code', label: 'Código' },
+              { key: 'discount', label: 'Descuento' },
+              { key: 'type', label: 'Tipo' },
+              { key: 'maxUses', label: 'Usos máx' },
+              { key: 'usedCount', label: 'Usado' },
+              { key: 'isActive', label: 'Activo' },
+              { key: 'expiresAt', label: 'Expira' },
+              { key: 'createdAt', label: 'Creado' },
+            ])
+          }
           className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
           title="Exportar CSV"
         >
@@ -142,7 +151,10 @@ export default function AdminPromoCodes() {
         </button>
       </div>
 
-      <form onSubmit={submit} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-8">
+      <form
+        onSubmit={submit}
+        className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-8"
+      >
         <h2 className="text-coffee-900 dark:text-cream font-medium mb-4">Nuevo código</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <input
@@ -184,7 +196,11 @@ export default function AdminPromoCodes() {
           />
         </div>
         {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
-        <button type="submit" disabled={saving} className="mt-4 btn-primary flex items-center gap-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="mt-4 btn-primary flex items-center gap-2"
+        >
           <Plus className="w-4 h-4" />
           {saving ? 'Guardando...' : 'Crear código'}
         </button>
@@ -208,28 +224,51 @@ export default function AdminPromoCodes() {
               <div
                 key={c.id}
                 className={`flex items-center justify-between px-5 py-4 border ${
-                  c.isActive && !expired ? 'bg-coffee-100 dark:bg-coffee-900 border-coffee-200 dark:border-coffee-800' : 'bg-coffee-50/50 dark:bg-coffee-900/50 border-coffee-200/50 dark:border-coffee-800/50 opacity-60'
+                  c.isActive && !expired
+                    ? 'bg-coffee-100 dark:bg-coffee-900 border-coffee-200 dark:border-coffee-800'
+                    : 'bg-coffee-50/50 dark:bg-coffee-900/50 border-coffee-200/50 dark:border-coffee-800/50 opacity-60'
                 }`}
               >
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                  <span className="font-mono text-gold-500 font-bold tracking-widest">{c.code}</span>
+                  <span className="font-mono text-gold-500 font-bold tracking-widest">
+                    {c.code}
+                  </span>
                   <span className="text-coffee-900 dark:text-cream text-sm">
                     {isFixed(c.type) ? `$${c.discount} MXN OFF` : `${c.discount}% OFF`}
                   </span>
                   <span className="text-coffee-600 dark:text-coffee-400 text-xs">
-                    {c.usedCount}{c.maxUses ? `/${c.maxUses}` : ''} usos
+                    {c.usedCount}
+                    {c.maxUses ? `/${c.maxUses}` : ''} usos
                   </span>
                   {c.expiresAt && (
-                    <span className={`text-xs ${expired ? 'text-red-600 dark:text-red-400' : days !== null && days <= 7 ? 'text-yellow-700 dark:text-yellow-400' : 'text-coffee-500 dark:text-coffee-400'}`}>
-                      {expired ? 'Expirado' : days === 0 ? 'Expira hoy' : `Expira en ${days} día${days === 1 ? '' : 's'}`}
+                    <span
+                      className={`text-xs ${expired ? 'text-red-600 dark:text-red-400' : days !== null && days <= 7 ? 'text-yellow-700 dark:text-yellow-400' : 'text-coffee-500 dark:text-coffee-400'}`}
+                    >
+                      {expired
+                        ? 'Expirado'
+                        : days === 0
+                          ? 'Expira hoy'
+                          : `Expira en ${days} día${days === 1 ? '' : 's'}`}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => toggle(c.id)} className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors" aria-label="Activar/desactivar">
-                    {c.isActive ? <ToggleRight className="w-5 h-5 text-gold-500" /> : <ToggleLeft className="w-5 h-5" />}
+                  <button
+                    onClick={() => toggle(c.id)}
+                    className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+                    aria-label="Activar/desactivar"
+                  >
+                    {c.isActive ? (
+                      <ToggleRight className="w-5 h-5 text-gold-500" />
+                    ) : (
+                      <ToggleLeft className="w-5 h-5" />
+                    )}
                   </button>
-                  <button onClick={() => setConfirmDelete(c.id)} className="text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors" aria-label="Eliminar">
+                  <button
+                    onClick={() => setConfirmDelete(c.id)}
+                    className="text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors"
+                    aria-label="Eliminar"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>

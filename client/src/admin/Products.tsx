@@ -279,7 +279,7 @@ export default function AdminProducts() {
   const isCafe = form.category === 'CAFÉ';
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Productos" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>

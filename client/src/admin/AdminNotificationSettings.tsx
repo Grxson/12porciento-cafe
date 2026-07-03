@@ -27,7 +27,8 @@ export default function AdminNotificationSettings() {
 
   useEffect(() => {
     setError('');
-    api.get('/push/preferences')
+    api
+      .get('/push/preferences')
       .then((res) => setPreferences(res.data.preferences))
       .catch(() => setError('Error al cargar preferencias'))
       .finally(() => setLoading(false));
@@ -69,13 +70,15 @@ export default function AdminNotificationSettings() {
   }
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Notificaciones" noSuffix />
       <div className="flex items-center gap-3 mb-6">
         <Bell className="w-5 h-5 text-gold-500" />
         <div>
-          <h1 className="text-2xl font-bold text-coffee-900 dark:text-cream">Notificaciones</h1>
-          <p className="text-sm text-coffee-500 dark:text-coffee-400 mt-0.5">Controla qué eventos generan notificaciones push en tus dispositivos suscritos.</p>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Notificaciones</h1>
+          <p className="text-sm text-coffee-500 dark:text-coffee-400 mt-0.5">
+            Controla qué eventos generan notificaciones push en tus dispositivos suscritos.
+          </p>
         </div>
       </div>
 
@@ -97,10 +100,14 @@ export default function AdminNotificationSettings() {
               onChange={() => handleToggle(value)}
               className="w-4 h-4 accent-gold-500"
             />
-            <span className={`flex-1 text-sm ${preferences[value] === true ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-500'}`}>
+            <span
+              className={`flex-1 text-sm ${preferences[value] === true ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-500'}`}
+            >
               {label}
             </span>
-            {preferences[value] === true && <span className="w-3.5 h-3.5 rounded-full bg-green-500 dark:bg-green-400" />}
+            {preferences[value] === true && (
+              <span className="w-3.5 h-3.5 rounded-full bg-green-500 dark:bg-green-400" />
+            )}
           </label>
         ))}
       </div>
@@ -111,18 +118,18 @@ export default function AdminNotificationSettings() {
           disabled={!dirty || saving}
           className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {saving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Bell className="w-4 h-4" />
-          )}
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </div>
 
       <div className="border-t border-coffee-200 dark:border-coffee-800 pt-6">
-        <h3 className="text-sm font-medium text-coffee-900 dark:text-cream mb-3">Probar notificaciones</h3>
-        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-4">Envía una notificación de prueba a todos los dispositivos suscritos.</p>
+        <h3 className="text-sm font-medium text-coffee-900 dark:text-cream mb-3">
+          Probar notificaciones
+        </h3>
+        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-4">
+          Envía una notificación de prueba a todos los dispositivos suscritos.
+        </p>
         <button
           onClick={handleTest}
           disabled={testSending}
@@ -137,7 +144,9 @@ export default function AdminNotificationSettings() {
         </button>
 
         {testResult && (
-          <div className={`mt-3 text-sm flex items-center gap-2 ${testResult.failed > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-700 dark:text-green-400'}`}>
+          <div
+            className={`mt-3 text-sm flex items-center gap-2 ${testResult.failed > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-700 dark:text-green-400'}`}
+          >
             <span>Enviada: {testResult.sent}</span>
             {testResult.failed > 0 && <span>· Falló: {testResult.failed}</span>}
           </div>

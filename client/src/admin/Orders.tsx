@@ -11,13 +11,41 @@ import { PageMeta } from '../hooks/usePageMeta';
 import type { Order, OrderStatus } from '../types';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
-  PENDING:    { label: 'Pendiente',   color: 'text-yellow-700 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/20' },
-  PROCESSING: { label: 'Procesando',  color: 'text-blue-700 dark:text-blue-400',   bg: 'bg-blue-100 dark:bg-blue-900/20' },
-  CONFIRMED:  { label: 'Confirmado',  color: 'text-blue-600 dark:text-blue-400',   bg: 'bg-blue-100 dark:bg-blue-900/20' },
-  PREPARING:  { label: 'Preparando',  color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/20' },
-  SHIPPED:    { label: 'Enviado',     color: 'text-purple-700 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/20' },
-  DELIVERED:  { label: 'Entregado',   color: 'text-green-600 dark:text-green-400',  bg: 'bg-green-100 dark:bg-green-900/20' },
-  CANCELLED:  { label: 'Cancelado',   color: 'text-red-600 dark:text-red-400',    bg: 'bg-red-100 dark:bg-red-900/20' },
+  PENDING: {
+    label: 'Pendiente',
+    color: 'text-yellow-700 dark:text-yellow-400',
+    bg: 'bg-yellow-100 dark:bg-yellow-900/20',
+  },
+  PROCESSING: {
+    label: 'Procesando',
+    color: 'text-blue-700 dark:text-blue-400',
+    bg: 'bg-blue-100 dark:bg-blue-900/20',
+  },
+  CONFIRMED: {
+    label: 'Confirmado',
+    color: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-100 dark:bg-blue-900/20',
+  },
+  PREPARING: {
+    label: 'Preparando',
+    color: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-100 dark:bg-purple-900/20',
+  },
+  SHIPPED: {
+    label: 'Enviado',
+    color: 'text-purple-700 dark:text-purple-400',
+    bg: 'bg-purple-100 dark:bg-purple-900/20',
+  },
+  DELIVERED: {
+    label: 'Entregado',
+    color: 'text-green-600 dark:text-green-400',
+    bg: 'bg-green-100 dark:bg-green-900/20',
+  },
+  CANCELLED: {
+    label: 'Cancelado',
+    color: 'text-red-600 dark:text-red-400',
+    bg: 'bg-red-100 dark:bg-red-900/20',
+  },
 };
 
 const allStatuses = Object.keys(statusConfig) as OrderStatus[];
@@ -56,30 +84,45 @@ export default function AdminOrders() {
     if (dt) params.dateTo = dt;
     params.page = p;
     params.pageSize = '50';
-    ordersApi.list(params)
+    ordersApi
+      .list(params)
       .then((r) => {
         const res = r.data as any;
         setOrders(res.data ?? res);
         setTotal(res.total ?? res.length ?? 0);
         setTotalPages(res.totalPages ?? 1);
       })
-      .catch(() => { setLoadError('Error al cargar pedidos. Intenta de nuevo.'); })
+      .catch(() => {
+        setLoadError('Error al cargar pedidos. Intenta de nuevo.');
+      })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, [status, page]);
+  useEffect(() => {
+    load();
+  }, [status, page]);
 
-  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); load({ page: '1' }); };
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    load({ page: '1' });
+  };
 
   const clearFilters = () => {
-    setStatus(''); setSearch(''); setDateFrom(''); setDateTo(''); setPage(1);
+    setStatus('');
+    setSearch('');
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
     load({ status: '', search: '', dateFrom: '', dateTo: '', page: '1' });
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
     const prev = orders;
     // Optimistic: reflect the new status immediately, revert on failure
-    setOrders((list) => list.map((o) => (o.id === id ? { ...o, status: newStatus as OrderStatus } : o)));
+    setOrders((list) =>
+      list.map((o) => (o.id === id ? { ...o, status: newStatus as OrderStatus } : o)),
+    );
     try {
       await ordersApi.updateStatus(id, newStatus);
     } catch {
@@ -120,7 +163,11 @@ export default function AdminOrders() {
         fail++;
       }
     }
-    if (success > 0) addToast(`${success} pedido${success !== 1 ? 's' : ''} actualizado${success !== 1 ? 's' : ''} a ${statusConfig[confirmBulk as OrderStatus]?.label ?? confirmBulk}`, 'success');
+    if (success > 0)
+      addToast(
+        `${success} pedido${success !== 1 ? 's' : ''} actualizado${success !== 1 ? 's' : ''} a ${statusConfig[confirmBulk as OrderStatus]?.label ?? confirmBulk}`,
+        'success',
+      );
     if (fail > 0) addToast(`${fail} pedido${fail !== 1 ? 's' : ''} fallaron`, 'error');
     setSelected(new Set());
     setBulkBusy(false);
@@ -131,7 +178,7 @@ export default function AdminOrders() {
   const hasFilters = status || search || dateFrom || dateTo;
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Pedidos" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -139,31 +186,33 @@ export default function AdminOrders() {
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} pedidos</p>
         </div>
         <button
-          onClick={() => exportToCsv(
-            orders.map((o) => ({
-              id: o.id,
-              cliente: o.customerName,
-              email: o.email,
-              telefono: o.phone ?? '',
-              ciudad: o.city,
-              estado: o.state,
-              total: o.total,
-              status: statusConfig[o.status as OrderStatus]?.label ?? o.status,
-              fecha: new Date(o.createdAt).toLocaleDateString('es-MX'),
-            })),
-            'pedidos',
-            [
-              { key: 'id', label: 'ID' },
-              { key: 'cliente', label: 'Cliente' },
-              { key: 'email', label: 'Email' },
-              { key: 'telefono', label: 'Teléfono' },
-              { key: 'ciudad', label: 'Ciudad' },
-              { key: 'estado', label: 'Estado' },
-              { key: 'total', label: 'Total' },
-              { key: 'status', label: 'Estatus' },
-              { key: 'fecha', label: 'Fecha' },
-            ],
-          )}
+          onClick={() =>
+            exportToCsv(
+              orders.map((o) => ({
+                id: o.id,
+                cliente: o.customerName,
+                email: o.email,
+                telefono: o.phone ?? '',
+                ciudad: o.city,
+                estado: o.state,
+                total: o.total,
+                status: statusConfig[o.status as OrderStatus]?.label ?? o.status,
+                fecha: new Date(o.createdAt).toLocaleDateString('es-MX'),
+              })),
+              'pedidos',
+              [
+                { key: 'id', label: 'ID' },
+                { key: 'cliente', label: 'Cliente' },
+                { key: 'email', label: 'Email' },
+                { key: 'telefono', label: 'Teléfono' },
+                { key: 'ciudad', label: 'Ciudad' },
+                { key: 'estado', label: 'Estado' },
+                { key: 'total', label: 'Total' },
+                { key: 'status', label: 'Estatus' },
+                { key: 'fecha', label: 'Fecha' },
+              ],
+            )
+          }
           disabled={orders.length === 0}
           className="px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-50 flex items-center gap-2"
         >
@@ -171,7 +220,10 @@ export default function AdminOrders() {
         </button>
       </div>
 
-      <form onSubmit={handleSearch} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <form
+        onSubmit={handleSearch}
+        className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3"
+      >
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
           <input
@@ -188,20 +240,39 @@ export default function AdminOrders() {
           className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
         >
           <option value="">Todos los estados</option>
-          {allStatuses.map((s) => <option key={s} value={s}>{statusConfig[s].label}</option>)}
+          {allStatuses.map((s) => (
+            <option key={s} value={s}>
+              {statusConfig[s].label}
+            </option>
+          ))}
         </select>
         <div className="flex gap-2">
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-            className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none" />
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-            className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none" />
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
+          />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
+          />
         </div>
         <div className="flex gap-2">
-          <button type="submit" className="flex-1 bg-gold-500 text-coffee-950 text-sm font-medium px-4 py-2 hover:bg-gold-400 transition-colors">
+          <button
+            type="submit"
+            className="flex-1 bg-gold-500 text-coffee-950 text-sm font-medium px-4 py-2 hover:bg-gold-400 transition-colors"
+          >
             Filtrar
           </button>
           {hasFilters && (
-            <button type="button" onClick={clearFilters} className="px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            >
               <X className="w-4 h-4" />
             </button>
           )}
@@ -210,19 +281,33 @@ export default function AdminOrders() {
 
       {selected.size > 0 && (
         <div className="flex items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
-          <span className="text-sm text-coffee-700 dark:text-coffee-300">{selected.size} seleccionado{selected.size !== 1 ? 's' : ''}</span>
-          <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-2 py-1 text-xs">
+          <span className="text-sm text-coffee-700 dark:text-coffee-300">
+            {selected.size} seleccionado{selected.size !== 1 ? 's' : ''}
+          </span>
+          <select
+            value={bulkStatus}
+            onChange={(e) => setBulkStatus(e.target.value)}
+            className="bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-2 py-1 text-xs"
+          >
             <option value="">Cambiar estado…</option>
             <option value="PROCESSING">Procesando</option>
             <option value="SHIPPED">Enviado</option>
             <option value="DELIVERED">Entregado</option>
             <option value="CANCELLED">Cancelado</option>
           </select>
-          <button onClick={() => handleBulkStatus(bulkStatus)} disabled={!bulkStatus || bulkBusy}
-            className="text-xs btn-primary disabled:opacity-50">
+          <button
+            onClick={() => handleBulkStatus(bulkStatus)}
+            disabled={!bulkStatus || bulkBusy}
+            className="text-xs btn-primary disabled:opacity-50"
+          >
             {bulkBusy ? 'Actualizando…' : 'Aplicar'}
           </button>
-          <button onClick={() => setSelected(new Set())} className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-cream ml-auto">Limpiar</button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-cream ml-auto"
+          >
+            Limpiar
+          </button>
         </div>
       )}
 
@@ -238,35 +323,65 @@ export default function AdminOrders() {
       ) : (
         <div className="space-y-2">
           <div className="flex items-center px-5 py-2 bg-coffee-50/50 dark:bg-coffee-800/20 border border-coffee-200 dark:border-coffee-800 mb-2">
-            <input type="checkbox" onChange={toggleSelectAll} checked={selected.size === orders.length && orders.length > 0} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
-            <span className="text-xs text-coffee-500 dark:text-coffee-400 ml-2">Seleccionar todo</span>
+            <input
+              type="checkbox"
+              onChange={toggleSelectAll}
+              checked={selected.size === orders.length && orders.length > 0}
+              className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500"
+            />
+            <span className="text-xs text-coffee-500 dark:text-coffee-400 ml-2">
+              Seleccionar todo
+            </span>
           </div>
           {orders.map((order) => {
             const cfg = statusConfig[order.status as OrderStatus] ?? statusConfig.PENDING;
             const isOpen = expanded === order.id;
             return (
-              <div key={order.id} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800">
+              <div
+                key={order.id}
+                className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800"
+              >
                 <button
                   onClick={() => setExpanded(isOpen ? null : order.id)}
                   className="w-full flex items-center justify-between px-5 py-4 hover:bg-coffee-200/30 dark:hover:bg-coffee-800/30 transition-colors"
                 >
                   <div className="flex items-center gap-6 text-left">
-                    <input type="checkbox" checked={selected.has(order.id)} onChange={() => toggleSelect(order.id)} onClick={(e) => e.stopPropagation()} className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500" />
+                    <input
+                      type="checkbox"
+                      checked={selected.has(order.id)}
+                      onChange={() => toggleSelect(order.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-4 h-4 rounded border-coffee-400 dark:border-coffee-500 text-gold-500 focus:ring-gold-500"
+                    />
                     <div>
-                      <p className="text-coffee-900 dark:text-cream font-medium">{order.customerName}</p>
-                      <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">{order.email}</p>
+                      <p className="text-coffee-900 dark:text-cream font-medium">
+                        {order.customerName}
+                      </p>
+                      <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
+                        {order.email}
+                      </p>
                     </div>
                     <div className="hidden sm:block">
-                      <p className="text-coffee-700 dark:text-coffee-300 text-sm">{order.city}, {order.state}</p>
-                      <p className="text-coffee-500 dark:text-coffee-400 text-xs">{new Date(order.createdAt).toLocaleDateString('es-MX')}</p>
+                      <p className="text-coffee-700 dark:text-coffee-300 text-sm">
+                        {order.city}, {order.state}
+                      </p>
+                      <p className="text-coffee-500 dark:text-coffee-400 text-xs">
+                        {new Date(order.createdAt).toLocaleDateString('es-MX')}
+                      </p>
                     </div>
-                    <span className={`hidden md:inline text-xs px-2.5 py-1 font-medium ${cfg.color} ${cfg.bg}`}>
+                    <span
+                      className={`hidden md:inline text-xs px-2.5 py-1 font-medium ${cfg.color} ${cfg.bg}`}
+                    >
                       {cfg.label}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-gold-500 font-semibold">${order.total.toLocaleString('es-MX')}</span>
-                    <ChevronDown className={`w-4 h-4 text-coffee-600 dark:text-coffee-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <span className="text-gold-500 font-semibold">
+                      ${order.total.toLocaleString('es-MX')}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-coffee-600 dark:text-coffee-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    />
                   </div>
                 </button>
 
@@ -274,31 +389,53 @@ export default function AdminOrders() {
                   <div className="border-t border-coffee-200 dark:border-coffee-800 p-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <p className="text-xs text-gold-500 uppercase tracking-widest mb-3">Productos</p>
+                        <p className="text-xs text-gold-500 uppercase tracking-widest mb-3">
+                          Productos
+                        </p>
                         <div className="space-y-2">
                           {order.items.map((item) => (
                             <div key={item.id} className="flex justify-between text-sm">
-                              <span className="text-coffee-800 dark:text-coffee-200">{item.product.name} × {item.quantity}</span>
-                              <span className="text-coffee-600 dark:text-coffee-400">${(item.price * item.quantity).toLocaleString('es-MX')}</span>
+                              <span className="text-coffee-800 dark:text-coffee-200">
+                                {item.product.name} × {item.quantity}
+                              </span>
+                              <span className="text-coffee-600 dark:text-coffee-400">
+                                ${(item.price * item.quantity).toLocaleString('es-MX')}
+                              </span>
                             </div>
                           ))}
                         </div>
                         {order.notes && (
                           <div className="mt-4">
-                            <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">Notas</p>
-                            <p className="text-coffee-700 dark:text-coffee-300 text-sm">{order.notes}</p>
+                            <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">
+                              Notas
+                            </p>
+                            <p className="text-coffee-700 dark:text-coffee-300 text-sm">
+                              {order.notes}
+                            </p>
                           </div>
                         )}
                       </div>
 
                       <div>
-                        <p className="text-xs text-gold-500 uppercase tracking-widest mb-3">Envío</p>
-                        <p className="text-coffee-800 dark:text-coffee-200 text-sm">{order.address}</p>
-                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">{order.city}, {order.state} {order.zipCode}</p>
-                        {order.phone && <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{order.phone}</p>}
+                        <p className="text-xs text-gold-500 uppercase tracking-widest mb-3">
+                          Envío
+                        </p>
+                        <p className="text-coffee-800 dark:text-coffee-200 text-sm">
+                          {order.address}
+                        </p>
+                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">
+                          {order.city}, {order.state} {order.zipCode}
+                        </p>
+                        {order.phone && (
+                          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
+                            {order.phone}
+                          </p>
+                        )}
 
                         <div className="mt-5">
-                          <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Cambiar estado</p>
+                          <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">
+                            Cambiar estado
+                          </p>
                           <div className="flex flex-wrap gap-2">
                             {allStatuses.map((s) => (
                               <button

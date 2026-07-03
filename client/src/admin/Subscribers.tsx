@@ -410,7 +410,7 @@ export default function AdminSubscribers() {
   };
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Suscriptores" noSuffix />
       <div className="flex items-center justify-between mb-8">
         <div>

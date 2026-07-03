@@ -109,7 +109,7 @@ export default function AdminUbicaciones() {
   const tiposUbicacion = ['FINCA', 'REGION', 'PAIS', 'BODEGA', 'TOSTADURIA', 'ESTACION'];
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Ubicaciones" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>

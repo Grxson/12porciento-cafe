@@ -197,7 +197,7 @@ export default function AdminLotes() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-coffee-900 dark:text-cream">Gestión de Lotes</h1>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Gestión de Lotes</h1>
           <p className="text-coffee-600 dark:text-cream/60 text-sm mt-1">
             {total} lote{total !== 1 ? 's' : ''} en vista actual
           </p>

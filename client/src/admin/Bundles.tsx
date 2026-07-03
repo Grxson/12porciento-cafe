@@ -245,7 +245,7 @@ export default function AdminBundles() {
 
   // ── render ─────────────────────────────────────────────────────────────
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Bundles" noSuffix />
       {/* Header */}
       <div className="flex items-center justify-between mb-8">

@@ -289,7 +289,7 @@ export default function Inventory() {
     `$${n.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
   return (
-    <div className="p-6 sm:p-8">
+    <div>
       <PageMeta title="Inventario" noSuffix />
       <div className="flex items-start justify-between mb-6">
         <div>

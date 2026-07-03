@@ -62,18 +62,24 @@ const rarityBadge = (rarity: string) => {
 };
 
 const slugFrom = (name: string) =>
-  name.toLowerCase().replace(/ñ/g, 'n').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9_]/g, '');
+  name
+    .toLowerCase()
+    .replace(/ñ/g, 'n')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9_]/g, '');
 
 export default function Achievements() {
   const { addToast } = useModuleToast();
 
-  const { items: achievements, loading, error: listError, reload } = useModuleList<Achievement>(
-    fetchAchievementList,
-    undefined,
-    undefined,
-    undefined,
-    { onError: (msg) => addToast(msg, 'error') },
-  );
+  const {
+    items: achievements,
+    loading,
+    error: listError,
+    reload,
+  } = useModuleList<Achievement>(fetchAchievementList, undefined, undefined, undefined, {
+    onError: (msg) => addToast(msg, 'error'),
+  });
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Achievement | null>(null);
@@ -172,18 +178,20 @@ export default function Achievements() {
     }
   };
 
-  const filtered = achievements.filter((a) =>
-    !search || a.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = achievements.filter(
+    (a) => !search || a.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Logros" noSuffix />
       <div className="flex items-center gap-3 mb-8">
         <Award className="w-6 h-6 text-gold-500" />
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Logros</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{achievements.length} logros</p>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
+            {achievements.length} logros
+          </p>
         </div>
       </div>
 
@@ -193,13 +201,15 @@ export default function Achievements() {
           Crear Logro
         </button>
         <button
-          onClick={() => exportToCsv(achievements, 'logros', [
-            { key: 'slug', label: 'Slug' },
-            { key: 'name', label: 'Nombre' },
-            { key: 'description', label: 'Descripción' },
-            { key: 'rarity', label: 'Rareza' },
-            { key: 'xpReward', label: 'XP' },
-          ])}
+          onClick={() =>
+            exportToCsv(achievements, 'logros', [
+              { key: 'slug', label: 'Slug' },
+              { key: 'name', label: 'Nombre' },
+              { key: 'description', label: 'Descripción' },
+              { key: 'rarity', label: 'Rareza' },
+              { key: 'xpReward', label: 'XP' },
+            ])
+          }
           className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
           title="Exportar CSV"
         >
@@ -241,22 +251,39 @@ export default function Achievements() {
             </thead>
             <tbody>
               {filtered.map((a) => (
-                <tr key={a.id} className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30">
+                <tr
+                  key={a.id}
+                  className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30"
+                >
                   <td className="px-4 py-3 text-xl">{a.icon || '🏆'}</td>
-                  <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">{a.name}</td>
-                  <td className="px-4 py-3 text-coffee-600 dark:text-coffee-400 font-mono text-xs">{a.slug}</td>
+                  <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">
+                    {a.name}
+                  </td>
+                  <td className="px-4 py-3 text-coffee-600 dark:text-coffee-400 font-mono text-xs">
+                    {a.slug}
+                  </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-0.5 text-xs font-medium ${rarityBadge(a.rarity)}`}>
+                    <span
+                      className={`inline-block px-2 py-0.5 text-xs font-medium ${rarityBadge(a.rarity)}`}
+                    >
                       {a.rarity}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-coffee-900 dark:text-cream">{a.xpReward}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => openEdit(a)} className="text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors" aria-label="Editar">
+                      <button
+                        onClick={() => openEdit(a)}
+                        className="text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors"
+                        aria-label="Editar"
+                      >
                         <Edit3 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => setConfirmDelete(a.id)} className="text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors" aria-label="Eliminar">
+                      <button
+                        onClick={() => setConfirmDelete(a.id)}
+                        className="text-coffee-600 dark:text-coffee-400 hover:text-red-400 transition-colors"
+                        aria-label="Eliminar"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -293,12 +320,7 @@ export default function Achievements() {
         }
       >
         <form id="achievement-form" onSubmit={submit}>
-          <FormField
-            label="Nombre"
-            value={form.name}
-            onChange={handleNameChange}
-            required
-          />
+          <FormField label="Nombre" value={form.name} onChange={handleNameChange} required />
           <FormField
             label="Slug"
             value={form.slug}

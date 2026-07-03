@@ -21,13 +21,18 @@ interface StepModalState {
 // ─── Inner component (must live inside RecipesProvider) ──────────────────────
 function RecipesContent() {
   const { addToast } = useModuleToast();
-  const { recipes, loading, createRecipe, updateRecipe, deleteRecipe, refresh } = useRecipesContext();
+  const { recipes, loading, createRecipe, updateRecipe, deleteRecipe, refresh } =
+    useRecipesContext();
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'premium'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'premium'>(
+    'all',
+  );
 
   // Recipe editor modal state
-  const [recipeModal, setRecipeModal] = useState<{ open: boolean; recipe?: Recipe }>({ open: false });
+  const [recipeModal, setRecipeModal] = useState<{ open: boolean; recipe?: Recipe }>({
+    open: false,
+  });
   const [savingRecipe, setSavingRecipe] = useState(false);
 
   // Step editor modal state
@@ -36,7 +41,9 @@ function RecipesContent() {
 
   // Delete confirm state
   const [confirmRecipe, setConfirmRecipe] = useState<Recipe | null>(null);
-  const [confirmStep, setConfirmStep] = useState<{ recipeId: string; step: RecipeStep } | null>(null);
+  const [confirmStep, setConfirmStep] = useState<{ recipeId: string; step: RecipeStep } | null>(
+    null,
+  );
   const [deletingRecipe, setDeletingRecipe] = useState(false);
   const [deletingStep, setDeletingStep] = useState(false);
 
@@ -53,7 +60,8 @@ function RecipesContent() {
     try {
       const payload = {
         ...data,
-        prepTime: data.prepTime !== undefined && data.prepTime !== '' ? parseInt(data.prepTime) : undefined,
+        prepTime:
+          data.prepTime !== undefined && data.prepTime !== '' ? parseInt(data.prepTime) : undefined,
         productId: data.productId || undefined,
       };
       if (recipeModal.recipe) {
@@ -138,7 +146,10 @@ function RecipesContent() {
         await recipesApi.updateStep(stepModal.recipeId, stepModal.stepId, data);
         addToast('Paso actualizado', 'success');
       } else {
-        await recipesApi.addStep(stepModal.recipeId, data as Partial<RecipeStep> & { title: string; description: string });
+        await recipesApi.addStep(
+          stepModal.recipeId,
+          data as Partial<RecipeStep> & { title: string; description: string },
+        );
         addToast('Paso agregado', 'success');
       }
       setStepModal(null);
@@ -162,15 +173,16 @@ function RecipesContent() {
   // ── Search + filter ───────────────────────────────────────────────────────────
   const filtered = recipes.filter((recipe) => {
     const matchesSearch = !search || recipe.title.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all'
-      || (statusFilter === 'published' && recipe.isPublished && !recipe.isPremium)
-      || (statusFilter === 'draft' && !recipe.isPublished)
-      || (statusFilter === 'premium' && recipe.isPremium);
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'published' && recipe.isPublished && !recipe.isPremium) ||
+      (statusFilter === 'draft' && !recipe.isPublished) ||
+      (statusFilter === 'premium' && recipe.isPremium);
     return matchesSearch && matchesStatus;
   });
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="space-y-6">
       <PageMeta title="Recetas" noSuffix />
       <div className="flex items-center justify-between">
         <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream">Recetas</h1>
@@ -197,10 +209,18 @@ function RecipesContent() {
             key={f}
             onClick={() => setStatusFilter(f)}
             className={`text-xs px-3 py-1.5 border transition-all ${
-              statusFilter === f ? 'border-gold-500 text-gold-500 bg-gold-500/10' : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
+              statusFilter === f
+                ? 'border-gold-500 text-gold-500 bg-gold-500/10'
+                : 'border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
             }`}
           >
-            {f === 'all' ? 'Todas' : f === 'published' ? 'Publicadas' : f === 'draft' ? 'Borradores' : 'Premium'}
+            {f === 'all'
+              ? 'Todas'
+              : f === 'published'
+                ? 'Publicadas'
+                : f === 'draft'
+                  ? 'Borradores'
+                  : 'Premium'}
           </button>
         ))}
       </div>

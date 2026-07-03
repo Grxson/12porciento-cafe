@@ -64,7 +64,7 @@ export default function AdminGiftCards() {
   };
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Gift Cards" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>

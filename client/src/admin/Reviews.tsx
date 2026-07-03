@@ -29,22 +29,28 @@ export default function AdminReviews() {
   const [deleting, setDeleting] = useState(false);
   const [confirmBulkApprove, setConfirmBulkApprove] = useState(false);
 
-  const load = useCallback((p: number) => {
-    setLoading(true);
-    setLoadError('');
-    const params: Record<string, string> = { page: String(p), pageSize: '50' };
-    if (filter !== 'all') params.filter = filter;
-    reviewsApi.adminList(params)
-      .then((r) => {
-        setReviews(r.data.data);
-        setTotalPages(r.data.totalPages ?? 1);
-        setTotal(r.data.total ?? 0);
-      })
-      .catch(() => setLoadError('Error al cargar reseñas. Intenta de nuevo.'))
-      .finally(() => setLoading(false));
-  }, [filter]);
+  const load = useCallback(
+    (p: number) => {
+      setLoading(true);
+      setLoadError('');
+      const params: Record<string, string> = { page: String(p), pageSize: '50' };
+      if (filter !== 'all') params.filter = filter;
+      reviewsApi
+        .adminList(params)
+        .then((r) => {
+          setReviews(r.data.data);
+          setTotalPages(r.data.totalPages ?? 1);
+          setTotal(r.data.total ?? 0);
+        })
+        .catch(() => setLoadError('Error al cargar reseñas. Intenta de nuevo.'))
+        .finally(() => setLoading(false));
+    },
+    [filter],
+  );
 
-  useEffect(() => { load(page); }, [load, page]);
+  useEffect(() => {
+    load(page);
+  }, [load, page]);
 
   const approve = async (id: string) => {
     try {
@@ -60,7 +66,11 @@ export default function AdminReviews() {
     setDeleting(true);
     try {
       await reviewsApi.delete(id);
-      setSelected((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      setSelected((prev) => {
+        const n = new Set(prev);
+        n.delete(id);
+        return n;
+      });
       addToast('Reseña eliminada', 'success');
       load(page);
     } catch {
@@ -87,7 +97,8 @@ export default function AdminReviews() {
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const n = new Set(prev);
-      if (n.has(id)) n.delete(id); else n.add(id);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
       return n;
     });
   };
@@ -101,7 +112,12 @@ export default function AdminReviews() {
     setBulkBusy(true);
     let ok = 0;
     for (const id of Array.from(selected)) {
-      try { await reviewsApi.approve(id); ok++; } catch { /* keep going */ }
+      try {
+        await reviewsApi.approve(id);
+        ok++;
+      } catch {
+        /* keep going */
+      }
     }
     setBulkBusy(false);
     setSelected(new Set());
@@ -113,22 +129,31 @@ export default function AdminReviews() {
   const pendingSelected = reviews.filter((r) => !r.isApproved && selected.has(r.id)).length;
 
   return (
-    <div className="p-8">
+    <div>
       <PageMeta title="Reseñas" noSuffix />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Reseñas</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
-            {filter === 'pending' ? `${total} pendientes` : filter === 'approved' ? `${total} aprobadas` : `${total} reseñas`}
+            {filter === 'pending'
+              ? `${total} pendientes`
+              : filter === 'approved'
+                ? `${total} aprobadas`
+                : `${total} reseñas`}
           </p>
         </div>
         <div className="flex gap-2">
           {(['all', 'pending', 'approved'] as const).map((f) => (
             <button
               key={f}
-              onClick={() => { setFilter(f); setPage(1); }}
+              onClick={() => {
+                setFilter(f);
+                setPage(1);
+              }}
               className={`text-xs px-3 py-1.5 tracking-wider uppercase transition-all ${
-                filter === f ? 'bg-gold-500 text-coffee-950' : 'border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
+                filter === f
+                  ? 'bg-gold-500 text-coffee-950'
+                  : 'border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
               }`}
             >
               {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : 'Aprobadas'}
@@ -136,14 +161,16 @@ export default function AdminReviews() {
           ))}
         </div>
         <button
-          onClick={() => exportToCsv(reviews, 'resenas', [
-            { key: 'name', label: 'Nombre' },
-            { key: 'email', label: 'Email' },
-            { key: 'rating', label: 'Rating' },
-            { key: 'comment', label: 'Comentario' },
-            { key: 'isApproved', label: 'Aprobada' },
-            { key: 'createdAt', label: 'Creado' },
-          ])}
+          onClick={() =>
+            exportToCsv(reviews, 'resenas', [
+              { key: 'name', label: 'Nombre' },
+              { key: 'email', label: 'Email' },
+              { key: 'rating', label: 'Rating' },
+              { key: 'comment', label: 'Comentario' },
+              { key: 'isApproved', label: 'Aprobada' },
+              { key: 'createdAt', label: 'Creado' },
+            ])
+          }
           className="flex items-center gap-1.5 px-3 py-1.5 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
           title="Exportar CSV"
         >
@@ -183,7 +210,10 @@ export default function AdminReviews() {
         <>
           <div className="space-y-3">
             {reviews.map((r) => (
-              <div key={r.id} className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">
+              <div
+                key={r.id}
+                className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5"
+              >
                 <div className="flex items-start justify-between gap-4">
                   {!r.isApproved && (
                     <input
@@ -198,22 +228,39 @@ export default function AdminReviews() {
                     <div className="flex flex-wrap items-center gap-3 mb-2">
                       <div className="flex gap-0.5">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? 'fill-gold-500 text-gold-500' : 'text-coffee-700 dark:text-coffee-500'}`} />
+                          <Star
+                            key={i}
+                            className={`w-3.5 h-3.5 ${i < r.rating ? 'fill-gold-500 text-gold-500' : 'text-coffee-700 dark:text-coffee-500'}`}
+                          />
                         ))}
                       </div>
-                      <span className="text-coffee-900 dark:text-cream text-sm font-medium">{r.name}</span>
+                      <span className="text-coffee-900 dark:text-cream text-sm font-medium">
+                        {r.name}
+                      </span>
                       <span className="text-coffee-500 text-xs">{r.email}</span>
-                      {r.product && <span className="text-coffee-600 dark:text-coffee-400 text-xs">· {r.product.name}</span>}
+                      {r.product && (
+                        <span className="text-coffee-600 dark:text-coffee-400 text-xs">
+                          · {r.product.name}
+                        </span>
+                      )}
                       {!r.isApproved && (
-                        <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">Pendiente</span>
+                        <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                          Pendiente
+                        </span>
                       )}
                     </div>
-                    <p className="text-coffee-800 dark:text-coffee-200 text-sm leading-relaxed">{r.comment}</p>
+                    <p className="text-coffee-800 dark:text-coffee-200 text-sm leading-relaxed">
+                      {r.comment}
+                    </p>
 
                     {r.adminResponse && (
                       <div className="mt-3 pl-4 border-l-2 border-gold-500/30">
-                        <p className="text-coffee-500 text-xs uppercase tracking-wider mb-1">Respuesta del equipo</p>
-                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">{r.adminResponse}</p>
+                        <p className="text-coffee-500 text-xs uppercase tracking-wider mb-1">
+                          Respuesta del equipo
+                        </p>
+                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">
+                          {r.adminResponse}
+                        </p>
                       </div>
                     )}
 
@@ -234,7 +281,10 @@ export default function AdminReviews() {
                             Enviar
                           </button>
                           <button
-                            onClick={() => { setResponding(null); setResponseText(''); }}
+                            onClick={() => {
+                              setResponding(null);
+                              setResponseText('');
+                            }}
                             className="px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
                           >
                             <X className="w-4 h-4" />
@@ -246,7 +296,10 @@ export default function AdminReviews() {
 
                   <div className="flex items-center gap-2 shrink-0">
                     <button
-                      onClick={() => { setResponding(r.id); setResponseText(''); }}
+                      onClick={() => {
+                        setResponding(r.id);
+                        setResponseText('');
+                      }}
                       className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-gold-500 transition-colors"
                       title="Responder"
                     >

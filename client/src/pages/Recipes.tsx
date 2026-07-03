@@ -2,68 +2,34 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  GlassWater, Lock, Star,
-  Clock, ChevronDown, ChevronUp, Download, Play,
+  GlassWater,
+  Lock,
+  Star,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Play,
 } from 'lucide-react';
-import jsPDF from 'jspdf';
 import { recipesApi } from '../api';
 import { useUser } from '../context/UserContext';
 import type { Recipe } from '../types';
 import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
+import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
 import AttemptsList from '../components/recipes/AttemptsList';
+import { downloadRecipePDF } from '../utils/recipePdf';
 import { PageMeta } from '../hooks/usePageMeta';
-
-function getVideoEmbed(url: string): { type: 'youtube' | 'vimeo' | 'native' | 'link'; src: string } {
-  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/);
-  if (yt) return { type: 'youtube', src: `https://www.youtube.com/embed/${yt[1]}` };
-  const vm = url.match(/vimeo\.com\/(\d+)/);
-  if (vm) return { type: 'vimeo', src: `https://player.vimeo.com/video/${vm[1]}` };
-  if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'native', src: url };
-  return { type: 'link', src: url };
-}
-
-function StepVideoPlayer({ url }: { url: string }) {
-  const embed = getVideoEmbed(url);
-  if (embed.type === 'youtube' || embed.type === 'vimeo') {
-    return (
-      <div className="mt-3 aspect-video w-full rounded-lg overflow-hidden bg-coffee-100 dark:bg-coffee-900">
-        <iframe
-          src={embed.src}
-          className="w-full h-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          title="Video del paso"
-        />
-      </div>
-    );
-  }
-  if (embed.type === 'native') {
-    return (
-      <video
-        src={embed.src}
-        controls
-        className="mt-3 w-full rounded-lg bg-coffee-100 dark:bg-coffee-900"
-      />
-    );
-  }
-  return (
-    <a href={url} target="_blank" rel="noopener noreferrer"
-      className="mt-3 flex items-center gap-2 text-xs text-gold-600 dark:text-gold-400 hover:text-gold-700 dark:hover:text-gold-300 transition-colors">
-      <Play className="w-3.5 h-3.5" /> Ver video
-    </a>
-  );
-}
 
 function MethodIcon({ method }: { method: string }) {
   // R12: Method icons specific — map method → emoji
   const methodLower = method.toLowerCase();
   const emojis: Record<string, string> = {
-    'v60': '▽',
-    'chemex': '⬡',
-    'aerop': '⊕',
-    'french': '⊞',
-    'moka': '☕',
-    'cold': '🧊',
+    v60: '▽',
+    chemex: '⬡',
+    aerop: '⊕',
+    french: '⊞',
+    moka: '☕',
+    cold: '🧊',
   };
   for (const [key, emoji] of Object.entries(emojis)) {
     if (methodLower.includes(key)) return <span className="text-lg leading-none">{emoji}</span>;
@@ -72,70 +38,19 @@ function MethodIcon({ method }: { method: string }) {
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  'FÁCIL': 'text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-400 dark:border-green-500/30',
-  'MEDIA': 'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-500/30',
-  'DIFÍCIL': 'text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-400 dark:border-red-500/30',
+  FÁCIL:
+    'text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-400 dark:border-green-500/30',
+  MEDIA:
+    'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-500/30',
+  DIFÍCIL:
+    'text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-400 dark:border-red-500/30',
 };
 
-function downloadRecipePDF(recipe: Recipe) {
-  const doc = new jsPDF({ unit: 'mm', format: 'a5' });
-  const W = doc.internal.pageSize.getWidth();
-
-  doc.setFillColor(13, 8, 6);
-  doc.rect(0, 0, W, 28, 'F');
-  doc.setTextColor(201, 169, 110);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('12%', 10, 17);
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.text('CAFÉ DE ESPECIALIDAD', 10, 24);
-
-  doc.setTextColor(13, 8, 6);
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(recipe.title, 10, 42);
-
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 80, 60);
-  let metaY = 50;
-  if (recipe.temp) { doc.text(`Temperatura: ${recipe.temp}`, 10, metaY); metaY += 6; }
-  if (recipe.grind) { doc.text(`Molienda: ${recipe.grind}`, 10, metaY); metaY += 6; }
-  if (recipe.ratio) { doc.text(`Ratio: ${recipe.ratio}`, 10, metaY); metaY += 6; }
-  if (recipe.prepTime) { doc.text(`Tiempo: ${recipe.prepTime} min`, 10, metaY); metaY += 6; }
-
-  doc.setDrawColor(201, 169, 110);
-  doc.setLineWidth(0.3);
-  doc.line(10, metaY + 2, W - 10, metaY + 2);
-  metaY += 8;
-
-  doc.setTextColor(13, 8, 6);
-  recipe.steps.forEach((step, i) => {
-    if (metaY > 185) { doc.addPage(); metaY = 15; }
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${i + 1}. ${step.title}`, 10, metaY);
-    metaY += 5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    const lines = doc.splitTextToSize(step.description, W - 20);
-    doc.text(lines, 10, metaY);
-    metaY += lines.length * 4.5 + 4;
-  });
-
-  doc.setFontSize(7);
-  doc.setTextColor(150, 120, 90);
-  doc.text('12porciento.cafe', 10, doc.internal.pageSize.getHeight() - 8);
-
-  doc.save(`${recipe.slug}.pdf`);
-}
-
 const METHOD_CATEGORIES = {
-  'Filtro': ['V60', 'Chemex', 'Kalita Wave', 'Pour Over'],
-  'Inmersión': ['AeroPress', 'French Press', 'Cold Brew', 'Sifón'],
-  'Espresso': ['Espresso', 'Moka Pot'],
-  'Especiales': ['Café de Olla', 'Dalgona', 'Café Turco'],
+  Filtro: ['V60', 'Chemex', 'Kalita Wave', 'Pour Over'],
+  Inmersión: ['AeroPress', 'French Press', 'Cold Brew', 'Sifón'],
+  Espresso: ['Espresso', 'Moka Pot'],
+  Especiales: ['Café de Olla', 'Dalgona', 'Café Turco'],
 };
 
 export default function Recipes() {
@@ -149,20 +64,27 @@ export default function Recipes() {
   const [methodFilter, setMethodFilter] = useState<string>('TODOS');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('TODOS');
   const [search, setSearch] = useState<string>('');
-  const [timerState, setTimerState] = useState<{ recipeId: string; stepIndex: number; secondsLeft: number } | null>(null);
+  const [timerState, setTimerState] = useState<{
+    recipeId: string;
+    stepIndex: number;
+    secondsLeft: number;
+  } | null>(null);
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
 
   useEffect(() => {
     setError(null);
-    recipesApi.list().then((r) => {
-      setRecipes(r.data.data);
-      setLoading(false);
-    }).catch(() => {
-      setError('No se pudieron cargar las recetas.');
-      setLoading(false);
-    });
+    recipesApi
+      .list()
+      .then((r) => {
+        setRecipes(r.data.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('No se pudieron cargar las recetas.');
+        setLoading(false);
+      });
   }, []);
 
   // R7: URL filters persistent — read from URL on mount
@@ -193,7 +115,10 @@ export default function Recipes() {
     const interval = setInterval(() => {
       setTimerState((prev) => {
         if (!prev || prev.secondsLeft <= 1) {
-          const AudioCtx = window.AudioContext || (window as unknown as Record<string, unknown>).webkitAudioContext as typeof AudioContext | undefined;
+          const AudioCtx =
+            window.AudioContext ||
+            ((window as unknown as Record<string, unknown>).webkitAudioContext as
+              typeof AudioContext | undefined);
           if (AudioCtx) {
             const ctx = new AudioCtx();
             const osc = ctx.createOscillator();
@@ -221,11 +146,12 @@ export default function Recipes() {
     return true;
   });
 
-  const searched = filtered.filter((r) =>
-    search === '' ||
-    r.title.toLowerCase().includes(search.toLowerCase()) ||
-    r.method.toLowerCase().includes(search.toLowerCase()) ||
-    r.description?.toLowerCase().includes(search.toLowerCase())
+  const searched = filtered.filter(
+    (r) =>
+      search === '' ||
+      r.title.toLowerCase().includes(search.toLowerCase()) ||
+      r.method.toLowerCase().includes(search.toLowerCase()) ||
+      r.description?.toLowerCase().includes(search.toLowerCase()),
   );
 
   // R13: Pagination
@@ -241,7 +167,14 @@ export default function Recipes() {
       })();
 
   const freeLimit = !hasSubscription && searched.filter((r) => !r.isPremium).length > 2;
-  const totalPages = Math.ceil((hasSubscription ? searched.length : [...searched.filter((r) => !r.isPremium).slice(0, 2), ...searched.filter((r) => r.isPremium)].length) / pageSize);
+  const totalPages = Math.ceil(
+    (hasSubscription
+      ? searched.length
+      : [
+          ...searched.filter((r) => !r.isPremium).slice(0, 2),
+          ...searched.filter((r) => r.isPremium),
+        ].length) / pageSize,
+  );
   const hasMore = page < totalPages;
 
   // MUST be before early returns — hook #19
@@ -259,7 +192,10 @@ export default function Recipes() {
   if (error) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4">
-        <PageMeta title="Recetas" description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso." />
+        <PageMeta
+          title="Recetas"
+          description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso."
+        />
         <div className="text-center">
           <p className="text-red-400 dark:text-red-300 text-sm mb-4">{error}</p>
           <button
@@ -267,13 +203,16 @@ export default function Recipes() {
             onClick={() => {
               setError(null);
               setLoading(true);
-              recipesApi.list().then((r) => {
-                setRecipes(r.data.data);
-                setLoading(false);
-              }).catch(() => {
-                setError('No se pudieron cargar las recetas.');
-                setLoading(false);
-              });
+              recipesApi
+                .list()
+                .then((r) => {
+                  setRecipes(r.data.data);
+                  setLoading(false);
+                })
+                .catch(() => {
+                  setError('No se pudieron cargar las recetas.');
+                  setLoading(false);
+                });
             }}
             className="px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors"
           >
@@ -287,7 +226,10 @@ export default function Recipes() {
   if (loading) {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
-        <PageMeta title="Recetas" description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso." />
+        <PageMeta
+          title="Recetas"
+          description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso."
+        />
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 space-y-3">
             <div className="shimmer dark:shimmer-dark h-3 w-32 mx-auto" />
@@ -302,7 +244,10 @@ export default function Recipes() {
           </div>
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 space-y-3">
+              <div
+                key={i}
+                className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 space-y-3"
+              >
                 <div className="flex gap-3">
                   <div className="shimmer dark:shimmer-dark h-5 w-16" />
                   <div className="shimmer dark:shimmer-dark h-5 w-12" />
@@ -320,13 +265,19 @@ export default function Recipes() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
-      <PageMeta title="Recetas" description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso." />
+      <PageMeta
+        title="Recetas"
+        description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso."
+      />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Guías de preparación</p>
+          <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">
+            Guías de preparación
+          </p>
           <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-4">Recetas</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm max-w-lg mx-auto">
-            Desde espressos clásicos hasta métodos de filtrado de especialidad. Cada receta, paso a paso.
+            Desde espressos clásicos hasta métodos de filtrado de especialidad. Cada receta, paso a
+            paso.
           </p>
         </div>
 
@@ -370,7 +321,9 @@ export default function Recipes() {
           <div className="space-y-4">
             {Object.entries(METHOD_CATEGORIES).map(([category, methods]) => (
               <div key={category}>
-                <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-2">{category}</p>
+                <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-2">
+                  {category}
+                </p>
                 <div className="flex gap-2 flex-wrap">
                   {methods.map((m) => (
                     <button
@@ -410,7 +363,9 @@ export default function Recipes() {
                 className="flex items-center gap-1.5 px-3 py-1 bg-coffee-100 dark:bg-coffee-800 border border-gold-500/30 text-coffee-900 dark:text-cream text-xs hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
               >
                 {methodFilter}
-                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
+                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">
+                  ×
+                </span>
               </button>
             )}
             {difficultyFilter !== 'TODOS' && (
@@ -419,7 +374,9 @@ export default function Recipes() {
                 className="flex items-center gap-1.5 px-3 py-1 bg-coffee-100 dark:bg-coffee-800 border border-gold-500/30 text-coffee-900 dark:text-cream text-xs hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
               >
                 {difficultyFilter}
-                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
+                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">
+                  ×
+                </span>
               </button>
             )}
             {search !== '' && (
@@ -428,18 +385,30 @@ export default function Recipes() {
                 className="flex items-center gap-1.5 px-3 py-1 bg-coffee-100 dark:bg-coffee-800 border border-gold-500/30 text-coffee-900 dark:text-cream text-xs hover:bg-coffee-200 dark:hover:bg-coffee-700 transition-colors"
               >
                 "{search}"
-                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">×</span>
+                <span className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream">
+                  ×
+                </span>
               </button>
             )}
             {(methodFilter !== 'TODOS' || difficultyFilter !== 'TODOS' || search !== '') && (
               <button
-                onClick={() => { setMethodFilter('TODOS'); setDifficultyFilter('TODOS'); setSearch(''); }}
+                onClick={() => {
+                  setMethodFilter('TODOS');
+                  setDifficultyFilter('TODOS');
+                  setSearch('');
+                }}
                 className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-coffee-300 underline transition-colors"
               >
                 Limpiar todo
               </button>
             )}
           </div>
+        )}
+
+        {visible.length === 0 && !loading && (
+          <p className="text-coffee-500 dark:text-coffee-400 text-center py-12">
+            No hay recetas con esos filtros. Intenta otra combinación.
+          </p>
         )}
 
         <div className="space-y-4">
@@ -460,7 +429,9 @@ export default function Recipes() {
                   onClick={() => !isLocked && setExpandedId(isExpanded ? null : recipe.id)}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-gold-600 dark:text-gold-400"><MethodIcon method={recipe.method} /></span>
+                    <span className="text-gold-600 dark:text-gold-400">
+                      <MethodIcon method={recipe.method} />
+                    </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
@@ -476,14 +447,18 @@ export default function Recipes() {
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-coffee-600 dark:text-coffee-400">{recipe.method}</span>
+                        <span className="text-xs text-coffee-600 dark:text-coffee-400">
+                          {recipe.method}
+                        </span>
                         {recipe.prepTime && (
                           <span className="flex items-center gap-1 text-xs text-coffee-600 dark:text-coffee-400">
                             <Clock className="w-3 h-3" /> {recipe.prepTime} min
                           </span>
                         )}
                         {recipe.difficulty && (
-                          <span className={`text-xs px-1.5 py-0.5 border rounded-sm ${DIFFICULTY_COLORS[recipe.difficulty] ?? ''}`}>
+                          <span
+                            className={`text-xs px-1.5 py-0.5 border rounded-sm ${DIFFICULTY_COLORS[recipe.difficulty] ?? ''}`}
+                          >
                             {recipe.difficulty}
                           </span>
                         )}
@@ -494,7 +469,10 @@ export default function Recipes() {
                   <div className="flex items-center gap-2">
                     {!isLocked && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); setLiveRecipeId(recipe.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLiveRecipeId(recipe.id);
+                        }}
                         className="p-1.5 text-coffee-600 dark:text-coffee-400 hover:text-gold-700 dark:hover:text-gold-400 transition-colors"
                         title="Modo en vivo"
                       >
@@ -503,7 +481,10 @@ export default function Recipes() {
                     )}
                     {!isLocked && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); downloadRecipePDF(recipe); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadRecipePDF(recipe);
+                        }}
                         className="p-1.5 text-coffee-600 dark:text-coffee-400 hover:text-gold-700 dark:hover:text-gold-400 transition-colors"
                         title="Descargar PDF"
                       >
@@ -512,8 +493,10 @@ export default function Recipes() {
                     )}
                     {isLocked ? (
                       <Lock className="w-4 h-4 text-gold-500/50" />
+                    ) : isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-coffee-600 dark:text-coffee-400" />
                     ) : (
-                      isExpanded ? <ChevronUp className="w-4 h-4 text-coffee-600 dark:text-coffee-400" /> : <ChevronDown className="w-4 h-4 text-coffee-600 dark:text-coffee-400" />
+                      <ChevronDown className="w-4 h-4 text-coffee-600 dark:text-coffee-400" />
                     )}
                   </div>
                 </div>
@@ -524,18 +507,29 @@ export default function Recipes() {
                       <div className="flex items-start gap-3">
                         <Star className="w-5 h-5 text-gold-500 shrink-0 hidden sm:block mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-coffee-900 dark:text-cream text-sm font-medium">Receta exclusiva para suscriptores</p>
-                          <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Suscríbete para acceder a todas las recetas premium y más.</p>
+                          <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+                            Receta exclusiva para suscriptores
+                          </p>
+                          <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
+                            Suscríbete para acceder a todas las recetas premium y más.
+                          </p>
                         </div>
                       </div>
-                      <Link to="/suscripciones" className="self-start px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors">
+                      <Link
+                        to="/suscripciones"
+                        className="self-start px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase tracking-wider hover:bg-gold-400 transition-colors"
+                      >
                         Desbloquear — Ver suscripciones →
                       </Link>
                     </div>
                     {recipe.steps?.length > 0 && recipe.steps[0] && (
                       <div className="mt-3 px-2 opacity-50">
-                        <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Paso 1 (vista previa)</p>
-                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">{recipe.steps[0].description}</p>
+                        <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">
+                          Paso 1 (vista previa)
+                        </p>
+                        <p className="text-coffee-700 dark:text-coffee-300 text-sm">
+                          {recipe.steps[0].description}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -557,12 +551,21 @@ export default function Recipes() {
                               { label: 'Molienda', value: recipe.grind },
                               { label: 'Ratio', value: recipe.ratio },
                               { label: 'Rendimiento', value: recipe.yield },
-                            ].filter((x) => x.value).map((x) => (
-                              <div key={x.label} className="bg-coffee-100 dark:bg-coffee-800/50 p-3 text-center">
-                                <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">{x.label}</p>
-                                <p className="text-coffee-900 dark:text-cream text-sm font-medium">{x.value}</p>
-                              </div>
-                            ))}
+                            ]
+                              .filter((x) => x.value)
+                              .map((x) => (
+                                <div
+                                  key={x.label}
+                                  className="bg-coffee-100 dark:bg-coffee-800/50 p-3 text-center"
+                                >
+                                  <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">
+                                    {x.label}
+                                  </p>
+                                  <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+                                    {x.value}
+                                  </p>
+                                </div>
+                              ))}
                           </div>
                         )}
 
@@ -570,46 +573,66 @@ export default function Recipes() {
                           {recipe.steps.map((step, i) => (
                             <div key={step.id} className="flex gap-4">
                               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center">
-                                <span className="text-gold-600 dark:text-gold-400 text-xs font-bold">{i + 1}</span>
+                                <span className="text-gold-600 dark:text-gold-400 text-xs font-bold">
+                                  {i + 1}
+                                </span>
                               </div>
                               <div className="flex-1">
-                                <p className="text-coffee-900 dark:text-cream font-medium mb-1">{step.title}</p>
-                                <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">{step.description}</p>
+                                <p className="text-coffee-900 dark:text-cream font-medium mb-1">
+                                  {step.title}
+                                </p>
+                                <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">
+                                  {step.description}
+                                </p>
                                 {step.duration && (
                                   <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-1 flex items-center gap-1">
                                     <Clock className="w-3 h-3" /> {step.duration}s
                                   </p>
                                 )}
                                 {step.imageUrl && (
-                                  <img src={step.imageUrl} alt={step.title} className="mt-3 rounded-lg w-full max-h-64 object-cover" />
+                                  <img
+                                    src={step.imageUrl}
+                                    alt={step.title}
+                                    className="mt-3 rounded-lg w-full max-h-64 object-cover"
+                                  />
                                 )}
-                                {step.videoUrl && (
-                                  <StepVideoPlayer url={step.videoUrl} />
-                                )}
+                                {step.videoUrl && <StepVideoPlayer url={step.videoUrl} />}
 
                                 {step.duration && !timerState && (
                                   <button
-                                    onClick={() => setTimerState({ recipeId: recipe.id, stepIndex: i, secondsLeft: step.duration! })}
+                                    onClick={() =>
+                                      setTimerState({
+                                        recipeId: recipe.id,
+                                        stepIndex: i,
+                                        secondsLeft: step.duration!,
+                                      })
+                                    }
                                     className="mt-2 flex items-center gap-1 px-3 py-1 bg-gold-500/10 border border-gold-500/30 text-gold-600 dark:text-gold-400 text-xs hover:bg-gold-500/20 transition-colors"
                                   >
-                                    <Clock className="w-3 h-3" /> Iniciar temporizador ({step.duration}s)
+                                    <Clock className="w-3 h-3" /> Iniciar temporizador (
+                                    {step.duration}s)
                                   </button>
                                 )}
 
-                                {timerState?.recipeId === recipe.id && timerState?.stepIndex === i && (
-                                  <div className="mt-3 p-3 bg-gold-500/10 border border-gold-500/30 rounded">
-                                    <div className="text-center">
-                                      <p className="text-xs text-gold-600 dark:text-gold-400 uppercase tracking-wider mb-1">Temporizador activo</p>
-                                      <p className="text-3xl font-bold text-gold-600 dark:text-gold-400 font-mono">{timerState.secondsLeft}s</p>
+                                {timerState?.recipeId === recipe.id &&
+                                  timerState?.stepIndex === i && (
+                                    <div className="mt-3 p-3 bg-gold-500/10 border border-gold-500/30 rounded">
+                                      <div className="text-center">
+                                        <p className="text-xs text-gold-600 dark:text-gold-400 uppercase tracking-wider mb-1">
+                                          Temporizador activo
+                                        </p>
+                                        <p className="text-3xl font-bold text-gold-600 dark:text-gold-400 font-mono">
+                                          {timerState.secondsLeft}s
+                                        </p>
+                                      </div>
+                                      <button
+                                        onClick={() => setTimerState(null)}
+                                        className="mt-2 w-full px-3 py-1 bg-red-600/30 border border-red-600/50 text-red-400 text-xs hover:bg-red-600/40 transition-colors"
+                                      >
+                                        Cancelar
+                                      </button>
                                     </div>
-                                    <button
-                                      onClick={() => setTimerState(null)}
-                                      className="mt-2 w-full px-3 py-1 bg-red-600/30 border border-red-600/50 text-red-400 text-xs hover:bg-red-600/40 transition-colors"
-                                    >
-                                      Cancelar
-                                    </button>
-                                  </div>
-                                )}
+                                  )}
                               </div>
                             </div>
                           ))}
@@ -617,10 +640,21 @@ export default function Recipes() {
 
                         {recipe.product && (
                           <div className="border-t border-coffee-200 dark:border-coffee-800 pt-4">
-                            <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-2">Recomendado con:</p>
-                            <Link to={`/tienda/${recipe.product.slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                              <img src={recipe.product.imageUrl} alt={recipe.product.name} className="w-10 h-10 object-cover" />
-                              <span className="text-gold-600 dark:text-gold-400 text-sm">{recipe.product.name}</span>
+                            <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-2">
+                              Recomendado con:
+                            </p>
+                            <Link
+                              to={`/tienda/${recipe.product.slug}`}
+                              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                            >
+                              <img
+                                src={recipe.product.imageUrl}
+                                alt={recipe.product.name}
+                                className="w-10 h-10 object-cover"
+                              />
+                              <span className="text-gold-600 dark:text-gold-400 text-sm">
+                                {recipe.product.name}
+                              </span>
                             </Link>
                           </div>
                         )}
@@ -651,9 +685,16 @@ export default function Recipes() {
         {freeLimit && (
           <div className="mt-8 text-center border border-gold-500/20 bg-gold-500/5 p-6">
             <Lock className="w-8 h-8 text-gold-500 mx-auto mb-3" />
-            <p className="text-coffee-900 dark:text-cream font-medium mb-1">Estás viendo 2 de {filtered.filter((r) => !r.isPremium).length} recetas gratuitas</p>
-            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">Suscríbete para ver todas las recetas + acceso a recetas premium exclusivas</p>
-            <Link to="/suscripciones" className="inline-block px-6 py-3 bg-gold-500 text-coffee-950 text-xs font-bold uppercase tracking-wider hover:bg-gold-400 transition-colors">
+            <p className="text-coffee-900 dark:text-cream font-medium mb-1">
+              Estás viendo 2 de {filtered.filter((r) => !r.isPremium).length} recetas gratuitas
+            </p>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">
+              Suscríbete para ver todas las recetas + acceso a recetas premium exclusivas
+            </p>
+            <Link
+              to="/suscripciones"
+              className="inline-block px-6 py-3 bg-gold-500 text-coffee-950 text-xs font-bold uppercase tracking-wider hover:bg-gold-400 transition-colors"
+            >
               Ver planes de suscripción
             </Link>
           </div>

@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Package, Check, Truck, Clock, MapPin, RotateCcw } from 'lucide-react';
+import {
+  ArrowLeft,
+  Package,
+  Check,
+  Truck,
+  Clock,
+  MapPin,
+  RotateCcw,
+  PackageCheck,
+} from 'lucide-react';
 import { usersApi } from '../../api';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
@@ -25,15 +34,35 @@ const STEP_ICONS: Record<string, typeof Clock> = {
 };
 
 const statusBadge: Record<string, { label: string; color: string }> = {
-  PENDING:    { label: 'Pendiente',   color: 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20' },
-  PROCESSING: { label: 'Procesando',  color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20' },
-  SHIPPED:    { label: 'Enviado',     color: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20' },
-  DELIVERED:  { label: 'Entregado',   color: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20' },
-  CANCELLED:  { label: 'Cancelado',   color: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20' },
+  PENDING: {
+    label: 'Pendiente',
+    color:
+      'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20',
+  },
+  PROCESSING: {
+    label: 'Procesando',
+    color:
+      'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20',
+  },
+  SHIPPED: {
+    label: 'Enviado',
+    color:
+      'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20',
+  },
+  DELIVERED: {
+    label: 'Entregado',
+    color:
+      'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20',
+  },
+  CANCELLED: {
+    label: 'Cancelado',
+    color:
+      'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20',
+  },
 };
 
 function StatusTimeline({ currentStatus }: { currentStatus: string }) {
-  const currentIdx = STEPS.indexOf(currentStatus as typeof STEPS[number]);
+  const currentIdx = STEPS.indexOf(currentStatus as (typeof STEPS)[number]);
 
   if (currentStatus === 'CANCELLED') {
     return (
@@ -78,11 +107,15 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
 
               {/* label */}
               <div className="min-h-9 flex items-center">
-                <span className={`text-sm font-medium ${
-                  isCompleted ? 'text-green-600 dark:text-green-400' :
-                  isActive ? 'text-gold-600 dark:text-gold-400' :
-                  'text-coffee-400 dark:text-coffee-500'
-                }`}>
+                <span
+                  className={`text-sm font-medium ${
+                    isCompleted
+                      ? 'text-green-600 dark:text-green-400'
+                      : isActive
+                        ? 'text-gold-600 dark:text-gold-400'
+                        : 'text-coffee-400 dark:text-coffee-500'
+                  }`}
+                >
                   {STEP_LABELS[step]}
                   {isActive && (
                     <span className="ml-2 text-xs text-gold-500/70 font-normal">(Actual)</span>
@@ -110,9 +143,14 @@ export default function OrderDetail() {
     if (!id) return;
     setLoading(true);
     setError('');
-    usersApi.myOrder(id)
-      .then((r) => { setOrder(r.data); })
-      .catch(() => { setError('No se pudo cargar el pedido.'); })
+    usersApi
+      .myOrder(id)
+      .then((r) => {
+        setOrder(r.data);
+      })
+      .catch(() => {
+        setError('No se pudo cargar el pedido.');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -151,7 +189,10 @@ export default function OrderDetail() {
       <div className="text-center py-16">
         <PageMeta title="Error" />
         <p className="text-red-400 mb-4">{error}</p>
-        <button onClick={load} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+        <button
+          onClick={load}
+          className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors"
+        >
           Reintentar
         </button>
       </div>
@@ -165,7 +206,10 @@ export default function OrderDetail() {
         <PageMeta title="Pedido no encontrado" />
         <Package className="w-12 h-12 text-coffee-400 dark:text-coffee-600 mx-auto mb-4" />
         <p className="text-coffee-600 dark:text-coffee-400 mb-4">Pedido no encontrado.</p>
-        <Link to="/perfil/pedidos" className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+        <Link
+          to="/perfil/pedidos"
+          className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors"
+        >
           Volver a mis pedidos
         </Link>
       </div>
@@ -173,11 +217,18 @@ export default function OrderDetail() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-2xl mx-auto space-y-6"
+    >
       <PageMeta title={`Pedido ${displayId}`} />
 
       {/* Back link */}
-      <Link to="/perfil/pedidos" className="inline-flex items-center gap-1.5 text-sm text-coffee-500 dark:text-coffee-400 hover:text-gold-500 transition-colors">
+      <Link
+        to="/perfil/pedidos"
+        className="inline-flex items-center gap-1.5 text-sm text-coffee-500 dark:text-coffee-400 hover:text-gold-500 transition-colors"
+      >
         <ArrowLeft className="w-4 h-4" />
         Volver a mis pedidos
       </Link>
@@ -185,17 +236,20 @@ export default function OrderDetail() {
       {/* Header */}
       <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
-          <h1 className="text-xl font-bold text-coffee-900 dark:text-cream">
-            Pedido {displayId}
-          </h1>
-          <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusBadge[order.status]?.color ?? 'text-coffee-400 border-coffee-300 dark:border-coffee-700'}`}>
+          <h1 className="text-xl font-bold text-coffee-900 dark:text-cream">Pedido {displayId}</h1>
+          <span
+            className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusBadge[order.status]?.color ?? 'text-coffee-400 border-coffee-300 dark:border-coffee-700'}`}
+          >
             {statusBadge[order.status]?.label ?? order.status}
           </span>
         </div>
         <p className="text-sm text-coffee-500 dark:text-coffee-400">
           {new Date(order.createdAt).toLocaleDateString('es-MX', {
-            day: 'numeric', month: 'long', year: 'numeric',
-            hour: '2-digit', minute: '2-digit',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
           })}
         </p>
       </div>
@@ -210,7 +264,11 @@ export default function OrderDetail() {
             <div key={item.id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
               <div className="w-14 h-14 rounded-lg overflow-hidden bg-coffee-100 dark:bg-coffee-800 shrink-0">
                 {item.product.imageUrl ? (
-                  <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                  <img
+                    src={item.product.imageUrl}
+                    alt={item.product.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="w-5 h-5 text-coffee-400" />
@@ -218,7 +276,10 @@ export default function OrderDetail() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <Link to={`/productos/${item.product.slug}`} className="text-sm font-medium text-coffee-900 dark:text-cream hover:text-gold-500 transition-colors truncate block">
+                <Link
+                  to={`/productos/${item.product.slug}`}
+                  className="text-sm font-medium text-coffee-900 dark:text-cream hover:text-gold-500 transition-colors truncate block"
+                >
                   {item.product.name}
                 </Link>
                 <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-0.5">
@@ -257,6 +318,42 @@ export default function OrderDetail() {
         <StatusTimeline currentStatus={order.status} />
       </div>
 
+      {/* Tracking */}
+      {order.trackingNumber && (
+        <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 sm:p-8">
+          <h2 className="text-sm font-semibold text-coffee-900 dark:text-cream uppercase tracking-wider mb-3 flex items-center gap-2">
+            <PackageCheck className="w-4 h-4 text-coffee-400" />
+            Información de envío
+          </h2>
+          <div className="text-sm text-coffee-700 dark:text-coffee-300 space-y-1">
+            <p>
+              Número de rastreo:{' '}
+              <span className="font-medium text-coffee-900 dark:text-cream">
+                {order.trackingNumber}
+              </span>
+            </p>
+            {order.carrier && (
+              <p>
+                Paquetería:{' '}
+                <span className="font-medium text-coffee-900 dark:text-cream">{order.carrier}</span>
+              </p>
+            )}
+            {order.estimatedDelivery && (
+              <p>
+                Entrega estimada:{' '}
+                <span className="font-medium text-coffee-900 dark:text-cream">
+                  {new Date(order.estimatedDelivery).toLocaleDateString('es-MX', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Shipping */}
       {order.address && (
         <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 sm:p-8">
@@ -267,8 +364,12 @@ export default function OrderDetail() {
           <div className="text-sm text-coffee-700 dark:text-coffee-300 space-y-0.5">
             <p className="font-medium text-coffee-900 dark:text-cream">{order.customerName}</p>
             <p>{order.address}</p>
-            <p>{order.city}, {order.state} {order.zipCode}</p>
-            {order.phone && <p className="text-coffee-500 dark:text-coffee-400">Tel: {order.phone}</p>}
+            <p>
+              {order.city}, {order.state} {order.zipCode}
+            </p>
+            {order.phone && (
+              <p className="text-coffee-500 dark:text-coffee-400">Tel: {order.phone}</p>
+            )}
             {order.email && <p className="text-coffee-500 dark:text-coffee-400">{order.email}</p>}
           </div>
         </div>

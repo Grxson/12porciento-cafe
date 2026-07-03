@@ -7,6 +7,7 @@ import { saveDraft, loadDraft, clearDraft } from '../../hooks/useRecipeDraft';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { useBarista } from '../../hooks/useBarista';
+import { recipesApi } from '../../api';
 import RatingSlider from './RatingSlider';
 import NotesCapture from './NotesCapture';
 import GestureHints from './GestureHints';
@@ -46,10 +47,14 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [_stepPhotos, setStepPhotos] = useState<Record<number, { preview: string; blob: Blob }>>({});
+  const [_stepPhotos, setStepPhotos] = useState<Record<number, { preview: string; blob: Blob }>>(
+    {},
+  );
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
-  const [relatedRecipes, _setRelatedRecipes] = useState<Recipe[]>([]);
-  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true,
+  );
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const objectUrlRef = useRef<string | null>(null);
 
@@ -61,7 +66,9 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   const hasNext = currentStepIndex < recipe.steps.length - 1;
   const hasPrev = currentStepIndex > 0;
   const finalStep = currentStepIndex === recipe.steps.length - 1;
-  const currentStepDraft = steps.find((s) => s.index === currentStepIndex) ?? { index: currentStepIndex };
+  const currentStepDraft = steps.find((s) => s.index === currentStepIndex) ?? {
+    index: currentStepIndex,
+  };
 
   // R6: Calculate total time in minutes
   const totalSeconds = recipe.steps.reduce((sum, s) => sum + (s.duration ?? 0), 0);
@@ -70,25 +77,32 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   // Load draft on mount
   useEffect(() => {
     if (!user) return;
-    loadDraft(user.id, recipe.id).then((d) => {
-      if (d && d.status === 'in_progress') setDraft(d);
-    }).catch((err) => { console.error(err); });
+    loadDraft(user.id, recipe.id)
+      .then((d) => {
+        if (d && d.status === 'in_progress') setDraft(d);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, [user?.id, recipe.id]);
 
   // Persist draft helper
-  const persistDraft = useCallback((newSteps: StepDraft[], stepIndex: number) => {
-    if (!user) return;
-    const d: RecipeDraft = {
-      id: `${user.id}:${recipe.id}`,
-      recipeId: recipe.id,
-      userId: user.id,
-      startedAt: startedAtRef.current,
-      currentStepIndex: stepIndex,
-      steps: newSteps,
-      status: 'in_progress',
-    };
-    saveDraft(d).catch(console.error);
-  }, [user?.id, recipe.id]);
+  const persistDraft = useCallback(
+    (newSteps: StepDraft[], stepIndex: number) => {
+      if (!user) return;
+      const d: RecipeDraft = {
+        id: `${user.id}:${recipe.id}`,
+        recipeId: recipe.id,
+        userId: user.id,
+        startedAt: startedAtRef.current,
+        currentStepIndex: stepIndex,
+        steps: newSteps,
+        status: 'in_progress',
+      };
+      saveDraft(d).catch(console.error);
+    },
+    [user?.id, recipe.id],
+  );
 
   const handleResume = () => {
     if (!draft) return;
@@ -110,7 +124,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     setSteps((prev) => {
       const existing = prev.find((s) => s.index === currentStepIndex);
       const updated = existing
-        ? prev.map((s) => s.index === currentStepIndex ? { ...s, ...patch } : s)
+        ? prev.map((s) => (s.index === currentStepIndex ? { ...s, ...patch } : s))
         : [...prev, { index: currentStepIndex, ...patch }];
       persistDraft(updated, currentStepIndex);
       return updated;
@@ -123,7 +137,10 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     const interval = setInterval(() => {
       setTimerActive((t) => {
         if (t && t <= 1) {
-          const AudioCtx = window.AudioContext || (window as unknown as Record<string, unknown>).webkitAudioContext as typeof AudioContext | undefined;
+          const AudioCtx =
+            window.AudioContext ||
+            ((window as unknown as Record<string, unknown>).webkitAudioContext as
+              typeof AudioContext | undefined);
           if (AudioCtx) {
             const ctx = new AudioCtx();
             const osc = ctx.createOscillator();
@@ -147,12 +164,16 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     return () => clearInterval(interval);
   }, [timerActive]);
 
-  useEffect(() => { setTimerActive(null); }, [currentStepIndex]);
+  useEffect(() => {
+    setTimerActive(null);
+  }, [currentStepIndex]);
 
   const goNext = () => {
     if (hasNext) {
       const updated = steps.find((s) => s.index === currentStepIndex)
-        ? steps.map((s) => s.index === currentStepIndex ? { ...s, completedAt: new Date().toISOString() } : s)
+        ? steps.map((s) =>
+            s.index === currentStepIndex ? { ...s, completedAt: new Date().toISOString() } : s,
+          )
         : [...steps, { index: currentStepIndex, completedAt: new Date().toISOString() }];
       setSteps(updated);
       persistDraft(updated, currentStepIndex + 1);
@@ -212,7 +233,11 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     const avgRating = ratings.length
       ? Math.round(ratings.reduce((s, r) => s + r, 0) / ratings.length)
       : 5;
-    const notes = steps.map((s) => s.notes).filter(Boolean).join(' | ').slice(0, 500);
+    const notes = steps
+      .map((s) => s.notes)
+      .filter(Boolean)
+      .join(' | ')
+      .slice(0, 500);
     try {
       const { newAchievements } = await submitBrewLog({
         recipeId: recipe.id,
@@ -223,11 +248,14 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         photoBlob: photoBlob || undefined,
         clientBrewId: crypto.randomUUID(),
       });
-      const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
+      const baseXp: Record<string, number> = { FÁCIL: 10, MEDIA: 20, DIFÍCIL: 30 };
       const xp = (baseXp[recipe.difficulty ?? 'MEDIA'] ?? 20) + (avgRating - 1) * 5;
       addToast(`+${xp} XP ganados ☕`, 'success');
       for (const a of newAchievements) {
-        setTimeout(() => addToast(`🏆 Logro: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success'), 400);
+        setTimeout(
+          () => addToast(`🏆 Logro: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success'),
+          400,
+        );
       }
       if (user) clearDraft(user.id, recipe.id).catch(console.error);
       setBrewRegistered(true);
@@ -237,6 +265,15 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (brewRegistered) {
+      recipesApi
+        .getRelated(recipe.id)
+        .then((r) => setRelatedRecipes(r.data.data))
+        .catch(() => {});
+    }
+  }, [brewRegistered, recipe.id]);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -277,11 +314,15 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       clearTimeout(longPressRef.current);
       longPressRef.current = null;
     }
-    if (!touchStartRef.current || showQuickPanel) { touchStartRef.current = null; return; }
+    if (!touchStartRef.current || showQuickPanel) {
+      touchStartRef.current = null;
+      return;
+    }
     const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
     const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartRef.current.y);
     if (Math.abs(deltaX) > 50 && deltaY < 50) {
-      if (deltaX > 0) goPrev(); else goNext();
+      if (deltaX > 0) goPrev();
+      else goNext();
     }
     touchStartRef.current = null;
   };
@@ -289,11 +330,15 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
   if (!step) {
     return (
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 bg-coffee-950 flex flex-col items-center justify-center gap-4"
       >
         <p className="text-coffee-400 text-sm">Esta receta no tiene pasos configurados.</p>
-        <button onClick={onClose} className="btn-primary">Cerrar</button>
+        <button onClick={onClose} className="btn-primary">
+          Cerrar
+        </button>
       </motion.div>
     );
   }
@@ -372,12 +417,18 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
           >
             <div className="flex justify-center mb-6">
               <div className="px-4 py-2 bg-gold-500/10 border border-gold-500/30 rounded-full">
-                <p className="text-gold-400 text-sm font-semibold">{currentStepIndex + 1} / {recipe.steps.length}</p>
+                <p className="text-gold-400 text-sm font-semibold">
+                  {currentStepIndex + 1} / {recipe.steps.length}
+                </p>
               </div>
             </div>
 
-            <h3 className="text-3xl md:text-4xl font-serif text-cream mb-4 text-center">{step.title}</h3>
-            <p className="text-base text-coffee-300 leading-relaxed mb-6 text-center">{step.description}</p>
+            <h3 className="text-3xl md:text-4xl font-serif text-cream mb-4 text-center">
+              {step.title}
+            </h3>
+            <p className="text-base text-coffee-300 leading-relaxed mb-6 text-center">
+              {step.description}
+            </p>
 
             {(step.duration || recipe.temp || recipe.grind) && (
               <div className="grid grid-cols-3 gap-4 mb-6 max-w-sm mx-auto">
@@ -454,7 +505,9 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
               <NotesCapture
                 value={currentStepDraft.notes ?? ''}
                 onChange={(n) => updateStep({ notes: n })}
-                onPhotoCapture={(photo) => setStepPhotos((prev) => ({ ...prev, [currentStepIndex]: photo }))}
+                onPhotoCapture={(photo) =>
+                  setStepPhotos((prev) => ({ ...prev, [currentStepIndex]: photo }))
+                }
               />
             </div>
           </motion.div>
@@ -464,107 +517,164 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       {/* Navigation */}
       <div className="border-t border-coffee-800 bg-coffee-900/50">
         {!hasNext && (
-          <div className="pt-4 px-6">
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+            className="pt-4 px-6"
+          >
             {/* Photo capture — shown on final step */}
             {currentStepIndex === recipe.steps.length - 1 && (
-              <div className="mb-4 border-t border-coffee-800/50 pt-4">
-                <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">
-                  Foto del resultado (opcional)
-                </p>
-                {photoPreview ? (
-                  <div className="relative mb-3">
-                    <img
-                      src={photoPreview}
-                      alt="Vista previa"
-                      className="w-full h-36 object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleRemovePhoto}
-                      className="absolute top-1 right-1 p-1 bg-red-600/80 text-white rounded-full"
-                      aria-label="Eliminar foto"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-700 p-4 rounded cursor-pointer hover:border-gold-400 transition-colors mb-3">
-                    <span className="text-xs text-coffee-400">📷 Tomar o elegir foto</span>
-                    <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2">
-                      📷 Selecciona una foto de tu resultado. El navegador puede solicitar acceso a la cámara.
+              <AnimatePresence mode="wait">
+                {!brewRegistered ? (
+                  <motion.div
+                    key="photo-capture"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="mb-4 border-t border-coffee-800/50 pt-4"
+                  >
+                    <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">
+                      Foto del resultado (opcional)
                     </p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handlePhotoChange}
-                      onError={() => {}}
-                      className="hidden"
-                      aria-label="Foto del resultado"
-                    />
-                  </label>
-                )}
-              </div>
+                    {photoPreview ? (
+                      <div className="relative mb-3">
+                        <img
+                          src={photoPreview}
+                          alt="Vista previa"
+                          className="w-full h-36 object-cover rounded"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemovePhoto}
+                          className="absolute top-1 right-1 p-1 bg-red-600/80 text-white rounded-full"
+                          aria-label="Eliminar foto"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-700 p-4 rounded cursor-pointer hover:border-gold-400 transition-colors mb-3">
+                        <span className="text-xs text-coffee-400">📷 Tomar o elegir foto</span>
+                        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2">
+                          📷 Selecciona una foto de tu resultado. El navegador puede solicitar
+                          acceso a la cámara.
+                        </p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={handlePhotoChange}
+                          onError={() => {}}
+                          className="hidden"
+                          aria-label="Foto del resultado"
+                        />
+                      </label>
+                    )}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             )}
             <div className="flex items-center justify-center gap-3 flex-col">
-              {brewRegistered ? (
-                <>
-                  <span className="text-green-400 text-sm">✓ Brew registrado</span>
-
-                  {/* R9: Post-brew related recipes */}
-                  {relatedRecipes.length > 0 && (
-                    <div className="mt-4 w-full border-t border-coffee-700 pt-4">
-                      <p className="text-xs text-coffee-500 uppercase tracking-wider mb-3">Sigue probando</p>
-                      <div className="space-y-2">
-                        {relatedRecipes.map((r) => (
-                          <div
-                            key={r.id}
-                            className="flex items-center gap-3 p-2 bg-coffee-900/40 border border-coffee-700/50 rounded cursor-pointer hover:border-gold-500/50 transition-colors"
-                          >
-                            <span className="text-sm text-cream font-medium">{r.title}</span>
-                            {r.difficulty && (
-                              <span className="text-xs px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400">
-                                {r.difficulty}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* G9: Brew sharing button */}
-                  {user && (
-                    <button
-                      onClick={() => {
-                        const profileUrl = `${window.location.origin}/perfil/barista/${user.id}`;
-                        navigator.clipboard.writeText(profileUrl);
-                        addToast('🔗 Link copiado al portapapeles', 'success');
-                      }}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors mt-2"
-                    >
-                      🔗 Compartir
-                    </button>
-                  )}
-
-                  <button
-                    onClick={onClose}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors mt-4"
+              <AnimatePresence mode="wait">
+                {brewRegistered ? (
+                  <motion.div
+                    key="registered"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col items-center gap-3 w-full"
                   >
-                    Finalizar
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleRegisterBrew}
-                  disabled={submitting}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors disabled:opacity-50"
-                >
-                  {submitting ? 'Registrando...' : '☕ Registrar este Brew'}
-                </button>
-              )}
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+                      className="text-green-400 text-sm"
+                    >
+                      ✓ Brew registrado
+                    </motion.span>
+
+                    {/* R9: Post-brew related recipes */}
+                    {relatedRecipes.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="mt-4 w-full border-t border-coffee-700 pt-4"
+                      >
+                        <p className="text-xs text-coffee-500 uppercase tracking-wider mb-3">
+                          Sigue probando
+                        </p>
+                        <div className="space-y-2">
+                          {relatedRecipes.map((r, i) => (
+                            <motion.div
+                              key={r.id}
+                              initial={{ opacity: 0, x: -15 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.3 + i * 0.08 }}
+                              className="flex items-center gap-3 p-2 bg-coffee-900/40 border border-coffee-700/50 rounded cursor-pointer hover:border-gold-500/50 transition-colors"
+                            >
+                              <span className="text-sm text-cream font-medium">{r.title}</span>
+                              {r.difficulty && (
+                                <span className="text-xs px-1.5 py-0.5 bg-gold-500/10 border border-gold-500/30 text-gold-400">
+                                  {r.difficulty}
+                                </span>
+                              )}
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* G9: Brew sharing button */}
+                    {user && (
+                      <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 }}
+                        onClick={() => {
+                          const profileUrl = `${window.location.origin}/perfil/barista/${user.id}`;
+                          navigator.clipboard.writeText(profileUrl);
+                          addToast('🔗 Link copiado al portapapeles', 'success');
+                        }}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors mt-2"
+                      >
+                        🔗 Compartir
+                      </motion.button>
+                    )}
+
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      onClick={onClose}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500 text-coffee-950 text-sm font-semibold hover:bg-gold-400 transition-colors mt-4"
+                    >
+                      Finalizar
+                    </motion.button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="register-form"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <button
+                      onClick={handleRegisterBrew}
+                      disabled={submitting}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold-500/10 border border-gold-500/40 text-gold-400 text-sm hover:bg-gold-500/20 hover:border-gold-500 transition-colors disabled:opacity-50"
+                    >
+                      {submitting ? 'Registrando...' : '☕ Registrar este Brew'}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
+          </motion.div>
         )}
         <div className="flex items-center justify-between p-4">
           <button
@@ -616,7 +726,8 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
             >
               <h3 className="text-cream font-serif text-lg mb-2">¿Cerrar receta?</h3>
               <p className="text-coffee-300 text-sm mb-6">
-                Estás en el paso {currentStepIndex + 1}. Tu progreso se guardará y podrás continuar después.
+                Estás en el paso {currentStepIndex + 1}. Tu progreso se guardará y podrás continuar
+                después.
               </p>
               <div className="flex gap-3">
                 <button
@@ -649,18 +760,26 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-coffee-400 uppercase tracking-widest">Menú rápido</p>
-              <button onClick={() => setShowQuickPanel(false)} aria-label="Cerrar menú rápido" className="text-coffee-400 hover:text-cream">
+              <button
+                onClick={() => setShowQuickPanel(false)}
+                aria-label="Cerrar menú rápido"
+                className="text-coffee-400 hover:text-cream"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <RatingSlider
               value={currentStepDraft.rating}
-              onChange={(r) => { updateStep({ rating: r }); }}
+              onChange={(r) => {
+                updateStep({ rating: r });
+              }}
             />
             <NotesCapture
               value={currentStepDraft.notes ?? ''}
               onChange={(n) => updateStep({ notes: n })}
-              onPhotoCapture={(photo) => setStepPhotos((prev) => ({ ...prev, [currentStepIndex]: photo }))}
+              onPhotoCapture={(photo) =>
+                setStepPhotos((prev) => ({ ...prev, [currentStepIndex]: photo }))
+              }
             />
             <button
               onClick={() => setShowQuickPanel(false)}

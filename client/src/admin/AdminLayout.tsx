@@ -27,6 +27,7 @@ import {
   ClipboardList,
   DollarSign,
   Briefcase,
+  MapPin,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -40,6 +41,9 @@ const navLinks = [
   { to: '/admin/b2b', label: 'B2B', icon: Briefcase },
   { to: '/admin/lotes', label: 'Lotes', icon: Package },
   { to: '/admin/caficultores', label: 'Caficultores', icon: Users },
+  { to: '/admin/ubicaciones', label: 'Ubicaciones', icon: MapPin },
+  { to: '/admin/tipos-cata', label: 'Tipos de Cata', icon: Tag },
+  { to: '/admin/gift-cards', label: 'Gift Cards', icon: Gift },
   { to: '/admin/recetas', label: 'Recetas', icon: BookOpen },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
   { to: '/admin/logistica', label: 'Logística', icon: Truck },
@@ -80,6 +84,9 @@ const pageTitles: Record<string, string> = {
   '/admin/b2b': 'Canal B2B',
   '/admin/lotes': 'Gestión de Lotes',
   '/admin/caficultores': 'Caficultores',
+  '/admin/ubicaciones': 'Ubicaciones',
+  '/admin/tipos-cata': 'Tipos de Cata',
+  '/admin/gift-cards': 'Gift Cards',
   '/admin/pricing': 'Motor de Precios',
 };
 

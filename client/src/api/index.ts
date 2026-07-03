@@ -135,10 +135,17 @@ export const subscriptionsApi = {
 };
 
 export const recipesApi = {
-  list: (params?: { method?: string; productId?: string; premium?: boolean }) =>
-    api.get<{ data: Recipe[] }>('/recipes', { params }),
+  list: (params?: {
+    method?: string;
+    productId?: string;
+    premium?: boolean;
+    difficulty?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  }) => api.get<{ data: Recipe[] }>('/recipes', { params }),
   getById: (id: string) => api.get<{ data: Recipe }>(`/recipes/${id}`),
   getBySlug: (slug: string) => api.get<{ data: Recipe }>(`/recipes/by-slug/${slug}`),
+  getRelated: (id: string) => api.get<{ data: Recipe[] }>(`/recipes/${id}/related`),
   adminList: () => api.get<{ data: Recipe[] }>('/recipes/admin/all'),
   create: (data: Partial<Recipe> & { title: string; slug: string; method: string }) =>
     api.post<{ data: Recipe }>('/recipes/admin', data),

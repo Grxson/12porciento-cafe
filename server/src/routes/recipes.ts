@@ -13,7 +13,10 @@ const adminCache = new Map<string, { exists: boolean; expiresAt: number }>();
 function getCachedAdmin(adminId: string): boolean | null {
   const cached = adminCache.get(adminId);
   if (!cached) return null;
-  if (Date.now() > cached.expiresAt) { adminCache.delete(adminId); return null; }
+  if (Date.now() > cached.expiresAt) {
+    adminCache.delete(adminId);
+    return null;
+  }
   return cached.exists;
 }
 
@@ -31,9 +34,14 @@ function setCachedAdmin(adminId: string, exists: boolean): void {
 async function hasRecipeAccess(authHeader: string | undefined): Promise<boolean> {
   if (!authHeader?.startsWith('Bearer ')) return false;
   try {
-    const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as { id: string; role?: string };
+    const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as {
+      id: string;
+      role?: string;
+    };
     if (payload.role === 'USER') {
-      const sub = await prisma.subscription.findFirst({ where: { userId: payload.id, status: 'ACTIVE' } });
+      const sub = await prisma.subscription.findFirst({
+        where: { userId: payload.id, status: 'ACTIVE' },
+      });
       return !!sub;
     }
     const cached = getCachedAdmin(payload.id);
@@ -66,7 +74,7 @@ function lockRecipe(recipe: { steps: Array<Record<string, unknown>>; [key: strin
 // GET / — list published recipes; premium ones gated behind subscription
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { method, productId, premium, difficulty } = req.query;
+    const { method, productId, premium, difficulty, sortBy, sortOrder } = req.query;
     const where: Prisma.RecipeWhereInput = { isPublished: true };
     if (method) where.method = method as string;
     if (productId) where.productId = productId as string;
@@ -74,25 +82,26 @@ router.get('/', async (req: Request, res: Response) => {
     if (premium === 'false') where.isPremium = false;
     if (difficulty && typeof difficulty === 'string') where.difficulty = difficulty;
 
-    const recipes = await prisma.recipe.findMany({
-      where,
-      include: {
-        steps: { orderBy: { order: 'asc' } },
-        product: { select: { id: true, name: true, slug: true, imageUrl: true } },
-      },
-      orderBy: [{ isPremium: 'asc' }, { method: 'asc' }, { title: 'asc' }],
-    });
+    const orderBy: Prisma.RecipeOrderByWithRelationInput[] = [{ isPremium: 'asc' }];
+    if (sortBy === 'title') {
+      orderBy.push({ title: sortOrder === 'desc' ? 'desc' : 'asc' });
+    } else if (sortBy === 'prepTime') {
+      orderBy.push({ prepTime: sortOrder === 'desc' ? 'desc' : 'asc' });
+    } else if (sortBy === 'difficulty') {
+      orderBy.push({ difficulty: sortOrder === 'desc' ? 'desc' : 'asc' });
+    } else {
+      orderBy.push({ method: 'asc' }, { title: 'asc' });
+    }
 
-    const hasPremium = recipes.some(r => r.isPremium);
+    const hasPremium = recipes.some((r) => r.isPremium);
     let hasAccess = false;
     if (hasPremium) {
       const authHeader = req.headers.authorization;
       hasAccess = await hasRecipeAccess(authHeader);
     }
 
-    const gated = hasPremium && !hasAccess
-      ? recipes.map(r => r.isPremium ? lockRecipe(r) : r)
-      : recipes;
+    const gated =
+      hasPremium && !hasAccess ? recipes.map((r) => (r.isPremium ? lockRecipe(r) : r)) : recipes;
 
     res.json({ data: gated });
   } catch (err) {
@@ -137,7 +146,8 @@ router.get('/by-slug/:slug', async (req: Request, res: Response) => {
         product: { select: { id: true, name: true, slug: true, imageUrl: true } },
       },
     });
-    if (!recipe || !recipe.isPublished) return res.status(404).json({ error: 'Receta no encontrada' });
+    if (!recipe || !recipe.isPublished)
+      return res.status(404).json({ error: 'Receta no encontrada' });
 
     if (recipe.isPremium && !(await hasRecipeAccess(req.headers.authorization))) {
       return res.json({ data: lockRecipe(recipe) });
@@ -146,6 +156,36 @@ router.get('/by-slug/:slug', async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener receta' });
+  }
+});
+
+// GET /:id/related — related recipes by same method or difficulty
+router.get('/:id/related', async (req: Request, res: Response) => {
+  try {
+    const recipe = await prisma.recipe.findUnique({
+      where: { id: req.params.id },
+      select: { method: true, difficulty: true },
+    });
+    if (!recipe) return res.status(404).json({ error: 'Receta no encontrada' });
+
+    const related = await prisma.recipe.findMany({
+      where: {
+        id: { not: req.params.id },
+        isPublished: true,
+        OR: [{ method: recipe.method }, { difficulty: recipe.difficulty }],
+      },
+      include: {
+        steps: { orderBy: { order: 'asc' }, take: 1, select: { id: true } },
+        product: { select: { id: true, name: true, slug: true, imageUrl: true } },
+      },
+      take: 6,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({ data: related });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener recetas relacionadas' });
   }
 });
 
@@ -159,7 +199,8 @@ router.get('/:id', async (req: Request, res: Response) => {
         product: { select: { id: true, name: true, slug: true, imageUrl: true } },
       },
     });
-    if (!recipe || !recipe.isPublished) return res.status(404).json({ error: 'Receta no encontrada' });
+    if (!recipe || !recipe.isPublished)
+      return res.status(404).json({ error: 'Receta no encontrada' });
 
     if (recipe.isPremium && !(await hasRecipeAccess(req.headers.authorization))) {
       return res.json({ data: lockRecipe(recipe) });
@@ -177,9 +218,19 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const {
-      title, slug, description, method, difficulty = 'MEDIA',
-      prepTime, yield: yieldAmount, temp, grind, ratio,
-      isPremium = false, isPublished = false, productId,
+      title,
+      slug,
+      description,
+      method,
+      difficulty = 'MEDIA',
+      prepTime,
+      yield: yieldAmount,
+      temp,
+      grind,
+      ratio,
+      isPremium = false,
+      isPublished = false,
+      productId,
     } = req.body;
 
     if (!title?.trim() || !slug?.trim() || !method?.trim()) {
@@ -209,7 +260,8 @@ router.post('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
   } catch (err: unknown) {
     console.error(err);
     const code = getErrorCode(err);
-    if (code === 'P2002') return res.status(409).json({ error: 'Ya existe una receta con ese slug' });
+    if (code === 'P2002')
+      return res.status(409).json({ error: 'Ya existe una receta con ese slug' });
     res.status(500).json({ error: 'Error al crear receta' });
   }
 });
@@ -218,9 +270,19 @@ router.post('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
 router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const {
-      title, slug, description, method, difficulty,
-      prepTime, yield: yieldAmount, temp, grind, ratio,
-      isPremium, isPublished, productId,
+      title,
+      slug,
+      description,
+      method,
+      difficulty,
+      prepTime,
+      yield: yieldAmount,
+      temp,
+      grind,
+      ratio,
+      isPremium,
+      isPublished,
+      productId,
     } = req.body;
 
     const data: Prisma.RecipeUncheckedUpdateInput = {};
@@ -241,7 +303,10 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
     const recipe = await prisma.recipe.update({
       where: { id: req.params.id },
       data,
-      include: { steps: { orderBy: { order: 'asc' } }, product: { select: { id: true, name: true, slug: true } } },
+      include: {
+        steps: { orderBy: { order: 'asc' } },
+        product: { select: { id: true, name: true, slug: true } },
+      },
     });
 
     res.json({ data: recipe });
@@ -306,14 +371,17 @@ router.post('/admin/:id/steps', requireAuth, async (req: AuthRequest, res: Respo
 router.put('/admin/:id/steps/reorder', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { stepIds } = req.body as { stepIds: string[] };
-    if (!Array.isArray(stepIds)) return res.status(400).json({ error: 'stepIds debe ser un arreglo' });
+    if (!Array.isArray(stepIds))
+      return res.status(400).json({ error: 'stepIds debe ser un arreglo' });
 
     // Two-phase update to avoid unique constraint collision on (recipeId, order)
     await prisma.$transaction(
-      stepIds.map((id, i) => prisma.recipeStep.update({ where: { id }, data: { order: 1000 + i } }))
+      stepIds.map((id, i) =>
+        prisma.recipeStep.update({ where: { id }, data: { order: 1000 + i } }),
+      ),
     );
     await prisma.$transaction(
-      stepIds.map((id, i) => prisma.recipeStep.update({ where: { id }, data: { order: i + 1 } }))
+      stepIds.map((id, i) => prisma.recipeStep.update({ where: { id }, data: { order: i + 1 } })),
     );
 
     const steps = await prisma.recipeStep.findMany({
@@ -341,7 +409,9 @@ router.put('/admin/:id/steps/:stepId', requireAuth, async (req: AuthRequest, res
       } else {
         const durationNum = parseInt(duration);
         if (isNaN(durationNum) || durationNum < 5 || durationNum > 3600) {
-          return res.status(400).json({ error: 'duration debe ser número entre 5 y 3600 segundos' });
+          return res
+            .status(400)
+            .json({ error: 'duration debe ser número entre 5 y 3600 segundos' });
         }
         data.duration = durationNum;
       }
@@ -364,9 +434,11 @@ router.delete('/admin/:id/steps/:stepId', requireAuth, async (req: AuthRequest, 
       where: { recipeId: req.params.id },
       orderBy: { order: 'asc' },
     });
-    type S = typeof remaining[number];
+    type S = (typeof remaining)[number];
     await prisma.$transaction(
-      remaining.map((s: S, i: number) => prisma.recipeStep.update({ where: { id: s.id }, data: { order: i + 1 } }))
+      remaining.map((s: S, i: number) =>
+        prisma.recipeStep.update({ where: { id: s.id }, data: { order: i + 1 } }),
+      ),
     );
 
     res.json({ success: true });

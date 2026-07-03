@@ -75,6 +75,7 @@ export default function Recipes() {
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<string>('default');
   const { toggle: toggleFavorite, isFavorite } = useRecipeFavorites();
   const { hasBrewed } = useBrewedRecipes();
 
@@ -145,11 +146,24 @@ export default function Recipes() {
     return () => clearInterval(interval);
   }, [timerState]);
 
-  const filtered = recipes.filter((r) => {
-    if (methodFilter !== 'TODOS' && r.method !== methodFilter) return false;
-    if (difficultyFilter !== 'TODOS' && r.difficulty !== difficultyFilter) return false;
-    return true;
-  });
+  const filtered = recipes
+    .filter((r) => {
+      if (methodFilter !== 'TODOS' && r.method !== methodFilter) return false;
+      if (difficultyFilter !== 'TODOS' && r.difficulty !== difficultyFilter) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'title') return a.title.localeCompare(b.title);
+      if (sortBy === 'prepTime') return (a.prepTime ?? 999) - (b.prepTime ?? 999);
+      if (sortBy === 'difficulty') {
+        const order = { FÁCIL: 1, MEDIA: 2, DIFÍCIL: 3 };
+        return (
+          (order[a.difficulty as keyof typeof order] ?? 2) -
+          (order[b.difficulty as keyof typeof order] ?? 2)
+        );
+      }
+      return 0;
+    });
 
   const searched = filtered.filter(
     (r) =>
@@ -358,6 +372,22 @@ export default function Recipes() {
               </button>
             </div>
           )}
+        </div>
+
+        <div className="flex justify-end mb-4">
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1);
+            }}
+            className="text-xs px-3 py-1.5 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream focus:outline-none focus:border-gold-500 transition-colors"
+          >
+            <option value="default">Orden: por defecto</option>
+            <option value="title">Nombre A-Z</option>
+            <option value="prepTime">Tiempo (menor)</option>
+            <option value="difficulty">Dificultad</option>
+          </select>
         </div>
 
         {(methodFilter !== 'TODOS' || difficultyFilter !== 'TODOS' || search !== '') && (

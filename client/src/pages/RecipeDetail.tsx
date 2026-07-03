@@ -55,6 +55,7 @@ export default function RecipeDetail() {
   const [userRating, setUserRating] = useState(0);
   const [userComment, setUserComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]);
   const { toggle: toggleFavorite, isFavorite } = useRecipeFavorites();
 
   useEffect(() => {
@@ -71,6 +72,14 @@ export default function RecipeDetail() {
         setLoading(false);
       });
   }, [slug]);
+
+  useEffect(() => {
+    if (!recipe) return;
+    recipesApi
+      .getRelated(recipe.id)
+      .then((r) => setRelatedRecipes(r.data.data))
+      .catch(() => {});
+  }, [recipe]);
 
   useEffect(() => {
     if (!recipe) return;
@@ -509,6 +518,40 @@ export default function RecipeDetail() {
                   Sé el primero en valorar esta receta.
                 </p>
               )}
+            </div>
+          </motion.div>
+        )}
+
+        {relatedRecipes.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-12"
+          >
+            <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">
+              Recetas relacionadas
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {relatedRecipes.map((r) => (
+                <Link
+                  key={r.id}
+                  to={`/recetas/${r.slug}`}
+                  className="p-4 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/50 transition-colors"
+                >
+                  <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">
+                    {r.title}
+                  </p>
+                  <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-1">{r.method}</p>
+                  {r.difficulty && (
+                    <span
+                      className={`inline-block text-xs px-1.5 py-0.5 mt-2 border rounded-sm ${DIFFICULTY_COLORS[r.difficulty] ?? ''}`}
+                    >
+                      {r.difficulty}
+                    </span>
+                  )}
+                </Link>
+              ))}
             </div>
           </motion.div>
         )}

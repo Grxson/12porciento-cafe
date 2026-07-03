@@ -48,6 +48,8 @@ model Product {
   tastingNotes          String?
   pairingSuggestions    String?
   isMemberExclusive     Boolean     @default(false)
+  caficultorId          String?
+  caficultor            Caficultor? @relation(fields: [caficultorId], references: [id])
   createdAt             DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   orderItems        OrderItem[]
@@ -62,6 +64,8 @@ model Product {
   pricingConfig  PricingConfig?
   versions        ProductVersion[]
   b2bPriceTiers B2BPriceTier[]
+
+  @@index([caficultorId])
 }
 
 model StockMovement {
@@ -544,6 +548,32 @@ model B2BInquiry {
   @@index([status])
 }
 
+model TipoCata {
+  id           String       @id @default(cuid())
+  nombre       String       @unique
+  categoria    String?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  caficultores Caficultor[] @relation("CaficultorTiposCata")
+
+  @@index([nombre])
+  @@index([categoria])
+}
+
+model Ubicacion {
+  id        String   @id @default(cuid())
+  nombre    String
+  pais      String
+  estado    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lotes     Lote[]
+
+  @@index([nombre])
+  @@index([pais, estado])
+}
+
 model Caficultor {
   id              String    @id @default(cuid())
   nombre          String
@@ -562,6 +592,8 @@ model Caficultor {
   updatedAt       DateTime  @updatedAt
   lotes           Lote[]
   productVersions ProductVersion[]
+  products        Product[]
+  tiposCata       TipoCata[] @relation("CaficultorTiposCata")
 }
 
 model Lote {
@@ -570,6 +602,8 @@ model Lote {
   product         Product   @relation(fields: [productId], references: [id])
   caficultorId    String?
   caficultor      Caficultor? @relation(fields: [caficultorId], references: [id])
+  ubicacionId     String?
+  ubicacion       Ubicacion? @relation(fields: [ubicacionId], references: [id])
   batchNumber     String    @unique
   quantity        Int
   costPerKg       Float?
@@ -598,6 +632,9 @@ model Lote {
 
   @@index([productId])
   @@index([status])
+  @@index([caficultorId])
+  @@index([supplier])
+  @@index([ubicacionId])
 }
 
 model ProductVersion {

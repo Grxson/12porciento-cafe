@@ -9,15 +9,25 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const pageSize = parseInt(req.query.pageSize as string) || 20;
+    const search = req.query.search as string | undefined;
     const isActiveParam = req.query.isActive as string | undefined;
 
     const where: Record<string, unknown> = {};
     if (isActiveParam !== undefined) where.isActive = isActiveParam === 'true';
+    if (search) {
+      where.OR = [
+        { nombre: { contains: search, mode: 'insensitive' } },
+        { region: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     const [data, total] = await Promise.all([
       prisma.caficultor.findMany({
         where,
-        include: { _count: { select: { lotes: true } } },
+        include: {
+          _count: { select: { lotes: true } },
+          tiposCata: { select: { id: true, nombre: true, categoria: true } },
+        },
         orderBy: { nombre: 'asc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -42,7 +52,8 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
-        _count: { select: { lotes: true } },
+        _count: { select: { lotes: true, products: true } },
+        tiposCata: { select: { id: true, nombre: true, categoria: true } },
       },
     });
     if (!c) return res.status(404).json({ error: 'Caficultor no encontrado' });
@@ -67,6 +78,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       modalidad,
       fairTrade,
       notas,
+      tipoCataIds,
     } = req.body;
     if (!nombre?.trim() || !region?.trim()) {
       return res.status(400).json({ error: 'Nombre y región son requeridos' });
@@ -84,6 +96,9 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
         modalidad: modalidad || 'DIRECTO',
         fairTrade: fairTrade === true || fairTrade === 'true',
         notas: notas?.trim() || null,
+        tiposCata: tipoCataIds?.length
+          ? { connect: tipoCataIds.map((id: string) => ({ id })) }
+          : undefined,
       },
     });
     await logAdminAction({
@@ -117,6 +132,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       fairTrade,
       notas,
       isActive,
+      tipoCataIds,
     } = req.body;
     const updated = await prisma.caficultor.update({
       where: { id: req.params.id },
@@ -136,6 +152,10 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
         notas: notas?.trim() ?? exists.notas,
         isActive:
           isActive !== undefined ? isActive === true || isActive === 'true' : exists.isActive,
+        tiposCata:
+          tipoCataIds !== undefined
+            ? { set: tipoCataIds.map((id: string) => ({ id })) }
+            : undefined,
       },
     });
     await logAdminAction({

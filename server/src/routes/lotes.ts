@@ -5,6 +5,30 @@ import { logAdminAction } from '../lib/adminLog';
 
 const router = Router();
 
+function includeClause() {
+  return {
+    product: { select: { id: true, name: true, sku: true } },
+    caficultor: { select: { id: true, nombre: true, region: true } },
+    ubicacion: { select: { id: true, nombre: true, pais: true, estado: true } },
+  };
+}
+
+// GET /api/lotes/suppliers — distinct supplier list
+router.get('/suppliers', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const result = await prisma.lote.findMany({
+      where: { supplier: { not: null } },
+      select: { supplier: true },
+      distinct: ['supplier'],
+      orderBy: { supplier: 'asc' },
+    });
+    res.json({ data: result.map((r) => r.supplier) });
+  } catch (err) {
+    console.error('[lotes] GET /suppliers', err);
+    res.status(500).json({ error: 'Error al obtener proveedores' });
+  }
+});
+
 // GET /api/lotes — paginated list with filters
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
@@ -12,15 +36,24 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const pageSize = parseInt(req.query.pageSize as string) || 20;
     const status = req.query.status as string | undefined;
     const productId = req.query.productId as string | undefined;
+    const caficultorId = req.query.caficultorId as string | undefined;
+    const search = req.query.search as string | undefined;
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
     if (productId) where.productId = productId;
+    if (caficultorId) where.caficultorId = caficultorId;
+    if (search) {
+      where.OR = [
+        { batchNumber: { contains: search, mode: 'insensitive' } },
+        { supplier: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     const [data, total] = await Promise.all([
       prisma.lote.findMany({
         where,
-        include: { product: { select: { id: true, name: true, sku: true } } },
+        include: includeClause(),
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -40,7 +73,10 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const lote = await prisma.lote.findUnique({
       where: { id: req.params.id },
-      include: { product: { select: { id: true, name: true, sku: true, stock: true } } },
+      include: {
+        ...includeClause(),
+        product: { select: { id: true, name: true, sku: true, stock: true } },
+      },
     });
     if (!lote) return res.status(404).json({ error: 'Lote no encontrado' });
     res.json({ data: lote });
@@ -61,6 +97,8 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       unitCost,
       supplier,
       origin,
+      caficultorId,
+      ubicacionId,
       receivedAt,
       expiryDate,
       notes,
@@ -68,6 +106,12 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
     if (!productId || !batchNumber || !quantity) {
       return res.status(400).json({ error: 'productId, batchNumber y quantity son requeridos' });
+    }
+
+    // Auto-prefix LOT if batchNumber doesn't start with it
+    const upper = (batchNumber as string).toUpperCase();
+    if (!upper.startsWith('LOT')) {
+      batchNumber = `LOT-${batchNumber}`;
     }
 
     const lote = await prisma.lote.create({
@@ -79,6 +123,8 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
         unitCost: unitCost ? parseFloat(unitCost) : null,
         supplier: supplier || null,
         origin: origin || null,
+        caficultorId: caficultorId || null,
+        ubicacionId: ubicacionId || null,
         receivedAt: receivedAt ? new Date(receivedAt) : undefined,
         expiryDate: expiryDate ? new Date(expiryDate) : null,
         notes: notes || null,
@@ -125,6 +171,8 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       unitCost,
       supplier,
       origin,
+      caficultorId,
+      ubicacionId,
     } = req.body;
 
     const updated = await prisma.lote.update({
@@ -144,6 +192,8 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
         unitCost: unitCost != null ? parseFloat(unitCost) : lote.unitCost,
         supplier: supplier ?? lote.supplier,
         origin: origin ?? lote.origin,
+        caficultorId: caficultorId !== undefined ? caficultorId || null : lote.caficultorId,
+        ubicacionId: ubicacionId !== undefined ? ubicacionId || null : lote.ubicacionId,
       },
     });
 

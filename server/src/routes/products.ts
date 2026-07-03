@@ -205,6 +205,7 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
     if (req.query.isActive === 'true') where.isActive = true;
     if (req.query.isActive === 'false') where.isActive = false;
     if (category && category !== 'TODOS') where.category = category;
+    if (req.query.caficultorId) where.caficultorId = req.query.caficultorId as string;
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -214,7 +215,13 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
     }
 
     const [products, total] = await Promise.all([
-      prisma.product.findMany({ where, skip, take: pageSize, orderBy: { createdAt: 'desc' } }),
+      prisma.product.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+        include: { caficultor: { select: { id: true, nombre: true, region: true } } },
+      }),
       prisma.product.count({ where }),
     ]);
     res.json({
@@ -309,6 +316,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       costPrice,
       supplier,
       minOrderQty,
+      caficultorId,
       ...data
     } = req.body;
     const product = await prisma.product.create({
@@ -320,6 +328,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
         costPrice: costPrice !== undefined && costPrice !== '' ? parseFloat(costPrice) : null,
         supplier: supplier?.trim() || null,
         minOrderQty: minOrderQty ? parseInt(minOrderQty) : 1,
+        caficultorId: caficultorId || null,
       },
     });
     logAdminAction({
@@ -331,12 +340,10 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     });
     res.status(201).json(parseProduct(product));
   } catch (e: unknown) {
-    res
-      .status(500)
-      .json({
-        error: 'Error al crear producto',
-        detail: e instanceof Error ? e.message : undefined,
-      });
+    res.status(500).json({
+      error: 'Error al crear producto',
+      detail: e instanceof Error ? e.message : undefined,
+    });
   }
 });
 
@@ -356,13 +363,14 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
       costPrice,
       supplier,
       minOrderQty,
+      caficultorId,
       ...data
     } = req.body;
 
-    // Fetch old price for PriceRecord logging
+    // Fetch old product for price logging + current caficultorId
     const oldProduct = await prisma.product.findUnique({
       where: { id: req.params.id },
-      select: { price: true },
+      select: { price: true, caficultorId: true },
     });
 
     const product = await prisma.product.update({
@@ -381,6 +389,7 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
         ...(minOrderQty !== undefined && {
           minOrderQty: minOrderQty ? parseInt(minOrderQty) : null,
         }),
+        caficultorId: caficultorId !== undefined ? caficultorId || null : oldProduct?.caficultorId,
       },
     });
 
@@ -403,12 +412,10 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     });
     res.json(parseProduct(product));
   } catch (e: unknown) {
-    res
-      .status(500)
-      .json({
-        error: 'Error al actualizar producto',
-        detail: e instanceof Error ? e.message : undefined,
-      });
+    res.status(500).json({
+      error: 'Error al actualizar producto',
+      detail: e instanceof Error ? e.message : undefined,
+    });
   }
 });
 

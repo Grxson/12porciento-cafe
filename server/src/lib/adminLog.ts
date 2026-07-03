@@ -15,7 +15,9 @@ export type AdminEntity =
   | 'Caficultor'
   | 'PricingConfig'
   | 'ProductVersion'
-  | 'B2BPriceTier';
+  | 'B2BPriceTier'
+  | 'Ubicacion'
+  | 'TipoCata';
 
 export interface LogAdminActionParams {
   adminId?: string;

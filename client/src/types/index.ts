@@ -322,6 +322,14 @@ export interface RecipeRating {
   createdAt: string;
 }
 
+export interface RecipeFavorite {
+  id: string;
+  userId: string;
+  recipeId: string;
+  createdAt: string;
+  recipe: Recipe;
+}
+
 export interface GiftCard {
   id: string;
   code: string;

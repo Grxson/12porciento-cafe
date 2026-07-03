@@ -1,8 +1,7 @@
 import api from './index';
 
 export const baristaApi = {
-  getProfile: (userId: string) =>
-    api.get(`/barista/${userId}/profile`),
+  getProfile: (userId: string) => api.get(`/barista/${userId}/profile`),
 
   submitBrewLog: (data: {
     recipeId: string;
@@ -15,12 +14,12 @@ export const baristaApi = {
   getLeaderboard: (limit = 50, period = 'all-time') =>
     api.get('/barista/leaderboard', { params: { limit, period } }),
 
-  getAchievements: () =>
-    api.get('/barista/achievements'),
+  getAchievements: () => api.get('/barista/achievements'),
 
   getUserBrews: (userId: string, params?: { recipeId?: string; limit?: string; page?: string }) =>
     api.get(`/barista/${userId}/brews`, { params }),
 
-  getStats: (userId: string) =>
-    api.get(`/barista/${userId}/stats`),
+  getBrewedRecipeIds: () => api.get('/barista/me/brewed-ids'),
+
+  getStats: (userId: string) => api.get(`/barista/${userId}/stats`),
 };

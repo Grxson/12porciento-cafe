@@ -371,6 +371,22 @@ router.get('/achievements', async (req: Request, res: Response) => {
   }
 });
 
+// GET /barista/me/brewed-ids — lightweight list of recipe IDs the user has brewed
+router.get('/me/brewed-ids', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const brews = await prisma.brewLog.findMany({
+      where: { userId },
+      select: { recipeId: true },
+      distinct: ['recipeId'],
+    });
+    res.json({ data: brews.map((b) => b.recipeId) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener recetas preparadas' });
+  }
+});
+
 // GET /barista/:userId/brews — MUST be before /:userId/profile
 router.get('/:userId/brews', async (req: Request, res: Response) => {
   try {

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import {
   Coffee,
   GlassWater,
+  Heart,
   Snowflake,
   Wrench,
   Lock,
@@ -20,6 +21,7 @@ import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
 import AttemptsList from '../components/recipes/AttemptsList';
 import { downloadRecipePDF } from '../utils/recipePdf';
+import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
 import { PageMeta } from '../hooks/usePageMeta';
 
 function MethodIcon({ method }: { method: string }) {
@@ -53,6 +55,7 @@ export default function RecipeDetail() {
   const [userRating, setUserRating] = useState(0);
   const [userComment, setUserComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { toggle: toggleFavorite, isFavorite } = useRecipeFavorites();
 
   useEffect(() => {
     if (!slug) return;
@@ -196,6 +199,13 @@ export default function RecipeDetail() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => toggleFavorite(recipe.id)}
+                className={`p-2 transition-colors ${isFavorite(recipe.id) ? 'text-red-500 hover:text-red-400' : 'text-coffee-600 dark:text-coffee-400 hover:text-red-400'}`}
+                title={isFavorite(recipe.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+              >
+                <Heart className={`w-5 h-5 ${isFavorite(recipe.id) ? 'fill-current' : ''}`} />
+              </button>
               {!isLocked && (
                 <>
                   <button

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GlassWater,
+  Heart,
   Lock,
   Star,
   Clock,
@@ -18,6 +19,8 @@ import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
 import AttemptsList from '../components/recipes/AttemptsList';
 import { downloadRecipePDF } from '../utils/recipePdf';
+import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
+import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
 import { PageMeta } from '../hooks/usePageMeta';
 
 function MethodIcon({ method }: { method: string }) {
@@ -72,6 +75,8 @@ export default function Recipes() {
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const { toggle: toggleFavorite, isFavorite } = useRecipeFavorites();
+  const { hasBrewed } = useBrewedRecipes();
 
   useEffect(() => {
     setError(null);
@@ -445,6 +450,11 @@ export default function Recipes() {
                             Premium
                           </span>
                         )}
+                        {hasBrewed(recipe.id) && (
+                          <span className="text-xs px-1.5 py-0.5 bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 shrink-0">
+                            ☕ Ya preparaste
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-xs text-coffee-600 dark:text-coffee-400">
@@ -467,6 +477,16 @@ export default function Recipes() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(recipe.id);
+                      }}
+                      className={`p-1.5 transition-colors ${isFavorite(recipe.id) ? 'text-red-500 hover:text-red-400' : 'text-coffee-600 dark:text-coffee-400 hover:text-red-400'}`}
+                      title={isFavorite(recipe.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+                    >
+                      <Heart className={`w-4 h-4 ${isFavorite(recipe.id) ? 'fill-current' : ''}`} />
+                    </button>
                     {!isLocked && (
                       <button
                         onClick={(e) => {

@@ -10,6 +10,7 @@ import type {
   WishlistItem,
   Product,
   RecipeRating,
+  RecipeFavorite,
   GiftCard,
   AbandonedCart,
   Bundle,
@@ -430,6 +431,12 @@ export const recipeRatingsApi = {
   upsert: (recipeId: string, data: { rating: number; comment?: string }) =>
     api.post(`/recipe-ratings/${recipeId}`, data),
   remove: (recipeId: string) => api.delete(`/recipe-ratings/${recipeId}`),
+};
+
+export const recipeFavoritesApi = {
+  list: () => api.get<{ data: RecipeFavorite[] }>('/recipe-favorites'),
+  add: (recipeId: string) => api.post(`/recipe-favorites/${recipeId}`),
+  remove: (recipeId: string) => api.delete(`/recipe-favorites/${recipeId}`),
 };
 
 export const abandonedCartApi = {

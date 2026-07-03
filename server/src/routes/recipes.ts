@@ -74,13 +74,20 @@ function lockRecipe(recipe: { steps: Array<Record<string, unknown>>; [key: strin
 // GET / — list published recipes; premium ones gated behind subscription
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { method, productId, premium, difficulty, sortBy, sortOrder } = req.query;
+    const { method, productId, premium, difficulty, sortBy, sortOrder, search } = req.query;
     const where: Prisma.RecipeWhereInput = { isPublished: true };
     if (method) where.method = method as string;
     if (productId) where.productId = productId as string;
     if (premium === 'true') where.isPremium = true;
     if (premium === 'false') where.isPremium = false;
     if (difficulty && typeof difficulty === 'string') where.difficulty = difficulty;
+    if (search && typeof search === 'string') {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { method: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     const orderBy: Prisma.RecipeOrderByWithRelationInput[] = [{ isPremium: 'asc' }];
     if (sortBy === 'title') {
@@ -93,6 +100,26 @@ router.get('/', async (req: Request, res: Response) => {
       orderBy.push({ method: 'asc' }, { title: 'asc' });
     }
 
+    const { page: pageQuery, pageSize: pageSizeQuery } = req.query;
+    const page = Math.max(1, parseInt(pageQuery as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(pageSizeQuery as string) || 50));
+    const skip = (page - 1) * pageSize;
+
+    const [recipes, total] = await Promise.all([
+      prisma.recipe.findMany({
+        where,
+        include: {
+          steps: { orderBy: { order: 'asc' } },
+          product: { select: { id: true, name: true, slug: true, imageUrl: true } },
+          ratings: { select: { rating: true } },
+        },
+        orderBy,
+        skip,
+        take: pageSize,
+      }),
+      prisma.recipe.count({ where }),
+    ]);
+
     const hasPremium = recipes.some((r) => r.isPremium);
     let hasAccess = false;
     if (hasPremium) {
@@ -103,7 +130,7 @@ router.get('/', async (req: Request, res: Response) => {
     const gated =
       hasPremium && !hasAccess ? recipes.map((r) => (r.isPremium ? lockRecipe(r) : r)) : recipes;
 
-    res.json({ data: gated });
+    res.json({ data: gated, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener recetas' });

@@ -142,7 +142,14 @@ export const recipesApi = {
     difficulty?: string;
     sortBy?: string;
     sortOrder?: string;
-  }) => api.get<{ data: Recipe[] }>('/recipes', { params }),
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }) =>
+    api.get<{ data: Recipe[]; total: number; page: number; pageSize: number; totalPages: number }>(
+      '/recipes',
+      { params },
+    ),
   getById: (id: string) => api.get<{ data: Recipe }>(`/recipes/${id}`),
   getBySlug: (slug: string) => api.get<{ data: Recipe }>(`/recipes/by-slug/${slug}`),
   getRelated: (id: string) => api.get<{ data: Recipe[] }>(`/recipes/${id}/related`),

@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { prisma } from '../lib/prisma';
+import { prisma } from '../db';
 import { requireUserAuth } from '../middleware/userAuth';
 import type { UserAuthRequest } from '../middleware/userAuth';
 

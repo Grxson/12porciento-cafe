@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { recipesApi } from '../api';
 import { useUser } from '../context/UserContext';
-import type { Recipe } from '../types';
+import type { Recipe, RecipeStep } from '../types';
 import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
 import AttemptsList from '../components/recipes/AttemptsList';
@@ -67,6 +67,8 @@ export default function Recipes() {
   const [methodFilter, setMethodFilter] = useState<string>('TODOS');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('TODOS');
   const [search, setSearch] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [timerState, setTimerState] = useState<{
     recipeId: string;
     stepIndex: number;
@@ -74,24 +76,42 @@ export default function Recipes() {
   } | null>(null);
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(12);
+  const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState<string>('default');
   const { toggle: toggleFavorite, isFavorite } = useRecipeFavorites();
   const { hasBrewed } = useBrewedRecipes();
 
-  useEffect(() => {
+  const fetchRecipes = useCallback(() => {
     setError(null);
+    const params: Record<string, string | number | undefined> = { page, pageSize };
+    if (methodFilter !== 'TODOS') params.method = methodFilter;
+    if (difficultyFilter !== 'TODOS') params.difficulty = difficultyFilter;
+    if (debouncedSearch) params.search = debouncedSearch;
+    if (sortBy !== 'default') {
+      params.sortBy = sortBy;
+    }
     recipesApi
-      .list()
+      .list(params as Parameters<typeof recipesApi.list>[0])
       .then((r) => {
         setRecipes(r.data.data);
+        setTotalPages(r.data.totalPages);
+        setPageSize(r.data.pageSize);
         setLoading(false);
       })
       .catch(() => {
         setError('No se pudieron cargar las recetas.');
         setLoading(false);
       });
-  }, []);
+  }, [methodFilter, difficultyFilter, debouncedSearch, sortBy, page, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [methodFilter, difficultyFilter, debouncedSearch, sortBy]);
+
+  useEffect(() => {
+    fetchRecipes();
+  }, [fetchRecipes]);
 
   // R7: URL filters persistent — read from URL on mount
   useEffect(() => {
@@ -102,7 +122,10 @@ export default function Recipes() {
 
     if (method) setMethodFilter(method);
     if (difficulty) setDifficultyFilter(difficulty);
-    if (searchQuery) setSearch(decodeURIComponent(searchQuery));
+    if (searchQuery) {
+      setSearch(decodeURIComponent(searchQuery));
+      setDebouncedSearch(decodeURIComponent(searchQuery));
+    }
   }, []); // run once on mount
 
   // R7: Update URL when filters change
@@ -115,6 +138,15 @@ export default function Recipes() {
     const newUrl = params.toString() ? `?${params.toString()}` : '';
     window.history.replaceState(null, '', newUrl);
   }, [methodFilter, difficultyFilter, search]);
+
+  // Debounce search input before triggering API call
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [search]);
 
   useEffect(() => {
     if (!timerState || timerState.secondsLeft <= 0) return;
@@ -146,54 +178,7 @@ export default function Recipes() {
     return () => clearInterval(interval);
   }, [timerState]);
 
-  const filtered = recipes
-    .filter((r) => {
-      if (methodFilter !== 'TODOS' && r.method !== methodFilter) return false;
-      if (difficultyFilter !== 'TODOS' && r.difficulty !== difficultyFilter) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      if (sortBy === 'prepTime') return (a.prepTime ?? 999) - (b.prepTime ?? 999);
-      if (sortBy === 'difficulty') {
-        const order = { FÁCIL: 1, MEDIA: 2, DIFÍCIL: 3 };
-        return (
-          (order[a.difficulty as keyof typeof order] ?? 2) -
-          (order[b.difficulty as keyof typeof order] ?? 2)
-        );
-      }
-      return 0;
-    });
-
-  const searched = filtered.filter(
-    (r) =>
-      search === '' ||
-      r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.method.toLowerCase().includes(search.toLowerCase()) ||
-      r.description?.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  // R13: Pagination
-  const startIdx = (page - 1) * pageSize;
-  const endIdx = startIdx + pageSize;
-
-  const visible = hasSubscription
-    ? searched.slice(startIdx, endIdx)
-    : (() => {
-        const free = searched.filter((r) => !r.isPremium);
-        const premium = searched.filter((r) => r.isPremium);
-        return [...free.slice(0, 2), ...premium].slice(startIdx, endIdx);
-      })();
-
-  const freeLimit = !hasSubscription && searched.filter((r) => !r.isPremium).length > 2;
-  const totalPages = Math.ceil(
-    (hasSubscription
-      ? searched.length
-      : [
-          ...searched.filter((r) => !r.isPremium).slice(0, 2),
-          ...searched.filter((r) => r.isPremium),
-        ].length) / pageSize,
-  );
+  const freeLimit = !hasSubscription && recipes.filter((r) => !r.isPremium).length > 2;
   const hasMore = page < totalPages;
 
   // MUST be before early returns — hook #19
@@ -440,14 +425,14 @@ export default function Recipes() {
           </div>
         )}
 
-        {visible.length === 0 && !loading && (
+        {recipes.length === 0 && !loading && (
           <p className="text-coffee-500 dark:text-coffee-400 text-center py-12">
-            No hay recetas con esos filtros. Intenta otra combinación.
+            No hay recetas con esos filtros.
           </p>
         )}
 
         <div className="space-y-4">
-          {visible.map((recipe) => {
+          {recipes.map((recipe: Recipe) => {
             const isLocked = recipe.isPremium && !hasSubscription;
             const isExpanded = expandedId === recipe.id;
 
@@ -620,7 +605,7 @@ export default function Recipes() {
                         )}
 
                         <div className="space-y-5">
-                          {recipe.steps.map((step, i) => (
+                          {recipe.steps.map((step: RecipeStep, i: number) => (
                             <div key={step.id} className="flex gap-4">
                               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center">
                                 <span className="text-gold-600 dark:text-gold-400 text-xs font-bold">
@@ -672,7 +657,7 @@ export default function Recipes() {
                                           Temporizador activo
                                         </p>
                                         <p className="text-3xl font-bold text-gold-600 dark:text-gold-400 font-mono">
-                                          {timerState.secondsLeft}s
+                                          {timerState!.secondsLeft}s
                                         </p>
                                       </div>
                                       <button
@@ -736,7 +721,7 @@ export default function Recipes() {
           <div className="mt-8 text-center border border-gold-500/20 bg-gold-500/5 p-6">
             <Lock className="w-8 h-8 text-gold-500 mx-auto mb-3" />
             <p className="text-coffee-900 dark:text-cream font-medium mb-1">
-              Estás viendo 2 de {filtered.filter((r) => !r.isPremium).length} recetas gratuitas
+              Estás viendo recetas gratuitas. Suscríbete para acceso completo.
             </p>
             <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">
               Suscríbete para ver todas las recetas + acceso a recetas premium exclusivas

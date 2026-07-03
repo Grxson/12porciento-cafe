@@ -82,6 +82,8 @@ export interface Product {
   tastingNotes?: string;
   pairingSuggestions?: string;
   isMemberExclusive: boolean;
+  caficultorId?: string | null;
+  caficultor?: { id: string; nombre: string; region: string } | null;
   versions?: ProductVersion[];
   createdAt: string;
   updatedAt: string;
@@ -255,6 +257,12 @@ export interface BaristaProfile {
   rankTitle?: string;
   streakData?: { date: string; count: number }[];
   currentStreak?: number;
+  longestStreak?: number;
+  avgRating?: number;
+  methodCounts?: Record<string, number>;
+  earlyBirdCount?: number;
+  nightOwlCount?: number;
+  weekendCount?: number;
   brewLogs: BrewLog[];
   achievements: AchievementUnlock[];
   createdAt: string;
@@ -395,6 +403,21 @@ export interface ProductWithPricing {
   calculated: PricingCalculation | null;
 }
 
+export interface TipoCata {
+  id: string;
+  nombre: string;
+  categoria: string | null;
+  isActive: boolean;
+}
+
+export interface Ubicacion {
+  id: string;
+  nombre: string;
+  pais: string;
+  estado: string | null;
+  isActive: boolean;
+}
+
 export type LoteStatus = 'CUARENTENA' | 'APROBADO' | 'RECHAZADO';
 
 export interface Lote {
@@ -402,6 +425,9 @@ export interface Lote {
   productId: string;
   product: { id: string; name: string; sku: string | null };
   caficultorId?: string | null;
+  caficultor?: { id: string; nombre: string; region: string } | null;
+  ubicacionId?: string | null;
+  ubicacion?: Ubicacion | null;
   batchNumber: string;
   quantity: number;
   costPerKg: number | null;
@@ -434,6 +460,7 @@ export interface LoteFormData {
   batchNumber: string;
   quantity: number;
   caficultorId?: string;
+  ubicacionId?: string;
   costPerKg?: number;
   unitCost?: number;
   supplier?: string;
@@ -457,6 +484,7 @@ export interface Caficultor {
   fairTrade: boolean;
   notas: string | null;
   isActive: boolean;
+  tiposCata?: TipoCata[];
   createdAt: string;
   _count?: { lotes: number };
 }

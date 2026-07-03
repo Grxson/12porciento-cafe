@@ -1,35 +1,32 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
-import { productsApi } from '../api';
-import type { Product } from '../types';
+import { caficultoresApi } from '../api';
+import type { Caficultor } from '../types';
 
 interface Props {
   value: string;
   onChange: (id: string) => void;
-  initialLabel: string;
+  initialLabel?: string;
   placeholder?: string;
-  excludeIds?: string[];
 }
 
-export default function SearchableProductSelect({
+export default function SearchableCaficultorSelect({
   value,
   onChange,
   initialLabel,
-  excludeIds,
+  placeholder,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [items, setItems] = useState<Caficultor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    productsApi
-      .list()
-      .then((r) => {
-        setProducts(r.data.data.filter((p: Product) => p.isActive));
-      })
+    caficultoresApi
+      .list({ pageSize: 100, isActive: 'true' })
+      .then((r) => setItems(r.data.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -44,16 +41,16 @@ export default function SearchableProductSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selected = products.find((p) => p.id === value);
-  const label = selected?.name ?? initialLabel ?? 'Seleccionar café';
+  const selected = items.find((c) => c.id === value);
+  const label = selected
+    ? `${selected.nombre} — ${selected.region}`
+    : (initialLabel ?? placeholder ?? 'Seleccionar caficultor');
 
-  const filtered = products.filter((p) => {
-    if (excludeIds?.includes(p.id)) return false;
-    return (
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.origin?.toLowerCase().includes(search.toLowerCase())
-    );
-  });
+  const filtered = items.filter(
+    (c) =>
+      c.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      c.region.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <div ref={containerRef} className="relative">
@@ -79,7 +76,7 @@ export default function SearchableProductSelect({
             <div className="border-b border-coffee-200 dark:border-coffee-700 p-2">
               <input
                 type="text"
-                placeholder="Buscar café..."
+                placeholder="Buscar caficultor..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-2 py-1.5 focus:outline-none focus:border-gold-500"
@@ -94,34 +91,32 @@ export default function SearchableProductSelect({
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="p-3 text-center text-coffee-500 dark:text-coffee-400 text-xs">
-                  {search ? 'Sin resultados' : 'No hay productos disponibles'}
+                  Sin resultados
                 </div>
               ) : (
-                filtered.map((product) => (
+                filtered.map((c) => (
                   <button
-                    key={product.id}
+                    key={c.id}
                     type="button"
                     onClick={() => {
-                      onChange(product.id);
+                      onChange(c.id);
                       setOpen(false);
                       setSearch('');
                     }}
                     className={`w-full px-3 py-2 text-sm text-left transition-colors ${
-                      product.id === value
+                      c.id === value
                         ? 'bg-gold-600/20 text-gold-500'
                         : 'text-coffee-900 dark:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{product.name}</p>
-                        {product.origin && (
-                          <p className="text-xs text-coffee-500 dark:text-coffee-400 truncate">
-                            {product.origin}
-                          </p>
-                        )}
+                        <p className="font-medium truncate">{c.nombre}</p>
+                        <p className="text-xs text-coffee-500 dark:text-coffee-400 truncate">
+                          {c.region}
+                        </p>
                       </div>
-                      {product.id === value && <span className="ml-2 text-gold-500">✓</span>}
+                      {c.id === value && <span className="ml-2 text-gold-500">✓</span>}
                     </div>
                   </button>
                 ))

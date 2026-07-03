@@ -373,7 +373,6 @@ export const uploadsApi = {
   upload: (file: File) => {
     const fd = new FormData();
     fd.append('image', file);
-    // Let axios set Content-Type with the multipart boundary (do not set it manually).
     return api.post<{ data: { url: string; thumbUrl: string } }>('/uploads', fd);
   },
 };
@@ -535,4 +534,23 @@ export const b2bApi = {
   deleteTier: (tierId: string) => api.delete(`/b2b/tiers/item/${tierId}`),
   orders: (params?: Record<string, unknown>) => api.get('/b2b/orders', { params }),
   inquiry: (data: Record<string, string>) => api.post('/b2b/inquiry', data),
+};
+
+export const ubicacionesApi = {
+  list: (params?: Record<string, unknown>) => api.get('/ubicaciones', { params }),
+  get: (id: string) => api.get(`/ubicaciones/${id}`),
+  create: (data: { nombre: string; pais?: string; tipo?: string }) =>
+    api.post('/ubicaciones', data),
+  update: (id: string, data: { nombre?: string; pais?: string; tipo?: string }) =>
+    api.put(`/ubicaciones/${id}`, data),
+  delete: (id: string) => api.delete(`/ubicaciones/${id}`),
+};
+
+export const tiposCataApi = {
+  list: (params?: Record<string, unknown>) => api.get('/tipos-cata', { params }),
+  get: (id: string) => api.get(`/tipos-cata/${id}`),
+  create: (data: { nombre: string; categoria?: string }) => api.post('/tipos-cata', data),
+  update: (id: string, data: { nombre?: string; categoria?: string; isActive?: boolean }) =>
+    api.put(`/tipos-cata/${id}`, data),
+  delete: (id: string) => api.delete(`/tipos-cata/${id}`),
 };

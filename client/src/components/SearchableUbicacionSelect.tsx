@@ -1,35 +1,33 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
-import { productsApi } from '../api';
-import type { Product } from '../types';
+import type { Ubicacion } from '../types';
 
 interface Props {
   value: string;
   onChange: (id: string) => void;
-  initialLabel: string;
-  placeholder?: string;
-  excludeIds?: string[];
+  initialLabel?: string;
 }
 
-export default function SearchableProductSelect({
-  value,
-  onChange,
-  initialLabel,
-  excludeIds,
-}: Props) {
+async function fetchUbicaciones(search?: string): Promise<Ubicacion[]> {
+  const params = new URLSearchParams({ pageSize: '100', isActive: 'true' });
+  if (search) params.set('search', search);
+  const res = await fetch(`/api/ubicaciones?${params}`, { credentials: 'include' });
+  if (!res.ok) throw new Error('Error al cargar ubicaciones');
+  const json = await res.json();
+  return json.data;
+}
+
+export default function SearchableUbicacionSelect({ value, onChange, initialLabel }: Props) {
   const [open, setOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [items, setItems] = useState<Ubicacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    productsApi
-      .list()
-      .then((r) => {
-        setProducts(r.data.data.filter((p: Product) => p.isActive));
-      })
+    fetchUbicaciones()
+      .then(setItems)
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -44,16 +42,17 @@ export default function SearchableProductSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selected = products.find((p) => p.id === value);
-  const label = selected?.name ?? initialLabel ?? 'Seleccionar café';
+  const selected = items.find((u) => u.id === value);
+  const label = selected
+    ? `${selected.nombre}${selected.estado ? `, ${selected.estado}` : ''} — ${selected.pais}`
+    : (initialLabel ?? 'Seleccionar origen');
 
-  const filtered = products.filter((p) => {
-    if (excludeIds?.includes(p.id)) return false;
-    return (
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.origin?.toLowerCase().includes(search.toLowerCase())
-    );
-  });
+  const filtered = items.filter(
+    (u) =>
+      u.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      u.pais.toLowerCase().includes(search.toLowerCase()) ||
+      (u.estado && u.estado.toLowerCase().includes(search.toLowerCase())),
+  );
 
   return (
     <div ref={containerRef} className="relative">
@@ -79,7 +78,7 @@ export default function SearchableProductSelect({
             <div className="border-b border-coffee-200 dark:border-coffee-700 p-2">
               <input
                 type="text"
-                placeholder="Buscar café..."
+                placeholder="Buscar ubicación..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-2 py-1.5 focus:outline-none focus:border-gold-500"
@@ -94,34 +93,33 @@ export default function SearchableProductSelect({
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="p-3 text-center text-coffee-500 dark:text-coffee-400 text-xs">
-                  {search ? 'Sin resultados' : 'No hay productos disponibles'}
+                  Sin resultados
                 </div>
               ) : (
-                filtered.map((product) => (
+                filtered.map((u) => (
                   <button
-                    key={product.id}
+                    key={u.id}
                     type="button"
                     onClick={() => {
-                      onChange(product.id);
+                      onChange(u.id);
                       setOpen(false);
                       setSearch('');
                     }}
                     className={`w-full px-3 py-2 text-sm text-left transition-colors ${
-                      product.id === value
+                      u.id === value
                         ? 'bg-gold-600/20 text-gold-500'
                         : 'text-coffee-900 dark:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{product.name}</p>
-                        {product.origin && (
-                          <p className="text-xs text-coffee-500 dark:text-coffee-400 truncate">
-                            {product.origin}
-                          </p>
-                        )}
+                        <p className="font-medium truncate">{u.nombre}</p>
+                        <p className="text-xs text-coffee-500 dark:text-coffee-400 truncate">
+                          {u.pais}
+                          {u.estado ? ` — ${u.estado}` : ''}
+                        </p>
                       </div>
-                      {product.id === value && <span className="ml-2 text-gold-500">✓</span>}
+                      {u.id === value && <span className="ml-2 text-gold-500">✓</span>}
                     </div>
                   </button>
                 ))

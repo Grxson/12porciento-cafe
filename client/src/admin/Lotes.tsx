@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Package, CheckCircle, XCircle, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Package, CheckCircle, XCircle, Plus, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import { lotesApi } from '../api';
 import { Lote, LoteFormData } from '../types';
 import { useModuleToast } from './context/ModuleContext';
@@ -7,6 +7,9 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import ConfirmDialog from './components/ConfirmDialog';
 import Pagination from './components/Pagination';
+import SearchableProductSelect from '../components/SearchableProductSelect';
+import SearchableCaficultorSelect from '../components/SearchableCaficultorSelect';
+import SearchableUbicacionSelect from '../components/SearchableUbicacionSelect';
 
 type Tab = 'cuarentena' | 'aprobados' | 'rechazados' | 'todos';
 
@@ -80,6 +83,10 @@ export default function AdminLotes() {
   const handleCreate = async () => {
     if (!form.productId || !form.batchNumber || !form.quantity) {
       addToast('Producto, número de lote y cantidad son requeridos', 'error');
+      return;
+    }
+    if (form.quantity < 0) {
+      addToast('La cantidad no puede ser negativa', 'error');
       return;
     }
     setSaving(true);
@@ -253,7 +260,16 @@ export default function AdminLotes() {
                   <span className="text-sm text-coffee-600 dark:text-cream/70">
                     {lote.quantity} u.
                   </span>
-                  {lote.origin && (
+                  {lote.ubicacion && (
+                    <span
+                      className="text-sm text-coffee-500 dark:text-cream/50 hidden sm:flex items-center gap-1"
+                      title={lote.ubicacion.nombre}
+                    >
+                      <MapPin className="w-3 h-3" />
+                      {lote.ubicacion.nombre}
+                    </span>
+                  )}
+                  {!lote.ubicacion && lote.origin && (
                     <span className="text-sm text-coffee-500 dark:text-cream/50 hidden sm:block">
                       {lote.origin}
                     </span>
@@ -315,13 +331,19 @@ export default function AdminLotes() {
                     {(
                       [
                         ['Proveedor', lote.supplier],
-                        ['Origen', lote.origin],
+                        ['Caficultor', lote.caficultor?.nombre ?? null],
                         ['Costo/kg', lote.costPerKg ? `$${lote.costPerKg}` : '—'],
                         [
                           'Vence',
                           lote.expiryDate
                             ? new Date(lote.expiryDate).toLocaleDateString('es-MX')
                             : '—',
+                        ],
+                        [
+                          'Origen',
+                          lote.ubicacion
+                            ? `${lote.ubicacion.nombre}, ${lote.ubicacion.pais}`
+                            : lote.origin || '—',
                         ],
                       ] as [string, string | null][]
                     ).map(([label, val]) => (
@@ -444,56 +466,146 @@ export default function AdminLotes() {
               </h2>
             </div>
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              {(
-                [
-                  { key: 'batchNumber', label: 'Número de Lote *', placeholder: 'LOT-2026-001' },
-                  { key: 'productId', label: 'ID de Producto *', placeholder: 'ID del producto' },
-                  {
-                    key: 'quantity',
-                    label: 'Cantidad (unidades) *',
-                    placeholder: '100',
-                    type: 'number',
-                  },
-                  {
-                    key: 'costPerKg',
-                    label: 'Costo por kg ($)',
-                    placeholder: '85.00',
-                    type: 'number',
-                  },
-                  {
-                    key: 'unitCost',
-                    label: 'Costo por unidad ($)',
-                    placeholder: '45.00',
-                    type: 'number',
-                  },
-                  { key: 'supplier', label: 'Proveedor', placeholder: 'Nombre del proveedor' },
-                  { key: 'origin', label: 'Origen', placeholder: 'Chiapas, México' },
-                  {
-                    key: 'expiryDate',
-                    label: 'Fecha de vencimiento',
-                    placeholder: '',
-                    type: 'date',
-                  },
-                  {
-                    key: 'notes',
-                    label: 'Notas iniciales',
-                    placeholder: 'Observaciones al recibir...',
-                  },
-                ] as { key: string; label: string; placeholder: string; type?: string }[]
-              ).map(({ key, label, placeholder, type }) => (
-                <div key={key}>
-                  <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
-                    {label}
-                  </label>
-                  <input
-                    type={type || 'text'}
-                    placeholder={placeholder}
-                    value={(form as unknown as Record<string, string>)[key] ?? ''}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
-                  />
-                </div>
-              ))}
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Número de Lote *{' '}
+                  <span className="text-xs text-coffee-500">(solo dígitos, se antepone LOT-)</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="2026-001"
+                  value={form.batchNumber.replace(/^LOT-/, '')}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/[^0-9-]/g, '');
+                    setForm((f) => ({ ...f, batchNumber: digits ? `LOT-${digits}` : '' }));
+                  }}
+                  className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Producto *
+                </label>
+                <SearchableProductSelect
+                  value={form.productId}
+                  onChange={(id) => setForm((f) => ({ ...f, productId: id }))}
+                  initialLabel="Seleccionar producto"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Cantidad (unidades) *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="100"
+                  value={form.quantity || ''}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, quantity: Math.max(0, parseInt(e.target.value) || 0) }))
+                  }
+                  className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Caficultor
+                </label>
+                <SearchableCaficultorSelect
+                  value={form.caficultorId || ''}
+                  onChange={(id) => setForm((f) => ({ ...f, caficultorId: id }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Origen
+                </label>
+                <SearchableUbicacionSelect
+                  value={form.ubicacionId || ''}
+                  onChange={(id) => setForm((f) => ({ ...f, ubicacionId: id }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Proveedor
+                </label>
+                <SupplierAutocomplete
+                  value={form.supplier || ''}
+                  onChange={(val) => setForm((f) => ({ ...f, supplier: val }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Costo por kg ($)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="85.00"
+                  value={form.costPerKg ?? ''}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      costPerKg: e.target.value ? parseFloat(e.target.value) : undefined,
+                    }))
+                  }
+                  className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Costo por unidad ($)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="45.00"
+                  value={form.unitCost ?? ''}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      unitCost: e.target.value ? parseFloat(e.target.value) : undefined,
+                    }))
+                  }
+                  className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Fecha de vencimiento
+                </label>
+                <input
+                  type="date"
+                  value={form.expiryDate ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, expiryDate: e.target.value }))}
+                  className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Notas iniciales
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Observaciones al recibir..."
+                  value={form.notes ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                  className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream resize-none"
+                />
+              </div>
             </div>
             <div className="p-6 border-t border-coffee-100 dark:border-coffee-700 flex gap-3 justify-end">
               <button
@@ -569,6 +681,70 @@ export default function AdminLotes() {
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
       />
+    </div>
+  );
+}
+
+function SupplierAutocomplete({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [suppliers, setSuppliers] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    lotesApi
+      .list({ pageSize: 1 })
+      .then(() => fetch('/api/lotes/suppliers', { credentials: 'include' }))
+      .then((r) => r.json())
+      .then((d) => setSuppliers(d.data || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtered = suppliers.filter((s) => s.toLowerCase().includes(value.toLowerCase()));
+
+  return (
+    <div ref={ref} className="relative">
+      <input
+        type="text"
+        placeholder="Nombre del proveedor"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 z-50 max-h-40 overflow-y-auto">
+          {filtered.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                onChange(s);
+                setOpen(false);
+              }}
+              className="w-full px-3 py-2 text-sm text-left text-coffee-900 dark:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,19 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Users, Plus, Edit2, Trash2, MapPin, Mountain } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, MapPin, Mountain, Tag } from 'lucide-react';
 import { caficultoresApi } from '../api';
-import { Caficultor } from '../types';
+import { Caficultor, TipoCata } from '../types';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import ConfirmDialog from './components/ConfirmDialog';
 import Pagination from './components/Pagination';
 
-const EMPTY_FORM: Partial<Caficultor> = {
+const EMPTY_FORM: Partial<Caficultor> & { tipoCataIds: string[] } = {
   nombre: '',
   region: '',
   modalidad: 'DIRECTO',
   fairTrade: false,
   isActive: true,
+  tipoCataIds: [],
 };
 
 export default function AdminCaficultores() {
@@ -27,9 +28,18 @@ export default function AdminCaficultores() {
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Caficultor | null>(null);
-  const [form, setForm] = useState<Partial<Caficultor>>(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Caficultor | null>(null);
+
+  const [tiposCata, setTiposCata] = useState<TipoCata[]>([]);
+
+  useEffect(() => {
+    fetch('/api/tipos-cata', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((d) => setTiposCata(d.data || []))
+      .catch(() => {});
+  }, []);
 
   const fetchItems = useCallback(async (p: number) => {
     setLoading(true);
@@ -58,7 +68,10 @@ export default function AdminCaficultores() {
   };
   const openEdit = (c: Caficultor) => {
     setEditing(c);
-    setForm({ ...c });
+    setForm({
+      ...c,
+      tipoCataIds: c.tiposCata?.map((t) => t.id) ?? [],
+    });
     setShowForm(true);
   };
 
@@ -69,11 +82,12 @@ export default function AdminCaficultores() {
     }
     setSaving(true);
     try {
+      const payload = { ...form, tipoCataIds: form.tipoCataIds };
       if (editing) {
-        await caficultoresApi.update(editing.id, form);
+        await caficultoresApi.update(editing.id, payload);
         addToast('Caficultor actualizado', 'success');
       } else {
-        await caficultoresApi.create(form);
+        await caficultoresApi.create(payload);
         addToast('Caficultor creado', 'success');
       }
       setShowForm(false);
@@ -100,6 +114,15 @@ export default function AdminCaficultores() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const toggleTipoCata = (id: string) => {
+    setForm((f) => ({
+      ...f,
+      tipoCataIds: f.tipoCataIds.includes(id)
+        ? f.tipoCataIds.filter((tid) => tid !== id)
+        : [...f.tipoCataIds, id],
+    }));
   };
 
   const formFields = [
@@ -177,11 +200,15 @@ export default function AdminCaficultores() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 text-xs">
-                {c.variedad && (
-                  <span className="px-2 py-0.5 bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-cream/70 rounded-full">
-                    {c.variedad}
-                  </span>
-                )}
+                {c.tiposCata &&
+                  c.tiposCata.map((t) => (
+                    <span
+                      key={t.id}
+                      className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full"
+                    >
+                      {t.nombre}
+                    </span>
+                  ))}
                 <span className="px-2 py-0.5 bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-cream/70 rounded-full">
                   {c.modalidad}
                 </span>
@@ -230,15 +257,19 @@ export default function AdminCaficultores() {
                     type={type || 'text'}
                     placeholder={placeholder}
                     value={
-                      (form as Record<string, string | number | boolean | null | undefined>)[
-                        key
-                      ]?.toString() ?? ''
+                      (
+                        form as unknown as Record<
+                          string,
+                          string | number | boolean | null | undefined
+                        >
+                      )[key]?.toString() ?? ''
                     }
                     onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                     className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
                   />
                 </div>
               ))}
+
               <div>
                 <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
                   Modalidad
@@ -255,6 +286,29 @@ export default function AdminCaficultores() {
                   <option value="INTERMEDIARIO">Intermediario</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Tipos de Cata
+                </label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {tiposCata.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => toggleTipoCata(t.id)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                        form.tipoCataIds.includes(t.id)
+                          ? 'bg-gold-500 text-coffee-950 border-gold-500'
+                          : 'bg-white dark:bg-coffee-800 text-coffee-700 dark:text-cream/70 border-coffee-200 dark:border-coffee-600 hover:border-gold-500'
+                      }`}
+                    >
+                      {t.nombre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">Bio</label>
                 <textarea

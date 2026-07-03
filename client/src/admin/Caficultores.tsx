@@ -7,6 +7,7 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import ConfirmDialog from './components/ConfirmDialog';
 import Pagination from './components/Pagination';
+import ImageUploader from './components/ImageUploader';
 
 const EMPTY_FORM: Partial<Caficultor> & { tipoCataIds: string[] } = {
   nombre: '',
@@ -132,7 +133,7 @@ export default function AdminCaficultores() {
     { key: 'variedad', label: 'Variedad', placeholder: 'Bourbon, Typica' },
     { key: 'contacto', label: 'Contacto', placeholder: '+52 999 000 0000' },
     { key: 'acuerdoPrecioKg', label: 'Precio acordado $/kg', placeholder: '85.00', type: 'number' },
-    { key: 'foto', label: 'URL Foto', placeholder: 'https://...' },
+    { key: 'foto', label: 'Foto', placeholder: 'https://...' },
   ] as { key: string; label: string; placeholder: string; type?: string }[];
 
   return (
@@ -253,20 +254,28 @@ export default function AdminCaficultores() {
                   <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
                     {label}
                   </label>
-                  <input
-                    type={type || 'text'}
-                    placeholder={placeholder}
-                    value={
-                      (
-                        form as unknown as Record<
-                          string,
-                          string | number | boolean | null | undefined
-                        >
-                      )[key]?.toString() ?? ''
-                    }
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
-                  />
+                  {key === 'foto' ? (
+                    <ImageUploader
+                      value={(form as any)[key]?.toString() ?? ''}
+                      onChange={(url) => setForm((f) => ({ ...f, [key]: url }))}
+                      label=""
+                    />
+                  ) : (
+                    <input
+                      type={type || 'text'}
+                      placeholder={placeholder}
+                      value={
+                        (
+                          form as unknown as Record<
+                            string,
+                            string | number | boolean | null | undefined
+                          >
+                        )[key]?.toString() ?? ''
+                      }
+                      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                      className="w-full border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+                    />
+                  )}
                 </div>
               ))}
 

@@ -1,6 +1,7 @@
 // client/src/components/recipes/StepEditor.tsx
 import { useState, type FormEvent } from 'react';
 import AdminModal from '../../admin/components/AdminModal';
+import ImageUploader from '../../admin/components/ImageUploader';
 import type { RecipeStep } from '../../types';
 
 interface StepEditorProps {
@@ -12,10 +13,18 @@ interface StepEditorProps {
   loading: boolean;
 }
 
-const inputCls = 'w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
+const inputCls =
+  'w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
 const labelCls = 'block text-xs text-coffee-600 dark:text-coffee-400 mb-1';
 
-export default function StepEditor({ open, step, mode, onClose, onSave, loading }: StepEditorProps) {
+export default function StepEditor({
+  open,
+  step,
+  mode,
+  onClose,
+  onSave,
+  loading,
+}: StepEditorProps) {
   const [form, setForm] = useState({
     title: step?.title || '',
     description: step?.description || '',
@@ -72,12 +81,17 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
     >
       <form id="step-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="step-title" className={labelCls}>Título *</label>
+          <label htmlFor="step-title" className={labelCls}>
+            Título *
+          </label>
           <input
             id="step-title"
             type="text"
             value={form.title}
-            onChange={(e) => { setForm(f => ({ ...f, title: e.target.value })); setErrors((prev) => ({ ...prev, title: '' })); }}
+            onChange={(e) => {
+              setForm((f) => ({ ...f, title: e.target.value }));
+              setErrors((prev) => ({ ...prev, title: '' }));
+            }}
             className={inputCls}
             placeholder="ej. Preparación del café"
           />
@@ -85,11 +99,16 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
         </div>
 
         <div>
-          <label htmlFor="step-description" className={labelCls}>Descripción *</label>
+          <label htmlFor="step-description" className={labelCls}>
+            Descripción *
+          </label>
           <textarea
             id="step-description"
             value={form.description}
-            onChange={(e) => { setForm(f => ({ ...f, description: e.target.value })); setErrors((prev) => ({ ...prev, description: '' })); }}
+            onChange={(e) => {
+              setForm((f) => ({ ...f, description: e.target.value }));
+              setErrors((prev) => ({ ...prev, description: '' }));
+            }}
             rows={4}
             className={inputCls + ' resize-none'}
             placeholder="Instrucciones detalladas..."
@@ -97,26 +116,25 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
           {errors.description && <p className="text-red-400 text-xs mt-1">{errors.description}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div>
-            <label htmlFor="step-image-url" className={labelCls}>Imagen URL</label>
-            <input
-              id="step-image-url"
-              type="url"
+            <label className={labelCls}>Imagen</label>
+            <ImageUploader
               value={form.imageUrl}
-              onChange={(e) => setForm(f => ({ ...f, imageUrl: e.target.value }))}
-              className={inputCls}
-              placeholder="https://..."
+              onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
+              label=""
             />
           </div>
 
           <div>
-            <label htmlFor="step-video-url" className={labelCls}>Video URL</label>
+            <label htmlFor="step-video-url" className={labelCls}>
+              Video URL
+            </label>
             <input
               id="step-video-url"
               type="url"
               value={form.videoUrl}
-              onChange={(e) => setForm(f => ({ ...f, videoUrl: e.target.value }))}
+              onChange={(e) => setForm((f) => ({ ...f, videoUrl: e.target.value }))}
               className={inputCls}
               placeholder="https://..."
             />
@@ -124,12 +142,14 @@ export default function StepEditor({ open, step, mode, onClose, onSave, loading 
         </div>
 
         <div>
-          <label htmlFor="step-duration" className={labelCls}>Duración (segundos)</label>
+          <label htmlFor="step-duration" className={labelCls}>
+            Duración (segundos)
+          </label>
           <input
             id="step-duration"
             type="number"
             value={form.duration}
-            onChange={(e) => setForm(f => ({ ...f, duration: e.target.value }))}
+            onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
             className={inputCls}
             placeholder="ej. 120"
           />

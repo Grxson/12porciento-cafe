@@ -110,14 +110,12 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
     // Auto-prefix LOT if batchNumber doesn't start with it
     const upper = (batchNumber as string).toUpperCase();
-    if (!upper.startsWith('LOT')) {
-      batchNumber = `LOT-${batchNumber}`;
-    }
+    const finalBatchNumber = !upper.startsWith('LOT') ? `LOT-${batchNumber}` : batchNumber;
 
     const lote = await prisma.lote.create({
       data: {
         productId,
-        batchNumber,
+        batchNumber: finalBatchNumber,
         quantity: parseInt(quantity),
         costPerKg: costPerKg ? parseFloat(costPerKg) : null,
         unitCost: unitCost ? parseFloat(unitCost) : null,

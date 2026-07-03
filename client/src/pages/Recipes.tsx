@@ -178,7 +178,6 @@ export default function Recipes() {
     return () => clearInterval(interval);
   }, [timerState]);
 
-  const freeLimit = !hasSubscription && recipes.filter((r) => !r.isPremium).length > 2;
   const hasMore = page < totalPages;
 
   // MUST be before early returns — hook #19
@@ -717,14 +716,14 @@ export default function Recipes() {
           </div>
         )}
 
-        {freeLimit && (
+        {!hasSubscription && recipes.some((r) => r.isPremium) && (
           <div className="mt-8 text-center border border-gold-500/20 bg-gold-500/5 p-6">
             <Lock className="w-8 h-8 text-gold-500 mx-auto mb-3" />
             <p className="text-coffee-900 dark:text-cream font-medium mb-1">
-              Estás viendo recetas gratuitas. Suscríbete para acceso completo.
+              Algunas recetas están bloqueadas. Suscríbete para acceso completo.
             </p>
             <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">
-              Suscríbete para ver todas las recetas + acceso a recetas premium exclusivas
+              Desbloquea todas las recetas premium con una suscripción
             </p>
             <Link
               to="/suscripciones"

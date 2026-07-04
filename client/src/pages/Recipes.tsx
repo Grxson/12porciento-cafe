@@ -19,6 +19,7 @@ import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
 import AttemptsList from '../components/recipes/AttemptsList';
 import { downloadRecipePDF } from '../utils/recipePdf';
+import { playTimerBeep } from '../utils/audio';
 import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
 import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -153,23 +154,7 @@ export default function Recipes() {
     const interval = setInterval(() => {
       setTimerState((prev) => {
         if (!prev || prev.secondsLeft <= 1) {
-          const AudioCtx =
-            window.AudioContext ||
-            ((window as unknown as Record<string, unknown>).webkitAudioContext as
-              typeof AudioContext | undefined);
-          if (AudioCtx) {
-            const ctx = new AudioCtx();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 880;
-            osc.type = 'sine';
-            gain.gain.setValueAtTime(0.4, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.6);
-          }
+          playTimerBeep();
           return null;
         }
         return { ...prev, secondsLeft: prev.secondsLeft - 1 };

@@ -39,6 +39,11 @@ export default function StepEditor({
     const newErrors: Record<string, string> = {};
     if (!form.title.trim()) newErrors.title = 'El título es obligatorio';
     if (!form.description.trim()) newErrors.description = 'La descripción es obligatoria';
+    if (form.duration) {
+      const dur = parseInt(form.duration);
+      if (isNaN(dur) || dur < 5 || dur > 3600)
+        newErrors.duration = 'Debe ser entre 5 y 3600 segundos';
+    }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -148,10 +153,12 @@ export default function StepEditor({
           <input
             id="step-duration"
             type="number"
+            min={5}
+            max={3600}
             value={form.duration}
             onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
             className={inputCls}
-            placeholder="ej. 120"
+            placeholder="ej. 120 (5–3600)"
           />
         </div>
       </form>

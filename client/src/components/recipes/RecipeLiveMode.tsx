@@ -11,6 +11,7 @@ import { recipesApi } from '../../api';
 import RatingSlider from './RatingSlider';
 import NotesCapture from './NotesCapture';
 import GestureHints from './GestureHints';
+import { playTimerBeep } from '../../utils/audio';
 
 interface RecipeLiveModeProps {
   recipe: Recipe;
@@ -137,23 +138,7 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
     const interval = setInterval(() => {
       setTimerActive((t) => {
         if (t && t <= 1) {
-          const AudioCtx =
-            window.AudioContext ||
-            ((window as unknown as Record<string, unknown>).webkitAudioContext as
-              typeof AudioContext | undefined);
-          if (AudioCtx) {
-            const ctx = new AudioCtx();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 880;
-            osc.type = 'sine';
-            gain.gain.setValueAtTime(0.4, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.6);
-          }
+          playTimerBeep();
           // R8: Start auto-advance countdown
           setAutoAdvanceCountdown(3);
           return null;

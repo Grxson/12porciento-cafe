@@ -241,7 +241,21 @@ router.post(
   requireUserAuth,
   async (req: UserAuthRequest, res: Response) => {
     try {
-      const { recipeId, rating, notes, photoUrl, clientBrewId } = req.body;
+      const {
+        recipeId,
+        rating,
+        notes,
+        photoUrl,
+        clientBrewId,
+        grindSize,
+        waterTemp,
+        brewTime,
+        coffeeWeight,
+        waterVolume,
+        beanId,
+        equipmentIds,
+        tags,
+      } = req.body;
       const userId = req.user!.id;
 
       if (!recipeId || !Number.isInteger(rating) || rating < 1 || rating > 10) {
@@ -255,6 +269,39 @@ router.post(
         (typeof photoUrl !== 'string' || !/^\/api\/uploads\/[a-f0-9]{24}\.webp$/.test(photoUrl))
       ) {
         return res.status(400).json({ error: 'URL de foto no válida' });
+      }
+      if (
+        waterTemp !== undefined &&
+        (!Number.isInteger(waterTemp) || waterTemp < 0 || waterTemp > 110)
+      ) {
+        return res.status(400).json({ error: 'waterTemp debe ser entero 0-110°C' });
+      }
+      if (
+        brewTime !== undefined &&
+        (!Number.isInteger(brewTime) || brewTime < 1 || brewTime > 3600)
+      ) {
+        return res.status(400).json({ error: 'brewTime debe ser entero 1-3600s' });
+      }
+      if (
+        coffeeWeight !== undefined &&
+        (!Number.isInteger(coffeeWeight) || coffeeWeight < 1 || coffeeWeight > 100)
+      ) {
+        return res.status(400).json({ error: 'coffeeWeight debe ser entero 1-100g' });
+      }
+      if (
+        waterVolume !== undefined &&
+        (!Number.isInteger(waterVolume) || waterVolume < 1 || waterVolume > 2000)
+      ) {
+        return res.status(400).json({ error: 'waterVolume debe ser entero 1-2000ml' });
+      }
+      if (tags && (!Array.isArray(tags) || tags.some((t: unknown) => typeof t !== 'string'))) {
+        return res.status(400).json({ error: 'tags debe ser un array de strings' });
+      }
+      if (
+        equipmentIds &&
+        (!Array.isArray(equipmentIds) || equipmentIds.some((e: unknown) => typeof e !== 'string'))
+      ) {
+        return res.status(400).json({ error: 'equipmentIds debe ser un array de strings' });
       }
 
       if (clientBrewId) {
@@ -286,6 +333,14 @@ router.post(
           photoUrl: photoUrl?.trim() ?? null,
           xpEarned,
           clientBrewId: clientBrewId ?? null,
+          grindSize: grindSize?.trim() ?? null,
+          waterTemp: waterTemp ?? null,
+          brewTime: brewTime ?? null,
+          coffeeWeight: coffeeWeight ?? null,
+          waterVolume: waterVolume ?? null,
+          beanId: beanId ?? null,
+          equipmentIds: equipmentIds ?? [],
+          tags: tags ?? [],
         },
         include: { recipe: { select: { id: true, title: true, method: true, difficulty: true } } },
       });
@@ -420,13 +475,25 @@ router.get('/:userId/brews', async (req: Request, res: Response) => {
   }
 });
 
-// GET /barista/:userId/stats — G8 stats aggregation
+// GET /barista/:userId/stats — aggregated stats with F3 extended data
 router.get('/:userId/stats', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    const month = req.query.month as string | undefined;
+
+    const where: { userId: string; createdAt?: { gte: Date; lt: Date } } = { userId };
+    if (month) {
+      const [yearStr, monthStr] = month.split('-');
+      const year = parseInt(yearStr, 10);
+      const m = parseInt(monthStr, 10);
+      const start = new Date(year, m - 1, 1);
+      const end = new Date(year, m, 1);
+      where.createdAt = { gte: start, lt: end };
+    }
+
     const brews = await prisma.brewLog.findMany({
-      where: { userId },
-      include: { recipe: { select: { method: true } } },
+      where,
+      include: { recipe: { select: { method: true, difficulty: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -437,8 +504,14 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
           favMethodEmoji: null,
           avgRating: 0,
           totalBrews: 0,
+          totalXp: 0,
+          daysBrewed: 0,
           brewsPerMethod: {},
           xpPerWeek: [],
+          flavorTags: {},
+          equipmentUsage: {},
+          monthlyTrends: [],
+          timeStats: { earlyBirdCount: 0, nightOwlCount: 0, weekendCount: 0 },
         },
       });
     }
@@ -478,14 +551,75 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
       .slice(-8)
       .map(([week, xp]) => ({ week, xp }));
 
+    // ── F3 extended stats ──
+
+    // Flavor tag cloud
+    const flavorTags = new Map<string, number>();
+    brews.forEach((b: (typeof brews)[number]) => {
+      if (b.tags && Array.isArray(b.tags)) {
+        b.tags.forEach((tag: string) => flavorTags.set(tag, (flavorTags.get(tag) ?? 0) + 1));
+      }
+    });
+    const flavorTagCloud = Object.fromEntries(
+      Array.from(flavorTags.entries()).sort((a, b) => b[1] - a[1]),
+    );
+
+    // Equipment usage
+    const equipmentUsage = new Map<string, number>();
+    brews.forEach((b: (typeof brews)[number]) => {
+      if (b.equipmentIds && Array.isArray(b.equipmentIds)) {
+        b.equipmentIds.forEach((eid: string) =>
+          equipmentUsage.set(eid, (equipmentUsage.get(eid) ?? 0) + 1),
+        );
+      }
+    });
+
+    // Monthly trends (brews per month)
+    const monthlyMap = new Map<string, number>();
+    brews.forEach((b: (typeof brews)[number]) => {
+      const monthKey = b.createdAt.toISOString().slice(0, 7); // YYYY-MM
+      monthlyMap.set(monthKey, (monthlyMap.get(monthKey) ?? 0) + 1);
+    });
+    const monthlyTrends = Array.from(monthlyMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-12)
+      .map(([month, count]) => ({ month, count }));
+
+    // Time-based stats
+    let earlyBirdCount = 0;
+    let nightOwlCount = 0;
+    let weekendCount = 0;
+    brews.forEach((b: (typeof brews)[number]) => {
+      const h = b.createdAt.getHours();
+      const d = b.createdAt.getDay();
+      if (h < 8) earlyBirdCount++;
+      if (h >= 21) nightOwlCount++;
+      if (d === 0 || d === 6) weekendCount++;
+    });
+
+    // Total XP for filtered period
+    const totalXp = brews.reduce((sum: number, b: (typeof brews)[number]) => sum + b.xpEarned, 0);
+
+    // Unique days with brews
+    const uniqueDays = new Set(
+      brews.map((b: (typeof brews)[number]) => b.createdAt.toISOString().split('T')[0]),
+    );
+    const daysBrewed = uniqueDays.size;
+
     res.json({
       data: {
         favoriteMethod,
         favMethodEmoji,
         avgRating: Math.round(avgRating * 10) / 10,
         totalBrews: brews.length,
+        totalXp,
+        daysBrewed,
         brewsPerMethod: Object.fromEntries(methodCounts),
         xpPerWeek,
+        flavorTags: flavorTagCloud,
+        equipmentUsage: Object.fromEntries(equipmentUsage),
+        monthlyTrends,
+        timeStats: { earlyBirdCount, nightOwlCount, weekendCount },
       },
     });
   } catch (err) {
@@ -587,7 +721,7 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
         brewLogs: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as {
+      } as unknown as {
         id: string;
         userId: string;
         user: { id: string; name: string };
@@ -595,6 +729,10 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
         totalXp: number;
         totalBrews: number;
         favoriteMethod: null;
+        bio: null;
+        bannerUrl: null;
+        activeTitleId: null;
+        flavorProfile: null;
         achievements: never[];
         brewLogs: never[];
         createdAt: Date;
@@ -661,6 +799,161 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
   }
 });
 
+// ── Fase 1: Identity — Profile customization ──
+
+// PUT /barista/me/profile — update bio, banner, title, flavor profile
+router.put('/me/profile', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { bio, bannerUrl, activeTitleId, flavorProfile } = req.body;
+
+    const data: Prisma.BaristaProfileUpdateInput = {};
+    if (bio !== undefined) {
+      if (typeof bio !== 'string' || bio.length > 280) {
+        return res.status(400).json({ error: 'Bio no puede superar 280 caracteres' });
+      }
+      data.bio = bio.trim() || null;
+    }
+    if (bannerUrl !== undefined) data.bannerUrl = bannerUrl || null;
+    if (activeTitleId !== undefined) data.activeTitleId = activeTitleId || null;
+    if (flavorProfile !== undefined) data.flavorProfile = flavorProfile;
+
+    const profile = await prisma.baristaProfile.upsert({
+      where: { userId },
+      create: { userId, ...data } as Prisma.BaristaProfileUncheckedCreateInput,
+      update: data as Prisma.BaristaProfileUncheckedUpdateInput,
+    });
+
+    res.json({ data: profile });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar perfil' });
+  }
+});
+
+// GET /barista/me/equipment — list user equipment
+router.get('/me/equipment', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const equipment = await prisma.baristaEquipment.findMany({
+      where: { userId },
+      orderBy: [{ isFavorite: 'desc' }, { createdAt: 'desc' }],
+    });
+    res.json({ data: equipment });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener equipo' });
+  }
+});
+
+// POST /barista/me/equipment — create equipment
+router.post('/me/equipment', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { name, brand, category, photoUrl, isFavorite } = req.body;
+
+    if (!name || !category) {
+      return res.status(400).json({ error: 'Nombre y categoría requeridos' });
+    }
+    const validCategories = ['GRINDER', 'KETTLE', 'DRIPPER', 'SCALE', 'OTHER'];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ error: 'Categoría no válida' });
+    }
+
+    const equipment = await prisma.baristaEquipment.create({
+      data: { userId, name, brand, category, photoUrl, isFavorite: isFavorite ?? false },
+    });
+    res.status(201).json({ data: equipment });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al crear equipo' });
+  }
+});
+
+// PUT /barista/me/equipment/:id — update equipment
+router.put('/me/equipment/:id', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const { name, brand, category, photoUrl, isFavorite } = req.body;
+
+    const existing = await prisma.baristaEquipment.findUnique({ where: { id } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(404).json({ error: 'Equipo no encontrado' });
+    }
+
+    const data: Prisma.BaristaEquipmentUpdateInput = {};
+    if (name !== undefined) data.name = name;
+    if (brand !== undefined) data.brand = brand;
+    if (category !== undefined) {
+      const validCategories = ['GRINDER', 'KETTLE', 'DRIPPER', 'SCALE', 'OTHER'];
+      if (!validCategories.includes(category)) {
+        return res.status(400).json({ error: 'Categoría no válida' });
+      }
+      data.category = category;
+    }
+    if (photoUrl !== undefined) data.photoUrl = photoUrl;
+    if (isFavorite !== undefined) data.isFavorite = isFavorite;
+
+    const equipment = await prisma.baristaEquipment.update({ where: { id }, data });
+    res.json({ data: equipment });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar equipo' });
+  }
+});
+
+// DELETE /barista/me/equipment/:id — delete equipment
+router.delete('/me/equipment/:id', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+
+    const existing = await prisma.baristaEquipment.findUnique({ where: { id } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(404).json({ error: 'Equipo no encontrado' });
+    }
+
+    await prisma.baristaEquipment.delete({ where: { id } });
+    res.json({ data: { id } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al eliminar equipo' });
+  }
+});
+
+// GET /barista/titles — list all titles with unlock status
+router.get('/titles', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+    const titles = await prisma.baristaTitle.findMany({ orderBy: { name: 'asc' } });
+
+    // Get user's unlocked achievements to check requirements
+    const profile = await prisma.baristaProfile.findUnique({
+      where: { userId },
+      include: {
+        achievements: {
+          include: { achievement: true },
+        },
+      },
+    });
+
+    const unlockedSlugs = new Set(profile?.achievements.map((a) => a.achievement.slug) ?? []);
+
+    const result = titles.map((t) => ({
+      ...t,
+      isUnlocked: unlockedSlugs.has(t.requirement),
+      isActive: profile?.activeTitleId === t.id,
+    }));
+
+    res.json({ data: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener títulos' });
+  }
+});
+
 // Admin: Create achievement
 router.post('/admin-achievements', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
@@ -719,6 +1012,108 @@ router.delete('/admin-achievements/:id', requireAuth, async (req: AuthRequest, r
   } catch (err) {
     console.error('[admin/achievements] Error:', err);
     res.status(500).json({ error: 'Error al eliminar logro' });
+  }
+});
+
+// GET /barista/rewards — list active rewards with user claim status
+router.get('/rewards', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+    const rewards = await prisma.reward.findMany({
+      where: { isActive: true },
+      orderBy: { xpCost: 'asc' },
+    });
+
+    const userClaims = await prisma.rewardClaim.findMany({
+      where: { userId },
+      select: { rewardId: true },
+    });
+
+    const claimedIds = new Set(userClaims.map((c) => c.rewardId));
+
+    const data = rewards.map((r) => ({
+      ...r,
+      isClaimed: claimedIds.has(r.id),
+    }));
+
+    res.json({ data });
+  } catch (err) {
+    console.error('[barista/rewards] Error:', err);
+    res.status(500).json({ error: 'Error al obtener recompensas' });
+  }
+});
+
+// POST /barista/rewards/:id/claim — claim a reward
+router.post('/rewards/:id/claim', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+
+    const reward = await prisma.reward.findUnique({ where: { id } });
+    if (!reward) {
+      return res.status(404).json({ error: 'Recompensa no encontrada' });
+    }
+    if (!reward.isActive) {
+      return res.status(400).json({ error: 'Recompensa no disponible' });
+    }
+
+    const profile = await prisma.baristaProfile.findUnique({ where: { userId } });
+    if (!profile) {
+      return res.status(400).json({ error: 'Perfil de barista no encontrado' });
+    }
+    if (profile.totalXp < reward.xpCost) {
+      return res.status(400).json({ error: 'XP insuficiente para canjear esta recompensa' });
+    }
+
+    const existingClaim = await prisma.rewardClaim.findUnique({
+      where: { rewardId_userId: { rewardId: id, userId } },
+    });
+    if (existingClaim) {
+      return res.status(409).json({ error: 'Ya has canjeado esta recompensa' });
+    }
+
+    const code = `promo-${reward.id.slice(0, 6)}-${Date.now().toString(36).toUpperCase()}`;
+
+    let updatedProfile = await prisma.baristaProfile.update({
+      where: { userId },
+      data: { totalXp: { decrement: reward.xpCost } },
+    });
+
+    const correctLevel = Math.floor(updatedProfile.totalXp / 100) + 1;
+    if (updatedProfile.level !== correctLevel) {
+      updatedProfile = await prisma.baristaProfile.update({
+        where: { userId },
+        data: { level: correctLevel },
+      });
+    }
+
+    const claim = await prisma.rewardClaim.create({
+      data: { rewardId: id, userId, code },
+    });
+
+    res.status(201).json({ data: { claim, profile: updatedProfile } });
+  } catch (err) {
+    console.error('[barista/rewards/claim] Error:', err);
+    res.status(500).json({ error: 'Error al canjear recompensa' });
+  }
+});
+
+// GET /barista/rewards/claims — list user's claims with reward details
+router.get('/rewards/claims', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+    const claims = await prisma.rewardClaim.findMany({
+      where: { userId },
+      include: { reward: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({ data: claims });
+  } catch (err) {
+    console.error('[barista/rewards/claims] Error:', err);
+    res.status(500).json({ error: 'Error al obtener canjes' });
   }
 });
 

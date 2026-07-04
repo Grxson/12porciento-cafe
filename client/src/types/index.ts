@@ -27,6 +27,8 @@ export interface Recipe {
   product?: { id: string; name: string; slug: string; imageUrl: string } | null;
   steps: RecipeStep[];
   locked?: boolean;
+  ratings?: { rating: number }[];
+  imageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -96,13 +96,8 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
-          <Link to="/" className="flex flex-col leading-none">
-            <span className="font-serif text-2xl font-bold text-coffee-900 dark:text-cream tracking-tight">
-              12%
-            </span>
-            <span className="text-xs tracking-widest text-gold-600 dark:text-gold-400 uppercase">
-              doce por ciento
-            </span>
+          <Link to="/" className="flex items-center">
+            <img src="/icons/logo-horizontal.png" alt="12%" className="h-10 md:h-12 w-auto" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 relative">

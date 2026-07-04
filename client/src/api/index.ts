@@ -10,7 +10,6 @@ import type {
   WishlistItem,
   Product,
   RecipeRating,
-  RecipeFavorite,
   GiftCard,
   AbandonedCart,
   Bundle,
@@ -448,7 +447,7 @@ export const recipeRatingsApi = {
 };
 
 export const recipeFavoritesApi = {
-  list: () => api.get<{ data: RecipeFavorite[] }>('/recipe-favorites'),
+  list: () => api.get<{ data: { recipeId: string }[] }>('/recipe-favorites'),
   add: (recipeId: string) => api.post(`/recipe-favorites/${recipeId}`),
   remove: (recipeId: string) => api.delete(`/recipe-favorites/${recipeId}`),
 };

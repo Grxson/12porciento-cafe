@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ICONS_DIR = path.join(__dirname, '..', 'public', 'icons');
-const SVG_PATH = path.join(ICONS_DIR, 'logo.svg');
+const SVG_PATH = path.join(ICONS_DIR, 'icon.png');
 
 const icons = [
   // PWA icons (all must be RGBA, not colormap)

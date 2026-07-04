@@ -9,7 +9,7 @@ router.get('/', requireUserAuth, async (req: UserAuthRequest, res: Response) => 
   try {
     const favorites = await prisma.recipeFavorite.findMany({
       where: { userId: req.user!.id },
-      include: { recipe: { include: { steps: true } } },
+      select: { recipeId: true },
     });
     res.json({ data: favorites });
   } catch {

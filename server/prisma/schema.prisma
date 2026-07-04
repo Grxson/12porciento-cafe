@@ -242,6 +242,7 @@ model Recipe {
   temp        String?
   grind       String?
   ratio       String?
+  imageUrl    String?
   isPremium   Boolean  @default(false)
   isPublished Boolean  @default(false)
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { recipeFavoritesApi } from '../api';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
@@ -8,6 +8,11 @@ export function useRecipeFavorites() {
   const { add } = useToast();
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const favoriteIdsRef = useRef(favoriteIds);
+
+  useEffect(() => {
+    favoriteIdsRef.current = favoriteIds;
+  }, [favoriteIds]);
 
   useEffect(() => {
     if (!user) {
@@ -28,7 +33,7 @@ export function useRecipeFavorites() {
         add('Inicia sesión para guardar favoritos', 'info');
         return;
       }
-      const isFav = favoriteIds.has(recipeId);
+      const isFav = favoriteIdsRef.current.has(recipeId);
       setFavoriteIds((prev) => {
         const next = new Set(prev);
         if (isFav) next.delete(recipeId);
@@ -50,10 +55,10 @@ export function useRecipeFavorites() {
         });
       }
     },
-    [user?.id, favoriteIds, add],
+    [user?.id, add],
   );
 
-  const isFavorite = useCallback((recipeId: string) => favoriteIds.has(recipeId), [favoriteIds]);
+  const isFavorite = useCallback((recipeId: string) => favoriteIdsRef.current.has(recipeId), []);
 
   return { favoriteIds, loading, toggle, isFavorite };
 }

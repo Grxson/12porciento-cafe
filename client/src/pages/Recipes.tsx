@@ -24,6 +24,27 @@ import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
 import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
 import { PageMeta } from '../hooks/usePageMeta';
 
+function avgRating(ratings: { rating: number }[] | undefined): number {
+  if (!ratings || ratings.length === 0) return 0;
+  return Math.round(ratings.reduce((s, r) => s + r.rating, 0) / ratings.length);
+}
+
+function isNew(createdAt: string): boolean {
+  const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86400000;
+  return daysSince < 14;
+}
+
+function StarRating({ rating }: { rating: number }) {
+  if (rating === 0) return null;
+  return (
+    <span className="flex items-center gap-0.5 text-yellow-500 text-xs">
+      {Array.from({ length: rating }, (_, i) => (
+        <Star key={i} className="w-3 h-3 fill-current" />
+      ))}
+    </span>
+  );
+}
+
 function MethodIcon({ method }: { method: string }) {
   // R12: Method icons specific — map method → emoji
   const methodLower = method.toLowerCase();
@@ -433,6 +454,13 @@ export default function Recipes() {
                   onClick={() => !isLocked && setExpandedId(isExpanded ? null : recipe.id)}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {recipe.imageUrl && (
+                      <img
+                        src={recipe.imageUrl}
+                        alt=""
+                        className="w-12 h-12 object-cover rounded shrink-0 hidden sm:block"
+                      />
+                    )}
                     <span className="text-gold-600 dark:text-gold-400">
                       <MethodIcon method={recipe.method} />
                     </span>
@@ -449,6 +477,11 @@ export default function Recipes() {
                             Premium
                           </span>
                         )}
+                        {isNew(recipe.createdAt) && (
+                          <span className="text-xs px-1.5 py-0.5 bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-400 shrink-0">
+                            🆕 Nueva
+                          </span>
+                        )}
                         {hasBrewed(recipe.id) && (
                           <span className="text-xs px-1.5 py-0.5 bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 shrink-0">
                             ☕ Ya preparaste
@@ -459,6 +492,7 @@ export default function Recipes() {
                         <span className="text-xs text-coffee-600 dark:text-coffee-400">
                           {recipe.method}
                         </span>
+                        <StarRating rating={avgRating(recipe.ratings)} />
                         {recipe.prepTime && (
                           <span className="flex items-center gap-1 text-xs text-coffee-600 dark:text-coffee-400">
                             <Clock className="w-3 h-3" /> {recipe.prepTime} min

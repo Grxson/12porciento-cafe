@@ -6,6 +6,8 @@ import { useToast } from '../../context/ToastContext';
 import { mexicanStates } from '../../constants/mexico';
 import NotificationSettings from '../../components/NotificationSettings';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
+import { baristaApi } from '../../api/barista';
+import { uploadsApi } from '../../api';
 
 function resizeToBase64(file: File, size = 256): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -13,7 +15,8 @@ function resizeToBase64(file: File, size = 256): Promise<string> {
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = size; canvas.height = size;
+      canvas.width = size;
+      canvas.height = size;
       const ctx = canvas.getContext('2d')!;
       const min = Math.min(img.width, img.height);
       const sx = (img.width - min) / 2;
@@ -32,9 +35,20 @@ export default function ProfileSettings() {
   const updateProfile = useUser((s) => s.updateProfile);
   const { add } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState({ name: '', phone: '', address: '', city: '', state: '', zipCode: '', avatarUrl: '' });
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    avatarUrl: '',
+  });
+  const [baristaData, setBaristaData] = useState({ bio: '', bannerUrl: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const bannerFileRef = useRef<HTMLInputElement>(null);
+  const baristaLoadedRef = useRef(false);
 
   useEffect(() => {
     if (user) {
@@ -50,17 +64,34 @@ export default function ProfileSettings() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    baristaApi
+      .getProfile(user.id)
+      .then((res) => {
+        const p = res.data.data;
+        setBaristaData({ bio: p.bio ?? '', bannerUrl: p.bannerUrl ?? '' });
+        baristaLoadedRef.current = true;
+      })
+      .catch(() => {});
+  }, [user?.id]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { add('Imagen muy grande (máx 5 MB)', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024) {
+      add('Imagen muy grande (máx 5 MB)', 'error');
+      return;
+    }
     try {
       const base64 = await resizeToBase64(file);
       setForm((f) => ({ ...f, avatarUrl: base64 }));
-    } catch { add('No se pudo procesar la imagen', 'error'); }
+    } catch {
+      add('No se pudo procesar la imagen', 'error');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,6 +100,9 @@ export default function ProfileSettings() {
     setError('');
     try {
       await updateProfile(form);
+      if (baristaLoadedRef.current) {
+        await baristaApi.updateProfile({ bio: baristaData.bio, bannerUrl: baristaData.bannerUrl });
+      }
       add('Datos guardados exitosamente', 'success');
     } catch {
       setError('Error al guardar cambios');
@@ -79,16 +113,19 @@ export default function ProfileSettings() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Datos personales</h2>
-      {user && !user.emailVerified && (
-        <EmailVerificationBanner email={user.email} />
-      )}
+      {user && !user.emailVerified && <EmailVerificationBanner email={user.email} />}
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-
         {/* Avatar */}
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-3">Foto de perfil</label>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-3">
+            Foto de perfil
+          </label>
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -109,17 +146,25 @@ export default function ProfileSettings() {
               </div>
             </button>
             <div>
-              <button type="button" onClick={() => fileRef.current?.click()}
-                className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 hover:border-gold-500/60 px-4 py-2 transition-colors flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 hover:border-gold-500/60 px-4 py-2 transition-colors flex items-center gap-2"
+              >
                 <Camera className="w-3.5 h-3.5" /> Subir foto
               </button>
               {form.avatarUrl && (
-                <button type="button" onClick={() => setForm((f) => ({ ...f, avatarUrl: '' }))}
-                  className="text-xs text-coffee-500 hover:text-red-400 transition-colors mt-1 block">
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, avatarUrl: '' }))}
+                  className="text-xs text-coffee-500 hover:text-red-400 transition-colors mt-1 block"
+                >
                   Quitar foto
                 </button>
               )}
-              <p className="text-coffee-500 dark:text-coffee-600 text-xs mt-1">JPG, PNG, WebP · máx 5 MB</p>
+              <p className="text-coffee-500 dark:text-coffee-600 text-xs mt-1">
+                JPG, PNG, WebP · máx 5 MB
+              </p>
             </div>
           </div>
           <input
@@ -131,52 +176,177 @@ export default function ProfileSettings() {
           />
         </div>
 
+        {/* Bio */}
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Nombre *</label>
-          <input name="name" required value={form.name} onChange={handleChange}
-            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors" />
-        </div>
-        <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
-          <input name="phone" value={form.phone} onChange={handleChange} type="tel"
-            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
-            placeholder="55 1234 5678" />
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+            Biografía
+          </label>
+          <textarea
+            name="bio"
+            maxLength={280}
+            rows={3}
+            value={baristaData.bio}
+            onChange={(e) => setBaristaData((f) => ({ ...f, bio: e.target.value }))}
+            placeholder="Cuéntanos sobre ti y tu pasión por el café..."
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors resize-none"
+          />
+          <p className="text-coffee-500 dark:text-coffee-600 text-xs mt-1 text-right">
+            {baristaData.bio.length}/280
+          </p>
         </div>
 
-        <h3 className="font-serif text-lg text-coffee-900 dark:text-cream pt-4 border-t border-coffee-200 dark:border-coffee-800">Dirección de envío</h3>
+        {/* Banner */}
+        <div>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-3">
+            Foto de portada
+          </label>
+          {baristaData.bannerUrl ? (
+            <div className="relative w-full h-48 rounded-lg overflow-hidden bg-coffee-200 dark:bg-coffee-800 mb-3">
+              <img
+                src={baristaData.bannerUrl}
+                alt="Portada"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-full h-48 rounded-lg bg-coffee-100 dark:bg-coffee-800/50 border-2 border-dashed border-coffee-300 dark:border-coffee-700 mb-3 flex items-center justify-center">
+              <p className="text-coffee-500 dark:text-coffee-600 text-sm">Sin foto de portada</p>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => bannerFileRef.current?.click()}
+              className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 hover:border-gold-500/60 px-4 py-2 transition-colors flex items-center gap-2"
+            >
+              <Camera className="w-3.5 h-3.5" /> Subir portada
+            </button>
+            {baristaData.bannerUrl && (
+              <button
+                type="button"
+                onClick={() => setBaristaData((f) => ({ ...f, bannerUrl: '' }))}
+                className="text-sm text-coffee-500 hover:text-red-400 transition-colors px-4 py-2 border border-coffee-300 dark:border-coffee-700"
+              >
+                Quitar portada
+              </button>
+            )}
+          </div>
+          <input
+            ref={bannerFileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (file.size > 10 * 1024 * 1024) {
+                add('Imagen muy grande (máx 10 MB)', 'error');
+                return;
+              }
+              try {
+                const res = await uploadsApi.upload(file);
+                const url = res.data.data.url;
+                setBaristaData((f) => ({ ...f, bannerUrl: url }));
+              } catch {
+                add('No se pudo subir la portada', 'error');
+              }
+            }}
+          />
+        </div>
 
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Calle y número</label>
-          <input name="address" value={form.address} onChange={handleChange}
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+            Nombre *
+          </label>
+          <input
+            name="name"
+            required
+            value={form.name}
+            onChange={handleChange}
             className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
-            placeholder="Calle, número, colonia" />
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+            Teléfono
+          </label>
+          <input
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            type="tel"
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+            placeholder="55 1234 5678"
+          />
+        </div>
+
+        <h3 className="font-serif text-lg text-coffee-900 dark:text-cream pt-4 border-t border-coffee-200 dark:border-coffee-800">
+          Dirección de envío
+        </h3>
+
+        <div>
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+            Calle y número
+          </label>
+          <input
+            name="address"
+            value={form.address}
+            onChange={handleChange}
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+            placeholder="Calle, número, colonia"
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad</label>
-            <input name="city" value={form.city} onChange={handleChange}
-              className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors" />
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+              Ciudad
+            </label>
+            <input
+              name="city"
+              value={form.city}
+              onChange={handleChange}
+              className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+            />
           </div>
           <div>
-            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP</label>
-            <input name="zipCode" value={form.zipCode} onChange={handleChange}
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+              CP
+            </label>
+            <input
+              name="zipCode"
+              value={form.zipCode}
+              onChange={handleChange}
               className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
-              placeholder="12345" />
+              placeholder="12345"
+            />
           </div>
         </div>
         <div>
-          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado</label>
-          <select name="state" value={form.state} onChange={handleChange}
-            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors">
+          <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">
+            Estado
+          </label>
+          <select
+            name="state"
+            value={form.state}
+            onChange={handleChange}
+            className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+          >
             <option value="">Seleccionar</option>
-            {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
+            {mexicanStates.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
           </select>
         </div>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
 
-        <button type="submit" disabled={loading}
-          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]"
+        >
           {loading ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>

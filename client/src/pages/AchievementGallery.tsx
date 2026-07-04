@@ -4,6 +4,8 @@ import { baristaApi } from '../api';
 import type { AchievementWithUnlock } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
+import TitleSelector from '../components/TitleSelector';
 
 const rarityConfig: Record<string, { label: string; color: string }> = {
   COMMON: {
@@ -60,6 +62,18 @@ export default function AchievementGallery() {
     Record<string, { current: number; target: number }>
   >({});
   const currentUser = useUser((s) => s.user);
+  const { add: addToast } = useToast();
+  const [titleRefreshKey, setTitleRefreshKey] = useState(0);
+
+  const handleTitleSelect = async (titleId: string | null) => {
+    try {
+      await baristaApi.updateProfile({ activeTitleId: titleId ?? undefined });
+      addToast('Título actualizado', 'success');
+      setTitleRefreshKey((k) => k + 1);
+    } catch {
+      addToast('Error al actualizar título', 'error');
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -273,6 +287,20 @@ export default function AchievementGallery() {
             })}
           </div>
         )}
+
+        {/* ── Títulos Barista ── */}
+        <section className="mt-16">
+          <div className="text-center mb-8">
+            <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Insignias</p>
+            <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+              Títulos Barista
+            </h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm">
+              Gana logros para desbloquear títulos
+            </p>
+          </div>
+          <TitleSelector key={titleRefreshKey} onSelect={handleTitleSelect} />
+        </section>
       </div>
     </div>
   );

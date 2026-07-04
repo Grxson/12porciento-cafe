@@ -53,7 +53,10 @@ export default function BaristaProfile() {
           <div className="shimmer dark:shimmer-dark h-3 w-full rounded-full" />
           <div className="grid grid-cols-3 gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 space-y-2">
+              <div
+                key={i}
+                className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 space-y-2"
+              >
                 <div className="shimmer dark:shimmer-dark h-7 w-12" />
                 <div className="shimmer dark:shimmer-dark h-3 w-full" />
               </div>
@@ -61,7 +64,10 @@ export default function BaristaProfile() {
           </div>
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 space-y-2">
+              <div
+                key={i}
+                className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 space-y-2"
+              >
                 <div className="shimmer dark:shimmer-dark h-4 w-3/4" />
                 <div className="shimmer dark:shimmer-dark h-3 w-1/2" />
               </div>
@@ -80,16 +86,25 @@ export default function BaristaProfile() {
           <Coffee className="w-12 h-12 text-coffee-700 mx-auto mb-4" />
           {isOwnProfile ? (
             <>
-              <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">Sin brews aún</h2>
+              <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+                Sin brews aún
+              </h2>
               <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-6">
-                Prepara una receta en modo en vivo y regístrala para comenzar tu camino como barista.
+                Prepara una receta en modo en vivo y regístrala para comenzar tu camino como
+                barista.
               </p>
-              <Link to="/recetas" className="btn-primary">Ver recetas</Link>
+              <Link to="/recetas" className="btn-primary">
+                Ver recetas
+              </Link>
             </>
           ) : (
             <>
-              <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">Perfil no encontrado</h2>
-              <p className="text-coffee-600 dark:text-coffee-400 text-sm">Este barista aún no ha registrado ningún brew.</p>
+              <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+                Perfil no encontrado
+              </h2>
+              <p className="text-coffee-600 dark:text-coffee-400 text-sm">
+                Este barista aún no ha registrado ningún brew.
+              </p>
             </>
           )}
         </div>
@@ -103,24 +118,54 @@ export default function BaristaProfile() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 pb-24">
-      <PageMeta title={`Perfil de ${currentUser?.name || 'Barista'}`} description="Nivel barista, experiencia y logros." />
+      <PageMeta
+        title={`Perfil de ${currentUser?.name || 'Barista'}`}
+        description="Nivel barista, experiencia y logros."
+      />
       <div className="max-w-2xl mx-auto px-4">
-        <div className="text-center mb-12">
+        {/* Banner */}
+        <div
+          className="h-48 md:h-64 -mx-4 mb-0 bg-gradient-to-r from-coffee-900 to-gold-900/30 bg-cover bg-center"
+          style={profile.bannerUrl ? { backgroundImage: `url(${profile.bannerUrl})` } : undefined}
+        />
+
+        <div className="text-center mb-12 -mt-20 relative z-10">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Perfil Barista</p>
 
-          {/* Rank Badge */}
+          {/* Rank Badge with Avatar Frame */}
           <div className="flex justify-center mb-4">
-            <RankBadge level={profile.level} size="lg" />
+            <RankBadge
+              level={profile.level}
+              size="lg"
+              frameType={profile.bannerUrl ? 'avatar' : 'badge'}
+              avatarUrl={profile.user?.id === currentUser?.id ? currentUser?.avatarUrl : undefined}
+              name={profile.user?.name}
+              showLabel
+            />
           </div>
 
           {profile.user && (
-            <p className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">{profile.user.name}</p>
+            <>
+              <p className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">
+                {profile.user.name}
+              </p>
+              {profile.bio && (
+                <p className="text-sm text-coffee-600 dark:text-coffee-400 italic max-w-md mx-auto leading-relaxed mb-2">
+                  {profile.bio}
+                </p>
+              )}
+            </>
           )}
           <h1 className="font-serif text-4xl text-gold-400 mb-1">Nivel {profile.level}</h1>
           {profile.rankTitle && (
-            <p className="text-coffee-600 dark:text-coffee-400 text-sm font-medium mb-1">{profile.rankTitle}</p>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm font-medium mb-1">
+              {profile.rankTitle}
+            </p>
           )}
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm">{profile.totalBrews} brews registrados</p>
+          {/* TODO: Show active title from profile.activeTitleId when API returns title relation */}
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm">
+            {profile.totalBrews} brews registrados
+          </p>
         </div>
 
         {/* Permission prompt — only on own profile */}
@@ -129,7 +174,10 @@ export default function BaristaProfile() {
         {/* Streak Widget */}
         {profile.currentStreak !== undefined && (
           <div className="mb-8">
-            <StreakWidget currentStreak={profile.currentStreak} isActive={profile.currentStreak > 0} />
+            <StreakWidget
+              currentStreak={profile.currentStreak}
+              isActive={profile.currentStreak > 0}
+            />
           </div>
         )}
 
@@ -141,11 +189,26 @@ export default function BaristaProfile() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { icon: <Trophy className="w-5 h-5 text-gold-500" />, label: 'Nivel', value: profile.level },
-            { icon: <Zap className="w-5 h-5 text-gold-500" />, label: 'XP Total', value: profile.totalXp },
-            { icon: <Coffee className="w-5 h-5 text-gold-500" />, label: 'Brews', value: profile.totalBrews },
+            {
+              icon: <Trophy className="w-5 h-5 text-gold-500" />,
+              label: 'Nivel',
+              value: profile.level,
+            },
+            {
+              icon: <Zap className="w-5 h-5 text-gold-500" />,
+              label: 'XP Total',
+              value: profile.totalXp,
+            },
+            {
+              icon: <Coffee className="w-5 h-5 text-gold-500" />,
+              label: 'Brews',
+              value: profile.totalBrews,
+            },
           ].map(({ icon, label, value }) => (
-            <div key={label} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 text-center">
+            <div
+              key={label}
+              className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 text-center"
+            >
               <div className="flex justify-center mb-2">{icon}</div>
               <p className="text-xs text-coffee-500 uppercase mb-1">{label}</p>
               <p className="text-2xl font-bold text-coffee-900 dark:text-cream">{value}</p>
@@ -156,7 +219,9 @@ export default function BaristaProfile() {
         {/* XP Progress */}
         <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-8">
           <div className="flex justify-between mb-2">
-            <p className="text-sm text-coffee-600 dark:text-coffee-400">Progreso nivel {profile.level + 1}</p>
+            <p className="text-sm text-coffee-600 dark:text-coffee-400">
+              Progreso nivel {profile.level + 1}
+            </p>
             <p className="text-xs text-coffee-500">{xpInCurrentLevel}/100 XP</p>
           </div>
           <div
@@ -181,7 +246,10 @@ export default function BaristaProfile() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Tus Logros</h2>
               {profile.achievements.length > 4 && (
-                <Link to={`/logros`} className="text-xs text-gold-500 hover:text-gold-400 transition-colors">
+                <Link
+                  to={`/logros`}
+                  className="text-xs text-gold-500 hover:text-gold-400 transition-colors"
+                >
                   Ver todos ({profile.achievements.length})
                 </Link>
               )}
@@ -194,7 +262,9 @@ export default function BaristaProfile() {
                   title={unlock.achievement.description}
                 >
                   <p className="text-3xl mb-1">{unlock.achievement.icon}</p>
-                  <p className="text-xs text-coffee-900 dark:text-cream font-semibold leading-tight">{unlock.achievement.name}</p>
+                  <p className="text-xs text-coffee-900 dark:text-cream font-semibold leading-tight">
+                    {unlock.achievement.name}
+                  </p>
                   <p className="text-xs text-gold-500 mt-0.5">+{unlock.achievement.xpReward} XP</p>
                 </div>
               ))}
@@ -248,7 +318,10 @@ export default function BaristaProfile() {
                   <p className="text-xs text-coffee-500 uppercase mb-3">Brews por Método</p>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(stats.brewsPerMethod).map(([method, count]) => (
-                      <div key={method} className="bg-coffee-50 dark:bg-coffee-800 p-2 text-center rounded">
+                      <div
+                        key={method}
+                        className="bg-coffee-50 dark:bg-coffee-800 p-2 text-center rounded"
+                      >
                         <p className="text-xs text-coffee-600 dark:text-coffee-300">{method}</p>
                         <p className="text-lg font-bold text-coffee-900 dark:text-cream">{count}</p>
                       </div>
@@ -282,30 +355,46 @@ export default function BaristaProfile() {
         )}
 
         {/* Brew Comparator */}
-        {profile.brewLogs.length > 0 && (
-          <BrewComparator brews={profile.brewLogs} />
-        )}
+        {profile.brewLogs.length > 0 && <BrewComparator brews={profile.brewLogs} />}
 
         {/* Recent Brews */}
         {profile.brewLogs.length > 0 && (
           <div>
-            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Brews Recientes</h2>
+            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">
+              Brews Recientes
+            </h2>
             <div className="space-y-3">
               {profile.brewLogs.map((brew) => (
-                <div key={brew.id} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
+                <div
+                  key={brew.id}
+                  className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden"
+                >
                   {brew.photoUrl && (
                     <img src={brew.photoUrl} alt="brew" className="w-full h-32 object-cover" />
                   )}
                   <div className="p-4 flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-coffee-900 dark:text-cream font-medium truncate">{brew.recipe.title}</p>
-                      <p className="text-xs text-coffee-500 mt-0.5">
-                        {brew.recipe.method}{brew.recipe.difficulty ? ` · ${brew.recipe.difficulty}` : ''} · {new Date(brew.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                      <p className="text-coffee-900 dark:text-cream font-medium truncate">
+                        {brew.recipe.title}
                       </p>
-                      {brew.notes && <p className="text-sm text-coffee-700 dark:text-coffee-300 mt-2 line-clamp-2">{brew.notes}</p>}
+                      <p className="text-xs text-coffee-500 mt-0.5">
+                        {brew.recipe.method}
+                        {brew.recipe.difficulty ? ` · ${brew.recipe.difficulty}` : ''} ·{' '}
+                        {new Date(brew.createdAt).toLocaleDateString('es-MX', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </p>
+                      {brew.notes && (
+                        <p className="text-sm text-coffee-700 dark:text-coffee-300 mt-2 line-clamp-2">
+                          {brew.notes}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right ml-4 shrink-0">
-                      <p className="text-gold-400">{brew.rating}/10 <span className="text-coffee-500">★</span></p>
+                      <p className="text-gold-400">
+                        {brew.rating}/10 <span className="text-coffee-500">★</span>
+                      </p>
                       <p className="text-xs text-gold-500 mt-1">+{brew.xpEarned} XP</p>
                     </div>
                   </div>

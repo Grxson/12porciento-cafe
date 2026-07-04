@@ -1,5 +1,16 @@
 import { NavLink, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { Package, Star, CreditCard, Settings, CreditCard as CardIcon, Trophy, Heart, Gift } from 'lucide-react';
+import {
+  Package,
+  Star,
+  CreditCard,
+  Settings,
+  CreditCard as CardIcon,
+  Trophy,
+  Heart,
+  Gift,
+  Wrench,
+  Coffee,
+} from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useBarista } from '../hooks/useBarista';
 import Orders from './profile/Orders';
@@ -10,16 +21,20 @@ import PaymentMethod from './profile/PaymentMethod';
 import OrderDetail from './profile/OrderDetail';
 import Wishlist from './profile/Wishlist';
 import GiftCards from './profile/GiftCards';
+import Equipment from './profile/Equipment';
+import CoffeeTracker from './profile/CoffeeTracker';
 import { PageMeta } from '../hooks/usePageMeta';
 
 const tabs = [
-  { to: '/perfil/pedidos',       label: 'Pedidos',         icon: Package },
-  { to: '/perfil/resenas',       label: 'Reseñas',         icon: Star },
-  { to: '/perfil/lista-deseos',  label: 'Lista de Deseos', icon: Heart },
-  { to: '/perfil/suscripcion',   label: 'Suscripción',     icon: CreditCard },
-  { to: '/perfil/pago',          label: 'Método de pago',  icon: CardIcon },
-  { to: '/perfil/configuracion', label: 'Mi perfil',       icon: Settings },
-  { to: '/perfil/gift-cards',    label: 'Gift Cards',     icon: Gift },
+  { to: '/perfil/pedidos', label: 'Pedidos', icon: Package },
+  { to: '/perfil/resenas', label: 'Reseñas', icon: Star },
+  { to: '/perfil/lista-deseos', label: 'Lista de Deseos', icon: Heart },
+  { to: '/perfil/suscripcion', label: 'Suscripción', icon: CreditCard },
+  { to: '/perfil/pago', label: 'Método de pago', icon: CardIcon },
+  { to: '/perfil/configuracion', label: 'Mi perfil', icon: Settings },
+  { to: '/perfil/gift-cards', label: 'Gift Cards', icon: Gift },
+  { to: '/perfil/equipo', label: 'Equipo', icon: Wrench },
+  { to: '/perfil/cafes', label: 'Cafés', icon: Coffee },
 ];
 
 export default function Profile() {
@@ -59,7 +74,11 @@ export default function Profile() {
                   <p className="text-xs text-coffee-500">{baristaProfile.totalXp} XP</p>
                 </>
               ) : (
-                <p className="text-xs text-coffee-500 text-center leading-tight">Barista<br/>Level</p>
+                <p className="text-xs text-coffee-500 text-center leading-tight">
+                  Barista
+                  <br />
+                  Level
+                </p>
               )}
             </Link>
           )}
@@ -94,6 +113,8 @@ export default function Profile() {
           <Route path="pago" element={<PaymentMethod />} />
           <Route path="configuracion" element={<ProfileSettings />} />
           <Route path="gift-cards" element={<GiftCards />} />
+          <Route path="equipo" element={<Equipment />} />
+          <Route path="cafes" element={<CoffeeTracker />} />
         </Routes>
       </div>
     </div>

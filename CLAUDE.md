@@ -182,5 +182,15 @@ Last updated: 2026-06-28 (PWA + Offline Sprint + DB Fix Sprint)
 
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at specs/004-typography-standardization/plan.md
+at specs/005-barista-profile-overhaul/plan.md
+
+## Current Sprint: Barista Profile Overhaul
+
+Active plan: specs/005-barista-profile-overhaul/
+
+- spec.md — feature specification (4 phases)
+- plan.md — implementation plan with subagents, Context7 research, timelines
+- tasks.md — 38 actionable tasks mapped to subagent calls
+- quickstart.md — validation guide per phase
+
 <!-- SPECKIT END -->

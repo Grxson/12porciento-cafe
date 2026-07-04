@@ -96,6 +96,7 @@ import Gallery from './pages/Gallery';
 import BaristaProfile from './pages/BaristaProfile';
 import Leaderboard from './pages/Leaderboard';
 import AchievementGallery from './pages/AchievementGallery';
+import RewardShop from './pages/RewardShop';
 import Bundles from './pages/Bundles';
 import GiftCardPurchase from './pages/GiftCardPurchase';
 
@@ -254,6 +255,14 @@ export default function App() {
                   <Route path="/perfil/barista/:userId" element={<BaristaProfile />} />
                   <Route path="/b2b" element={<B2BCatalog />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
+                  <Route
+                    path="/recompensas"
+                    element={
+                      <UserRoute>
+                        <RewardShop />
+                      </UserRoute>
+                    }
+                  />
                   <Route
                     path="/logros"
                     element={

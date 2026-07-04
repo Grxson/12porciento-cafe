@@ -64,6 +64,7 @@ model Product {
   pricingConfig  PricingConfig?
   versions        ProductVersion[]
   b2bPriceTiers B2BPriceTier[]
+  brewLogs      BrewLog[]      @relation("beanBrews")
 
   @@index([caficultorId])
 }
@@ -376,8 +377,10 @@ model User {
   wishlistItems                WishlistItem[]
   recipeRatings                RecipeRating[]
   recipeFavorites              RecipeFavorite[]
-  sentGiftCards                GiftCard[]     @relation("sentGiftCards")
-  receivedGiftCards             GiftCard[]     @relation("receivedGiftCards")
+  sentGiftCards                GiftCard[]         @relation("sentGiftCards")
+  receivedGiftCards             GiftCard[]         @relation("receivedGiftCards")
+  baristaEquipment              BaristaEquipment[]
+  rewardClaims                  RewardClaim[]
 }
 
 model BaristaProfile {
@@ -388,10 +391,39 @@ model BaristaProfile {
   totalXp        Int                 @default(0)
   totalBrews     Int                 @default(0)
   favoriteMethod String?
+  bio            String?             @db.VarChar(280)
+  bannerUrl      String?
+  activeTitleId  String?
+  flavorProfile  Json?               // { favorites: string[], preferredOrigin: string, preferredRoast: string }
   brewLogs       BrewLog[]
   achievements   AchievementUnlock[]
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+
+  @@index([userId])
+}
+
+model BaristaTitle {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  icon        String
+  requirement String   // achievement slug needed to unlock
+  createdAt   DateTime @default(now())
+}
+
+model BaristaEquipment {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  brand      String?
+  category   String         // GRINDER, KETTLE, DRIPPER, SCALE, OTHER
+  photoUrl   String?
+  isFavorite Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
   @@index([userId])
 }
@@ -407,11 +439,24 @@ model BrewLog {
   notes          String?
   photoUrl       String?
   xpEarned       Int            @default(0)
+
+  // F3 — Extended brew parameters
+  grindSize      String?        // grind size label: "medio-fino", "grueso", etc.
+  waterTemp      Int?           // water temperature in °C
+  brewTime       Int?           // total brew time in seconds
+  coffeeWeight   Int?           // coffee dose in grams
+  waterVolume    Int?           // water volume in ml
+  beanId         String?        // link to Product (coffee bean used)
+  bean           Product?       @relation("beanBrews", fields: [beanId], references: [id], onDelete: SetNull)
+  equipmentIds   String[]       @default([]) // IDs of BaristaEquipment used (PostgreSQL text[])
+  tags           String[]       @default([]) // flavor tags (PostgreSQL text[])
+
   createdAt      DateTime       @default(now())
 
   @@index([userId])
   @@index([recipeId])
   @@index([clientBrewId])
+  @@index([beanId])
 }
 
 model Achievement {
@@ -694,4 +739,36 @@ model PricingConfig {
   marginB2bPct         Float    @default(30)
   minAlertMarginPct    Float    @default(20)
   updatedAt            DateTime @updatedAt
+}
+
+model Reward {
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  icon        String       @default("🎁")
+  xpCost      Int          // XP needed to claim
+  discountPct Int          @default(10)    // discount percentage
+  maxUses     Int          @default(1)     // per user
+  isActive    Boolean      @default(true)
+  stock       Int?         // null = unlimited
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  claims      RewardClaim[]
+
+  @@index([isActive])
+}
+
+model RewardClaim {
+  id         String   @id @default(cuid())
+  rewardId   String
+  reward     Reward   @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code       String?  @unique    // generated discount code
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([rewardId, userId])
+  @@index([userId])
+  @@index([code])
 }

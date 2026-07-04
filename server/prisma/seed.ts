@@ -8,230 +8,230 @@ const u = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&f
 // ─── Image pools by product category ───────────────────────────────────────
 const CAFÉ_BOLSA = [
   u('1610889556528-9a770e32642f'), // coffee bag
-  u('1559056199-641a0ac8b55e'),     // beans close
-  u('1447933601403-0c6688de566e'),  // coffee setup
-  u('1447933601769-c00d465a05d3'),  // coffee bag flat lay
-  u('1493857671505-72967e2e2760'),  // packaging
-  u('1512568400610-62da28bc8f45'),  // craft bag
-  u('1559053614-cd4628902d4a'),     // specialty beans
-  u('1461023058943-07fcbe16d735'),  // bag content
-  u('1442512595331-e89e73853f31'),  // coffee bag lifestyle
-  u('1509042239860-f550ce710b93'),  // premium packaging
-  u('1515037893594-694267b2e9f1'),  // specialty coffee bag
-  u('1447933710033-6461bcad5d65'),  // coffee aesthetic
-  u('1543268865-cbdf3ca2ab57'),     // coffee culture
-  u('1575652356055-f51a5a8ceb78'),  // artisan coffee
-  u('1514432324607-a09d9b4aefdd'),  // coffee presentation
-  u('1447932601383-a282e4b40819'),  // craft coffee
+  u('1559056199-641a0ac8b55e'), // beans close
+  u('1447933601403-0c6688de566e'), // coffee setup
+  u('1447933601769-c00d465a05d3'), // coffee bag flat lay
+  u('1493857671505-72967e2e2760'), // packaging
+  u('1512568400610-62da28bc8f45'), // craft bag
+  u('1559053614-cd4628902d4a'), // specialty beans
+  u('1461023058943-07fcbe16d735'), // bag content
+  u('1442512595331-e89e73853f31'), // coffee bag lifestyle
+  u('1509042239860-f550ce710b93'), // premium packaging
+  u('1515037893594-694267b2e9f1'), // specialty coffee bag
+  u('1447933710033-6461bcad5d65'), // coffee aesthetic
+  u('1543268865-cbdf3ca2ab57'), // coffee culture
+  u('1575652356055-f51a5a8ceb78'), // artisan coffee
+  u('1514432324607-a09d9b4aefdd'), // coffee presentation
+  u('1447932601383-a282e4b40819'), // craft coffee
 ];
 
 const CAFÉ_GRANO = [
-  u('1559056199-641a0ac8b55e'),     // beans close
-  u('1514432324607-a09d9b4aefdd'),  // coffee scoop
-  u('1447933710033-6461bcad5d65'),  // roasted beans
-  u('1542992019-2c04ae145b47'),     // coffee beans
-  u('1509042239860-f550ce710b93'),  // beans texture
-  u('1559053614-cd4628902d4a'),     // specialty beans
-  u('1515037893594-694267b2e9f1'),  // bean roast
-  u('1556821840-3a63f95609a7'),     // coffee detail
-  u('1543268865-cbdf3ca2ab57'),     // coffee aroma
-  u('1451187580459-43490279c0fa'),  // coffee macro
-  u('1497935586351-b67a49e012bf'),  // espresso shot
-  u('1510707577719-ae7c14805e3a'),  // coffee extraction
-  u('1561590141-3c3f42ba7268'),     // coffee beans roast
-  u('1442512595331-e89e73853f31'),  // coffee beans hand
-  u('1543268865-cbdf3ca2ab57'),     // coffee beans
-  u('1447933601403-0c6688de566e'),  // coffee aesthetic
+  u('1559056199-641a0ac8b55e'), // beans close
+  u('1514432324607-a09d9b4aefdd'), // coffee scoop
+  u('1447933710033-6461bcad5d65'), // roasted beans
+  u('1542992019-2c04ae145b47'), // coffee beans
+  u('1509042239860-f550ce710b93'), // beans texture
+  u('1559053614-cd4628902d4a'), // specialty beans
+  u('1515037893594-694267b2e9f1'), // bean roast
+  u('1556821840-3a63f95609a7'), // coffee detail
+  u('1543268865-cbdf3ca2ab57'), // coffee aroma
+  u('1451187580459-43490279c0fa'), // coffee macro
+  u('1497935586351-b67a49e012bf'), // espresso shot
+  u('1510707577719-ae7c14805e3a'), // coffee extraction
+  u('1561590141-3c3f42ba7268'), // coffee beans roast
+  u('1442512595331-e89e73853f31'), // coffee beans hand
+  u('1543268865-cbdf3ca2ab57'), // coffee beans
+  u('1447933601403-0c6688de566e'), // coffee aesthetic
 ];
 
 const CAFÉ_BEBIDA = [
-  u('1495474472287-4d71bcdd2085'),  // brewed coffee
-  u('1510707577719-ae7c14805e3a'),  // coffee cup
-  u('1461023058943-07fcbe16d735'),  // espresso
-  u('1497935586351-b67a49e012bf'),  // coffee shot
-  u('1509042239860-f550ce710b93'),  // coffee drink
-  u('1514432324607-a09d9b4aefdd'),  // coffee pour
-  u('1447933601769-c00d465a05d3'),  // coffee
-  u('1580933073521-dc49ac0d4e6a'),  // coffee aesthetic
-  u('1559052534-cc4f6e03ae5e'),     // coffee morning
-  u('1461023058943-07fcbe16d735'),  // espresso crema
-  u('1542992019-2c04ae145b47'),     // coffee drink
-  u('1447933601403-0c6688de566e'),  // pour over
-  u('1515037893594-694267b2e9f1'),  // coffee ritual
-  u('1561590141-3c3f42ba7268'),     // coffee experience
-  u('1543268865-cbdf3ca2ab57'),     // coffee culture
-  u('1451187580459-43490279c0fa'),  // latte art
+  u('1495474472287-4d71bcdd2085'), // brewed coffee
+  u('1510707577719-ae7c14805e3a'), // coffee cup
+  u('1461023058943-07fcbe16d735'), // espresso
+  u('1497935586351-b67a49e012bf'), // coffee shot
+  u('1509042239860-f550ce710b93'), // coffee drink
+  u('1514432324607-a09d9b4aefdd'), // coffee pour
+  u('1447933601769-c00d465a05d3'), // coffee
+  u('1580933073521-dc49ac0d4e6a'), // coffee aesthetic
+  u('1559052534-cc4f6e03ae5e'), // coffee morning
+  u('1461023058943-07fcbe16d735'), // espresso crema
+  u('1542992019-2c04ae145b47'), // coffee drink
+  u('1447933601403-0c6688de566e'), // pour over
+  u('1515037893594-694267b2e9f1'), // coffee ritual
+  u('1561590141-3c3f42ba7268'), // coffee experience
+  u('1543268865-cbdf3ca2ab57'), // coffee culture
+  u('1451187580459-43490279c0fa'), // latte art
 ];
 
 const ACCESORIOS_MOLINILLO = [
-  u('1530968033775-2c92736b131e'),  // grinder
-  u('1554118811-107debc24260'),     // coffee equipment
-  u('1447933601403-0c6688de566e'),  // grinder setup
-  u('1452865928648-ce14e7995ccf'),  // coffee tools
-  u('1559053614-cd4628902d4a'),     // grinding
-  u('1512568400610-62da28bc8f45'),  // barista tools
-  u('1443512220425-95bc62f2d40b'),  // coffee grinder
-  u('1442512595331-e89e73853f31'),  // equipment
-  u('1459749411175-04bf5292ceea'),  // coffee gear
-  u('1522992719590-544eb2dc4fdf'),  // coffee tools
-  u('1509042239860-f550ce710b93'),  // grinder aesthetic
-  u('1495474472287-4d71bcdd2085'),  // coffee setup
-  u('1514432324607-a09d9b4aefdd'),  // coffee accessories
-  u('1447933601769-c00d465a05d3'),  // coffee equipment
-  u('1547590694-56f42a68c812'),     // coffee grinder
-  u('1557804183-0d5ad5efd765'),     // coffee gear
+  u('1530968033775-2c92736b131e'), // grinder
+  u('1554118811-107debc24260'), // coffee equipment
+  u('1447933601403-0c6688de566e'), // grinder setup
+  u('1452865928648-ce14e7995ccf'), // coffee tools
+  u('1559053614-cd4628902d4a'), // grinding
+  u('1512568400610-62da28bc8f45'), // barista tools
+  u('1443512220425-95bc62f2d40b'), // coffee grinder
+  u('1442512595331-e89e73853f31'), // equipment
+  u('1459749411175-04bf5292ceea'), // coffee gear
+  u('1522992719590-544eb2dc4fdf'), // coffee tools
+  u('1509042239860-f550ce710b93'), // grinder aesthetic
+  u('1495474472287-4d71bcdd2085'), // coffee setup
+  u('1514432324607-a09d9b4aefdd'), // coffee accessories
+  u('1447933601769-c00d465a05d3'), // coffee equipment
+  u('1547590694-56f42a68c812'), // coffee grinder
+  u('1557804183-0d5ad5efd765'), // coffee gear
 ];
 
 const ACCESORIOS_BREWER = [
-  u('1606312619070-d48b4c652a52'),  // V60 setup
-  u('1443512220425-95bc62f2d40b'),  // pour over
-  u('1461023058943-07fcbe16d735'),  // brewing
-  u('1447933601403-0c6688de566e'),  // pour over aesthetic
-  u('1509042239860-f550ce710b93'),  // coffee gear
-  u('1514432324607-a09d9b4aefdd'),  // brewing setup
-  u('1447933710033-6461bcad5d65'),  // coffee ritual
-  u('1559053614-cd4628902d4a'),     // brewing method
-  u('1461023058943-07fcbe16d735'),  // extraction
-  u('1544787219-7f47ccb76574'),     // coffee setup
-  u('1452865928648-ce14e7995ccf'),  // brewing equipment
-  u('1495474472287-4d71bcdd2085'),  // coffee preparation
-  u('1512568400610-62da28bc8f45'),  // barista method
-  u('1447933601769-c00d465a05d3'),  // coffee culture
-  u('1543268865-cbdf3ca2ab57'),     // brewing ritual
-  u('1451187580459-43490279c0fa'),  // pour over detail
+  u('1606312619070-d48b4c652a52'), // V60 setup
+  u('1443512220425-95bc62f2d40b'), // pour over
+  u('1461023058943-07fcbe16d735'), // brewing
+  u('1447933601403-0c6688de566e'), // pour over aesthetic
+  u('1509042239860-f550ce710b93'), // coffee gear
+  u('1514432324607-a09d9b4aefdd'), // brewing setup
+  u('1447933710033-6461bcad5d65'), // coffee ritual
+  u('1559053614-cd4628902d4a'), // brewing method
+  u('1461023058943-07fcbe16d735'), // extraction
+  u('1544787219-7f47ccb76574'), // coffee setup
+  u('1452865928648-ce14e7995ccf'), // brewing equipment
+  u('1495474472287-4d71bcdd2085'), // coffee preparation
+  u('1512568400610-62da28bc8f45'), // barista method
+  u('1447933601769-c00d465a05d3'), // coffee culture
+  u('1543268865-cbdf3ca2ab57'), // brewing ritual
+  u('1451187580459-43490279c0fa'), // pour over detail
 ];
 
 const ACCESORIOS_MOKA = [
-  u('1442512595331-e89e73853f31'),  // moka pot
-  u('1447933601403-0c6688de566e'),  // stovetop
-  u('1509042239860-f550ce710b93'),  // moka aesthetic
-  u('1514432324607-a09d9b4aefdd'),  // coffee extraction
-  u('1556821840-3a63f95609a7'),     // coffee tradition
-  u('1443512220425-95bc62f2d40b'),  // cooking setup
-  u('1461023058943-07fcbe16d735'),  // coffee ritual
-  u('1447933710033-6461bcad5d65'),  // moka brewing
-  u('1559053614-cd4628902d4a'),     // traditional coffee
-  u('1495474472287-4d71bcdd2085'),  // home brewing
-  u('1544787219-7f47ccb76574'),     // coffee setup
-  u('1452865928648-ce14e7995ccf'),  // kitchen equipment
-  u('1512568400610-62da28bc8f45'),  // coffee preparation
-  u('1447933601769-c00d465a05d3'),  // traditional method
-  u('1543268865-cbdf3ca2ab57'),     // coffee culture
-  u('1451187580459-43490279c0fa'),  // home coffee
+  u('1442512595331-e89e73853f31'), // moka pot
+  u('1447933601403-0c6688de566e'), // stovetop
+  u('1509042239860-f550ce710b93'), // moka aesthetic
+  u('1514432324607-a09d9b4aefdd'), // coffee extraction
+  u('1556821840-3a63f95609a7'), // coffee tradition
+  u('1443512220425-95bc62f2d40b'), // cooking setup
+  u('1461023058943-07fcbe16d735'), // coffee ritual
+  u('1447933710033-6461bcad5d65'), // moka brewing
+  u('1559053614-cd4628902d4a'), // traditional coffee
+  u('1495474472287-4d71bcdd2085'), // home brewing
+  u('1544787219-7f47ccb76574'), // coffee setup
+  u('1452865928648-ce14e7995ccf'), // kitchen equipment
+  u('1512568400610-62da28bc8f45'), // coffee preparation
+  u('1447933601769-c00d465a05d3'), // traditional method
+  u('1543268865-cbdf3ca2ab57'), // coffee culture
+  u('1451187580459-43490279c0fa'), // home coffee
 ];
 
 const ACCESORIOS_KETTLE = [
-  u('1462299756681-1aed706a36e8'),  // kettle
-  u('1447933601403-0c6688de566e'),  // water heating
-  u('1509042239860-f550ce710b93'),  // kettle aesthetic
-  u('1514432324607-a09d9b4aefdd'),  // pouring
-  u('1443512220425-95bc62f2d40b'),  // kitchen tool
-  u('1461023058943-07fcbe16d735'),  // brewing preparation
-  u('1556821840-3a63f95609a7'),     // coffee setup
-  u('1447933710033-6461bcad5d65'),  // water control
-  u('1559053614-cd4628902d4a'),     // precision
-  u('1495474472287-4d71bcdd2085'),  // coffee ritual
-  u('1544787219-7f47ccb76574'),     // home brewing
-  u('1452865928648-ce14e7995ccf'),  // equipment
-  u('1512568400610-62da28bc8f45'),  // barista tools
-  u('1447933601769-c00d465a05d3'),  // coffee tradition
-  u('1543268865-cbdf3ca2ab57'),     // coffee culture
-  u('1451187580459-43490279c0fa'),  // coffee detail
+  u('1462299756681-1aed706a36e8'), // kettle
+  u('1447933601403-0c6688de566e'), // water heating
+  u('1509042239860-f550ce710b93'), // kettle aesthetic
+  u('1514432324607-a09d9b4aefdd'), // pouring
+  u('1443512220425-95bc62f2d40b'), // kitchen tool
+  u('1461023058943-07fcbe16d735'), // brewing preparation
+  u('1556821840-3a63f95609a7'), // coffee setup
+  u('1447933710033-6461bcad5d65'), // water control
+  u('1559053614-cd4628902d4a'), // precision
+  u('1495474472287-4d71bcdd2085'), // coffee ritual
+  u('1544787219-7f47ccb76574'), // home brewing
+  u('1452865928648-ce14e7995ccf'), // equipment
+  u('1512568400610-62da28bc8f45'), // barista tools
+  u('1447933601769-c00d465a05d3'), // coffee tradition
+  u('1543268865-cbdf3ca2ab57'), // coffee culture
+  u('1451187580459-43490279c0fa'), // coffee detail
 ];
 
 const ACCESORIOS_BASCULA = [
-  u('1508230119575-1fbe5f7fa4f6'),  // scale
-  u('1514432324607-a09d9b4aefdd'),  // measurement
-  u('1447933601403-0c6688de566e'),  // precision
-  u('1509042239860-f550ce710b93'),  // coffee precision
-  u('1543512220425-95bc62f2d40b'),  // kitchen scale
-  u('1461023058943-07fcbe16d735'),  // weighing
-  u('1556821840-3a63f95609a7'),     // measurement setup
-  u('1447933710033-6461bcad5d65'),  // barista precision
-  u('1559053614-cd4628902d4a'),     // coffee measurement
-  u('1495474472287-4d71bcdd2085'),  // brewing precision
-  u('1544787219-7f47ccb76574'),     // coffee setup detail
-  u('1452865928648-ce14e7995ccf'),  // equipment
-  u('1512568400610-62da28bc8f45'),  // barista method
-  u('1447933601769-c00d465a05d3'),  // coffee ritual precision
-  u('1543268865-cbdf3ca2ab57'),     // detail
-  u('1451187580459-43490279c0fa'),  // measurement precision
+  u('1508230119575-1fbe5f7fa4f6'), // scale
+  u('1514432324607-a09d9b4aefdd'), // measurement
+  u('1447933601403-0c6688de566e'), // precision
+  u('1509042239860-f550ce710b93'), // coffee precision
+  u('1543512220425-95bc62f2d40b'), // kitchen scale
+  u('1461023058943-07fcbe16d735'), // weighing
+  u('1556821840-3a63f95609a7'), // measurement setup
+  u('1447933710033-6461bcad5d65'), // barista precision
+  u('1559053614-cd4628902d4a'), // coffee measurement
+  u('1495474472287-4d71bcdd2085'), // brewing precision
+  u('1544787219-7f47ccb76574'), // coffee setup detail
+  u('1452865928648-ce14e7995ccf'), // equipment
+  u('1512568400610-62da28bc8f45'), // barista method
+  u('1447933601769-c00d465a05d3'), // coffee ritual precision
+  u('1543268865-cbdf3ca2ab57'), // detail
+  u('1451187580459-43490279c0fa'), // measurement precision
 ];
 
 const ACCESORIOS_FILTROS = [
-  u('1521302080334-4bebac2763a6'),  // filters
-  u('1447933601403-0c6688de566e'),  // flat lay
-  u('1509042239860-f550ce710b93'),  // consumables
-  u('1514432324607-a09d9b4aefdd'),  // paper filters
-  u('1443512220425-95bc62f2d40b'),  // coffee supplies
-  u('1461023058943-07fcbe16d735'),  // brewing supplies
-  u('1556821840-3a63f95609a7'),     // coffee essentials
-  u('1447933710033-6461bcad5d65'),  // supplies detail
-  u('1559053614-cd4628902d4a'),     // coffee supplies
-  u('1495474472287-4d71bcdd2085'),  // brewing components
-  u('1544787219-7f47ccb76574'),     // supplies organization
-  u('1452865928648-ce14e7995ccf'),  // inventory
-  u('1512568400610-62da28bc8f45'),  // essentials
-  u('1447933601769-c00d465a05d3'),  // consumable supplies
-  u('1543268865-cbdf3ca2ab57'),     // supplies collection
-  u('1451187580459-43490279c0fa'),  // detail supplies
+  u('1521302080334-4bebac2763a6'), // filters
+  u('1447933601403-0c6688de566e'), // flat lay
+  u('1509042239860-f550ce710b93'), // consumables
+  u('1514432324607-a09d9b4aefdd'), // paper filters
+  u('1443512220425-95bc62f2d40b'), // coffee supplies
+  u('1461023058943-07fcbe16d735'), // brewing supplies
+  u('1556821840-3a63f95609a7'), // coffee essentials
+  u('1447933710033-6461bcad5d65'), // supplies detail
+  u('1559053614-cd4628902d4a'), // coffee supplies
+  u('1495474472287-4d71bcdd2085'), // brewing components
+  u('1544787219-7f47ccb76574'), // supplies organization
+  u('1452865928648-ce14e7995ccf'), // inventory
+  u('1512568400610-62da28bc8f45'), // essentials
+  u('1447933601769-c00d465a05d3'), // consumable supplies
+  u('1543268865-cbdf3ca2ab57'), // supplies collection
+  u('1451187580459-43490279c0fa'), // detail supplies
 ];
 
 const MERCH_TAZA = [
-  u('1514228742587-6b1558fcca3d'),  // mug
-  u('1495474472287-4d71bcdd2085'),  // coffee cup
-  u('1510707577719-ae7c14805e3a'),  // mug aesthetic
-  u('1461023058943-07fcbe16d735'),  // cup
-  u('1514432324607-a09d9b4aefdd'),  // mug flat lay
-  u('1447933601403-0c6688de566e'),  // ceramic
-  u('1509042239860-f550ce710b93'),  // mug lifestyle
-  u('1556821840-3a63f95609a7'),     // coffee mug
-  u('1443512220425-95bc62f2d40b'),  // tableware
-  u('1459749411175-04bf5292ceea'),  // cup detail
-  u('1522992719590-544eb2dc4fdf'),  // mug collection
-  u('1447933710033-6461bcad5d65'),  // ceramic mug
-  u('1559053614-cd4628902d4a'),     // mug design
-  u('1495474472287-4d71bcdd2085'),  // cup lifestyle
-  u('1544787219-7f47ccb76574'),     // mug flat lay
-  u('1452865928648-ce14e7995ccf'),  // tableware collection
+  u('1514228742587-6b1558fcca3d'), // mug
+  u('1495474472287-4d71bcdd2085'), // coffee cup
+  u('1510707577719-ae7c14805e3a'), // mug aesthetic
+  u('1461023058943-07fcbe16d735'), // cup
+  u('1514432324607-a09d9b4aefdd'), // mug flat lay
+  u('1447933601403-0c6688de566e'), // ceramic
+  u('1509042239860-f550ce710b93'), // mug lifestyle
+  u('1556821840-3a63f95609a7'), // coffee mug
+  u('1443512220425-95bc62f2d40b'), // tableware
+  u('1459749411175-04bf5292ceea'), // cup detail
+  u('1522992719590-544eb2dc4fdf'), // mug collection
+  u('1447933710033-6461bcad5d65'), // ceramic mug
+  u('1559053614-cd4628902d4a'), // mug design
+  u('1495474472287-4d71bcdd2085'), // cup lifestyle
+  u('1544787219-7f47ccb76574'), // mug flat lay
+  u('1452865928648-ce14e7995ccf'), // tableware collection
 ];
 
 const MERCH_ROPA = [
-  u('1556821840-3a63f95609a7'),     // hoodie
-  u('1489749798305-ed8726f6c180'),  // apparel
-  u('1443512220425-95bc62f2d40b'),  // clothing
-  u('1462299756681-1aed706a36e8'),  // lifestyle
-  u('1447933601403-0c6688de566e'),  // fashion
-  u('1509042239860-f550ce710b93'),  // apparel lifestyle
-  u('1514432324607-a09d9b4aefdd'),  // style
-  u('1461023058943-07fcbe16d735'),  // clothing detail
-  u('1556821840-3a63f95609a7'),     // fashion lifestyle
-  u('1447933710033-6461bcad5d65'),  // apparel design
-  u('1559053614-cd4628902d4a'),     // fashion style
-  u('1495474472287-4d71bcdd2085'),  // clothing aesthetic
-  u('1544787219-7f47ccb76574'),     // fashion detail
-  u('1452865928648-ce14e7995ccf'),  // apparel collection
-  u('1512568400610-62da28bc8f45'),  // lifestyle wear
-  u('1447933601769-c00d465a05d3'),  // fashion aesthetic
+  u('1556821840-3a63f95609a7'), // hoodie
+  u('1489749798305-ed8726f6c180'), // apparel
+  u('1443512220425-95bc62f2d40b'), // clothing
+  u('1462299756681-1aed706a36e8'), // lifestyle
+  u('1447933601403-0c6688de566e'), // fashion
+  u('1509042239860-f550ce710b93'), // apparel lifestyle
+  u('1514432324607-a09d9b4aefdd'), // style
+  u('1461023058943-07fcbe16d735'), // clothing detail
+  u('1556821840-3a63f95609a7'), // fashion lifestyle
+  u('1447933710033-6461bcad5d65'), // apparel design
+  u('1559053614-cd4628902d4a'), // fashion style
+  u('1495474472287-4d71bcdd2085'), // clothing aesthetic
+  u('1544787219-7f47ccb76574'), // fashion detail
+  u('1452865928648-ce14e7995ccf'), // apparel collection
+  u('1512568400610-62da28bc8f45'), // lifestyle wear
+  u('1447933601769-c00d465a05d3'), // fashion aesthetic
 ];
 
 const MERCH_ACCESORIOS = [
-  u('1543512220425-95bc62f2d40b'),  // accessories
-  u('1447933601403-0c6688de566e'),  // merch flat lay
-  u('1509042239860-f550ce710b93'),  // lifestyle accessories
-  u('1514432324607-a09d9b4aefdd'),  // product display
-  u('1461023058943-07fcbe16d735'),  // detail
-  u('1556821840-3a63f95609a7'),     // merch lifestyle
-  u('1443512220425-95bc62f2d40b'),  // merch collection
-  u('1447933710033-6461bcad5d65'),  // product detail
-  u('1559053614-cd4628902d4a'),     // merch aesthetic
-  u('1495474472287-4d71bcdd2085'),  // accessories lifestyle
-  u('1544787219-7f47ccb76574'),     // merch display
-  u('1452865928648-ce14e7995ccf'),  // product collection
-  u('1512568400610-62da28bc8f45'),  // merch detail
-  u('1447933601769-c00d465a05d3'),  // merch aesthetic
-  u('1543268865-cbdf3ca2ab57'),     // collection
-  u('1451187580459-43490279c0fa'),  // product detail
+  u('1543512220425-95bc62f2d40b'), // accessories
+  u('1447933601403-0c6688de566e'), // merch flat lay
+  u('1509042239860-f550ce710b93'), // lifestyle accessories
+  u('1514432324607-a09d9b4aefdd'), // product display
+  u('1461023058943-07fcbe16d735'), // detail
+  u('1556821840-3a63f95609a7'), // merch lifestyle
+  u('1443512220425-95bc62f2d40b'), // merch collection
+  u('1447933710033-6461bcad5d65'), // product detail
+  u('1559053614-cd4628902d4a'), // merch aesthetic
+  u('1495474472287-4d71bcdd2085'), // accessories lifestyle
+  u('1544787219-7f47ccb76574'), // merch display
+  u('1452865928648-ce14e7995ccf'), // product collection
+  u('1512568400610-62da28bc8f45'), // merch detail
+  u('1447933601769-c00d465a05d3'), // merch aesthetic
+  u('1543268865-cbdf3ca2ab57'), // collection
+  u('1451187580459-43490279c0fa'), // product detail
 ];
 
 // Helper to pick random image from pool
@@ -270,7 +270,11 @@ const farmNameForOrigin = (origin: string): string => {
   return farms ? pickFarm(farms) : 'Los Altos';
 };
 
-const certificationsFor = (altitude: number | undefined, scaScore: number | undefined, isLimited: boolean): string => {
+const certificationsFor = (
+  altitude: number | undefined,
+  scaScore: number | undefined,
+  isLimited: boolean,
+): string => {
   const certs: string[] = [];
   if (altitude && altitude > 1300) certs.push('Orgánico');
   if (scaScore && scaScore > 87) certs.push('Comercio Justo');
@@ -298,10 +302,14 @@ const acidityForAltitude = (altitude: number | undefined): string => {
 
 const processingDescForProcess = (process: string | undefined): string => {
   if (!process) return 'Proceso tradicional de la región.';
-  if (process.includes('Lavado')) return 'Fermentación húmeda de 24-36 horas. Despulpado, fermentación en tanques, lavado y secado en camas africanas.';
-  if (process.includes('Natural')) return 'Cerezas secadas al sol en camas africanas durante 18-25 días. Giro frecuente para fermentación uniforme.';
-  if (process.includes('Honey')) return 'Despulpado selectivo conservando capa de mucílago. Secado lento en camas africanas.';
-  if (process.includes('Anaeróbico')) return 'Fermentación anaeróbica en tanques sellados con monitoreo de temperatura.';
+  if (process.includes('Lavado'))
+    return 'Fermentación húmeda de 24-36 horas. Despulpado, fermentación en tanques, lavado y secado en camas africanas.';
+  if (process.includes('Natural'))
+    return 'Cerezas secadas al sol en camas africanas durante 18-25 días. Giro frecuente para fermentación uniforme.';
+  if (process.includes('Honey'))
+    return 'Despulpado selectivo conservando capa de mucílago. Secado lento en camas africanas.';
+  if (process.includes('Anaeróbico'))
+    return 'Fermentación anaeróbica en tanques sellados con monitoreo de temperatura.';
   return 'Proceso tradicional de la región.';
 };
 
@@ -343,7 +351,11 @@ const parseFlavors = (flavorsJson: string | undefined): string[] => {
   }
 };
 
-const tastingNotesFor = (flavorsJson: string | undefined, body: string, acidity: string): string => {
+const tastingNotesFor = (
+  flavorsJson: string | undefined,
+  body: string,
+  acidity: string,
+): string => {
   const flavors = parseFlavors(flavorsJson);
   const f1 = flavors[0] || 'chocolate';
   const f2 = flavors[1] || 'caramelo';
@@ -380,7 +392,8 @@ const products = [
     stock: 120,
     imageUrl: pickImage(CAFÉ_BOLSA),
     images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
-    description: 'Lote de origen único de las faldas del Cofre de Perote. Perfil dulce y balanceado ideal para consumo diario.',
+    description:
+      'Lote de origen único de las faldas del Cofre de Perote. Perfil dulce y balanceado ideal para consumo diario.',
     isLimited: false,
     isActive: true,
   },
@@ -571,7 +584,8 @@ const products = [
     stock: 25,
     imageUrl: pickImage(CAFÉ_BOLSA),
     images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
-    description: 'Microlote Geisha con perfil floral excepcional y acidez brillante. Edición limitada.',
+    description:
+      'Microlote Geisha con perfil floral excepcional y acidez brillante. Edición limitada.',
     isLimited: true,
     isActive: true,
   },
@@ -869,7 +883,8 @@ const products = [
     stock: 25,
     imageUrl: pickImage(CAFÉ_BOLSA),
     images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
-    description: 'SL28 legendaria con fermentación anaeróbica para máxima complejidad. Edición limitada.',
+    description:
+      'SL28 legendaria con fermentación anaeróbica para máxima complejidad. Edición limitada.',
     isLimited: true,
     isActive: true,
   },
@@ -1194,7 +1209,8 @@ const products = [
     stock: 28,
     imageUrl: pickImage(CAFÉ_BOLSA),
     images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
-    description: 'Pink Bourbon legendaria con fermentación anaeróbica de 72 horas. Edición limitada.',
+    description:
+      'Pink Bourbon legendaria con fermentación anaeróbica de 72 horas. Edición limitada.',
     isLimited: true,
     isActive: true,
   },
@@ -1439,7 +1455,8 @@ const products = [
     stock: 32,
     imageUrl: pickImage(CAFÉ_BOLSA),
     images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
-    description: 'Microlote Pink Bourbon con honey para máxima complejidad frutal. Edición limitada.',
+    description:
+      'Microlote Pink Bourbon con honey para máxima complejidad frutal. Edición limitada.',
     isLimited: true,
     isActive: true,
   },
@@ -1459,7 +1476,8 @@ const products = [
     stock: 35,
     imageUrl: pickImage(CAFÉ_BOLSA),
     images: JSON.stringify([pickImage(CAFÉ_GRANO), pickImage(CAFÉ_BEBIDA), pickImage(CAFÉ_BOLSA)]),
-    description: 'Typica vieja de más de 50 años en Jaltenango con carácter excepcional. Edición limitada.',
+    description:
+      'Typica vieja de más de 50 años en Jaltenango con carácter excepcional. Edición limitada.',
     isLimited: true,
     isActive: true,
   },
@@ -1532,7 +1550,8 @@ const products = [
     stock: 30,
     imageUrl: pickImage(ACCESORIOS_MOLINILLO),
     images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
-    description: 'Molino manual premium con 40mm de diámetro. Ajuste infinito, burrs conică. Favorito de campeones.',
+    description:
+      'Molino manual premium con 40mm de diámetro. Ajuste infinito, burrs conică. Favorito de campeones.',
     isLimited: false,
     isActive: true,
   },
@@ -1558,7 +1577,8 @@ const products = [
     stock: 50,
     imageUrl: pickImage(ACCESORIOS_MOLINILLO),
     images: JSON.stringify([pickImage(ACCESORIOS_MOLINILLO), pickImage(ACCESORIOS_MOLINILLO)]),
-    description: 'Molino manual asequible de calidad con burrs cerámicos. Ideal para principiantes.',
+    description:
+      'Molino manual asequible de calidad con burrs cerámicos. Ideal para principiantes.',
     isLimited: false,
     isActive: true,
   },
@@ -1690,7 +1710,8 @@ const products = [
     stock: 35,
     imageUrl: pickImage(ACCESORIOS_BREWER),
     images: JSON.stringify([pickImage(ACCESORIOS_BREWER), pickImage(ACCESORIOS_BREWER)]),
-    description: 'Cafetera Chemex clásica para 6 tazas. Vidrio borosilicato y filtros gruesos incluidos.',
+    description:
+      'Cafetera Chemex clásica para 6 tazas. Vidrio borosilicato y filtros gruesos incluidos.',
     isLimited: false,
     isActive: true,
   },
@@ -1874,7 +1895,8 @@ const products = [
     stock: 20,
     imageUrl: pickImage(ACCESORIOS_KETTLE),
     images: JSON.stringify([pickImage(ACCESORIOS_KETTLE), pickImage(ACCESORIOS_KETTLE)]),
-    description: 'Kettle de temperatura variable con pantalla LCD. Control de precisión para brew perfecto.',
+    description:
+      'Kettle de temperatura variable con pantalla LCD. Control de precisión para brew perfecto.',
     isLimited: false,
     isActive: true,
   },
@@ -2304,13 +2326,14 @@ const products = [
 ];
 
 // Map products by slug for bundle reference
-const _productMap = new Map(products.map(p => [p.slug, p]));
+const _productMap = new Map(products.map((p) => [p.slug, p]));
 
 // Bundles: 10 themed packages
 const bundles = [
   {
     name: 'Starter V60',
-    description: 'Kit completo para iniciar en métodos de filtro. V60 plastic + filtros + báscula + café.',
+    description:
+      'Kit completo para iniciar en métodos de filtro. V60 plastic + filtros + báscula + café.',
     basePrice: 1280,
     discountPct: 15,
     imageUrl: pickImage(ACCESORIOS_BREWER),
@@ -2436,29 +2459,143 @@ const bundles = [
 ];
 
 async function main() {
-  console.log('🌱 Iniciando seed de cafetería con 114 productos, 10 bundles y 16 achievements...\n');
+  console.log(
+    '🌱 Iniciando seed de cafetería con 114 productos, 10 bundles y 16 achievements...\n',
+  );
 
   // ──────────────────────────────────────────────────────────────────────────
   // 0. SEED achievements
   // ──────────────────────────────────────────────────────────────────────────
   console.log('🏆 Creando logros...');
   const achievements = [
-    { name: 'Primer Brew', slug: 'first_brew', icon: '☕', description: 'Registra tu primer brew', rarity: 'COMMON', xpReward: 10 },
-    { name: 'Cinco Brews', slug: 'five_brews', icon: '🎯', description: '5 brews registrados', rarity: 'UNCOMMON', xpReward: 25 },
-    { name: 'Diez Brews', slug: 'ten_brews', icon: '⚡', description: '10 brews registrados', rarity: 'UNCOMMON', xpReward: 40 },
-    { name: 'Brew Perfecto', slug: 'perfect_brew', icon: '⭐', description: 'Brew con calificación 10/10', rarity: 'RARE', xpReward: 50 },
-    { name: 'V60 Experto', slug: 'v60_5', icon: '▽', description: '5 brews con V60', rarity: 'UNCOMMON', xpReward: 30 },
-    { name: 'AeroPress Experto', slug: 'aeropress_5', icon: '⊕', description: '5 brews con AeroPress', rarity: 'UNCOMMON', xpReward: 30 },
-    { name: 'Espresso Experto', slug: 'espresso_5', icon: '☕', description: '5 brews con Espresso', rarity: 'UNCOMMON', xpReward: 30 },
-    { name: 'Racha de 3', slug: 'streak_3', icon: '🔥', description: '3 días consecutivos preparando café', rarity: 'COMMON', xpReward: 15 },
-    { name: 'Racha de 7', slug: 'streak_7', icon: '🔥', description: '7 días consecutivos preparando café', rarity: 'UNCOMMON', xpReward: 30 },
-    { name: 'Café Connoisseur', slug: 'coffee_connoisseur', icon: '🎓', description: '50 brews registrados', rarity: 'UNCOMMON', xpReward: 50 },
-    { name: 'Racha Perfecta 30', slug: 'perfect_streak_30', icon: '🔥', description: '30 días consecutivos preparando café', rarity: 'RARE', xpReward: 75 },
-    { name: 'Coleccionista de Métodos', slug: 'method_collector', icon: '🎯', description: '5+ brews de 3 métodos diferentes', rarity: 'UNCOMMON', xpReward: 40 },
-    { name: 'Maestro Catador', slug: 'master_taster', icon: '⭐', description: 'Promedio de calificación ≥ 8', rarity: 'RARE', xpReward: 60 },
-    { name: 'Madrugador', slug: 'early_bird', icon: '🌅', description: '5 brews antes de las 8am', rarity: 'UNCOMMON', xpReward: 30 },
-    { name: 'Búho Nocturno', slug: 'night_owl', icon: '🌙', description: '5 brews después de las 9pm', rarity: 'UNCOMMON', xpReward: 30 },
-    { name: 'Guerrero del Fin de Semana', slug: 'weekend_warrior', icon: '⚔️', description: '10 brews durante fines de semana', rarity: 'UNCOMMON', xpReward: 45 },
+    {
+      name: 'Primer Brew',
+      slug: 'first_brew',
+      icon: '☕',
+      description: 'Registra tu primer brew',
+      rarity: 'COMMON',
+      xpReward: 10,
+    },
+    {
+      name: 'Cinco Brews',
+      slug: 'five_brews',
+      icon: '🎯',
+      description: '5 brews registrados',
+      rarity: 'UNCOMMON',
+      xpReward: 25,
+    },
+    {
+      name: 'Diez Brews',
+      slug: 'ten_brews',
+      icon: '⚡',
+      description: '10 brews registrados',
+      rarity: 'UNCOMMON',
+      xpReward: 40,
+    },
+    {
+      name: 'Brew Perfecto',
+      slug: 'perfect_brew',
+      icon: '⭐',
+      description: 'Brew con calificación 10/10',
+      rarity: 'RARE',
+      xpReward: 50,
+    },
+    {
+      name: 'V60 Experto',
+      slug: 'v60_5',
+      icon: '▽',
+      description: '5 brews con V60',
+      rarity: 'UNCOMMON',
+      xpReward: 30,
+    },
+    {
+      name: 'AeroPress Experto',
+      slug: 'aeropress_5',
+      icon: '⊕',
+      description: '5 brews con AeroPress',
+      rarity: 'UNCOMMON',
+      xpReward: 30,
+    },
+    {
+      name: 'Espresso Experto',
+      slug: 'espresso_5',
+      icon: '☕',
+      description: '5 brews con Espresso',
+      rarity: 'UNCOMMON',
+      xpReward: 30,
+    },
+    {
+      name: 'Racha de 3',
+      slug: 'streak_3',
+      icon: '🔥',
+      description: '3 días consecutivos preparando café',
+      rarity: 'COMMON',
+      xpReward: 15,
+    },
+    {
+      name: 'Racha de 7',
+      slug: 'streak_7',
+      icon: '🔥',
+      description: '7 días consecutivos preparando café',
+      rarity: 'UNCOMMON',
+      xpReward: 30,
+    },
+    {
+      name: 'Café Connoisseur',
+      slug: 'coffee_connoisseur',
+      icon: '🎓',
+      description: '50 brews registrados',
+      rarity: 'UNCOMMON',
+      xpReward: 50,
+    },
+    {
+      name: 'Racha Perfecta 30',
+      slug: 'perfect_streak_30',
+      icon: '🔥',
+      description: '30 días consecutivos preparando café',
+      rarity: 'RARE',
+      xpReward: 75,
+    },
+    {
+      name: 'Coleccionista de Métodos',
+      slug: 'method_collector',
+      icon: '🎯',
+      description: '5+ brews de 3 métodos diferentes',
+      rarity: 'UNCOMMON',
+      xpReward: 40,
+    },
+    {
+      name: 'Maestro Catador',
+      slug: 'master_taster',
+      icon: '⭐',
+      description: 'Promedio de calificación ≥ 8',
+      rarity: 'RARE',
+      xpReward: 60,
+    },
+    {
+      name: 'Madrugador',
+      slug: 'early_bird',
+      icon: '🌅',
+      description: '5 brews antes de las 8am',
+      rarity: 'UNCOMMON',
+      xpReward: 30,
+    },
+    {
+      name: 'Búho Nocturno',
+      slug: 'night_owl',
+      icon: '🌙',
+      description: '5 brews después de las 9pm',
+      rarity: 'UNCOMMON',
+      xpReward: 30,
+    },
+    {
+      name: 'Guerrero del Fin de Semana',
+      slug: 'weekend_warrior',
+      icon: '⚔️',
+      description: '10 brews durante fines de semana',
+      rarity: 'UNCOMMON',
+      xpReward: 45,
+    },
   ];
 
   for (const ach of achievements) {
@@ -2468,6 +2605,90 @@ async function main() {
     }
   }
   console.log(`   ✓ ${achievements.length} logros creados\n`);
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 0b. SEED barista titles
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('🏅 Creando títulos barista...');
+  const titles = [
+    {
+      slug: 'v60_master',
+      name: 'Maestro V60',
+      description: '5 brews con V60',
+      icon: '▽',
+      requirement: 'v60_5',
+    },
+    {
+      slug: 'aeropress_master',
+      name: 'Maestro AeroPress',
+      description: '5 brews con AeroPress',
+      icon: '⊕',
+      requirement: 'aeropress_5',
+    },
+    {
+      slug: 'espresso_master',
+      name: 'Maestro Espresso',
+      description: '5 brews con Espresso',
+      icon: '☕',
+      requirement: 'espresso_5',
+    },
+    {
+      slug: 'early_riser',
+      name: 'Madrugador',
+      description: '5 brews antes de las 8am',
+      icon: '🌅',
+      requirement: 'early_bird',
+    },
+    {
+      slug: 'night_owl_title',
+      name: 'Búho Nocturno',
+      description: '5 brews después de las 9pm',
+      icon: '🌙',
+      requirement: 'night_owl',
+    },
+    {
+      slug: 'weekend_warrior_title',
+      name: 'Guerrero Fin de Semana',
+      description: '10 brews en fines de semana',
+      icon: '⚔️',
+      requirement: 'weekend_warrior',
+    },
+    {
+      slug: 'method_collector_title',
+      name: 'Coleccionista',
+      description: '3 métodos con 5+ brews',
+      icon: '🎯',
+      requirement: 'method_collector',
+    },
+    {
+      slug: 'coffee_connoisseur_title',
+      name: 'Connoisseur',
+      description: '50 brews registrados',
+      icon: '🎓',
+      requirement: 'coffee_connoisseur',
+    },
+    {
+      slug: 'perfect_streak_title',
+      name: 'Imparable',
+      description: '30 días seguidos',
+      icon: '🔥',
+      requirement: 'perfect_streak_30',
+    },
+    {
+      slug: 'brew_perfect_title',
+      name: 'Perfeccionista',
+      description: 'Brew 10/10',
+      icon: '⭐',
+      requirement: 'perfect_brew',
+    },
+  ];
+  for (const t of titles) {
+    const existing = await prisma.baristaTitle.findUnique({ where: { slug: t.slug } });
+    if (!existing) {
+      await prisma.baristaTitle.create({ data: t });
+    }
+  }
+  console.log(`   ✓ ${titles.length} títulos creados\n`);
 
   // ──────────────────────────────────────────────────────────────────────────
   // 1. DELETE existing data (optional, for clean slate)
@@ -2517,7 +2738,7 @@ async function main() {
       grindSize = grindSizeForMethod(recommendedBrewMethod);
       tastingNotes = tastingNotesFor(p.flavors, body, acidity);
       pairingSuggestions = pairingForProcess(p.process);
-      isMemberExclusive = (p.scaScore >= 89) || p.isLimited;
+      isMemberExclusive = p.scaScore >= 89 || p.isLimited;
     }
 
     const created = await prisma.product.create({
@@ -2567,7 +2788,7 @@ async function main() {
 
     // Create bundle items
     for (const item of bundle.items) {
-      const product = createdProducts.find(p => p.slug === item.productSlug);
+      const product = createdProducts.find((p) => p.slug === item.productSlug);
       if (!product) {
         console.warn(`   ⚠ Producto no encontrado: ${item.productSlug}`);
         continue;
@@ -2590,7 +2811,7 @@ async function main() {
 }
 
 main()
-  .catch(e => {
+  .catch((e) => {
     console.error('❌ Error durante seed:', e);
     process.exit(1);
   })

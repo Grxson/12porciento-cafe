@@ -9,6 +9,14 @@ export const baristaApi = {
     notes?: string;
     photoUrl?: string;
     clientBrewId?: string;
+    grindSize?: string;
+    waterTemp?: number;
+    brewTime?: number;
+    coffeeWeight?: number;
+    waterVolume?: number;
+    beanId?: string;
+    equipmentIds?: string[];
+    tags?: string[];
   }) => api.post('/barista/brew-logs', data),
 
   getLeaderboard: (limit = 50, period = 'all-time') =>
@@ -21,5 +29,46 @@ export const baristaApi = {
 
   getBrewedRecipeIds: () => api.get('/barista/me/brewed-ids'),
 
-  getStats: (userId: string) => api.get(`/barista/${userId}/stats`),
+  getStats: (userId: string, params?: { month?: string }) =>
+    api.get(`/barista/${userId}/stats`, { params }),
+
+  // ── Fase 1: Identity ──
+
+  updateProfile: (data: {
+    bio?: string;
+    bannerUrl?: string;
+    activeTitleId?: string;
+    flavorProfile?: { favorites: string[]; preferredOrigin: string; preferredRoast: string };
+  }) => api.put('/barista/me/profile', data),
+
+  listEquipment: () => api.get('/barista/me/equipment'),
+
+  createEquipment: (data: {
+    name: string;
+    brand?: string;
+    category: string;
+    photoUrl?: string;
+    isFavorite?: boolean;
+  }) => api.post('/barista/me/equipment', data),
+
+  updateEquipment: (
+    id: string,
+    data: {
+      name?: string;
+      brand?: string;
+      category?: string;
+      photoUrl?: string;
+      isFavorite?: boolean;
+    },
+  ) => api.put(`/barista/me/equipment/${id}`, data),
+
+  deleteEquipment: (id: string) => api.delete(`/barista/me/equipment/${id}`),
+
+  getTitles: () => api.get('/barista/titles'),
+
+  // ── Reward Shop ──
+
+  getRewards: () => api.get('/barista/rewards'),
+  claimReward: (id: string) => api.post(`/barista/rewards/${id}/claim`),
+  getClaims: () => api.get('/barista/rewards/claims'),
 };

@@ -251,12 +251,17 @@ export interface DashboardStats {
 export interface BaristaProfile {
   id: string;
   userId: string;
-  user?: { id: string; name: string };
+  user?: { id: string; name: string; avatarUrl?: string };
   level: number;
   totalXp: number;
   totalBrews: number;
   favoriteMethod?: string;
   rankTitle?: string;
+  bio?: string;
+  bannerUrl?: string;
+  activeTitleId?: string;
+  activeTitle?: BaristaTitle | null;
+  flavorProfile?: FlavorProfile | null;
   streakData?: { date: string; count: number }[];
   currentStreak?: number;
   longestStreak?: number;
@@ -271,6 +276,35 @@ export interface BaristaProfile {
   updatedAt: string;
 }
 
+export interface BaristaEquipment {
+  id: string;
+  userId: string;
+  name: string;
+  brand?: string | null;
+  category: string;
+  photoUrl?: string | null;
+  isFavorite: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BaristaTitle {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string | null;
+  icon: string;
+  rarity: string;
+  achievementId?: string | null;
+  isUnlocked?: boolean;
+}
+
+export interface FlavorProfile {
+  favorites: string[];
+  preferredOrigin: string;
+  preferredRoast: string;
+}
+
 export interface BrewLog {
   id: string;
   userId: string;
@@ -280,6 +314,14 @@ export interface BrewLog {
   notes?: string;
   photoUrl?: string;
   xpEarned: number;
+  grindSize?: string | null;
+  waterTemp?: number | null;
+  brewTime?: number | null;
+  coffeeWeight?: number | null;
+  waterVolume?: number | null;
+  beanId?: string | null;
+  equipmentIds: string[];
+  tags: string[];
   createdAt: string;
 }
 

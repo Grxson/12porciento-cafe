@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Star, Check, Trash2, MessageSquare, X, Download } from 'lucide-react';
-import { reviewsApi } from '../api';
 import { exportToCsv } from './utils/csvExport';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -8,18 +7,11 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
-import type { Review } from '../types';
-
-type ReviewWithResponse = Review & { adminResponse?: string };
+import { useReviewsQuery } from './hooks/useReviewsQuery';
 
 export default function AdminReviews() {
   const { addToast } = useModuleToast();
-  const [reviews, setReviews] = useState<ReviewWithResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('pending');
   const [responding, setResponding] = useState<string | null>(null);
   const [responseText, setResponseText] = useState('');
@@ -29,34 +21,22 @@ export default function AdminReviews() {
   const [deleting, setDeleting] = useState(false);
   const [confirmBulkApprove, setConfirmBulkApprove] = useState(false);
 
-  const load = useCallback(
-    (p: number) => {
-      setLoading(true);
-      setLoadError('');
-      const params: Record<string, string> = { page: String(p), pageSize: '50' };
-      if (filter !== 'all') params.filter = filter;
-      reviewsApi
-        .adminList(params)
-        .then((r) => {
-          setReviews(r.data.data);
-          setTotalPages(r.data.totalPages ?? 1);
-          setTotal(r.data.total ?? 0);
-        })
-        .catch(() => setLoadError('Error al cargar reseñas. Intenta de nuevo.'))
-        .finally(() => setLoading(false));
-    },
-    [filter],
-  );
-
-  useEffect(() => {
-    load(page);
-  }, [load, page]);
+  const {
+    reviews,
+    totalPages,
+    total,
+    loading,
+    error: hasListError,
+    refetch,
+    approve: approveReview,
+    delete: deleteReview,
+    respond: respondReview,
+  } = useReviewsQuery(page, filter);
 
   const approve = async (id: string) => {
     try {
-      await reviewsApi.approve(id);
+      await approveReview(id);
       addToast('Reseña aprobada', 'success');
-      load(page);
     } catch {
       addToast('Error al aprobar', 'error');
     }
@@ -65,14 +45,13 @@ export default function AdminReviews() {
   const remove = async (id: string) => {
     setDeleting(true);
     try {
-      await reviewsApi.delete(id);
+      await deleteReview(id);
       setSelected((prev) => {
         const n = new Set(prev);
         n.delete(id);
         return n;
       });
       addToast('Reseña eliminada', 'success');
-      load(page);
     } catch {
       addToast('Error al eliminar', 'error');
     } finally {
@@ -84,11 +63,10 @@ export default function AdminReviews() {
   const submitResponse = async (id: string) => {
     if (!responseText.trim()) return;
     try {
-      await reviewsApi.respond(id, responseText);
+      await respondReview(id, responseText);
       setResponding(null);
       setResponseText('');
       addToast('Respuesta enviada', 'success');
-      load(page);
     } catch {
       addToast('Error al enviar respuesta', 'error');
     }
@@ -113,7 +91,7 @@ export default function AdminReviews() {
     let ok = 0;
     for (const id of Array.from(selected)) {
       try {
-        await reviewsApi.approve(id);
+        await approveReview(id);
         ok++;
       } catch {
         /* keep going */
@@ -123,7 +101,6 @@ export default function AdminReviews() {
     setSelected(new Set());
     setConfirmBulkApprove(false);
     addToast(`${ok} reseña(s) aprobada(s)`, ok > 0 ? 'success' : 'error');
-    load(page);
   };
 
   const pendingSelected = reviews.filter((r) => !r.isApproved && selected.has(r.id)).length;
@@ -202,8 +179,11 @@ export default function AdminReviews() {
 
       {loading ? (
         <AdminSkeleton rows={3} />
-      ) : loadError ? (
-        <AdminErrorState error={loadError} onRetry={() => load(page)} />
+      ) : hasListError ? (
+        <AdminErrorState
+          error="Error al cargar reseñas. Intenta de nuevo."
+          onRetry={() => refetch()}
+        />
       ) : reviews.length === 0 ? (
         <p className="text-center text-coffee-500 py-10">No hay reseñas.</p>
       ) : (
@@ -326,7 +306,7 @@ export default function AdminReviews() {
               </div>
             ))}
           </div>
-          <Pagination page={page} totalPages={totalPages} onChange={(p) => load(p)} />
+          <Pagination page={page} totalPages={totalPages} onChange={(p) => setPage(p)} />
         </>
       )}
 

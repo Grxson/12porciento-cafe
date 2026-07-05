@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, Package, X } from 'lucide-react';
-import { bundlesApi, productsApi } from '../api';
+import { productsApi } from '../api';
 import type { Bundle, Product } from '../types';
-import { useModuleList } from './hooks/useModuleList';
+import { useBundlesQuery } from './hooks/useBundlesQuery';
 import { useModuleToast } from './context/ModuleContext';
 import SearchableProductSelect from '../components/SearchableProductSelect';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -43,31 +43,15 @@ const EMPTY_FORM: FormState = {
 export default function AdminBundles() {
   const { addToast } = useModuleToast();
 
-  const fetchList = useCallback(() => bundlesApi.list(), []);
-  const createItem = useCallback(
-    (data: Record<string, unknown>) =>
-      bundlesApi.create(data as Parameters<typeof bundlesApi.create>[0]),
-    [],
-  );
-  const updateItem = useCallback(
-    (id: string, data: Record<string, unknown>) =>
-      bundlesApi.update(id, data as Parameters<typeof bundlesApi.update>[1]),
-    [],
-  );
-  const deleteItem = useCallback((id: string) => bundlesApi.delete(id), []);
-
   const {
-    items: bundles,
+    bundles,
     loading,
     error,
-    retry,
+    refetch: retry,
     create,
     update,
     delete: remove,
-  } = useModuleList<Bundle>(fetchList, createItem, updateItem, deleteItem, {
-    onSuccess: (_action, msg) => addToast(msg ?? 'Operación exitosa', 'success'),
-    onError: (msg) => addToast(msg, 'error'),
-  });
+  } = useBundlesQuery();
 
   // ── products for selector ────────────────────────────────────────────────
   const [products, setProducts] = useState<Product[]>([]);
@@ -205,9 +189,10 @@ export default function AdminBundles() {
           isActive: form.isActive,
         });
       }
+      addToast(modalMode === 'add' ? 'Bundle creado' : 'Bundle actualizado', 'success');
       closeModal();
     } catch {
-      // error already toasted by useModuleList
+      addToast('Error al guardar el bundle', 'error');
     } finally {
       setSaving(false);
     }
@@ -225,7 +210,7 @@ export default function AdminBundles() {
         isActive: !bundle.isActive,
       });
     } catch {
-      // already toasted
+      addToast('Error al actualizar el bundle', 'error');
     }
   };
 
@@ -235,8 +220,9 @@ export default function AdminBundles() {
     setDeleting(true);
     try {
       await remove(deleteTarget.id);
+      addToast('Bundle eliminado', 'success');
     } catch {
-      // already toasted
+      addToast('Error al eliminar el bundle', 'error');
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
@@ -264,7 +250,10 @@ export default function AdminBundles() {
       {loading ? (
         <AdminSkeleton rows={4} />
       ) : error ? (
-        <AdminErrorState error={error} onRetry={retry} />
+        <AdminErrorState
+          error="Error al cargar bundles. Intenta de nuevo."
+          onRetry={() => retry()}
+        />
       ) : bundles.length === 0 ? (
         <div className="text-center py-20 text-coffee-500 dark:text-coffee-400">
           <Package size={40} className="mx-auto mb-4 text-coffee-700 dark:text-coffee-300" />

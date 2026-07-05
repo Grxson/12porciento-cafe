@@ -24,46 +24,15 @@ import AdminModal from './components/AdminModal';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
 import { getApiError } from '../lib/api-error';
-
-// ── Types ─────────────────────────────────────────────────────────────────
-
-interface InventoryProduct {
-  id: string;
-  name: string;
-  slug: string;
-  category: string;
-  imageUrl: string;
-  price: number;
-  stock: number;
-  lowStockThreshold: number;
-  isActive: boolean;
-  status: 'OK' | 'LOW' | 'OUT';
-  inventoryValue: number;
-}
-interface Summary {
-  totalSKUs: number;
-  activeSKUs: number;
-  totalUnits: number;
-  totalValue: number;
-  lowStockCount: number;
-  outOfStockCount: number;
-}
-interface Movement {
-  id: string;
-  productId: string;
-  type: string;
-  quantity: number;
-  previousStock: number;
-  newStock: number;
-  notes: string | null;
-  orderId: string | null;
-  createdAt: string;
-  unitCost?: number | null;
-  batchNumber?: string | null;
-  expiryDate?: string | null;
-  supplier?: string | null;
-  product?: { id: string; name: string; imageUrl: string; category: string };
-}
+import {
+  useInventoryOverviewQuery,
+  useInventoryMovementsQuery,
+  useInventoryAlertsQuery,
+  useProductMovementsQuery,
+  useAdjustStockMutation,
+  useUpdateThresholdMutation,
+  type InventoryProduct,
+} from './hooks/useInventoryQuery';
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -102,16 +71,7 @@ const STATUS_CONFIG = {
 
 export default function Inventory() {
   const [tab, setTab] = useState<'overview' | 'movements' | 'adjust' | 'alerts'>('overview');
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [products, setProducts] = useState<InventoryProduct[]>([]);
-  const [movements, setMovements] = useState<Movement[]>([]);
-  const [movTotal, setMovTotal] = useState(0);
   const [movPage, setMovPage] = useState(1);
-  const [movTotalPages, setMovTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [overviewError, setOverviewError] = useState('');
-  const [movLoading, setMovLoading] = useState(false);
   const [filterType, setFilterType] = useState('');
   const [filterProduct, setFilterProduct] = useState('');
   const [filterFrom, setFilterFrom] = useState('');
@@ -124,39 +84,6 @@ export default function Inventory() {
   const [adjType, setAdjType] = useState<'RESTOCK' | 'ADJUSTMENT' | 'LOSS' | 'RETURN'>('RESTOCK');
   const [adjQty, setAdjQty] = useState('');
   const [adjNotes, setAdjNotes] = useState('');
-  const [adjSaving, setAdjSaving] = useState(false);
-
-  // Alerts
-  const [alerts, setAlerts] = useState<{
-    outOfStock: { id: string; name: string; imageUrl: string; sku?: string }[];
-    lowStock: {
-      id: string;
-      name: string;
-      imageUrl: string;
-      stock: number;
-      lowStockThreshold: number;
-      supplier?: string;
-    }[];
-    overstock: {
-      id: string;
-      name: string;
-      imageUrl: string;
-      stock: number;
-      lowStockThreshold: number;
-    }[];
-    expiringBatches: {
-      productId: string;
-      productName: string;
-      batchNumber?: string;
-      expiryDate: string;
-    }[];
-    summary: {
-      outOfStockCount: number;
-      lowStockCount: number;
-      overstockCount: number;
-      expiringCount: number;
-    };
-  } | null>(null);
 
   // New batch/cost fields for adjust form
   const [adjUnitCost, setAdjUnitCost] = useState('');
@@ -167,78 +94,46 @@ export default function Inventory() {
   // Per-product movement history modal
   const [historyProduct, setHistoryProduct] = useState<InventoryProduct | null>(null);
   const [quickAdjustId, setQuickAdjustId] = useState<string | null>(null);
-  const [historyMovements, setHistoryMovements] = useState<Movement[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
 
-  const openHistory = (p: InventoryProduct) => {
-    setHistoryProduct(p);
-    setHistoryMovements([]);
-    setHistoryLoading(true);
-    api
-      .get(`/inventory/products/${p.id}/movements`)
-      .then((r) => setHistoryMovements(r.data))
-      .catch(() => addToast('Error al cargar historial', 'error'))
-      .finally(() => setHistoryLoading(false));
-  };
+  const {
+    summary,
+    products,
+    loading,
+    error: overviewErrorFlag,
+    refetch: loadOverview,
+    patchProductStock,
+  } = useInventoryOverviewQuery();
+  const overviewError = overviewErrorFlag ? 'Error al cargar inventario' : '';
+  const error = '';
 
-  const loadOverview = () => {
-    setLoading(true);
-    setError('');
-    api
-      .get('/inventory')
-      .then((r) => {
-        setSummary(r.data.summary);
-        setProducts(r.data.products);
-      })
-      .catch(() => {
-        setOverviewError('Error al cargar inventario');
-        addToast('Error al cargar inventario', 'error');
-      })
-      .finally(() => setLoading(false));
-  };
+  const {
+    movements,
+    total: movTotal,
+    totalPages: movTotalPages,
+    loading: movLoading,
+  } = useInventoryMovementsQuery(
+    { page: movPage, filterType, filterProduct, filterFrom, filterTo },
+    tab === 'movements',
+  );
 
-  const loadMovements = (page = 1) => {
-    setMovLoading(true);
-    const params: Record<string, string | number> = { page, pageSize: 50 };
-    if (filterType) params.type = filterType;
-    if (filterProduct) params.productId = filterProduct;
-    if (filterFrom) params.dateFrom = filterFrom;
-    if (filterTo) params.dateTo = filterTo;
-    api
-      .get('/inventory/movements', { params })
-      .then((r) => {
-        setMovements(r.data.data);
-        setMovTotal(r.data.total);
-        setMovTotalPages(r.data.totalPages);
-        setMovPage(r.data.page);
-      })
-      .catch(() => addToast('Error al cargar movimientos', 'error'))
-      .finally(() => setMovLoading(false));
-  };
+  const { alerts } = useInventoryAlertsQuery(tab === 'alerts');
+  const { movements: historyMovements, loading: historyLoading } = useProductMovementsQuery(
+    historyProduct?.id ?? null,
+  );
 
-  const loadAlerts = () => {
-    api
-      .get('/inventory/alerts')
-      .then((r) => setAlerts(r.data))
-      .catch(() => addToast('Error al cargar alertas', 'error'));
-  };
+  const adjustMutation = useAdjustStockMutation();
 
   useEffect(() => {
-    loadOverview();
-  }, []);
-  useEffect(() => {
-    if (tab === 'movements') loadMovements(1);
-  }, [tab, filterType, filterProduct, filterFrom, filterTo]);
-  useEffect(() => {
-    if (tab === 'alerts') loadAlerts();
-  }, [tab]);
+    setMovPage(1);
+  }, [filterType, filterProduct, filterFrom, filterTo]);
+
+  const openHistory = (p: InventoryProduct) => setHistoryProduct(p);
 
   const handleAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adjProduct || !adjQty) return;
-    setAdjSaving(true);
     try {
-      await api.post('/inventory/adjust', {
+      await adjustMutation.mutateAsync({
         productId: adjProduct,
         type: adjType,
         quantity: parseInt(adjQty),
@@ -256,11 +151,8 @@ export default function Inventory() {
       setAdjBatchNumber('');
       setAdjExpiryDate('');
       setAdjSupplier('');
-      loadOverview();
     } catch (err: unknown) {
       addToast(getApiError(err, 'Error al ajustar stock'), 'error');
-    } finally {
-      setAdjSaving(false);
     }
   };
 
@@ -299,7 +191,7 @@ export default function Inventory() {
           </p>
         </div>
         <button
-          onClick={loadOverview}
+          onClick={() => loadOverview()}
           className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream border border-coffee-300 dark:border-coffee-700 px-3 py-2 transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" /> Actualizar
@@ -499,11 +391,7 @@ export default function Inventory() {
                             {fmtCurrency(p.inventoryValue)}
                           </td>
                           <td className="px-4 py-3 hidden lg:table-cell">
-                            <ThresholdEditor
-                              productId={p.id}
-                              current={p.lowStockThreshold}
-                              onSaved={loadOverview}
-                            />
+                            <ThresholdEditor productId={p.id} current={p.lowStockThreshold} />
                           </td>
                           <td className="px-4 py-3">
                             <span className={`text-xs px-2 py-1 border ${s.cls}`}>{s.label}</span>
@@ -531,13 +419,7 @@ export default function Inventory() {
                                   productName={p.name}
                                   currentStock={p.stock}
                                   onClose={() => setQuickAdjustId(null)}
-                                  onDone={(newStock) =>
-                                    setProducts((prev) =>
-                                      prev.map((x) =>
-                                        x.id === p.id ? { ...x, stock: newStock } : x,
-                                      ),
-                                    )
-                                  }
+                                  onDone={(newStock) => patchProductStock(p.id, newStock)}
                                 />
                               )}
                             </div>
@@ -698,7 +580,7 @@ export default function Inventory() {
                   <Pagination
                     page={movPage}
                     totalPages={movTotalPages}
-                    onChange={(p) => loadMovements(p)}
+                    onChange={(p) => setMovPage(p)}
                   />
                 </div>
               )}
@@ -918,10 +800,10 @@ export default function Inventory() {
 
             <button
               type="submit"
-              disabled={adjSaving || !adjProduct || !adjQty}
+              disabled={adjustMutation.isPending || !adjProduct || !adjQty}
               className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {adjSaving ? 'Registrando...' : 'Registrar movimiento'}
+              {adjustMutation.isPending ? 'Registrando...' : 'Registrar movimiento'}
             </button>
           </form>
         </div>
@@ -1151,27 +1033,19 @@ export default function Inventory() {
 }
 
 // ── Inline threshold editor ───────────────────────────────────────────────
-function ThresholdEditor({
-  productId,
-  current,
-  onSaved,
-}: {
-  productId: string;
-  current: number;
-  onSaved: () => void;
-}) {
+function ThresholdEditor({ productId, current }: { productId: string; current: number }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(String(current));
   const { addToast } = useModuleToast();
+  const updateThreshold = useUpdateThresholdMutation();
 
   const save = async () => {
     const n = parseInt(val);
     if (isNaN(n) || n < 0) return;
     try {
-      await api.put(`/inventory/products/${productId}/threshold`, { threshold: n });
+      await updateThreshold.mutateAsync({ productId, threshold: n });
       addToast('Umbral actualizado', 'success');
       setEditing(false);
-      onSaved();
     } catch {
       addToast('Error al actualizar umbral', 'error');
     }

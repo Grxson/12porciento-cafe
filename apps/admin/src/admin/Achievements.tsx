@@ -2,36 +2,13 @@ import { useRef, useState } from 'react';
 import { Award, Edit3, Plus, Search, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from './utils/csvExport';
 import { PageMeta } from '../hooks/usePageMeta';
-import { achievementsApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
 import FormField from './components/FormField';
 import ConfirmDialog from './components/ConfirmDialog';
-import { useModuleList } from './hooks/useModuleList';
-
-// Normalize achievementsApi response to { data: { data: Achievement[] } } for useModuleList
-const fetchAchievementList = () =>
-  achievementsApi.list().then((r) => ({
-    ...r,
-    data: {
-      data: (r.data?.achievements ?? []).sort(
-        (a: Achievement, b: Achievement) => a.xpReward - b.xpReward,
-      ),
-    },
-  }));
-
-interface Achievement {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  icon: string | null;
-  rarity: string;
-  xpReward: number;
-  unlockedAt?: string | null;
-}
+import { useAchievementsQuery, type Achievement } from './hooks/useAchievementsQuery';
 
 interface FormData {
   name: string;
@@ -73,13 +50,14 @@ export default function Achievements() {
   const { addToast } = useModuleToast();
 
   const {
-    items: achievements,
+    achievements,
     loading,
-    error: listError,
-    reload,
-  } = useModuleList<Achievement>(fetchAchievementList, undefined, undefined, undefined, {
-    onError: (msg) => addToast(msg, 'error'),
-  });
+    error: hasListError,
+    refetch,
+    create: createAchievement,
+    update: updateAchievement,
+    delete: deleteAchievement,
+  } = useAchievementsQuery();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Achievement | null>(null);
@@ -147,14 +125,13 @@ export default function Achievements() {
         xpReward: form.xpReward,
       };
       if (editing) {
-        await achievementsApi.update(editing.id, payload);
+        await updateAchievement(editing.id, payload);
         addToast('Logro actualizado', 'success');
       } else {
-        await achievementsApi.create(payload);
+        await createAchievement(payload);
         addToast('Logro creado', 'success');
       }
       setModalOpen(false);
-      reload();
     } catch (e: any) {
       const msg = e.response?.data?.error || 'Error al guardar logro';
       setError(msg);
@@ -167,9 +144,8 @@ export default function Achievements() {
   const remove = async (id: string) => {
     setDeleting(true);
     try {
-      await achievementsApi.delete(id);
+      await deleteAchievement(id);
       addToast('Logro eliminado', 'success');
-      reload();
     } catch {
       addToast('Error al eliminar', 'error');
     } finally {
@@ -229,8 +205,11 @@ export default function Achievements() {
 
       {loading ? (
         <AdminSkeleton rows={4} />
-      ) : listError ? (
-        <AdminErrorState error={listError ?? ''} onRetry={reload} />
+      ) : hasListError ? (
+        <AdminErrorState
+          error="Error al cargar logros. Intenta de nuevo."
+          onRetry={() => refetch()}
+        />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Award className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />

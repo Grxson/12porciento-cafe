@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ChevronDown, Search, X, Download, ShoppingBag } from 'lucide-react';
 import Pagination from './components/Pagination';
-import { ordersApi } from '../api';
 import { exportToCsv } from './utils/csvExport';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import { PageMeta } from '../hooks/usePageMeta';
-import type { Order, OrderStatus } from '../types';
+import { useOrdersQuery } from './hooks/useOrdersQuery';
+import type { OrderStatus } from '../types';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
   PENDING: {
@@ -49,84 +49,73 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; bg: stri
 };
 
 const allStatuses = Object.keys(statusConfig) as OrderStatus[];
+// PUT /api/orders/:id/status only accepts these — CONFIRMED/PREPARING belong to
+// the separate Logistics.tsx flow (PATCH /api/admin/orders/:id/status).
+const actionableStatuses: OrderStatus[] = [
+  'PENDING',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+];
 
 export default function AdminOrders() {
   const { addToast } = useModuleToast();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
   const [status, setStatus] = useState('');
-  const [search, setSearch] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [searchDraft, setSearchDraft] = useState('');
+  const [dateFromDraft, setDateFromDraft] = useState('');
+  const [dateToDraft, setDateToDraft] = useState('');
+  const [committedSearch, setCommittedSearch] = useState('');
+  const [committedDateFrom, setCommittedDateFrom] = useState('');
+  const [committedDateTo, setCommittedDateTo] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState('');
-  const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState<string | null>(null);
 
-  const load = (overrides?: Record<string, string>) => {
-    setLoading(true);
-    setLoadError('');
-    const params: Record<string, string> = {};
-    const s = overrides?.status ?? status;
-    const q = overrides?.search ?? search;
-    const df = overrides?.dateFrom ?? dateFrom;
-    const dt = overrides?.dateTo ?? dateTo;
-    const p = overrides?.page ?? String(page);
-    if (s) params.status = s;
-    if (q) params.search = q;
-    if (df) params.dateFrom = df;
-    if (dt) params.dateTo = dt;
-    params.page = p;
-    params.pageSize = '50';
-    ordersApi
-      .list(params)
-      .then((r) => {
-        const res = r.data as any;
-        setOrders(res.data ?? res);
-        setTotal(res.total ?? res.length ?? 0);
-        setTotalPages(res.totalPages ?? 1);
-      })
-      .catch(() => {
-        setLoadError('Error al cargar pedidos. Intenta de nuevo.');
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
-  }, [status, page]);
+  const {
+    orders,
+    total,
+    totalPages,
+    loading,
+    error,
+    refetch,
+    updateStatus: updateStatusMutation,
+    bulkUpdateStatus,
+    bulkBusy,
+  } = useOrdersQuery({
+    page,
+    status,
+    search: committedSearch,
+    dateFrom: committedDateFrom,
+    dateTo: committedDateTo,
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    load({ page: '1' });
+    setCommittedSearch(searchDraft);
+    setCommittedDateFrom(dateFromDraft);
+    setCommittedDateTo(dateToDraft);
   };
 
   const clearFilters = () => {
     setStatus('');
-    setSearch('');
-    setDateFrom('');
-    setDateTo('');
+    setSearchDraft('');
+    setDateFromDraft('');
+    setDateToDraft('');
+    setCommittedSearch('');
+    setCommittedDateFrom('');
+    setCommittedDateTo('');
     setPage(1);
-    load({ status: '', search: '', dateFrom: '', dateTo: '', page: '1' });
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
-    const prev = orders;
-    // Optimistic: reflect the new status immediately, revert on failure
-    setOrders((list) =>
-      list.map((o) => (o.id === id ? { ...o, status: newStatus as OrderStatus } : o)),
-    );
     try {
-      await ordersApi.updateStatus(id, newStatus);
+      await updateStatusMutation({ id, status: newStatus });
     } catch {
-      setOrders(prev);
       addToast('Error al actualizar estado del pedido', 'error');
     }
   };
@@ -152,17 +141,10 @@ export default function AdminOrders() {
 
   const doBulkStatus = async () => {
     if (!confirmBulk) return;
-    setBulkBusy(true);
-    let success = 0;
-    let fail = 0;
-    for (const id of selected) {
-      try {
-        await ordersApi.updateStatus(id, confirmBulk);
-        success++;
-      } catch {
-        fail++;
-      }
-    }
+    const { success, fail } = await bulkUpdateStatus({
+      ids: Array.from(selected),
+      status: confirmBulk,
+    });
     if (success > 0)
       addToast(
         `${success} pedido${success !== 1 ? 's' : ''} actualizado${success !== 1 ? 's' : ''} a ${statusConfig[confirmBulk as OrderStatus]?.label ?? confirmBulk}`,
@@ -170,12 +152,11 @@ export default function AdminOrders() {
       );
     if (fail > 0) addToast(`${fail} pedido${fail !== 1 ? 's' : ''} fallaron`, 'error');
     setSelected(new Set());
-    setBulkBusy(false);
     setBulkStatus('');
     setConfirmBulk(null);
   };
 
-  const hasFilters = status || search || dateFrom || dateTo;
+  const hasFilters = status || searchDraft || dateFromDraft || dateToDraft;
 
   return (
     <div>
@@ -228,8 +209,8 @@ export default function AdminOrders() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
           <input
             ref={searchRef}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
             placeholder="Nombre o email..."
             className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2 focus:outline-none focus:border-gold-500/50"
           />
@@ -249,14 +230,14 @@ export default function AdminOrders() {
         <div className="flex gap-2">
           <input
             type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
+            value={dateFromDraft}
+            onChange={(e) => setDateFromDraft(e.target.value)}
             className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
           />
           <input
             type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
+            value={dateToDraft}
+            onChange={(e) => setDateToDraft(e.target.value)}
             className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none"
           />
         </div>
@@ -313,8 +294,11 @@ export default function AdminOrders() {
 
       {loading ? (
         <AdminSkeleton rows={5} />
-      ) : loadError ? (
-        <AdminErrorState error={loadError} onRetry={() => load()} />
+      ) : error ? (
+        <AdminErrorState
+          error="Error al cargar pedidos. Intenta de nuevo."
+          onRetry={() => refetch()}
+        />
       ) : orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
@@ -437,7 +421,7 @@ export default function AdminOrders() {
                             Cambiar estado
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {allStatuses.map((s) => (
+                            {actionableStatuses.map((s) => (
                               <button
                                 key={s}
                                 onClick={() => updateStatus(order.id, s)}

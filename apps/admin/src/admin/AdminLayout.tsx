@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import {
   LayoutDashboard,
   Package,
@@ -33,33 +33,55 @@ import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
 import { ModuleProvider } from './context/ModuleContext';
 import ToastContainer from './components/ToastContainer';
+import AdminSkeleton from './components/AdminSkeleton';
 
-const navLinks = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/productos', label: 'Productos', icon: Package },
-  { to: '/inventario', label: 'Inventario', icon: Warehouse },
-  { to: '/b2b', label: 'B2B', icon: Briefcase },
-  { to: '/lotes', label: 'Lotes', icon: Package },
-  { to: '/caficultores', label: 'Caficultores', icon: Users },
-  { to: '/ubicaciones', label: 'Ubicaciones', icon: MapPin },
-  { to: '/tipos-cata', label: 'Tipos de Cata', icon: Tag },
-  { to: '/gift-cards', label: 'Gift Cards', icon: Gift },
-  { to: '/recetas', label: 'Recetas', icon: BookOpen },
-  { to: '/pedidos', label: 'Pedidos', icon: ShoppingBag },
-  { to: '/logistica', label: 'Logística', icon: Truck },
-  { to: '/suscriptores', label: 'Suscriptores', icon: Users },
-  { to: '/bundles', label: 'Bundles', icon: Gift },
-  { to: '/resenas', label: 'Reseñas', icon: Star },
-  { to: '/clientes', label: 'Clientes', icon: UserSearch },
-  { to: '/usuarios', label: 'Usuarios Admin', icon: Shield },
-  { to: '/descuentos', label: 'Descuentos', icon: Tag },
-  { to: '/logros', label: 'Logros', icon: Award },
-  { to: '/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
-  { to: '/consultas-b2b', label: 'Consultas B2B', icon: MessageCircle },
-  { to: '/notificaciones', label: 'Notificaciones', icon: Bell },
-  { to: '/carritos-abandonados', label: 'Carritos Abandonados', icon: ShoppingCart },
-  { to: '/auditoria', label: 'Auditoría', icon: ClipboardList },
-  { to: '/pricing', label: 'Precios', icon: DollarSign },
+const dashboardLink = { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard };
+
+const navGroups = [
+  {
+    label: 'Catálogo',
+    items: [
+      { to: '/productos', label: 'Productos', icon: Package },
+      { to: '/inventario', label: 'Inventario', icon: Warehouse },
+      { to: '/lotes', label: 'Lotes', icon: Package },
+      { to: '/caficultores', label: 'Caficultores', icon: Users },
+      { to: '/ubicaciones', label: 'Ubicaciones', icon: MapPin },
+      { to: '/tipos-cata', label: 'Tipos de Cata', icon: Tag },
+      { to: '/gift-cards', label: 'Gift Cards', icon: Gift },
+      { to: '/recetas', label: 'Recetas', icon: BookOpen },
+      { to: '/bundles', label: 'Bundles', icon: Gift },
+    ],
+  },
+  {
+    label: 'Ventas',
+    items: [
+      { to: '/pedidos', label: 'Pedidos', icon: ShoppingBag },
+      { to: '/logistica', label: 'Logística', icon: Truck },
+      { to: '/carritos-abandonados', label: 'Carritos Abandonados', icon: ShoppingCart },
+      { to: '/descuentos', label: 'Descuentos', icon: Tag },
+      { to: '/pricing', label: 'Precios', icon: DollarSign },
+      { to: '/b2b', label: 'B2B', icon: Briefcase },
+      { to: '/consultas-b2b', label: 'Consultas B2B', icon: MessageCircle },
+      { to: '/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
+    ],
+  },
+  {
+    label: 'Clientes',
+    items: [
+      { to: '/clientes', label: 'Clientes', icon: UserSearch },
+      { to: '/suscriptores', label: 'Suscriptores', icon: Users },
+      { to: '/resenas', label: 'Reseñas', icon: Star },
+      { to: '/logros', label: 'Logros', icon: Award },
+    ],
+  },
+  {
+    label: 'Config',
+    items: [
+      { to: '/usuarios', label: 'Usuarios Admin', icon: Shield },
+      { to: '/notificaciones', label: 'Notificaciones', icon: Bell },
+      { to: '/auditoria', label: 'Auditoría', icon: ClipboardList },
+    ],
+  },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -138,25 +160,51 @@ function AdminLayoutInner() {
 
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">
-            {navLinks.map(({ to, label, icon: Icon }) => (
-              <li key={to}>
-                <NavLink
-                  to={to}
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 border-l-2 pl-[10px] ${
-                      isActive
-                        ? 'bg-coffee-200 dark:bg-coffee-800 text-coffee-900 dark:text-cream border-gold-500'
-                        : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200/60 dark:hover:bg-coffee-800/40 border-transparent'
-                    }`
-                  }
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  {label}
-                </NavLink>
-              </li>
-            ))}
+            <li key={dashboardLink.to}>
+              <NavLink
+                to={dashboardLink.to}
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 border-l-2 pl-[10px] ${
+                    isActive
+                      ? 'bg-coffee-200 dark:bg-coffee-800 text-coffee-900 dark:text-cream border-gold-500'
+                      : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200/60 dark:hover:bg-coffee-800/40 border-transparent'
+                  }`
+                }
+              >
+                <dashboardLink.icon className="w-4 h-4 shrink-0" />
+                {dashboardLink.label}
+              </NavLink>
+            </li>
           </ul>
+
+          {navGroups.map((group) => (
+            <div key={group.label} className="mt-4">
+              <div className="px-3 pb-1 text-[11px] font-semibold tracking-widest text-coffee-500 dark:text-coffee-500 uppercase">
+                {group.label}
+              </div>
+              <ul className="space-y-1">
+                {group.items.map(({ to, label, icon: Icon }) => (
+                  <li key={to}>
+                    <NavLink
+                      to={to}
+                      onClick={() => setSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 border-l-2 pl-[10px] ${
+                          isActive
+                            ? 'bg-coffee-200 dark:bg-coffee-800 text-coffee-900 dark:text-cream border-gold-500'
+                            : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200/60 dark:hover:bg-coffee-800/40 border-transparent'
+                        }`
+                      }
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      {label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
 
         <div className="p-4 border-t border-coffee-200 dark:border-coffee-800 space-y-1">
@@ -224,7 +272,9 @@ function AdminLayoutInner() {
         </header>
 
         <div className="flex-1 p-8">
-          <Outlet />
+          <Suspense fallback={<AdminSkeleton rows={6} />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>

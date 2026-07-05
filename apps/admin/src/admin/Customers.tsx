@@ -1,97 +1,43 @@
 import { useEffect, useState } from 'react';
 import { Search, Users, ShoppingBag, ChevronRight, Download } from 'lucide-react';
-import { customersApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import { exportToCsv } from './utils/csvExport';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
-
-interface CustomerSummary {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  city?: string;
-  state?: string;
-  createdAt: string;
-  _count: { orders: number; subscriptions: number };
-}
-
-interface CustomerDetail extends CustomerSummary {
-  orders: {
-    id: string;
-    items: { product?: { name: string } }[];
-    createdAt: string;
-    total: number;
-    status: string;
-  }[];
-  subscriptions: { id: string }[];
-  reviews: {
-    id: string;
-    product?: { name: string };
-    createdAt: string;
-    rating: number;
-    comment?: string;
-    content?: string;
-  }[];
-}
+import { useCustomersQuery, useCustomerDetailQuery } from './hooks/useCustomersQuery';
 
 export default function AdminCustomers() {
-  const [customers, setCustomers] = useState<CustomerSummary[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<CustomerDetail | null>(null);
+  const [committedSearch, setCommittedSearch] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const { addToast } = useModuleToast();
-  const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const load = (q?: string, overridePage?: number) => {
-    setLoading(true);
-    setLoadError('');
-    const currentPage = overridePage ?? page;
-    const params: Record<string, string> = {};
-    if (q) params.search = q;
-    params.page = String(currentPage);
-    customersApi
-      .list(params)
-      .then((r) => {
-        setCustomers(r.data.data);
-        setTotalPages(r.data.totalPages ?? 1);
-        setPage(currentPage);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoadError('Error al cargar clientes. Intenta de nuevo.');
-        setLoading(false);
-      });
-  };
+  const { customers, totalPages, loading, error, refetch } = useCustomersQuery({
+    page,
+    search: committedSearch,
+  });
+  const { customer: selected, error: detailError } = useCustomerDetailQuery(selectedId);
 
   useEffect(() => {
-    load();
-  }, []);
+    if (detailError) addToast('Error al cargar detalle del cliente', 'error');
+  }, [detailError]);
 
-  const openDetail = async (id: string) => {
-    try {
-      const r = await customersApi.getById(id);
-      setSelected(r.data.data);
-    } catch {
-      addToast('Error al cargar detalle del cliente', 'error');
-    }
-  };
+  const openDetail = (id: string) => setSelectedId(id);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    load(search || undefined, 1);
+    setCommittedSearch(search);
+    setPage(1);
   };
 
   if (selected) {
     return (
       <div>
         <button
-          onClick={() => setSelected(null)}
+          onClick={() => setSelectedId(null)}
           className="flex items-center gap-2 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-sm mb-6 transition-colors"
         >
           ← Volver a clientes
@@ -259,8 +205,11 @@ export default function AdminCustomers() {
 
       {loading ? (
         <AdminSkeleton rows={4} />
-      ) : loadError ? (
-        <AdminErrorState error={loadError} onRetry={() => load(search || undefined)} />
+      ) : error ? (
+        <AdminErrorState
+          error="Error al cargar clientes. Intenta de nuevo."
+          onRetry={() => refetch()}
+        />
       ) : customers.length === 0 ? (
         <p className="text-center text-coffee-500 py-10">No se encontraron clientes.</p>
       ) : (
@@ -299,11 +248,7 @@ export default function AdminCustomers() {
               </button>
             ))}
           </div>
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onChange={(p) => load(search || undefined, p)}
-          />
+          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
         </>
       )}
     </div>

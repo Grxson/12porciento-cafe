@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Search,
   ShoppingBag,
@@ -13,7 +13,6 @@ import {
   Download,
 } from 'lucide-react';
 import AdminModal from './components/AdminModal';
-import { productsApi } from '../api';
 import ConfirmDialog from './components/ConfirmDialog';
 import ImageUploader from './components/ImageUploader';
 import GalleryUploader from './components/GalleryUploader';
@@ -28,6 +27,7 @@ import { exportToCsv } from './utils/csvExport';
 import SearchableCaficultorSelect from '../components/SearchableCaficultorSelect';
 import ProductVersionsSection from './components/ProductVersionsSection';
 import type { Product } from '../types';
+import { useProductsQuery } from './hooks/useProductsQuery';
 
 const emptyForm = {
   name: '',
@@ -74,54 +74,40 @@ const categoryLabels: Record<string, string> = {
 
 export default function AdminProducts() {
   const { addToast } = useModuleToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<'add' | 'edit' | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [catFilter, setCatFilter] = useState('TODOS');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [bulkBusy, setBulkBusy] = useState(false);
 
-  const [loadError, setLoadError] = useState('');
   const [formError, setFormError] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [showCoffeeProfile, setShowCoffeeProfile] = useState(false);
   const [filters, setFilters] = useState({ caficultorId: '' });
 
-  const load = useCallback(
-    (p: number) => {
-      setLoading(true);
-      setLoadError('');
-      const params: Record<string, string> = { page: String(p), pageSize: '50' };
-      if (debouncedSearch) params.search = debouncedSearch;
-      if (catFilter && catFilter !== 'TODOS') params.category = catFilter;
-      if (filters.caficultorId) params.caficultorId = filters.caficultorId;
-      productsApi
-        .adminList(params)
-        .then((r) => {
-          setProducts(r.data.data);
-          setTotalPages(r.data.totalPages ?? 1);
-          setTotal(r.data.total ?? 0);
-        })
-        .catch(() => {
-          setLoadError('Error al cargar productos. Intenta de nuevo.');
-        })
-        .finally(() => setLoading(false));
-    },
-    [debouncedSearch, catFilter, filters.caficultorId],
-  );
-
-  useEffect(() => {
-    load(page);
-  }, [load, page]);
+  const {
+    products,
+    total,
+    totalPages,
+    loading,
+    error: loadError,
+    refetch,
+    create,
+    update,
+    remove,
+    bulkUpdateActive,
+    saving,
+    deleting,
+    bulkBusy,
+  } = useProductsQuery({
+    page,
+    search: debouncedSearch,
+    category: catFilter,
+    caficultorId: filters.caficultorId,
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -144,8 +130,11 @@ export default function AdminProducts() {
         ? JSON.parse(p.certifications).join(', ')
         : (p.certifications as string[]).join(', ')
       : '';
+    const whitelisted = Object.fromEntries(
+      Object.keys(emptyForm).map((key) => [key, (p as unknown as Record<string, unknown>)[key]]),
+    ) as typeof emptyForm;
     setForm({
-      ...p,
+      ...whitelisted,
       flavors: (p.flavors || []).join(', '),
       altitude: p.altitude ?? '',
       scaScore: p.scaScore ?? '',
@@ -175,7 +164,6 @@ export default function AdminProducts() {
       setFormError('El stock no puede ser negativo.');
       return;
     }
-    setSaving(true);
     const data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
       ...form,
       flavors:
@@ -200,16 +188,11 @@ export default function AdminProducts() {
         : undefined,
     };
     try {
-      if (modal === 'add')
-        await productsApi.create(data as Parameters<typeof productsApi.create>[0]);
-      else if (editId)
-        await productsApi.update(editId, data as Parameters<typeof productsApi.update>[1]);
+      if (modal === 'add') await create(data);
+      else if (editId) await update({ id: editId, payload: data });
       setModal(null);
-      load(page);
     } catch (err: unknown) {
       setFormError(getApiError(err, 'Error al guardar el producto.'));
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -219,21 +202,18 @@ export default function AdminProducts() {
 
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
-    setDeleting(true);
     try {
-      await productsApi.delete(deleteConfirm.id);
+      await remove(deleteConfirm.id);
       setDeleteConfirm(null);
-      load(page);
-    } finally {
-      setDeleting(false);
+    } catch {
+      addToast('Error al eliminar producto', 'error');
     }
   };
 
   const toggleActive = async (p: Product) => {
     try {
-      await productsApi.update(p.id, { isActive: !p.isActive });
+      await update({ id: p.id, payload: { isActive: !p.isActive } });
       addToast(`${p.name} ${!p.isActive ? 'activado' : 'desactivado'}`, 'success');
-      load(page);
     } catch {
       addToast('Error al cambiar estado', 'error');
     }
@@ -254,17 +234,7 @@ export default function AdminProducts() {
   };
 
   const handleBulkActive = async (active: boolean) => {
-    setBulkBusy(true);
-    let success = 0;
-    let fail = 0;
-    for (const id of selected) {
-      try {
-        await productsApi.update(id, { isActive: active });
-        success++;
-      } catch {
-        fail++;
-      }
-    }
+    const { success, fail } = await bulkUpdateActive({ ids: [...selected], isActive: active });
     if (success > 0)
       addToast(
         `${success} producto${success !== 1 ? 's' : ''} ${active ? 'activado' : 'desactivado'}${success !== 1 ? 's' : ''}`,
@@ -272,8 +242,6 @@ export default function AdminProducts() {
       );
     if (fail > 0) addToast(`${fail} producto${fail !== 1 ? 's' : ''} fallaron`, 'error');
     setSelected(new Set());
-    setBulkBusy(false);
-    load(page);
   };
 
   const isCafe = form.category === 'CAFÉ';
@@ -390,7 +358,10 @@ export default function AdminProducts() {
       {loading ? (
         <AdminSkeleton rows={4} />
       ) : loadError ? (
-        <AdminErrorState error={loadError} onRetry={() => load(page)} />
+        <AdminErrorState
+          error="Error al cargar productos. Intenta de nuevo."
+          onRetry={() => refetch()}
+        />
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />

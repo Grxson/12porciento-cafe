@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Plus, Trash2, ToggleLeft, ToggleRight, Tag, Download } from 'lucide-react';
 import { exportToCsv } from './utils/csvExport';
-import { promoCodesApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import { PageMeta } from '../hooks/usePageMeta';
-import { useModuleList } from './hooks/useModuleList';
+import { usePromoCodesQuery } from './hooks/usePromoCodesQuery';
 
 const NOW = Date.now();
 
@@ -15,18 +14,6 @@ const daysUntil = (date: string) => {
   const diff = new Date(date).getTime() - NOW;
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
-
-interface PromoCode {
-  id: string;
-  code: string;
-  discount: number;
-  type: string; // 'PERCENTAGE' | 'FIXED' (legacy rows may use 'PERCENT')
-  maxUses: number | null;
-  usedCount: number;
-  expiresAt: string | null;
-  isActive: boolean;
-  createdAt: string;
-}
 
 const emptyForm = { code: '', discount: '', type: 'PERCENTAGE', maxUses: '', expiresAt: '' };
 
@@ -37,13 +24,14 @@ export default function AdminPromoCodes() {
   const { addToast } = useModuleToast();
 
   const {
-    items: codes,
+    codes,
     loading,
-    error: listError,
-    reload,
-  } = useModuleList<PromoCode>(promoCodesApi.list, undefined, undefined, undefined, {
-    onError: (msg) => addToast(msg, 'error'),
-  });
+    error: hasListError,
+    refetch,
+    create: createCode,
+    toggle: toggleCode,
+    delete: deleteCode,
+  } = usePromoCodesQuery();
 
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -74,7 +62,7 @@ export default function AdminPromoCodes() {
     setSaving(true);
     setError('');
     try {
-      await promoCodesApi.create({
+      await createCode({
         code: form.code,
         discount: parseFloat(form.discount),
         type: form.type,
@@ -83,7 +71,6 @@ export default function AdminPromoCodes() {
       });
       setForm(emptyForm);
       addToast('Código creado', 'success');
-      reload();
     } catch (e: any) {
       const msg = e.response?.data?.error || 'Error al crear código';
       setError(msg);
@@ -95,8 +82,7 @@ export default function AdminPromoCodes() {
 
   const toggle = async (id: string) => {
     try {
-      await promoCodesApi.toggle(id);
-      reload();
+      await toggleCode(id);
     } catch {
       addToast('Error al cambiar estado', 'error');
     }
@@ -105,9 +91,8 @@ export default function AdminPromoCodes() {
   const remove = async (id: string) => {
     setDeleting(true);
     try {
-      await promoCodesApi.delete(id);
+      await deleteCode(id);
       addToast('Código eliminado', 'success');
-      reload();
     } catch {
       addToast('Error al eliminar', 'error');
     } finally {
@@ -208,8 +193,11 @@ export default function AdminPromoCodes() {
 
       {loading ? (
         <AdminSkeleton rows={4} />
-      ) : listError ? (
-        <AdminErrorState error={listError ?? ''} onRetry={reload} />
+      ) : hasListError ? (
+        <AdminErrorState
+          error="Error al cargar códigos. Intenta de nuevo."
+          onRetry={() => refetch()}
+        />
       ) : codes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Tag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />

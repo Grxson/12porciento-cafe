@@ -1,21 +1,15 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { ShoppingBag, Send, CheckCircle, Loader2, Search, X } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
-import { abandonedCartApi } from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import Pagination from './components/Pagination';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
-import type { AbandonedCart } from '../types';
+import { useAbandonedCartsQuery } from './hooks/useAbandonedCartsQuery';
 
 export default function AbandonedCarts() {
   const { addToast } = useModuleToast();
-  const [carts, setCarts] = useState<AbandonedCart[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [listError, setListError] = useState('');
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [recoveringId, setRecoveringId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -23,44 +17,28 @@ export default function AbandonedCarts() {
   const [dateTo, setDateTo] = useState('');
   const [recovered, setRecovered] = useState('');
 
-  const load = useCallback(
-    (p: number) => {
-      setLoading(true);
-      setListError('');
-      abandonedCartApi
-        .list({
-          page: p,
-          email: search || undefined,
-          from: dateFrom || undefined,
-          to: dateTo || undefined,
-          recovered: recovered || undefined,
-        })
-        .then((res) => {
-          setCarts(res.data.data);
-          setTotal(res.data.total);
-          setPage(res.data.page);
-          setTotalPages(res.data.totalPages);
-        })
-        .catch(() => {
-          setListError('Error al cargar carritos abandonados');
-          addToast('Error al cargar carritos abandonados', 'error');
-        })
-        .finally(() => setLoading(false));
-    },
-    [search, dateFrom, dateTo, recovered],
-  );
-
-  useEffect(() => {
-    load(page);
-  }, [load, page]);
+  const {
+    carts,
+    total,
+    totalPages,
+    loading,
+    error: hasListError,
+    refetch,
+    sendReminder,
+    recover,
+  } = useAbandonedCartsQuery(page, {
+    email: search || undefined,
+    from: dateFrom || undefined,
+    to: dateTo || undefined,
+    recovered: recovered || undefined,
+  });
 
   const handleSendReminder = async (id: string) => {
     setSendingId(id);
     try {
-      const res = await abandonedCartApi.sendReminder(id);
+      const res = await sendReminder(id);
       if (res.data.success) {
         addToast('Recordatorio enviado', 'success');
-        load(page);
       } else {
         addToast('No se pudo enviar el recordatorio (sin proveedor de correo)', 'info');
       }
@@ -74,9 +52,8 @@ export default function AbandonedCarts() {
   const handleRecover = async (id: string) => {
     setRecoveringId(id);
     try {
-      await abandonedCartApi.recover(id);
+      await recover(id);
       addToast('Carrito marcado como recuperado', 'success');
-      load(page);
     } catch {
       addToast('Error al marcar como recuperado', 'error');
     } finally {
@@ -177,8 +154,8 @@ export default function AbandonedCarts() {
 
       {loading ? (
         <AdminSkeleton rows={5} />
-      ) : listError ? (
-        <AdminErrorState error={listError} onRetry={() => load(page)} />
+      ) : hasListError ? (
+        <AdminErrorState error="Error al cargar carritos abandonados" onRetry={() => refetch()} />
       ) : carts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />

@@ -15,8 +15,8 @@ COPY apps/admin ./apps/admin
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm --filter=cafe-12-server build && \
-    pnpm --filter=cafe-12-server exec prisma generate && \
+RUN pnpm --filter=cafe-12-server exec prisma generate && \
+    pnpm --filter=cafe-12-server build && \
     ls server/dist/src/
 
 ENV NODE_ENV=production

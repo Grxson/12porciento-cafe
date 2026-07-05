@@ -299,8 +299,11 @@ export default function B2BCatalog() {
         )}
       </section>
 
-      {/* ── Sticky mobile CTA ── */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-coffee-50 dark:bg-coffee-950 border-t border-coffee-200 dark:border-coffee-800 md:hidden z-30">
+      {/* ── Sticky mobile CTA (positioned above BottomNav) ── */}
+      <div
+        className="fixed left-0 right-0 p-4 bg-coffee-50 dark:bg-coffee-950 border-t border-coffee-200 dark:border-coffee-800 md:hidden z-40 md:hidden"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 56px)' }}
+      >
         <button onClick={openForm} className="btn-primary w-full text-base py-3">
           <MessageSquare className="w-4 h-4 inline-block mr-2" />
           Solicitar cotización

@@ -112,6 +112,20 @@ function ScrollToTopFab() {
 
 function PublicLayout() {
   const location = useLocation();
+
+  const FOOTER_ROUTES = [
+    '/',
+    '/tienda',
+    '/suscripciones',
+    '/nosotros',
+    '/paquetes',
+    '/recetas',
+    '/galeria',
+  ];
+  const showFooter = FOOTER_ROUTES.some(
+    (p) => location.pathname === p || location.pathname.startsWith(p + '/'),
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
@@ -150,7 +164,7 @@ function PublicLayout() {
           </motion.div>
         </AnimatePresence>
       </main>
-      <Footer />
+      {showFooter && <Footer />}
       <BottomNav />
       <OfflineBanner />
       <InstallPrompt />

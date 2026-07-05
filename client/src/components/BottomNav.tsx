@@ -18,7 +18,8 @@ export default function BottomNav() {
   const user = useUser((s) => s.user);
   const { pathname } = useLocation();
 
-  const resolveTo = (to: string) => (to === '/perfil' && !user ? '/login' : to);
+  const gatedRoutes = ['/perfil', '/perfil/lista-deseos'];
+  const resolveTo = (to: string) => (gatedRoutes.includes(to) && !user ? '/login' : to);
 
   return (
     <nav

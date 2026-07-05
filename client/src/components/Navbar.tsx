@@ -9,32 +9,32 @@ import UserMenu from './UserMenu';
 import NotificationBell from './NotificationBell';
 import CartDrawer from './CartDrawer';
 
-const links = [
-  { to: '/tienda', label: 'Tienda' },
-  { to: '/paquetes', label: 'Paquetes' },
-  { to: '/recetas', label: 'Recetas' },
-  { to: '/galeria', label: 'Galería' },
-  { to: '/leaderboard', label: 'Ranking' },
-  { to: '/logros', label: 'Logros' },
-  { to: '/suscripciones', label: 'Suscripciones' },
-  { to: '/nosotros', label: 'Nosotros' },
-  { to: '/quiz', label: 'Quiz' },
+const allLinks = [
+  { to: '/tienda', label: 'Tienda', gated: false },
+  { to: '/paquetes', label: 'Paquetes', gated: false },
+  { to: '/recetas', label: 'Recetas', gated: false },
+  { to: '/galeria', label: 'Galería', gated: false },
+  { to: '/leaderboard', label: 'Ranking', gated: true },
+  { to: '/logros', label: 'Logros', gated: true },
+  { to: '/suscripciones', label: 'Suscripciones', gated: false },
+  { to: '/nosotros', label: 'Nosotros', gated: false },
+  { to: '/quiz', label: 'Quiz', gated: false },
 ];
 
 const primaryLinks = [
-  { to: '/tienda', label: 'Tienda' },
-  { to: '/recetas', label: 'Recetas' },
-  { to: '/suscripciones', label: 'Suscripciones' },
-  { to: '/nosotros', label: 'Nosotros' },
+  { to: '/tienda', label: 'Tienda', gated: false },
+  { to: '/recetas', label: 'Recetas', gated: false },
+  { to: '/suscripciones', label: 'Suscripciones', gated: false },
+  { to: '/nosotros', label: 'Nosotros', gated: false },
 ];
 
 const secondaryLinks = [
-  { to: '/paquetes', label: 'Paquetes' },
-  { to: '/galeria', label: 'Galería' },
-  { to: '/b2b', label: 'Empresas' },
-  { to: '/leaderboard', label: 'Ranking' },
-  { to: '/logros', label: 'Logros' },
-  { to: '/quiz', label: 'Quiz' },
+  { to: '/paquetes', label: 'Paquetes', gated: false },
+  { to: '/galeria', label: 'Galería', gated: false },
+  { to: '/b2b', label: 'Empresas', gated: false },
+  { to: '/leaderboard', label: 'Ranking', gated: true },
+  { to: '/logros', label: 'Logros', gated: true },
+  { to: '/quiz', label: 'Quiz', gated: false },
 ];
 
 export default function Navbar() {
@@ -101,24 +101,26 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 relative">
-            {primaryLinks.map(({ to, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `text-sm tracking-widest uppercase transition-colors duration-200 relative ${
-                    isActive
-                      ? 'text-gold-500'
-                      : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-                  }`
-                }
-              >
-                {label}
-                {to === '/suscripciones' && hasSubscription && (
-                  <span className="absolute -top-1.5 -right-3 w-2 h-2 bg-gold-500 rounded-full" />
-                )}
-              </NavLink>
-            ))}
+            {primaryLinks
+              .filter((link) => !link.gated || user)
+              .map(({ to, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    `text-sm tracking-widest uppercase transition-colors duration-200 relative ${
+                      isActive
+                        ? 'text-gold-500'
+                        : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                    }`
+                  }
+                >
+                  {label}
+                  {to === '/suscripciones' && hasSubscription && (
+                    <span className="absolute -top-1.5 -right-3 w-2 h-2 bg-gold-500 rounded-full" />
+                  )}
+                </NavLink>
+              ))}
 
             <div ref={moreRef} className="relative">
               <button
@@ -142,22 +144,24 @@ export default function Navbar() {
                     className="absolute top-full right-0 mt-2 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 rounded-lg shadow-lg min-w-[160px] z-50"
                   >
                     <nav className="flex flex-col py-2">
-                      {secondaryLinks.map(({ to, label }) => (
-                        <NavLink
-                          key={to}
-                          to={to}
-                          onClick={() => setMoreOpen(false)}
-                          className={({ isActive }) =>
-                            `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
-                              isActive
-                                ? 'text-gold-500'
-                                : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-                            }`
-                          }
-                        >
-                          {label}
-                        </NavLink>
-                      ))}
+                      {secondaryLinks
+                        .filter((link) => !link.gated || user)
+                        .map(({ to, label }) => (
+                          <NavLink
+                            key={to}
+                            to={to}
+                            onClick={() => setMoreOpen(false)}
+                            className={({ isActive }) =>
+                              `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
+                                isActive
+                                  ? 'text-gold-500'
+                                  : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                              }`
+                            }
+                          >
+                            {label}
+                          </NavLink>
+                        ))}
                     </nav>
                   </motion.div>
                 )}
@@ -246,25 +250,27 @@ export default function Navbar() {
               tabIndex={-1}
             >
               <nav className="flex flex-col px-6 gap-1">
-                {links.map(({ to, label }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={() => setOpen(false)}
-                    className={({ isActive }) =>
-                      `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors relative ${
-                        isActive
-                          ? 'text-gold-500'
-                          : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
-                      }`
-                    }
-                  >
-                    {label}
-                    {to === '/suscripciones' && hasSubscription && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 w-2 h-2 bg-gold-500 rounded-full" />
-                    )}
-                  </NavLink>
-                ))}
+                {allLinks
+                  .filter((link) => !link.gated || user)
+                  .map(({ to, label }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      onClick={() => setOpen(false)}
+                      className={({ isActive }) =>
+                        `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors relative ${
+                          isActive
+                            ? 'text-gold-500'
+                            : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                        }`
+                      }
+                    >
+                      {label}
+                      {to === '/suscripciones' && hasSubscription && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-3 w-2 h-2 bg-gold-500 rounded-full" />
+                      )}
+                    </NavLink>
+                  ))}
               </nav>
             </motion.div>
           </>

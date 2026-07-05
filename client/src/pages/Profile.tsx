@@ -84,8 +84,17 @@ export default function Profile() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* ── Header ── */}
         <div className="relative mb-10">
-          {/* Banner placeholder gradiente */}
-          <div className="h-32 md:h-48 -mx-4 sm:-mx-6 lg:-mx-8 mb-0 bg-gradient-to-r from-coffee-900 via-coffee-800 to-gold-900/30" />
+          {/* Banner con imagen o gradiente */}
+          {baristaProfile?.bannerUrl ? (
+            <div
+              className="h-32 md:h-48 -mx-4 sm:-mx-6 lg:-mx-8 mb-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${baristaProfile.bannerUrl})` }}
+            >
+              <div className="w-full h-full bg-gradient-to-t from-coffee-950/60 via-transparent to-coffee-950/20" />
+            </div>
+          ) : (
+            <div className="h-32 md:h-48 -mx-4 sm:-mx-6 lg:-mx-8 mb-0 bg-gradient-to-r from-coffee-900 via-coffee-800 to-gold-900/30" />
+          )}
 
           <div className="flex items-end gap-5 -mt-14 md:-mt-20 relative z-10 px-4 sm:px-0">
             {/* Avatar */}

@@ -1,99 +1,86 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Gift, ToggleLeft, ToggleRight, Search } from 'lucide-react';
-import { giftCardsApi } from '../api';
+import { useState } from 'react';
+import { CreditCard, ToggleLeft, ToggleRight, Download } from 'lucide-react';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import ConfirmDialog from './components/ConfirmDialog';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
+import { useGiftCardsQuery } from './hooks/useGiftCardsQuery';
+import { exportToCsv } from './utils/csvExport';
 import type { GiftCard } from '../types';
 
 export default function AdminGiftCards() {
   const { addToast } = useModuleToast();
-  const [items, setItems] = useState<GiftCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState('');
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [confirmToggle, setConfirmToggle] = useState<{ id: string; gc: GiftCard } | null>(null);
 
-  const fetchItems = useCallback(
-    async (p: number) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await giftCardsApi.list();
-        const all = res.data as { data: GiftCard[] };
-        const filtered = search
-          ? all.data.filter(
-              (g) =>
-                g.code.toLowerCase().includes(search.toLowerCase()) ||
-                g.recipientName?.toLowerCase().includes(search.toLowerCase()) ||
-                g.recipientEmail?.toLowerCase().includes(search.toLowerCase()),
-            )
-          : all.data;
-        const ps = 20;
-        const start = (p - 1) * ps;
-        setItems(filtered.slice(start, start + ps));
-        setTotalPages(Math.ceil(filtered.length / ps));
-        setTotal(filtered.length);
-        setPage(p);
-      } catch {
-        setError('Error al cargar gift cards');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [search],
+  const { items, total, totalPages, loading, error, refetch, toggle } = useGiftCardsQuery(
+    page,
+    search || undefined,
   );
 
-  useEffect(() => {
-    fetchItems(1);
-  }, [fetchItems]);
+  const handleToggleClick = (gc: GiftCard) => {
+    if (gc.isActive) {
+      setConfirmToggle({ id: gc.id, gc });
+    } else {
+      doToggle(gc.id, true);
+    }
+  };
 
-  const toggleActive = async (g: GiftCard) => {
+  const doToggle = async (id: string, newState: boolean) => {
+    setTogglingId(id);
     try {
-      await giftCardsApi.toggle(g.id, !g.isActive);
-      addToast(`Gift card ${g.code} ${!g.isActive ? 'activada' : 'desactivada'}`, 'success');
-      fetchItems(page);
+      await toggle(id, newState);
+      addToast(`Gift card ${newState ? 'activada' : 'desactivada'}`, 'success');
     } catch {
       addToast('Error al cambiar estado', 'error');
+    } finally {
+      setTogglingId(null);
+      setConfirmToggle(null);
     }
   };
 
   return (
     <div>
       <PageMeta title="Gift Cards" noSuffix />
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-3 mb-8">
+        <CreditCard className="w-6 h-6 text-gold-500" />
         <div>
           <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Gift Cards</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} gift cards</p>
         </div>
       </div>
 
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Buscar por codigo, destinatario..."
-          className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm pl-9 pr-3 py-2.5 focus:outline-none focus:border-gold-500/50"
-        />
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() =>
+            exportToCsv(items, 'gift-cards', [
+              { key: 'code', label: 'Código' },
+              { key: 'initialAmount', label: 'Monto inicial' },
+              { key: 'balance', label: 'Saldo' },
+              { key: 'senderName', label: 'Remitente' },
+              { key: 'recipientName', label: 'Destinatario' },
+              { key: 'isActive', label: 'Activa' },
+            ])
+          }
+          className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
       </div>
 
       {loading ? (
         <AdminSkeleton rows={5} />
       ) : error ? (
-        <AdminErrorState error={error} onRetry={() => fetchItems(page)} />
+        <AdminErrorState error="Error al cargar gift cards" onRetry={() => refetch()} />
       ) : items.length === 0 ? (
-        <div className="text-center py-12 text-coffee-500 dark:text-cream/50">
-          <Gift className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <p>No hay gift cards{search ? ' que coincidan' : ''}</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <CreditCard className="w-12 h-12 text-coffee-300 dark:text-coffee-600 mb-4" />
+          <p className="text-coffee-500 dark:text-coffee-400">No hay gift cards.</p>
         </div>
       ) : (
         <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden">
@@ -101,22 +88,22 @@ export default function AdminGiftCards() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
-                    Codigo
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 font-medium">
+                    Código
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 font-medium">
                     Monto
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 font-medium">
                     Saldo
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 font-medium">
                     Remitente
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 font-medium">
                     Destinatario
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 font-medium">
                     Estado
                   </th>
                   <th className="px-4 py-3"></th>
@@ -147,7 +134,11 @@ export default function AdminGiftCards() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <button onClick={() => toggleActive(g)} className="transition-colors">
+                      <button
+                        onClick={() => handleToggleClick(g)}
+                        disabled={togglingId === g.id}
+                        className="transition-colors disabled:opacity-50"
+                      >
                         {g.isActive ? (
                           <ToggleRight className="w-5 h-5 text-green-600 dark:text-green-400" />
                         ) : (
@@ -163,7 +154,22 @@ export default function AdminGiftCards() {
         </div>
       )}
 
-      <Pagination page={page} totalPages={totalPages} onChange={fetchItems} />
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+
+      <ConfirmDialog
+        open={!!confirmToggle}
+        title="Desactivar gift card"
+        message={`¿Desactivar la gift card ${confirmToggle?.gc.code}? Los usuarios no podrán usarla.`}
+        confirmText="Desactivar"
+        isDangerous
+        loading={togglingId !== null}
+        onConfirm={() => {
+          if (confirmToggle) {
+            doToggle(confirmToggle.id, false);
+          }
+        }}
+        onCancel={() => setConfirmToggle(null)}
+      />
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
-import { DollarSign, AlertTriangle, ChevronDown, ChevronUp, Calculator } from 'lucide-react';
-import { pricingApi } from '../api';
+import { AlertTriangle, ChevronDown, ChevronUp, Calculator } from 'lucide-react';
+import { pricingApi, productsApi } from '../api';
 import { ProductWithPricing, PricingConfig } from '../types';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import ConfirmDialog from './components/ConfirmDialog';
 
 const DEFAULT_CONFIG: Partial<PricingConfig> = {
   roastingCostPerUnit: 15,
@@ -23,6 +24,12 @@ export default function AdminPricing() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [configForms, setConfigForms] = useState<Record<string, Partial<PricingConfig>>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  const [applyingPrice, setApplyingPrice] = useState<string | null>(null);
+  const [confirmApplyPrice, setConfirmApplyPrice] = useState<{
+    productId: string;
+    productName: string;
+    newPrice: number;
+  } | null>(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -80,11 +87,29 @@ export default function AdminPricing() {
     { key: 'minAlertMarginPct', label: 'Alerta margen mín %', placeholder: '20' },
   ] as { key: string; label: string; placeholder: string }[];
 
+  const handleConfirmApplyPrice = async () => {
+    if (!confirmApplyPrice) return;
+    setApplyingPrice(confirmApplyPrice.productId);
+    try {
+      await productsApi.update(confirmApplyPrice.productId, { price: confirmApplyPrice.newPrice });
+      addToast(
+        `Precio de ${confirmApplyPrice.productName} actualizado a $${confirmApplyPrice.newPrice.toFixed(2)}. Esto actualiza el precio visible a clientes.`,
+        'success',
+      );
+      fetchProducts();
+    } catch {
+      addToast('Error al aplicar precio', 'error');
+    } finally {
+      setApplyingPrice(null);
+      setConfirmApplyPrice(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Motor de Precios</h1>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Precios</h1>
           <p className="text-coffee-600 dark:text-cream/60 text-sm mt-1">
             {products.length} productos activos
           </p>
@@ -232,28 +257,19 @@ export default function AdminPricing() {
                       </button>
                       {calc && (
                         <button
-                          onClick={async () => {
-                            try {
-                              await fetch(`/api/products/${p.id}`, {
-                                method: 'PUT',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  Authorization: `Bearer ${localStorage.getItem('admin_token')}`,
-                                },
-                                body: JSON.stringify({ price: calc.suggestedRetailPrice }),
-                              });
-                              addToast(
-                                `Precio de ${p.name} actualizado a $${calc.suggestedRetailPrice.toFixed(2)}`,
-                                'success',
-                              );
-                              fetchProducts();
-                            } catch {
-                              addToast('Error al aplicar precio', 'error');
-                            }
-                          }}
-                          className="text-sm border border-coffee-300 dark:border-coffee-600 text-coffee-700 dark:text-cream px-4 py-2 rounded-lg hover:bg-coffee-50 dark:hover:bg-coffee-800 transition-colors"
+                          onClick={() =>
+                            setConfirmApplyPrice({
+                              productId: p.id,
+                              productName: p.name,
+                              newPrice: calc.suggestedRetailPrice,
+                            })
+                          }
+                          disabled={applyingPrice === p.id}
+                          className="btn-primary text-sm"
                         >
-                          Aplicar precio sugerido (${calc.suggestedRetailPrice.toFixed(2)})
+                          {applyingPrice === p.id
+                            ? 'Aplicando...'
+                            : `Aplicar precio sugerido ($${calc.suggestedRetailPrice.toFixed(2)})`}
                         </button>
                       )}
                     </div>
@@ -264,6 +280,20 @@ export default function AdminPricing() {
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmApplyPrice}
+        title="Aplicar precio sugerido"
+        message={
+          confirmApplyPrice
+            ? `¿Aplicar nuevo precio de $${confirmApplyPrice.newPrice.toFixed(2)} a "${confirmApplyPrice.productName}"? Esto actualiza el precio visible a clientes.`
+            : ''
+        }
+        confirmText="Aplicar"
+        loading={applyingPrice !== null}
+        onConfirm={handleConfirmApplyPrice}
+        onCancel={() => setConfirmApplyPrice(null)}
+      />
     </div>
   );
 }

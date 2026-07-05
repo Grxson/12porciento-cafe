@@ -14,7 +14,14 @@ function generateCode(): string {
 // POST /purchase — confirm gift card purchase after Stripe payment
 router.post('/purchase', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
-    const { amount, recipientName, recipientEmail, senderName, message, paymentIntentId: _paymentIntentId } = req.body;
+    const {
+      amount,
+      recipientName,
+      recipientEmail,
+      senderName,
+      message,
+      paymentIntentId: _paymentIntentId,
+    } = req.body;
 
     if (!amount || amount < 50 || amount > 5000) {
       return res.status(400).json({ error: 'El monto debe ser entre $50 y $5,000' });
@@ -51,7 +58,11 @@ router.post('/purchase', requireUserAuth, async (req: UserAuthRequest, res: Resp
         <p style="color: #666;">Este código expira el ${expDate}</p>
       </div>
     `;
-    await sendMail({ to: recipientEmail, subject: '🎁 Recibiste una Gift Card de 12% Café', html: emailHtml });
+    await sendMail({
+      to: recipientEmail,
+      subject: '🎁 Recibiste una Gift Card de 12% Café',
+      html: emailHtml,
+    });
 
     res.status(201).json({ data: giftCard });
   } catch (error) {
@@ -64,8 +75,14 @@ router.post('/purchase', requireUserAuth, async (req: UserAuthRequest, res: Resp
 router.get('/my', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const [sent, received] = await Promise.all([
-      prisma.giftCard.findMany({ where: { senderId: req.user!.id }, orderBy: { createdAt: 'desc' } }),
-      prisma.giftCard.findMany({ where: { recipientId: req.user!.id }, orderBy: { createdAt: 'desc' } }),
+      prisma.giftCard.findMany({
+        where: { senderId: req.user!.id },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.giftCard.findMany({
+        where: { recipientId: req.user!.id },
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
     res.json({ data: { sent, received } });
   } catch {
@@ -81,8 +98,10 @@ router.post('/redeem', requireUserAuth, async (req: UserAuthRequest, res: Respon
 
     const giftCard = await prisma.giftCard.findUnique({ where: { code: code.toUpperCase() } });
     if (!giftCard) return res.status(404).json({ error: 'Código inválido' });
-    if (!giftCard.isActive) return res.status(400).json({ error: 'Esta tarjeta ya no está activa' });
-    if (giftCard.balance <= 0) return res.status(400).json({ error: 'Esta tarjeta no tiene saldo' });
+    if (!giftCard.isActive)
+      return res.status(400).json({ error: 'Esta tarjeta ya no está activa' });
+    if (giftCard.balance <= 0)
+      return res.status(400).json({ error: 'Esta tarjeta no tiene saldo' });
     if (giftCard.expiresAt && new Date() > giftCard.expiresAt) {
       return res.status(400).json({ error: 'Esta tarjeta ha expirado' });
     }
@@ -100,14 +119,40 @@ router.post('/redeem', requireUserAuth, async (req: UserAuthRequest, res: Respon
   }
 });
 
-// Admin: GET / — list all gift cards
-router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
+// Admin: GET / — list all gift cards with pagination
+router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const cards = await prisma.giftCard.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 100,
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 20));
+    const skip = (page - 1) * pageSize;
+    const search = (req.query.search as string) || '';
+
+    const where = search
+      ? {
+          OR: [
+            { code: { contains: search, mode: 'insensitive' as const } },
+            { recipientName: { contains: search, mode: 'insensitive' as const } },
+            { recipientEmail: { contains: search, mode: 'insensitive' as const } },
+            { senderName: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    const [cards, total] = await Promise.all([
+      prisma.giftCard.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.giftCard.count({ where }),
+    ]);
+
+    res.json({
+      data: cards,
+      total,
+      totalPages: Math.ceil(total / pageSize),
     });
-    res.json({ data: cards });
   } catch {
     res.status(500).json({ error: 'Error al listar gift cards' });
   }

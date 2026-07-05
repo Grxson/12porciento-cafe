@@ -310,7 +310,8 @@ export const giftCardsApi = {
   }) => api.post('/gift-cards/purchase', data),
   my: () => api.get<{ data: { sent: GiftCard[]; received: GiftCard[] } }>('/gift-cards/my'),
   redeem: (code: string) => api.post('/gift-cards/redeem', { code }),
-  list: () => api.get<{ data: GiftCard[] }>('/gift-cards'),
+  list: (params?: { page?: number; search?: string }) =>
+    api.get<{ data: GiftCard[]; total: number; totalPages: number }>('/gift-cards', { params }),
   toggle: (id: string, isActive: boolean) => api.patch(`/gift-cards/${id}/toggle`, { isActive }),
 };
 

@@ -7,35 +7,45 @@ import Pagination from './components/Pagination';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
+import ConfirmDialog from './components/ConfirmDialog';
 import { useModuleToast } from './context/ModuleContext';
 
-const CARRIERS = ['FedEx', 'Estafeta', 'DHL', '99minutos', 'J&T Express', 'Correos de México', 'Otro'];
+const CARRIERS = [
+  'FedEx',
+  'Estafeta',
+  'DHL',
+  '99minutos',
+  'J&T Express',
+  'Correos de México',
+  'Otro',
+];
 
-const INPUT_CLASS = 'w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500/50';
+const INPUT_CLASS =
+  'w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500/50';
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING:   'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400',
+  PENDING: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400',
   CONFIRMED: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
   PREPARING: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
-  SHIPPED:   'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400',
+  SHIPPED: 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400',
   DELIVERED: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400',
   CANCELLED: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING:   'Pendiente',
+  PENDING: 'Pendiente',
   CONFIRMED: 'Confirmado',
   PREPARING: 'Preparando',
-  SHIPPED:   'Enviado',
+  SHIPPED: 'Enviado',
   DELIVERED: 'Entregado',
   CANCELLED: 'Cancelado',
 };
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
-  PENDING:   ['CONFIRMED', 'CANCELLED'],
+  PENDING: ['CONFIRMED', 'CANCELLED'],
   CONFIRMED: ['PREPARING', 'CANCELLED'],
   PREPARING: ['SHIPPED', 'CANCELLED'],
-  SHIPPED:   ['DELIVERED'],
+  SHIPPED: ['DELIVERED'],
 };
 
 interface TrackingEdit {
@@ -57,6 +67,11 @@ export default function Logistics() {
   const [error, setError] = useState('');
   const [trackingEdit, setTrackingEdit] = useState<TrackingEdit | null>(null);
   const [savingTracking, setSavingTracking] = useState(false);
+  const [confirmStatusChange, setConfirmStatusChange] = useState<{
+    orderId: string;
+    newStatus: string;
+  } | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -79,12 +94,33 @@ export default function Logistics() {
     loadOrders();
   }, [page, statusFilter]);
 
-  const updateStatus = async (orderId: string, newStatus: string) => {
+  const isIrreversible = (currentStatus: string, newStatus: string): boolean => {
+    return newStatus === 'CANCELLED' || (currentStatus === 'SHIPPED' && newStatus === 'DELIVERED');
+  };
+
+  const handleStatusChangeClick = (orderId: string, newStatus: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    const needsConfirm = isIrreversible(order.status, newStatus);
+    if (needsConfirm) {
+      setConfirmStatusChange({ orderId, newStatus });
+    } else {
+      doUpdateStatus(orderId, newStatus);
+    }
+  };
+
+  const doUpdateStatus = async (orderId: string, newStatus: string) => {
+    setUpdatingStatus(true);
     try {
       await adminApi.updateOrderStatus(orderId, newStatus);
+      addToast('Estado actualizado', 'success');
       loadOrders();
     } catch {
       addToast('Error al actualizar estado', 'error');
+    } finally {
+      setUpdatingStatus(false);
+      setConfirmStatusChange(null);
     }
   };
 
@@ -119,11 +155,14 @@ export default function Logistics() {
   };
 
   const statusTabs = [
-    { key: undefined, label: `Todos (${Object.values(statusCounts).reduce((a, b) => a + b, 0) || 0})` },
-    { key: 'PENDING',   label: `Pendientes (${statusCounts.PENDING || 0})` },
+    {
+      key: undefined,
+      label: `Todos (${Object.values(statusCounts).reduce((a, b) => a + b, 0) || 0})`,
+    },
+    { key: 'PENDING', label: `Pendientes (${statusCounts.PENDING || 0})` },
     { key: 'CONFIRMED', label: `Confirmados (${statusCounts.CONFIRMED || 0})` },
     { key: 'PREPARING', label: `Preparando (${statusCounts.PREPARING || 0})` },
-    { key: 'SHIPPED',   label: `Enviados (${statusCounts.SHIPPED || 0})` },
+    { key: 'SHIPPED', label: `Enviados (${statusCounts.SHIPPED || 0})` },
     { key: 'DELIVERED', label: `Entregados (${statusCounts.DELIVERED || 0})` },
   ];
 
@@ -142,10 +181,13 @@ export default function Logistics() {
 
       {/* Status filter tabs */}
       <div className="flex flex-wrap gap-2">
-        {statusTabs.map(tab => (
+        {statusTabs.map((tab) => (
           <button
             key={tab.key || 'all'}
-            onClick={() => { setStatusFilter(tab.key); setPage(1); }}
+            onClick={() => {
+              setStatusFilter(tab.key);
+              setPage(1);
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               statusFilter === tab.key
                 ? 'bg-gold-500 text-coffee-950'
@@ -167,69 +209,116 @@ export default function Logistics() {
             <table className="w-full text-sm">
               <thead className="bg-coffee-50 dark:bg-coffee-800">
                 <tr>
-                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">Pedido</th>
-                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">Cliente</th>
-                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">Fecha</th>
-                  <th className="text-center p-3 text-coffee-600 dark:text-cream/60 font-medium">Artículos</th>
-                  <th className="text-right p-3 text-coffee-600 dark:text-cream/60 font-medium">Total</th>
-                  <th className="text-center p-3 text-coffee-600 dark:text-cream/60 font-medium">Estado</th>
-                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">Tracking</th>
-                  <th className="text-center p-3 text-coffee-600 dark:text-cream/60 font-medium">Acción</th>
+                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Pedido
+                  </th>
+                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Cliente
+                  </th>
+                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Fecha
+                  </th>
+                  <th className="text-center p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Artículos
+                  </th>
+                  <th className="text-right p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Total
+                  </th>
+                  <th className="text-center p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Estado
+                  </th>
+                  <th className="text-left p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Tracking
+                  </th>
+                  <th className="text-center p-3 text-coffee-600 dark:text-cream/60 font-medium">
+                    Acción
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-coffee-200 dark:divide-coffee-700">
                 {orders.length === 0 ? (
-                  <tr><td colSpan={8} className="text-center py-12">
-                    <p className="text-coffee-500 dark:text-coffee-400">Sin pedidos</p>
-                  </td></tr>
-                ) : orders.map(order => (
-                  <tr key={order.id} className="hover:bg-coffee-100 dark:hover:bg-coffee-800/50">
-                    <td className="p-3 text-coffee-900 dark:text-cream font-mono">#{order.id.slice(-6).toUpperCase()}</td>
-                    <td className="p-3">
-                      <div className="text-coffee-900 dark:text-cream">{order.user?.name || '—'}</div>
-                      <div className="text-coffee-500 dark:text-cream/50 text-xs">{order.user?.email}</div>
-                    </td>
-                    <td className="p-3 text-coffee-600 dark:text-cream/70">{new Date(order.createdAt).toLocaleDateString('es-MX')}</td>
-                    <td className="p-3 text-center text-coffee-900 dark:text-cream">{order.items?.length || 0}</td>
-                    <td className="p-3 text-right text-coffee-900 dark:text-cream">${(order.total || 0).toFixed(2)}</td>
-                    <td className="p-3 text-center">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status] || ''}`}>
-                        {STATUS_LABELS[order.status] || order.status}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <div className="flex items-center gap-1.5">
-                        {order.trackingNumber ? (
-                          <div>
-                            <p className="text-xs font-mono text-coffee-900 dark:text-cream">{order.trackingNumber}</p>
-                            {order.carrier && <p className="text-xs text-coffee-500 dark:text-coffee-400">{order.carrier}</p>}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-coffee-400 dark:text-coffee-500">—</span>
-                        )}
-                        <button
-                          onClick={() => openTrackingEdit(order)}
-                          className="ml-1 p-1 text-coffee-400 dark:text-coffee-500 hover:text-gold-500 transition-colors shrink-0"
-                          title="Editar tracking"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="p-3 text-center">
-                      <select
-                        value=""
-                        onChange={e => { if (e.target.value) updateStatus(order.id, e.target.value); }}
-                        className="bg-coffee-50 dark:bg-coffee-700 text-coffee-900 dark:text-cream text-xs rounded px-2 py-1 border border-coffee-200 dark:border-coffee-600"
-                      >
-                        <option value="" disabled>Cambiar a...</option>
-                        {(STATUS_TRANSITIONS[order.status] || []).map(s => (
-                          <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
-                        ))}
-                      </select>
+                  <tr>
+                    <td colSpan={8} className="text-center py-12">
+                      <p className="text-coffee-500 dark:text-coffee-400">Sin pedidos</p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  orders.map((order) => (
+                    <tr key={order.id} className="hover:bg-coffee-100 dark:hover:bg-coffee-800/50">
+                      <td className="p-3 text-coffee-900 dark:text-cream font-mono">
+                        #{order.id.slice(-6).toUpperCase()}
+                      </td>
+                      <td className="p-3">
+                        <div className="text-coffee-900 dark:text-cream">
+                          {order.user?.name || '—'}
+                        </div>
+                        <div className="text-coffee-500 dark:text-cream/50 text-xs">
+                          {order.user?.email}
+                        </div>
+                      </td>
+                      <td className="p-3 text-coffee-600 dark:text-cream/70">
+                        {new Date(order.createdAt).toLocaleDateString('es-MX')}
+                      </td>
+                      <td className="p-3 text-center text-coffee-900 dark:text-cream">
+                        {order.items?.length || 0}
+                      </td>
+                      <td className="p-3 text-right text-coffee-900 dark:text-cream">
+                        ${(order.total || 0).toFixed(2)}
+                      </td>
+                      <td className="p-3 text-center">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status] || ''}`}
+                        >
+                          {STATUS_LABELS[order.status] || order.status}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-1.5">
+                          {order.trackingNumber ? (
+                            <div>
+                              <p className="text-xs font-mono text-coffee-900 dark:text-cream">
+                                {order.trackingNumber}
+                              </p>
+                              {order.carrier && (
+                                <p className="text-xs text-coffee-500 dark:text-coffee-400">
+                                  {order.carrier}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-coffee-400 dark:text-coffee-500">—</span>
+                          )}
+                          <button
+                            onClick={() => openTrackingEdit(order)}
+                            className="ml-1 p-1 text-coffee-400 dark:text-coffee-500 hover:text-gold-500 transition-colors shrink-0"
+                            title="Editar tracking"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value) handleStatusChangeClick(order.id, e.target.value);
+                          }}
+                          disabled={updatingStatus}
+                          className="bg-coffee-50 dark:bg-coffee-700 text-coffee-900 dark:text-cream text-xs rounded px-2 py-1 border border-coffee-200 dark:border-coffee-600 disabled:opacity-50"
+                        >
+                          <option value="" disabled>
+                            Cambiar a...
+                          </option>
+                          {(STATUS_TRANSITIONS[order.status] || []).map((s) => (
+                            <option key={s} value={s}>
+                              {STATUS_LABELS[s] || s}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -237,9 +326,7 @@ export default function Logistics() {
       )}
 
       {/* Pagination */}
-      {!loading && !error && (
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
-      )}
+      {!loading && !error && <Pagination page={page} totalPages={totalPages} onChange={setPage} />}
 
       {/* Tracking modal */}
       <AdminModal
@@ -268,38 +355,76 @@ export default function Logistics() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">
-                <Truck className="inline w-3.5 h-3.5 mr-1" />Número de guía
+                <Truck className="inline w-3.5 h-3.5 mr-1" />
+                Número de guía
               </label>
               <input
                 value={trackingEdit.trackingNumber}
-                onChange={(e) => setTrackingEdit({ ...trackingEdit, trackingNumber: e.target.value })}
+                onChange={(e) =>
+                  setTrackingEdit({ ...trackingEdit, trackingNumber: e.target.value })
+                }
                 placeholder="Ej. 1Z999AA1234567890"
                 className={INPUT_CLASS}
               />
             </div>
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Transportista</label>
+              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">
+                Transportista
+              </label>
               <select
                 value={trackingEdit.carrier}
                 onChange={(e) => setTrackingEdit({ ...trackingEdit, carrier: e.target.value })}
                 className={INPUT_CLASS}
               >
                 <option value="">Seleccionar transportista</option>
-                {CARRIERS.map((c) => <option key={c} value={c}>{c}</option>)}
+                {CARRIERS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">Entrega estimada</label>
+              <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">
+                Entrega estimada
+              </label>
               <input
                 type="date"
                 value={trackingEdit.estimatedDelivery}
-                onChange={(e) => setTrackingEdit({ ...trackingEdit, estimatedDelivery: e.target.value })}
+                onChange={(e) =>
+                  setTrackingEdit({ ...trackingEdit, estimatedDelivery: e.target.value })
+                }
                 className={INPUT_CLASS}
               />
             </div>
           </div>
         )}
       </AdminModal>
+
+      <ConfirmDialog
+        open={!!confirmStatusChange}
+        title={
+          confirmStatusChange?.newStatus === 'CANCELLED'
+            ? 'Cancelar pedido'
+            : 'Cambiar estado a entregado'
+        }
+        message={
+          confirmStatusChange?.newStatus === 'CANCELLED'
+            ? '¿Estás seguro? Los pedidos cancelados no se pueden revertir.'
+            : '¿Estás seguro? Marcar como entregado es una acción irreversible.'
+        }
+        confirmText={
+          confirmStatusChange?.newStatus === 'CANCELLED' ? 'Cancelar pedido' : 'Confirmar'
+        }
+        isDangerous={confirmStatusChange?.newStatus === 'CANCELLED'}
+        loading={updatingStatus}
+        onConfirm={() => {
+          if (confirmStatusChange) {
+            doUpdateStatus(confirmStatusChange.orderId, confirmStatusChange.newStatus);
+          }
+        }}
+        onCancel={() => setConfirmStatusChange(null)}
+      />
     </div>
   );
 }

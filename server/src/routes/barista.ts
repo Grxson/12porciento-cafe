@@ -671,7 +671,7 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
     let profile = await prisma.baristaProfile.findUnique({
       where: { userId },
       include: {
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, avatarUrl: true } },
         achievements: {
           include: { achievement: true },
           orderBy: { unlockedAt: 'desc' },
@@ -704,40 +704,28 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
     }
 
     if (!profile) {
-      const user = await prisma.user.findUnique({
+      const rawUser = await prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, name: true },
+        select: { id: true, name: true, avatarUrl: true },
       });
-      if (!user) return res.status(404).json({ error: 'Perfil no encontrado' });
+      if (!rawUser) return res.status(404).json({ error: 'Perfil no encontrado' });
       profile = {
-        id: user.id,
-        userId: user.id,
-        user,
+        id: rawUser.id,
+        userId: rawUser.id,
+        user: { id: rawUser.id, name: rawUser.name, avatarUrl: rawUser.avatarUrl },
         level: 1,
         totalXp: 0,
         totalBrews: 0,
         favoriteMethod: null,
+        bio: null,
+        bannerUrl: null,
+        activeTitleId: null,
+        flavorProfile: null,
         achievements: [],
         brewLogs: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as unknown as {
-        id: string;
-        userId: string;
-        user: { id: string; name: string };
-        level: number;
-        totalXp: number;
-        totalBrews: number;
-        favoriteMethod: null;
-        bio: null;
-        bannerUrl: null;
-        activeTitleId: null;
-        flavorProfile: null;
-        achievements: never[];
-        brewLogs: never[];
-        createdAt: Date;
-        updatedAt: Date;
-      };
+      } as any;
     }
 
     // Recompute current streak for profile response

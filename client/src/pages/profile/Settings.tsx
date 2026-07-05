@@ -48,7 +48,6 @@ export default function ProfileSettings() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const bannerFileRef = useRef<HTMLInputElement>(null);
-  const baristaLoadedRef = useRef(false);
 
   useEffect(() => {
     if (user) {
@@ -71,9 +70,8 @@ export default function ProfileSettings() {
       .then((res) => {
         const p = res.data.data;
         setBaristaData({ bio: p.bio ?? '', bannerUrl: p.bannerUrl ?? '' });
-        baristaLoadedRef.current = true;
       })
-      .catch(() => {});
+      .catch((err) => console.error('Error loading barista profile:', err));
   }, [user?.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -100,9 +98,7 @@ export default function ProfileSettings() {
     setError('');
     try {
       await updateProfile(form);
-      if (baristaLoadedRef.current) {
-        await baristaApi.updateProfile({ bio: baristaData.bio, bannerUrl: baristaData.bannerUrl });
-      }
+      await baristaApi.updateProfile({ bio: baristaData.bio, bannerUrl: baristaData.bannerUrl });
       add('Datos guardados exitosamente', 'success');
     } catch {
       setError('Error al guardar cambios');

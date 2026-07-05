@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Store, Package, ShoppingBag, Image, User, BookOpen, Heart } from 'lucide-react';
+import { Store, Package, ShoppingBag, Building2, User, BookOpen, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
@@ -8,7 +8,7 @@ const tabs = [
   { to: '/recetas', label: 'Recetas', icon: BookOpen },
   { to: '/paquetes', label: 'Paquetes', icon: Package },
   { to: '/carrito', label: 'Carrito', icon: ShoppingBag, badge: true },
-  { to: '/galeria', label: 'Galería', icon: Image },
+  { to: '/b2b', label: 'Empresas', icon: Building2 },
   { to: '/perfil', label: 'Perfil', icon: User },
   { to: '/perfil/lista-deseos', label: 'Deseos', icon: Heart },
 ];
@@ -35,7 +35,13 @@ export default function BottomNav() {
             <NavLink
               key={to}
               to={target}
-              aria-label={isCart ? (count > 0 ? `Carrito, ${count} producto${count !== 1 ? 's' : ''}` : 'Carrito') : undefined}
+              aria-label={
+                isCart
+                  ? count > 0
+                    ? `Carrito, ${count} producto${count !== 1 ? 's' : ''}`
+                    : 'Carrito'
+                  : undefined
+              }
               className={`relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-xs tracking-wide transition-colors ${
                 active ? 'text-gold-500' : 'text-coffee-500 dark:text-coffee-400'
               }`}

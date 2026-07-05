@@ -10,8 +10,6 @@ RUN npm install -g pnpm && \
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages ./packages
 COPY server ./server
-COPY client ./client
-COPY apps/admin ./apps/admin
 
 RUN pnpm install --frozen-lockfile
 

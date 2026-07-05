@@ -85,7 +85,7 @@ export default function Profile() {
         {/* ── Header ── */}
         <div className="relative mb-10">
           {/* Banner con imagen o gradiente */}
-          {baristaProfile?.bannerUrl ? (
+          {baristaProfile && baristaProfile.bannerUrl ? (
             <div
               className="h-32 md:h-48 -mx-4 sm:-mx-6 lg:-mx-8 mb-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${baristaProfile.bannerUrl})` }}

@@ -26,4 +26,4 @@ EXPOSE 3001
 
 COPY server/prisma/migrations ./server/prisma/migrations
 
-CMD ["sh", "-c", "mkdir -p /app/data/uploads && npx prisma migrate deploy --schema=server/prisma/schema.prisma && node server/dist/src/index.js"]
+CMD ["sh", "-c", "mkdir -p /app/data/uploads && pnpm --filter=cafe-12-server exec prisma migrate deploy --schema=server/prisma/schema.prisma && node server/dist/src/index.js"]

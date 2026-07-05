@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Package,
@@ -217,11 +216,7 @@ export default function OrderDetail() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto space-y-6"
-    >
+    <div className="max-w-2xl mx-auto space-y-6">
       <PageMeta title={`Pedido ${displayId}`} />
 
       {/* Back link */}
@@ -392,6 +387,6 @@ export default function OrderDetail() {
           </button>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

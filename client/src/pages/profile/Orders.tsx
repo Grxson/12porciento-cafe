@@ -10,11 +10,11 @@ import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
-  PENDING:    { label: 'Pendiente',   color: 'text-yellow-400' },
-  PROCESSING: { label: 'Procesando',  color: 'text-blue-400' },
-  SHIPPED:    { label: 'Enviado',     color: 'text-purple-400' },
-  DELIVERED:  { label: 'Entregado',   color: 'text-green-400' },
-  CANCELLED:  { label: 'Cancelado',   color: 'text-red-400' },
+  PENDING: { label: 'Pendiente', color: 'text-yellow-400' },
+  PROCESSING: { label: 'Procesando', color: 'text-blue-400' },
+  SHIPPED: { label: 'Enviado', color: 'text-purple-400' },
+  DELIVERED: { label: 'Entregado', color: 'text-green-400' },
+  CANCELLED: { label: 'Cancelado', color: 'text-red-400' },
 };
 
 function OfflineBanner({ message }: { message: string }) {
@@ -31,7 +31,9 @@ export default function Orders() {
   const addItem = useCart((s) => s.addItem);
   const { add: addToast } = useToast();
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   if (loading) {
     return (
@@ -47,7 +49,10 @@ export default function Orders() {
       <div className="text-center py-16">
         <PageMeta title="Mis Pedidos" />
         <p className="text-red-400 mb-4">{error}</p>
-        <button onClick={fetchOrders} className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors">
+        <button
+          onClick={fetchOrders}
+          className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors"
+        >
           Reintentar
         </button>
       </div>
@@ -65,31 +70,44 @@ export default function Orders() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+    <div className="space-y-4">
       <PageMeta title="Mis Pedidos" />
-      {isOffline && (
-        <OfflineBanner message="Modo offline — pedidos guardados localmente." />
-      )}
+      {isOffline && <OfflineBanner message="Modo offline — pedidos guardados localmente." />}
       {orders.map((order: Order, i: number) => (
-        <motion.div key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05 }} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5">
+        <motion.div
+          key={order.id}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+          className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5"
+        >
           <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
             <div className="min-w-0">
-              <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">Pedido #{order.id.slice(-8).toUpperCase()}</p>
+              <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">
+                Pedido #{order.id.slice(-8).toUpperCase()}
+              </p>
               <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
-                {new Date(order.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {new Date(order.createdAt).toLocaleDateString('es-MX', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
               </p>
             </div>
             <div className="text-right shrink-0">
               <p className="text-gold-500 font-semibold">${order.total.toLocaleString('es-MX')}</p>
-              <p className={`text-xs mt-0.5 ${statusLabels[order.status]?.color ?? 'text-coffee-400'}`}>
+              <p
+                className={`text-xs mt-0.5 ${statusLabels[order.status]?.color ?? 'text-coffee-400'}`}
+              >
                 {statusLabels[order.status]?.label ?? order.status}
               </p>
             </div>
           </div>
           <div className="space-y-1">
             {order.items.map((item) => (
-              <p key={item.id} className="text-coffee-700 dark:text-coffee-300 text-xs truncate">{item.product.name} × {item.quantity}</p>
+              <p key={item.id} className="text-coffee-700 dark:text-coffee-300 text-xs truncate">
+                {item.product.name} × {item.quantity}
+              </p>
             ))}
           </div>
           <div className="flex items-center gap-3 mt-4 pt-3 border-t border-coffee-100 dark:border-coffee-800">
@@ -112,6 +130,6 @@ export default function Orders() {
           </div>
         </motion.div>
       ))}
-    </motion.div>
+    </div>
   );
 }

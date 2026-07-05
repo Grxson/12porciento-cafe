@@ -1,7 +1,15 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Trash2, AlertTriangle, CheckCircle, PackageX, WifiOff } from 'lucide-react';
+import {
+  Heart,
+  ShoppingBag,
+  Trash2,
+  AlertTriangle,
+  CheckCircle,
+  PackageX,
+  WifiOff,
+} from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
@@ -22,7 +30,9 @@ export default function Wishlist() {
   const addItem = useCart((s) => s.addItem);
   const { add: addToast } = useToast();
 
-  useEffect(() => { fetchItems(); }, [fetchItems]);
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   const handleRemove = async (productId: string) => {
     await removeItem(productId);
@@ -47,7 +57,9 @@ export default function Wishlist() {
       <div className="text-center py-16">
         <PageMeta title="Lista de Deseos" />
         <p className="text-red-500 mb-4">{error}</p>
-        <button onClick={fetchItems} className="btn-primary">Reintentar</button>
+        <button onClick={fetchItems} className="btn-primary">
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -58,17 +70,17 @@ export default function Wishlist() {
         <PageMeta title="Lista de Deseos" />
         <Heart className="w-12 h-12 text-coffee-400 dark:text-coffee-600 mx-auto mb-4" />
         <p className="text-coffee-600 dark:text-coffee-400 mb-4">Tu lista de deseos está vacía</p>
-        <Link to="/tienda" className="btn-primary">Explorar cafés</Link>
+        <Link to="/tienda" className="btn-primary">
+          Explorar cafés
+        </Link>
       </div>
     );
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+    <div>
       <PageMeta title="Lista de Deseos" />
-      {isOffline && (
-        <OfflineBanner message="Modo offline — datos guardados localmente." />
-      )}
+      {isOffline && <OfflineBanner message="Modo offline — datos guardados localmente." />}
       <div className="space-y-4">
         {items.map((item, i) => {
           const product = item.product;
@@ -94,7 +106,9 @@ export default function Wishlist() {
                 >
                   {product.name}
                 </Link>
-                <p className="text-coffee-500 dark:text-coffee-400 text-sm mt-0.5">${product.price} MXN</p>
+                <p className="text-coffee-500 dark:text-coffee-400 text-sm mt-0.5">
+                  ${product.price} MXN
+                </p>
                 <div className="mt-1">
                   {product.stock === 0 ? (
                     <span className="inline-flex items-center gap-1 text-xs text-red-500">
@@ -132,6 +146,6 @@ export default function Wishlist() {
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 }

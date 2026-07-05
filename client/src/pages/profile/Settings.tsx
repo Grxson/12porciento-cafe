@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Camera } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
@@ -109,11 +108,7 @@ export default function ProfileSettings() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div>
       <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Datos personales</h2>
       {user && !user.emailVerified && <EmailVerificationBanner email={user.email} />}
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
@@ -371,6 +366,6 @@ export default function ProfileSettings() {
         <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Notificaciones</h3>
         <NotificationSettings />
       </div>
-    </motion.div>
+    </div>
   );
 }

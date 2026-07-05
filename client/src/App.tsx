@@ -140,7 +140,7 @@ function PublicLayout() {
       >
         <AnimatePresence>
           <motion.div
-            key={location.pathname}
+            key={location.pathname.split('/')[1] || 'home'}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}

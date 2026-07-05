@@ -172,7 +172,7 @@ export default function Equipment() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+    <div>
       <PageMeta title="Equipo" />
 
       {/* Header */}
@@ -367,6 +367,6 @@ export default function Equipment() {
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
         onCancel={() => setDeleteTarget(null)}
       />
-    </motion.div>
+    </div>
   );
 }

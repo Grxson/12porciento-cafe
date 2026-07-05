@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { baristaApi } from '../../api/barista';
 import { useUser } from '../../context/UserContext';
@@ -159,11 +158,7 @@ export default function FlavorProfile() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div>
       <PageMeta title="Perfil de Sabor" description="Define tus preferencias de sabor." />
 
       <div className="space-y-8">
@@ -258,6 +253,6 @@ export default function FlavorProfile() {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

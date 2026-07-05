@@ -200,17 +200,37 @@ export default function ProfileSettings() {
           <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-3">
             Foto de portada
           </label>
+          <p className="text-xs text-coffee-500 dark:text-coffee-600 mb-3">
+            Se recomienda 1200×400 píxeles para mejor visualización en todos los dispositivos.
+          </p>
           {baristaData.bannerUrl ? (
-            <div className="relative w-full h-48 rounded-lg overflow-hidden bg-coffee-200 dark:bg-coffee-800 mb-3">
+            <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden bg-coffee-200 dark:bg-coffee-800 mb-3 group">
               <img
                 src={baristaData.bannerUrl}
                 alt="Portada"
                 className="w-full h-full object-cover"
               />
+              {/* Overlay hover con info de crop */}
+              <div className="absolute inset-0 bg-coffee-950/0 group-hover:bg-coffee-950/40 transition-colors flex items-center justify-center">
+                <p className="text-cream text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                  Vista previa — 3:1
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="w-full h-48 rounded-lg bg-coffee-100 dark:bg-coffee-800/50 border-2 border-dashed border-coffee-300 dark:border-coffee-700 mb-3 flex items-center justify-center">
-              <p className="text-coffee-500 dark:text-coffee-600 text-sm">Sin foto de portada</p>
+            <div className="relative w-full aspect-[3/1] rounded-lg bg-coffee-100 dark:bg-coffee-800/50 border-2 border-dashed border-coffee-300 dark:border-coffee-700 mb-3 flex items-center justify-center">
+              {/* Guía de crop: líneas de tercios */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute left-1/3 top-0 bottom-0 border-l border-coffee-300/30" />
+                <div className="absolute left-2/3 top-0 bottom-0 border-l border-coffee-300/30" />
+                <div className="absolute top-1/3 left-0 right-0 border-t border-coffee-300/30" />
+                <div className="absolute top-2/3 left-0 right-0 border-t border-coffee-300/30" />
+              </div>
+              <div className="text-center relative z-10">
+                <Camera className="w-8 h-8 text-coffee-400 dark:text-coffee-600 mx-auto mb-2" />
+                <p className="text-coffee-500 dark:text-coffee-600 text-sm">Sin foto de portada</p>
+                <p className="text-coffee-400 dark:text-coffee-600 text-xs mt-1">1200 × 400 px</p>
+              </div>
             </div>
           )}
           <div className="flex gap-3">
@@ -244,7 +264,7 @@ export default function ProfileSettings() {
                 return;
               }
               try {
-                const res = await uploadsApi.upload(file);
+                const res = await uploadsApi.uploadBanner(file);
                 const url = res.data.data.url;
                 setBaristaData((f) => ({ ...f, bannerUrl: url }));
               } catch {

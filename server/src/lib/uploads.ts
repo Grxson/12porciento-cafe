@@ -28,6 +28,19 @@ export interface ProcessedImage {
   thumbUrl: string;
 }
 
+export async function processBannerImage(buffer: Buffer): Promise<{ url: string }> {
+  const id = crypto.randomBytes(12).toString('hex');
+  const mainName = `banner_${id}.webp`;
+
+  await sharp(buffer)
+    .rotate()
+    .resize({ width: 1200, height: 400, fit: 'cover', position: 'centre' })
+    .webp({ quality: 85 })
+    .toFile(path.join(UPLOAD_DIR, mainName));
+
+  return { url: `/api/uploads/${mainName}` };
+}
+
 export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
   const id = crypto.randomBytes(12).toString('hex');
   const mainName = `${id}.webp`;

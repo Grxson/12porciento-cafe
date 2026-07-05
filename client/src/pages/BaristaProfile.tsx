@@ -122,50 +122,66 @@ export default function BaristaProfile() {
         title={`Perfil de ${currentUser?.name || 'Barista'}`}
         description="Nivel barista, experiencia y logros."
       />
-      <div className="max-w-2xl mx-auto px-4">
-        {/* Banner */}
-        <div
-          className="h-48 md:h-64 -mx-4 mb-0 bg-gradient-to-r from-coffee-900 to-gold-900/30 bg-cover bg-center"
-          style={profile.bannerUrl ? { backgroundImage: `url(${profile.bannerUrl})` } : undefined}
-        />
+      <div className="max-w-2xl mx-auto px-4 sm:px-0">
+        {/* ── Banner tipo red social ── */}
+        <div className="relative -mx-4 sm:-mx-0 sm:rounded-xl overflow-hidden">
+          {/* Imagen de portada */}
+          {profile.bannerUrl ? (
+            <div
+              className="aspect-[3/1] md:aspect-[4/1] bg-cover bg-center"
+              style={{ backgroundImage: `url(${profile.bannerUrl})` }}
+            />
+          ) : (
+            <div className="aspect-[3/1] md:aspect-[4/1] bg-gradient-to-r from-coffee-900 via-coffee-800 to-gold-900/30" />
+          )}
+          {/* Overlay gradiente */}
+          <div className="absolute inset-0 bg-gradient-to-t from-coffee-950/60 via-transparent to-coffee-950/20 pointer-events-none" />
+        </div>
 
-        <div className="text-center mb-12 -mt-20 relative z-10">
-          <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Perfil Barista</p>
-
-          {/* Rank Badge with Avatar Frame */}
-          <div className="flex justify-center mb-4">
+        {/* ── Avatar + Info (montado sobre el banner) ── */}
+        <div className="flex items-end gap-4 md:gap-5 -mt-10 md:-mt-14 relative z-10 mb-8 px-0 sm:px-0">
+          {/* Avatar con frame */}
+          <div className="shrink-0">
             <RankBadge
               level={profile.level}
               size="lg"
               frameType={profile.bannerUrl ? 'avatar' : 'badge'}
               avatarUrl={profile.user?.id === currentUser?.id ? currentUser?.avatarUrl : undefined}
               name={profile.user?.name}
-              showLabel
+              showLabel={false}
             />
           </div>
 
-          {profile.user && (
-            <>
-              <p className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">
+          {/* Name + Level + XP */}
+          <div className="flex-1 min-w-0 pb-1">
+            {profile.user && (
+              <p className="font-serif text-xl md:text-2xl text-coffee-900 dark:text-cream truncate">
                 {profile.user.name}
               </p>
-              {profile.bio && (
-                <p className="text-sm text-coffee-600 dark:text-coffee-400 italic max-w-md mx-auto leading-relaxed mb-2">
-                  {profile.bio}
-                </p>
+            )}
+            <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-coffee-600 dark:text-coffee-400">
+              <span className="text-gold-500 font-semibold">Nivel {profile.level}</span>
+              <span className="text-coffee-400 dark:text-coffee-600">·</span>
+              <span>{profile.totalBrews} brews</span>
+              {profile.totalXp > 0 && (
+                <>
+                  <span className="text-coffee-400 dark:text-coffee-600">·</span>
+                  <span className="text-gold-500">{profile.totalXp} XP</span>
+                </>
               )}
-            </>
-          )}
-          <h1 className="font-serif text-4xl text-gold-400 mb-1">Nivel {profile.level}</h1>
-          {profile.rankTitle && (
-            <p className="text-coffee-600 dark:text-coffee-400 text-sm font-medium mb-1">
-              {profile.rankTitle}
-            </p>
-          )}
-          {/* TODO: Show active title from profile.activeTitleId when API returns title relation */}
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm">
-            {profile.totalBrews} brews registrados
-          </p>
+              {profile.rankTitle && (
+                <>
+                  <span className="text-coffee-400 dark:text-coffee-600">·</span>
+                  <span>{profile.rankTitle}</span>
+                </>
+              )}
+            </div>
+            {profile.bio && (
+              <p className="text-sm text-coffee-600 dark:text-coffee-400 italic mt-1 leading-relaxed line-clamp-2">
+                {profile.bio}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Permission prompt — only on own profile */}

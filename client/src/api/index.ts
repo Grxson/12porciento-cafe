@@ -389,6 +389,11 @@ export const uploadsApi = {
     fd.append('image', file);
     return api.post<{ data: { url: string; thumbUrl: string } }>('/uploads', fd);
   },
+  uploadBanner: (file: File) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return api.post<{ data: { url: string } }>('/uploads/banner', fd);
+  },
 };
 
 export interface AdminUser {

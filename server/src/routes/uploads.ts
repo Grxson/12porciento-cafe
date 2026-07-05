@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { requireAnyAuth, AnyAuthRequest } from '../middleware/auth';
-import { uploadMiddleware, processImage, deleteImage } from '../lib/uploads';
+import { uploadMiddleware, processImage, processBannerImage, deleteImage } from '../lib/uploads';
 
 const router = Router();
 
@@ -28,6 +28,26 @@ router.post('/', uploadLimiter, requireAnyAuth, (req: AnyAuthRequest, res: Respo
       res.status(201).json({ data: result });
     } catch {
       res.status(500).json({ error: 'No se pudo procesar la imagen' });
+    }
+  });
+});
+
+// POST /api/uploads/banner — subir banner 1200×400 con crop
+router.post('/banner', uploadLimiter, requireAnyAuth, (req: AnyAuthRequest, res: Response) => {
+  uploadMiddleware(req, res, async (err: unknown) => {
+    if (err) {
+      res.status(400).json({ error: err instanceof Error ? err.message : 'Error al subir imagen' });
+      return;
+    }
+    if (!req.file) {
+      res.status(400).json({ error: 'No se recibió ninguna imagen' });
+      return;
+    }
+    try {
+      const result = await processBannerImage(req.file.buffer);
+      res.status(201).json({ data: result });
+    } catch {
+      res.status(500).json({ error: 'No se pudo procesar el banner' });
     }
   });
 });

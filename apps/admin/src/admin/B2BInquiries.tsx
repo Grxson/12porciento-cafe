@@ -105,14 +105,18 @@ export default function B2BInquiries() {
 
   return (
     <div>
-      <PageMeta title="Consultas B2B" noSuffix />
-      <div className="flex items-center justify-between mb-6">
+      <PageMeta title="Leads B2B" noSuffix />
+      <div className="flex items-center gap-3 mb-6">
+        <MessageCircle className="w-6 h-6 text-gold-500" />
         <div>
-          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Consultas B2B</h1>
+          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Leads B2B</h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
             {inquiries.length} consultas
           </p>
         </div>
+      </div>
+
+      <div className="flex justify-end mb-6">
         <button
           onClick={() =>
             exportToCsv(inquiries, 'consultas-b2b', [
@@ -263,29 +267,41 @@ export default function B2BInquiries() {
             onClose={() => setSelectedInquiry(null)}
             footer={
               selectedInquiry ? (
-                <div className="w-full">
-                  <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-3">
-                    Estado
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {STATUS_OPTIONS.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => handleStatusUpdate(selectedInquiry.id, s)}
-                        disabled={updating || selectedInquiry.status === s}
-                        className={`text-xs px-3 py-1.5 border transition-all flex items-center gap-1.5 ${
-                          selectedInquiry.status === s
-                            ? `${STATUS_LABELS[s]?.color ?? ''} border-current`
-                            : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
-                        }`}
-                      >
-                        {updating && selectedInquiry.status !== s ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : null}
-                        {STATUS_LABELS[s]?.label ?? s}
-                      </button>
-                    ))}
+                <div className="w-full space-y-4">
+                  <div>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-3">
+                      Estado
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {STATUS_OPTIONS.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => handleStatusUpdate(selectedInquiry.id, s)}
+                          disabled={updating || selectedInquiry.status === s}
+                          className={`text-xs px-3 py-1.5 border transition-all flex items-center gap-1.5 ${
+                            selectedInquiry.status === s
+                              ? `${STATUS_LABELS[s]?.color ?? ''} border-current`
+                              : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'
+                          }`}
+                        >
+                          {updating && selectedInquiry.status !== s ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : null}
+                          {STATUS_LABELS[s]?.label ?? s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                  {selectedInquiry.status === 'RESOLVED' && (
+                    <button
+                      onClick={() => {
+                        window.location.href = '/b2b';
+                      }}
+                      className="w-full px-3 py-2 text-xs text-coffee-900 dark:text-cream bg-gold-500 hover:bg-gold-600 border border-gold-600 transition-colors"
+                    >
+                      Ir a Clientes B2B →
+                    </button>
+                  )}
                 </div>
               ) : undefined
             }

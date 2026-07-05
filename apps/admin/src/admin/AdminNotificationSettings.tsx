@@ -3,6 +3,8 @@ import { Bell, Loader2, Send } from 'lucide-react';
 import api from '../api';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import ConfirmDialog from './components/ConfirmDialog';
+import { useModuleToast } from './context/ModuleContext';
 import { PageMeta } from '../hooks/usePageMeta';
 
 const EVENT_TYPES = [
@@ -17,6 +19,7 @@ const EVENT_TYPES = [
 ];
 
 export default function AdminNotificationSettings() {
+  const { addToast } = useModuleToast();
   const [preferences, setPreferences] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,6 +27,7 @@ export default function AdminNotificationSettings() {
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState<{ sent: number; failed: number } | null>(null);
   const [error, setError] = useState('');
+  const [confirmTest, setConfirmTest] = useState(false);
 
   useEffect(() => {
     setError('');
@@ -45,8 +49,10 @@ export default function AdminNotificationSettings() {
     try {
       await api.put('/push/preferences/bulk', { preferences });
       setDirty(false);
+      addToast('Preferencias guardadas', 'success');
     } catch {
       setError('Error al guardar preferencias');
+      addToast('Error al guardar preferencias', 'error');
     } finally {
       setSaving(false);
     }
@@ -55,13 +61,17 @@ export default function AdminNotificationSettings() {
   const handleTest = async () => {
     setTestSending(true);
     setTestResult(null);
+    setError('');
     try {
       const res = await api.post('/push/test');
       setTestResult(res.data);
+      addToast(`Notificación enviada a ${res.data.sent} dispositivo(s)`, 'success');
     } catch {
       setError('Error al enviar notificación de prueba');
+      addToast('Error al enviar notificación de prueba', 'error');
     } finally {
       setTestSending(false);
+      setConfirmTest(false);
     }
   };
 
@@ -82,7 +92,18 @@ export default function AdminNotificationSettings() {
         </div>
       </div>
 
-      {error && <AdminErrorState error={error} />}
+      {error && (
+        <AdminErrorState
+          error={error}
+          onRetry={() => {
+            setError('');
+            api
+              .get('/push/preferences')
+              .then((res) => setPreferences(res.data.preferences))
+              .catch(() => setError('Error al cargar preferencias'));
+          }}
+        />
+      )}
 
       <div className="space-y-2 mb-8">
         {EVENT_TYPES.map(({ value, label }) => (
@@ -116,24 +137,25 @@ export default function AdminNotificationSettings() {
         <button
           onClick={handleSave}
           disabled={!dirty || saving}
-          className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary flex items-center gap-2"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </div>
 
-      <div className="border-t border-coffee-200 dark:border-coffee-800 pt-6">
-        <h3 className="text-sm font-medium text-coffee-900 dark:text-cream mb-3">
-          Probar notificaciones
-        </h3>
-        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-4">
-          Envía una notificación de prueba a todos los dispositivos suscritos.
+      <div className="border-t border-coffee-200 dark:border-coffee-800 pt-8">
+        <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-3">
+          Enviar notificación de prueba
+        </h2>
+        <p className="text-sm text-coffee-500 dark:text-coffee-400 mb-4">
+          Envía una notificación de prueba a <strong>todos</strong> los dispositivos suscritos (no
+          solo el tuyo).
         </p>
         <button
-          onClick={handleTest}
+          onClick={() => setConfirmTest(true)}
           disabled={testSending}
-          className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 border border-coffee-300 dark:border-coffee-600 text-coffee-700 dark:text-cream text-sm font-medium hover:bg-coffee-50 dark:hover:bg-coffee-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {testSending ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -145,13 +167,23 @@ export default function AdminNotificationSettings() {
 
         {testResult && (
           <div
-            className={`mt-3 text-sm flex items-center gap-2 ${testResult.failed > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-700 dark:text-green-400'}`}
+            className={`mt-4 text-sm flex items-center gap-2 ${testResult.failed > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-700 dark:text-green-400'}`}
           >
-            <span>Enviada: {testResult.sent}</span>
-            {testResult.failed > 0 && <span>· Falló: {testResult.failed}</span>}
+            <span>✓ Enviada a {testResult.sent} dispositivo(s)</span>
+            {testResult.failed > 0 && <span>· {testResult.failed} falló</span>}
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmTest}
+        title="Enviar notificación de prueba"
+        message="Esto enviará una notificación push a todos los dispositivos suscritos (no solo el tuyo). ¿Continuar?"
+        confirmText="Enviar"
+        loading={testSending}
+        onConfirm={handleTest}
+        onCancel={() => setConfirmTest(false)}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { wishlistApi } from '../api';
 import { idbStorage } from '../lib/idb-storage';
+import { useToast } from './ToastContext';
 import type { Product } from '../types';
 
 export interface WishlistItem {
@@ -41,7 +42,11 @@ export const useWishlist = create<WishlistStore>()(
           set({ items, isOffline: false, loading: false });
         } catch {
           // Network error — use cached items
-          set({ error: 'Sin conexión — mostrando datos guardados.', isOffline: true, loading: false });
+          set({
+            error: 'Sin conexión — mostrando datos guardados.',
+            isOffline: true,
+            loading: false,
+          });
         }
       },
 
@@ -51,7 +56,14 @@ export const useWishlist = create<WishlistStore>()(
           // Optimistically add via re-fetch
           await get().fetchItems();
         } catch {
-          // Silently fail — product not added
+          useToast
+            .getState()
+            .add(
+              navigator.onLine
+                ? 'No se pudo guardar en favoritos. Intenta de nuevo.'
+                : 'Sin conexión — no se pudo guardar en favoritos.',
+              'error',
+            );
         }
       },
 
@@ -64,11 +76,18 @@ export const useWishlist = create<WishlistStore>()(
         } catch {
           // Restore on failure
           set({ items: prev });
+          useToast
+            .getState()
+            .add(
+              navigator.onLine
+                ? 'No se pudo eliminar de favoritos. Intenta de nuevo.'
+                : 'Sin conexión — no se pudo eliminar de favoritos.',
+              'error',
+            );
         }
       },
 
-      isInWishlist: (productId: string) =>
-        get().items.some((i) => i.product.id === productId),
+      isInWishlist: (productId: string) => get().items.some((i) => i.product.id === productId),
     }),
     {
       name: 'wishlist-store',

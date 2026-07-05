@@ -11,18 +11,21 @@ declare const self: ServiceWorkerGlobalScope;
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
+// Recipe detail — CacheFirst so full recipe (steps, ingredients) works offline
+const isRecipeDetail = (pathname: string) =>
+  /^\/api\/recipes\/[\w-]+$/.test(pathname) || /^\/api\/recipes\/by-slug\/[\w-]+$/.test(pathname);
+
 // Recipe list — SWR so new recipes appear without refresh
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/recipes') && !/^\/api\/recipes\/[\w-]+$/.test(url.pathname),
+  ({ url }) => url.pathname.startsWith('/api/recipes') && !isRecipeDetail(url.pathname),
   new StaleWhileRevalidate({
     cacheName: 'recipes-cache',
     plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
   }),
 );
 
-// Recipe detail — CacheFirst so full recipe (steps, ingredients) works offline
 registerRoute(
-  ({ url }) => /^\/api\/recipes\/[\w-]+$/.test(url.pathname),
+  ({ url }) => isRecipeDetail(url.pathname),
   new CacheFirst({
     cacheName: 'recipe-details',
     plugins: [
@@ -134,20 +137,18 @@ self.addEventListener('notificationclick', (event) => {
   const urlToOpen = event.notification.data?.url || '/';
 
   event.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((windowClients) => {
-        // Check if we already have a window with this URL
-        const existing = windowClients.find((c) => c.url === urlToOpen);
-        if (existing) {
-          return existing.focus();
-        }
-        // Check if we have any window at all
-        if (windowClients.length > 0) {
-          return windowClients[0].navigate(urlToOpen).then((c) => c?.focus());
-        }
-        return self.clients.openWindow(urlToOpen);
-      }),
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Check if we already have a window with this URL
+      const existing = windowClients.find((c) => c.url === urlToOpen);
+      if (existing) {
+        return existing.focus();
+      }
+      // Check if we have any window at all
+      if (windowClients.length > 0) {
+        return windowClients[0].navigate(urlToOpen).then((c) => c?.focus());
+      }
+      return self.clients.openWindow(urlToOpen);
+    }),
   );
 });
 

@@ -1,23 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, X, ChevronDown, Search, ChevronLeft, ChevronRight as ChevronRightIcon, SearchX } from 'lucide-react';
+import {
+  SlidersHorizontal,
+  X,
+  ChevronDown,
+  Search,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
+  SearchX,
+  WifiOff,
+} from 'lucide-react';
 import { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import type { Product } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
 
-
 const PAGE_SIZE = 12;
 
 const categories = [
   { id: 'TODOS', label: 'Todo' },
-  { id: 'CAFÉ',  label: 'Café' },
+  { id: 'CAFÉ', label: 'Café' },
   { id: 'ACCESORIOS', label: 'Accesorios' },
   { id: 'MERCH', label: 'Merch' },
 ];
 const processes = ['Todos', 'Lavado', 'Natural', 'Honey', 'Anaeróbico Natural'];
-const roasts    = ['Todos', 'Ligero', 'Medio-Ligero', 'Medio', 'Oscuro'];
+const roasts = ['Todos', 'Ligero', 'Medio-Ligero', 'Medio', 'Oscuro'];
 
 function ShopSkeleton() {
   return (
@@ -44,6 +52,8 @@ export default function Shop() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [category, setCategory] = useState('TODOS');
   const [process, setProcess] = useState('Todos');
   const [roast, setRoast] = useState('Todos');
@@ -70,17 +80,25 @@ export default function Shop() {
     const params = new URLSearchParams(location.search);
     const flavorParam = params.get('flavors');
     if (flavorParam) {
-      setSelectedFlavors(flavorParam.split(',').map((f) => f.trim()).filter(Boolean));
+      setSelectedFlavors(
+        flavorParam
+          .split(',')
+          .map((f) => f.trim())
+          .filter(Boolean),
+      );
       setCategory('CAFÉ');
     }
   }, []); // intentionally runs once on mount to seed from URL
 
   useEffect(() => {
-    productsApi.list({ category: 'CAFÉ', pageSize: '200' }).then((r) => {
-      const all = r.data.data.flatMap((p) => p.flavors ?? []);
-      const unique = Array.from(new Set(all)).sort();
-      setAvailableFlavors(unique);
-    }).catch(console.error);
+    productsApi
+      .list({ category: 'CAFÉ', pageSize: '200' })
+      .then((r) => {
+        const all = r.data.data.flatMap((p) => p.flavors ?? []);
+        const unique = Array.from(new Set(all)).sort();
+        setAvailableFlavors(unique);
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -100,23 +118,57 @@ export default function Shop() {
     if (brewMethod) params.brewMethod = brewMethod;
     if (certifications.length > 0) params.certifications = certifications.join(',');
 
-    productsApi.list(params)
+    setError(false);
+    productsApi
+      .list(params)
       .then((r) => {
         setProducts(r.data.data);
         setTotal(r.data.total);
         setTotalPages(r.data.totalPages);
       })
-      .catch((err) => { console.error(err); })
+      .catch((err) => {
+        console.error(err);
+        setError(true);
+      })
       .finally(() => setLoading(false));
-  }, [process, roast, sort, category, search, page, selectedFlavors, body, acidity, brewMethod, certifications]);
+  }, [
+    process,
+    roast,
+    sort,
+    category,
+    search,
+    page,
+    selectedFlavors,
+    body,
+    acidity,
+    brewMethod,
+    certifications,
+    reloadKey,
+  ]);
 
   const isCafe = category === 'CAFÉ' || category === 'TODOS';
-  const hasFilters = process !== 'Todos' || roast !== 'Todos' || search || selectedFlavors.length > 0 || body !== '' || acidity !== '' || brewMethod !== '' || certifications.length > 0;
+  const hasFilters =
+    process !== 'Todos' ||
+    roast !== 'Todos' ||
+    search ||
+    selectedFlavors.length > 0 ||
+    body !== '' ||
+    acidity !== '' ||
+    brewMethod !== '' ||
+    certifications.length > 0;
 
   const resetFilters = () => {
-    setProcess('Todos'); setRoast('Todos'); setCategory('TODOS');
-    setSearch(''); setSearchInput(''); setSelectedFlavors([]); setPage(1);
-    setBody(''); setAcidity(''); setBrewMethod(''); setCertifications([]);
+    setProcess('Todos');
+    setRoast('Todos');
+    setCategory('TODOS');
+    setSearch('');
+    setSearchInput('');
+    setSelectedFlavors([]);
+    setPage(1);
+    setBody('');
+    setAcidity('');
+    setBrewMethod('');
+    setCertifications([]);
   };
 
   const toggleFlavor = (flavor: string) => {
@@ -140,21 +192,39 @@ export default function Shop() {
   };
 
   const handleCategoryChange = (id: string) => {
-    setCategory(id); setProcess('Todos'); setRoast('Todos'); setPage(1);
-    setBody(''); setAcidity(''); setBrewMethod(''); setCertifications([]);
+    setCategory(id);
+    setProcess('Todos');
+    setRoast('Todos');
+    setPage(1);
+    setBody('');
+    setAcidity('');
+    setBrewMethod('');
+    setCertifications([]);
   };
 
-  const handleSortChange = (s: string) => { setSort(s); setPage(1); };
+  const handleSortChange = (s: string) => {
+    setSort(s);
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-24 bg-coffee-50 dark:bg-coffee-950">
-      <PageMeta title="Tienda" description="Explora nuestra selección de cafés de especialidad: origen único, blends y suscripciones." />
+      <PageMeta
+        title="Tienda"
+        description="Explora nuestra selección de cafés de especialidad: origen único, blends y suscripciones."
+      />
       {/* Page header */}
       <div className="page-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="gold-line mb-4" />
-            <h1 className="font-serif text-5xl md:text-6xl text-coffee-900 dark:text-cream mb-2">Tienda</h1>
+            <h1 className="font-serif text-5xl md:text-6xl text-coffee-900 dark:text-cream mb-2">
+              Tienda
+            </h1>
             <p className="text-coffee-600 dark:text-coffee-400 text-sm tracking-wide">
               {loading ? 'Cargando…' : `${total} producto${total !== 1 ? 's' : ''} · Origen México`}
             </p>
@@ -174,7 +244,11 @@ export default function Shop() {
           />
           {searchInput && (
             <button
-              onClick={() => { setSearchInput(''); setSearch(''); setPage(1); }}
+              onClick={() => {
+                setSearchInput('');
+                setSearch('');
+                setPage(1);
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-700"
             >
               <X className="w-3.5 h-3.5" />
@@ -216,67 +290,129 @@ export default function Shop() {
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Proceso</span>
+                  <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">
+                    Proceso
+                  </span>
                   {processes.map((p) => (
-                    <button key={p} onClick={() => { setProcess(p); setPage(1); }}
+                    <button
+                      key={p}
+                      onClick={() => {
+                        setProcess(p);
+                        setPage(1);
+                      }}
                       aria-pressed={process === p}
                       className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
-                        process === p ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                      }`}>{p}</button>
+                        process === p
+                          ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                          : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
+                      }`}
+                    >
+                      {p}
+                    </button>
                   ))}
                 </div>
 
                 {category === 'CAFÉ' && (
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Cuerpo</span>
+                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">
+                      Cuerpo
+                    </span>
                     {['', 'Ligero', 'Medio', 'Completo'].map((v) => (
-                      <button key={v || 'all-body'} onClick={() => { setBody(v); setPage(1); }}
+                      <button
+                        key={v || 'all-body'}
+                        onClick={() => {
+                          setBody(v);
+                          setPage(1);
+                        }}
                         aria-pressed={body === v}
                         className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
-                          body === v ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                        }`}>{v || 'Todo'}</button>
+                          body === v
+                            ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
+                        }`}
+                      >
+                        {v || 'Todo'}
+                      </button>
                     ))}
                   </div>
                 )}
                 {category === 'CAFÉ' && (
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Acidez</span>
+                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">
+                      Acidez
+                    </span>
                     {['', 'Baja', 'Media', 'Alta'].map((v) => (
-                      <button key={v || 'all-acidity'} onClick={() => { setAcidity(v); setPage(1); }}
+                      <button
+                        key={v || 'all-acidity'}
+                        onClick={() => {
+                          setAcidity(v);
+                          setPage(1);
+                        }}
                         aria-pressed={acidity === v}
                         className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
-                          acidity === v ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                        }`}>{v || 'Todo'}</button>
+                          acidity === v
+                            ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
+                        }`}
+                      >
+                        {v || 'Todo'}
+                      </button>
                     ))}
                   </div>
                 )}
                 {category === 'CAFÉ' && (
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Método</span>
+                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">
+                      Método
+                    </span>
                     {['', 'V60', 'AeroPress', 'Espresso', 'Chemex', 'French Press'].map((v) => (
-                      <button key={v || 'all-method'} onClick={() => { setBrewMethod(v); setPage(1); }}
+                      <button
+                        key={v || 'all-method'}
+                        onClick={() => {
+                          setBrewMethod(v);
+                          setPage(1);
+                        }}
                         aria-pressed={brewMethod === v}
                         className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
-                          brewMethod === v ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                        }`}>{v || 'Todo'}</button>
+                          brewMethod === v
+                            ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
+                        }`}
+                      >
+                        {v || 'Todo'}
+                      </button>
                     ))}
                   </div>
                 )}
 
                 <div className="flex flex-wrap gap-1.5 items-center">
-                  <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">Tueste</span>
+                  <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">
+                    Tueste
+                  </span>
                   {roasts.map((r) => (
-                    <button key={r} onClick={() => { setRoast(r); setPage(1); }}
+                    <button
+                      key={r}
+                      onClick={() => {
+                        setRoast(r);
+                        setPage(1);
+                      }}
                       aria-pressed={roast === r}
                       className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
-                        roast === r ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium' : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                      }`}>{r}</button>
+                        roast === r
+                          ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
+                          : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
+                      }`}
+                    >
+                      {r}
+                    </button>
                   ))}
                 </div>
 
                 {availableFlavors.length > 0 && (
                   <div className="w-full border-t border-coffee-200 dark:border-coffee-800 pt-3 mt-1">
-                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest block mb-2">Notas de Cata</span>
+                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest block mb-2">
+                      Notas de Cata
+                    </span>
                     <div className="relative mb-2 max-w-xs">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-coffee-400 pointer-events-none" />
                       <input
@@ -318,8 +454,10 @@ export default function Shop() {
                 )}
 
                 {hasFilters && (
-                  <button onClick={resetFilters}
-                    className="flex items-center gap-1 text-xs text-coffee-400 hover:text-red-500 transition-colors cursor-pointer ml-auto">
+                  <button
+                    onClick={resetFilters}
+                    className="flex items-center gap-1 text-xs text-coffee-400 hover:text-red-500 transition-colors cursor-pointer ml-auto"
+                  >
                     <X className="w-3 h-3" /> Limpiar filtros
                   </button>
                 )}
@@ -331,8 +469,11 @@ export default function Shop() {
         {/* Sort select — desktop only */}
         <div className="hidden md:flex justify-end mb-8">
           <div className="relative">
-            <select value={sort} onChange={(e) => handleSortChange(e.target.value)}
-              className="appearance-none bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-xs pl-3 pr-8 py-2 outline-none hover:border-coffee-500 dark:hover:border-coffee-500 transition-colors cursor-pointer">
+            <select
+              value={sort}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="appearance-none bg-white dark:bg-coffee-900 border border-coffee-300 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-xs pl-3 pr-8 py-2 outline-none hover:border-coffee-500 dark:hover:border-coffee-500 transition-colors cursor-pointer"
+            >
               <option value="newest">Más recientes</option>
               {isCafe && <option value="sca">Mayor puntaje SCA</option>}
               <option value="price_asc">Precio: menor a mayor</option>
@@ -350,9 +491,27 @@ export default function Shop() {
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Filtros
-            {(process !== 'Todos' || roast !== 'Todos' || category !== 'TODOS' || selectedFlavors.length > 0 || body !== '' || acidity !== '' || brewMethod !== '' || certifications.length > 0) && (
+            {(process !== 'Todos' ||
+              roast !== 'Todos' ||
+              category !== 'TODOS' ||
+              selectedFlavors.length > 0 ||
+              body !== '' ||
+              acidity !== '' ||
+              brewMethod !== '' ||
+              certifications.length > 0) && (
               <span className="absolute -top-1.5 -right-1.5 bg-gold-500 text-coffee-950 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                {[process !== 'Todos', roast !== 'Todos', category !== 'TODOS', selectedFlavors.length > 0, body !== '', acidity !== '', brewMethod !== '', certifications.length > 0].filter(Boolean).length}
+                {
+                  [
+                    process !== 'Todos',
+                    roast !== 'Todos',
+                    category !== 'TODOS',
+                    selectedFlavors.length > 0,
+                    body !== '',
+                    acidity !== '',
+                    brewMethod !== '',
+                    certifications.length > 0,
+                  ].filter(Boolean).length
+                }
               </span>
             )}
           </button>
@@ -404,7 +563,9 @@ export default function Shop() {
 
                 {/* Category */}
                 <div className="space-y-2">
-                  <span className="text-xs text-coffee-400 uppercase tracking-widest block">Categoría</span>
+                  <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                    Categoría
+                  </span>
                   <div className="flex flex-wrap gap-1.5">
                     {categories.map((cat) => (
                       <button
@@ -426,12 +587,17 @@ export default function Shop() {
                 {/* Process — only relevant for café */}
                 {isCafe && (
                   <div className="space-y-2">
-                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Proceso</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      Proceso
+                    </span>
                     <div className="flex flex-wrap gap-1.5">
                       {processes.map((p) => (
                         <button
                           key={p}
-                          onClick={() => { setProcess(p); setPage(1); }}
+                          onClick={() => {
+                            setProcess(p);
+                            setPage(1);
+                          }}
                           aria-pressed={process === p}
                           className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             process === p
@@ -449,16 +615,26 @@ export default function Shop() {
                 {/* Body — only relevant for café */}
                 {category === 'CAFÉ' && (
                   <div className="space-y-2">
-                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Cuerpo</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      Cuerpo
+                    </span>
                     <div className="flex flex-wrap gap-1.5">
                       {['', 'Ligero', 'Medio', 'Completo'].map((v) => (
-                        <button key={v || 'all-body'} onClick={() => { setBody(v); setPage(1); }}
+                        <button
+                          key={v || 'all-body'}
+                          onClick={() => {
+                            setBody(v);
+                            setPage(1);
+                          }}
                           aria-pressed={body === v}
                           className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             body === v
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
                               : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                          }`}>{v || 'Todo'}</button>
+                          }`}
+                        >
+                          {v || 'Todo'}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -466,16 +642,26 @@ export default function Shop() {
                 {/* Acidity — only relevant for café */}
                 {category === 'CAFÉ' && (
                   <div className="space-y-2">
-                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Acidez</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      Acidez
+                    </span>
                     <div className="flex flex-wrap gap-1.5">
                       {['', 'Baja', 'Media', 'Alta'].map((v) => (
-                        <button key={v || 'all-acidity'} onClick={() => { setAcidity(v); setPage(1); }}
+                        <button
+                          key={v || 'all-acidity'}
+                          onClick={() => {
+                            setAcidity(v);
+                            setPage(1);
+                          }}
                           aria-pressed={acidity === v}
                           className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             acidity === v
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
                               : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                          }`}>{v || 'Todo'}</button>
+                          }`}
+                        >
+                          {v || 'Todo'}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -483,16 +669,26 @@ export default function Shop() {
                 {/* Brew method — only relevant for café */}
                 {category === 'CAFÉ' && (
                   <div className="space-y-2">
-                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Método</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      Método
+                    </span>
                     <div className="flex flex-wrap gap-1.5">
                       {['', 'V60', 'AeroPress', 'Espresso', 'Chemex', 'French Press'].map((v) => (
-                        <button key={v || 'all-method'} onClick={() => { setBrewMethod(v); setPage(1); }}
+                        <button
+                          key={v || 'all-method'}
+                          onClick={() => {
+                            setBrewMethod(v);
+                            setPage(1);
+                          }}
                           aria-pressed={brewMethod === v}
                           className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             brewMethod === v
                               ? 'border-gold-500 text-gold-500 bg-gold-500/10 font-medium'
                               : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-coffee-500 hover:text-coffee-900 dark:hover:text-cream'
-                          }`}>{v || 'Todo'}</button>
+                          }`}
+                        >
+                          {v || 'Todo'}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -501,12 +697,17 @@ export default function Shop() {
                 {/* Roast — only relevant for café */}
                 {isCafe && (
                   <div className="space-y-2">
-                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Tueste</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      Tueste
+                    </span>
                     <div className="flex flex-wrap gap-1.5">
                       {roasts.map((r) => (
                         <button
                           key={r}
-                          onClick={() => { setRoast(r); setPage(1); }}
+                          onClick={() => {
+                            setRoast(r);
+                            setPage(1);
+                          }}
                           aria-pressed={roast === r}
                           className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
                             roast === r
@@ -523,7 +724,9 @@ export default function Shop() {
 
                 {availableFlavors.length > 0 && (
                   <div className="space-y-2">
-                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">Notas de Cata</span>
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      Notas de Cata
+                    </span>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 pointer-events-none" />
                       <input
@@ -578,13 +781,32 @@ export default function Shop() {
         {/* Grid */}
         {loading ? (
           <ShopSkeleton />
+        ) : error ? (
+          <div className="text-center py-24">
+            <WifiOff className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
+            <p className="font-serif text-2xl text-coffee-400 mb-2">
+              {!navigator.onLine ? 'Sin conexión' : 'Error al cargar'}
+            </p>
+            <p className="text-coffee-500 text-sm mb-8">
+              {!navigator.onLine
+                ? 'Revisa tu conexión a internet e intenta de nuevo.'
+                : 'No se pudieron cargar los productos.'}
+            </p>
+            <button onClick={() => setReloadKey((k) => k + 1)} className="btn-outline">
+              Reintentar
+            </button>
+          </div>
         ) : products.length === 0 ? (
           <div className="text-center py-24">
             <SearchX className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
             <p className="font-serif text-2xl text-coffee-400 mb-2">Sin resultados</p>
             <p className="text-coffee-500 text-sm mb-2">No hay productos con esos filtros.</p>
-            <p className="text-coffee-400 dark:text-coffee-500 text-xs mb-8">Intenta cambiar categoría, proceso o buscar otro término.</p>
-            <button onClick={resetFilters} className="btn-outline">Ver todos</button>
+            <p className="text-coffee-400 dark:text-coffee-500 text-xs mb-8">
+              Intenta cambiar categoría, proceso o buscar otro término.
+            </p>
+            <button onClick={resetFilters} className="btn-outline">
+              Ver todos
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
@@ -614,7 +836,9 @@ export default function Shop() {
               }, [])
               .map((p, i) =>
                 p === '…' ? (
-                  <span key={`e${i}`} className="px-2 text-coffee-500 dark:text-coffee-400 text-sm">…</span>
+                  <span key={`e${i}`} className="px-2 text-coffee-500 dark:text-coffee-400 text-sm">
+                    …
+                  </span>
                 ) : (
                   <button
                     key={p}
@@ -627,9 +851,8 @@ export default function Shop() {
                   >
                     {p}
                   </button>
-                )
-              )
-            }
+                ),
+              )}
 
             <button
               onClick={() => setPage((p) => Math.min(p + 1, totalPages))}

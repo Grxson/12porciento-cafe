@@ -13,6 +13,7 @@ import {
   Download,
   Play,
   ChevronLeft,
+  WifiOff,
 } from 'lucide-react';
 import { recipesApi, recipeRatingsApi } from '../api';
 import { useUser } from '../context/UserContext';
@@ -23,6 +24,7 @@ import AttemptsList from '../components/recipes/AttemptsList';
 import { downloadRecipePDF } from '../utils/recipePdf';
 import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
 import { PageMeta } from '../hooks/usePageMeta';
+import { getCachedResponse } from '../lib/cacheHelper';
 
 function MethodIcon({ method }: { method: string }) {
   const m = method.toLowerCase();
@@ -48,6 +50,7 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
   const [liveRecipeId, setLiveRecipeId] = useState<string | null>(null);
   const [ratings, setRatings] = useState<RecipeRating[]>([]);
   const [avgRating, setAvgRating] = useState(0);
@@ -61,13 +64,21 @@ export default function RecipeDetail() {
   useEffect(() => {
     if (!slug) return;
     setError(null);
+    setFromCache(false);
     recipesApi
       .getBySlug(slug)
       .then((r) => {
         setRecipe(r.data.data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch(async () => {
+        const cached = await getCachedResponse<{ data: Recipe }>(`/recipes/by-slug/${slug}`);
+        if (cached) {
+          setRecipe(cached.data);
+          setFromCache(true);
+          setLoading(false);
+          return;
+        }
         setError('No se pudo cargar la receta.');
         setLoading(false);
       });
@@ -174,6 +185,13 @@ export default function RecipeDetail() {
         >
           <ChevronLeft className="w-4 h-4" /> Volver a recetas
         </Link>
+
+        {fromCache && (
+          <div className="mb-6 px-4 py-2.5 bg-gold-500/10 border border-gold-500/30 text-gold-700 dark:text-gold-400 text-xs rounded flex items-center gap-2">
+            <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
+            Mostrando versión guardada sin conexión. Algunos datos pueden no estar actualizados.
+          </div>
+        )}
 
         <div className="mb-10">
           <div className="flex items-start gap-4 mb-4">

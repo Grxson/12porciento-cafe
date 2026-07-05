@@ -63,6 +63,7 @@ import NotFound from './pages/NotFound';
 import BottomNav from './components/BottomNav';
 import InstallPrompt from './components/InstallPrompt';
 import OfflineBanner from './components/OfflineBanner';
+import OfflineIndicator from './components/OfflineIndicator';
 import Quiz from './pages/Quiz';
 import B2BCatalog from './pages/B2BCatalog';
 import Gallery from './pages/Gallery';
@@ -166,6 +167,7 @@ function PublicLayout() {
       </main>
       {showFooter && <Footer />}
       <BottomNav />
+      <OfflineIndicator />
       <OfflineBanner />
       <InstallPrompt />
       <ScrollToTopFab />

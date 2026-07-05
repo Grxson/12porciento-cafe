@@ -2,7 +2,7 @@ import { listQueue, removeBrew, updateBrewStatus } from '../hooks/useBrewQueue';
 import { uploadsApi, baristaApi } from '../api';
 import { useToast } from '../context/ToastContext';
 
-async function syncBrews(): Promise<void> {
+export async function syncBrews(): Promise<void> {
   let queue;
   try {
     queue = await listQueue();
@@ -40,17 +40,19 @@ async function syncBrews(): Promise<void> {
       const profile = res.data?.data?.profile;
 
       if (profile) {
-        const baseXp: Record<string, number> = { 'FÁCIL': 10, 'MEDIA': 20, 'DIFÍCIL': 30 };
+        const baseXp: Record<string, number> = { FÁCIL: 10, MEDIA: 20, DIFÍCIL: 30 };
         const xp = (baseXp[brew.difficulty ?? 'MEDIA'] ?? 20) + (brew.rating - 1) * 5;
         add(`☕ Brew sincronizado — +${xp} XP`, 'success');
       }
 
       newAchievements.forEach((a, i) => {
-        setTimeout(() => {
-          add(`🏆 Logro desbloqueado: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success');
-        }, 400 * (i + 1));
+        setTimeout(
+          () => {
+            add(`🏆 Logro desbloqueado: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success');
+          },
+          400 * (i + 1),
+        );
       });
-
     } catch {
       await updateBrewStatus(brew.id, 'failed').catch(() => {});
     }
@@ -71,7 +73,11 @@ export async function initBrewSync(): Promise<void> {
   // Register Background Sync (Chromium only; gracefully ignored elsewhere)
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready
-      .then((reg) => ((reg as unknown as { sync: { register: (name: string) => Promise<void> } }).sync).register('brew-sync'))
+      .then((reg) =>
+        (reg as unknown as { sync: { register: (name: string) => Promise<void> } }).sync.register(
+          'brew-sync',
+        ),
+      )
       .catch(console.error);
   }
 

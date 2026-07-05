@@ -1,15 +1,17 @@
-import { defineRailway, project, service, postgres, volume, ref } from "railway/iac";
+import { defineRailway, postgres, project, service, volume } from "railway/iac";
 
 export default defineRailway(() => {
-  const db = postgres("cafe-db");
+  const db = postgres("Postgres");
 
-  const uploads = volume("uploads", { sizeMb: 1024 });
+  const uploads = volume("uploads", {});
 
   const server = service("12porciento-server", {
+    source: {
+      dockerfilePath: "./server/Dockerfile",
+    },
     rootDirectory: ".",
     variables: {
-      RAILWAY_DOCKERFILE_PATH: "./server/Dockerfile",
-      DATABASE_URL: ref(db, "DATABASE_URL"),
+      DATABASE_URL: db.env.DATABASE_URL,
       NODE_ENV: "production",
       PORT: "3001",
       UPLOAD_DIR: "/app/data/uploads",
@@ -18,15 +20,27 @@ export default defineRailway(() => {
     healthcheckPath: "/api/health",
   });
 
-  const client = service("12porciento-client", {
+  const web = service("12porciento-web", {
+    source: {
+      dockerfilePath: "./client/Dockerfile",
+    },
     rootDirectory: ".",
     variables: {
-      RAILWAY_DOCKERFILE_PATH: "./client/Dockerfile",
+      VITE_API_URL: "/api",
+    },
+  });
+
+  const admin = service("12porciento-admin", {
+    source: {
+      dockerfilePath: "./apps/admin/Dockerfile",
+    },
+    rootDirectory: ".",
+    variables: {
       VITE_API_URL: "/api",
     },
   });
 
   return project("12porciento-cafe", {
-    resources: [db, uploads, server, client],
+    resources: [db, uploads, server, web, admin],
   });
 });

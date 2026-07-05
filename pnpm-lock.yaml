@@ -42,6 +42,79 @@ importers:
         specifier: ^8.62.0
         version: 8.62.0(eslint@10.6.0(jiti@2.7.0))(typescript@5.9.3)
 
+  apps/admin:
+    dependencies:
+      '@12porciento/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@12porciento/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@tanstack/react-query':
+        specifier: ^5.101.2
+        version: 5.101.2(react@18.3.1)
+      axios:
+        specifier: ^1.7.2
+        version: 1.16.1
+      canvas-confetti:
+        specifier: ^1.9.4
+        version: 1.9.4
+      framer-motion:
+        specifier: ^11.2.10
+        version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      idb-keyval:
+        specifier: ^6.2.5
+        version: 6.2.5
+      lucide-react:
+        specifier: ^0.390.0
+        version: 0.390.0(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      react-helmet-async:
+        specifier: ^3.0.0
+        version: 3.0.0(react@18.3.1)
+      react-router-dom:
+        specifier: ^6.23.1
+        version: 6.30.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      recharts:
+        specifier: ^3.8.1
+        version: 3.8.1(@types/react@18.3.29)(react-dom@18.3.1(react@18.3.1))(react-is@19.2.6)(react@18.3.1)(redux@5.0.1)
+      zustand:
+        specifier: ^4.5.4
+        version: 4.5.7(@types/react@18.3.29)(immer@11.1.8)(react@18.3.1)
+    devDependencies:
+      '@12porciento/tailwind-config':
+        specifier: workspace:*
+        version: link:../../packages/config-tailwind
+      '@types/react':
+        specifier: ^18.3.3
+        version: 18.3.29
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.29)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.0
+        version: 4.7.0(vite@5.4.21(@types/node@20.19.41)(terser@5.48.0))
+      autoprefixer:
+        specifier: ^10.4.19
+        version: 10.5.0(postcss@8.5.15)
+      postcss:
+        specifier: ^8.4.38
+        version: 8.5.15
+      tailwindcss:
+        specifier: ^3.4.4
+        version: 3.4.19(tsx@4.22.4)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+      vite:
+        specifier: ^5.3.1
+        version: 5.4.21(@types/node@20.19.41)(terser@5.48.0)
+
   client:
     dependencies:
       '@stripe/react-stripe-js':
@@ -111,6 +184,15 @@ importers:
         specifier: ^4.5.4
         version: 4.5.7(@types/react@18.3.29)(immer@11.1.8)(react@18.3.1)
     devDependencies:
+      '@12porciento/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
+      '@12porciento/tailwind-config':
+        specifier: workspace:*
+        version: link:../packages/config-tailwind
+      '@12porciento/ui':
+        specifier: workspace:*
+        version: link:../packages/ui
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -168,6 +250,62 @@ importers:
       workbox-strategies:
         specifier: ^7.4.1
         version: 7.4.1
+
+  packages/config-tailwind:
+    dependencies:
+      tailwindcss:
+        specifier: ^3.4.0
+        version: 3.4.19(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/shared:
+    dependencies:
+      '@tanstack/react-query':
+        specifier: ^5.101.2
+        version: 5.101.2(react@18.3.1)
+      axios:
+        specifier: ^1.7.2
+        version: 1.16.1
+      idb-keyval:
+        specifier: ^6.2.5
+        version: 6.2.5
+      zustand:
+        specifier: ^4.5.4
+        version: 4.5.7(@types/react@18.3.29)(immer@11.1.8)(react@18.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.29
+        version: 18.3.29
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
+  packages/ui:
+    dependencies:
+      framer-motion:
+        specifier: ^11.2.10
+        version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      lucide-react:
+        specifier: ^0.390.0
+        version: 0.390.0(react@18.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.3
+        version: 18.3.29
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.29)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
 
   server:
     dependencies:

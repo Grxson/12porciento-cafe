@@ -7,21 +7,20 @@ RUN npm install -g pnpm
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages ./packages
-COPY client ./client
+COPY apps/admin ./apps/admin
 
 ARG VITE_API_URL
-ARG VITE_STRIPE_PUBLISHABLE_KEY
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter=cafe-12-client build && ls client/dist/
+RUN pnpm --filter=@12porciento/admin build && ls apps/admin/dist/
 
 FROM nginx:alpine
 
 RUN apk add --no-cache gettext
 
-COPY --from=builder /app/client/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/admin/dist /usr/share/nginx/html
 
-COPY client/nginx.conf /etc/nginx/nginx.conf
-COPY client/entrypoint.sh /entrypoint.sh
+COPY apps/admin/nginx.conf /etc/nginx/nginx.conf
+COPY apps/admin/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 80

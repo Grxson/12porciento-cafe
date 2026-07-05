@@ -1,0 +1,12 @@
+{
+  "name": "@12porciento/tailwind-config",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

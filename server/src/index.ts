@@ -128,13 +128,7 @@ app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-if (process.env.NODE_ENV === 'production') {
-  const clientDist = path.resolve(__dirname, '../../../client/dist');
-  app.use(express.static(clientDist));
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(clientDist, 'index.html'));
-  });
-}
+// SPA serving removed — web and admin are separate Railway services
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err.stack);

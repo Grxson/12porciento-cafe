@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ShoppingBag, Send, CheckCircle, Loader2, Search, X } from 'lucide-react';
+import { ShoppingBag, Send, CheckCircle, Loader2, Search, X, Download } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useModuleToast } from './context/ModuleContext';
+import { exportToCsv } from './utils/csvExport';
 import Pagination from './components/Pagination';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
@@ -81,6 +82,25 @@ export default function AbandonedCarts() {
           </h1>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} carritos</p>
         </div>
+      </div>
+
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={() =>
+            exportToCsv(carts, 'carritos-abandonados', [
+              { key: 'email', label: 'Email' },
+              { key: 'items', label: 'Artículos (JSON)' },
+              { key: 'couponCode', label: 'Cupón' },
+              { key: 'reminderCount', label: 'Recordatorios' },
+              { key: 'recovered', label: 'Recuperado' },
+              { key: 'createdAt', label: 'Creado' },
+            ])
+          }
+          className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
+          title="Exportar CSV"
+        >
+          <Download size={14} /> CSV
+        </button>
       </div>
 
       {/* Filters */}

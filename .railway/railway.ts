@@ -24,6 +24,9 @@ export default defineRailway(() => {
     variables: {
       RAILWAY_DOCKERFILE_PATH: "./client/Dockerfile",
       VITE_API_URL: "/api",
+      VITE_STRIPE_PUBLISHABLE_KEY:
+        "pk_test_51SDU5OK5XTakJuYbJd3LwWdLT2cE16wb8f2lzKoYeydLalbF7DAwwbwPeLlzWSJC6NjfY4n9EV2jUo9r5nN9a50m00AhZXrD7X",
+      VITE_VAPID_PUBLIC_KEY: "BM4FTpXG9SiZFsSNZm9IGHpiBoiW2SXTZvPJ4Z9iEk9V0bpAoyGzCrMBl4eMKAcL1pX1sc9TMHg8qmJXptVJJoY",
       API_URL: "http://12porciento-server.railway.internal:3001",
       PORT: "80",
     },

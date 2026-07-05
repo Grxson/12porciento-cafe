@@ -13,7 +13,7 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem('admin_token')) navigate('/admin/dashboard', { replace: true });
+    if (localStorage.getItem('admin_token')) navigate('/dashboard', { replace: true });
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +23,7 @@ export default function AdminLogin() {
     try {
       const res = await authApi.login(email, password);
       localStorage.setItem('admin_token', res.data.token);
-      navigate('/admin/dashboard', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err: unknown) {
       setError(getApiError(err, 'Credenciales inválidas'));
     } finally {
@@ -46,11 +46,18 @@ export default function AdminLogin() {
         </div>
 
         <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">
-          <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Iniciar sesión</h1>
+          <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
+            Iniciar sesión
+          </h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="admin-login-email" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email</label>
+              <label
+                htmlFor="admin-login-email"
+                className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+              >
+                Email
+              </label>
               <input
                 id="admin-login-email"
                 type="email"
@@ -63,7 +70,12 @@ export default function AdminLogin() {
               />
             </div>
             <div>
-              <label htmlFor="admin-login-password" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Contraseña</label>
+              <label
+                htmlFor="admin-login-password"
+                className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+              >
+                Contraseña
+              </label>
               <input
                 id="admin-login-password"
                 type="password"

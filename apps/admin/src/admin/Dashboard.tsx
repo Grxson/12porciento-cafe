@@ -260,25 +260,25 @@ export default function Dashboard() {
       {/* Quick actions */}
       <div className="flex flex-wrap gap-2">
         <Link
-          to="/admin/productos"
+          to="/productos"
           className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-sm font-medium hover:bg-gold-400 transition-colors"
         >
           <Package size={16} /> Nuevo producto
         </Link>
         <Link
-          to="/admin/bundles"
+          to="/bundles"
           className="flex items-center gap-2 px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-400 dark:hover:border-coffee-500 transition-colors"
         >
           <Gift size={16} /> Nuevo bundle
         </Link>
         <Link
-          to="/admin/descuentos"
+          to="/descuentos"
           className="flex items-center gap-2 px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-400 dark:hover:border-coffee-500 transition-colors"
         >
           <Tag size={16} /> Nuevo código
         </Link>
         <Link
-          to="/admin/inventario"
+          to="/inventario"
           className="flex items-center gap-2 px-4 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm hover:text-coffee-900 dark:hover:text-cream hover:border-coffee-400 dark:hover:border-coffee-500 transition-colors"
         >
           <Plus size={16} /> Ajustar inventario

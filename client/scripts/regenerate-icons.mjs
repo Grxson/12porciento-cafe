@@ -20,13 +20,17 @@ const icons = [
 ];
 
 async function main() {
+  // ico-modern.png has a soft radial glow baked around the actual tile, leaving
+  // ~27% of the canvas transparent — trim it so the icon fills the frame.
+  const trimmed = await sharp(SOURCE_PATH).trim().resize(1024, 1024, { fit: 'cover' }).toBuffer();
+
   for (const { file, size, maskable } of icons) {
     let pipeline;
 
     if (maskable) {
       // Shrink to 80% and center on a same-color canvas so content stays within the safe zone
       const inner = Math.round(size * 0.8);
-      const resized = await sharp(SOURCE_PATH).resize(inner, inner, { fit: 'contain' }).toBuffer();
+      const resized = await sharp(trimmed).resize(inner, inner, { fit: 'contain' }).toBuffer();
       pipeline = sharp({
         create: {
           width: size,
@@ -36,7 +40,7 @@ async function main() {
         },
       }).composite([{ input: resized, gravity: 'center' }]);
     } else {
-      pipeline = sharp(SOURCE_PATH).resize(size, size, { fit: 'contain' });
+      pipeline = sharp(trimmed).resize(size, size, { fit: 'contain' });
     }
 
     await pipeline
@@ -46,7 +50,7 @@ async function main() {
     console.log(`✓ ${file} (${size}×${size})`);
   }
 
-  console.log('\nAll icons regenerated from ico-modern.png.');
+  console.log('\nAll icons regenerated from ico-modern.png (trimmed to remove transparent glow margin).');
 }
 
 main().catch(console.error);

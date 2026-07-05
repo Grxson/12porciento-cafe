@@ -1,5 +1,4 @@
 import express from 'express';
-import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
@@ -71,9 +70,20 @@ const PORT = process.env.PORT || 3001;
 
 app.set('trust proxy', 1);
 
+const ALLOWED_ORIGINS = (
+  process.env.CLIENT_URL || 'http://localhost:5173'
+).split(',').map(s => s.trim());
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
   }),
 );

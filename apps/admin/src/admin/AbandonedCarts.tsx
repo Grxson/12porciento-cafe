@@ -38,10 +38,10 @@ export default function AbandonedCarts() {
     setSendingId(id);
     try {
       const res = await sendReminder(id);
-      if (res.data.success) {
-        addToast('Recordatorio enviado', 'success');
+      if (res.data.queued) {
+        addToast('Recordatorio en camino', 'success');
       } else {
-        addToast('No se pudo enviar el recordatorio (sin proveedor de correo)', 'info');
+        addToast('No se pudo encolar el recordatorio', 'error');
       }
     } catch {
       addToast('Error al enviar recordatorio', 'error');

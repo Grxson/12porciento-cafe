@@ -47,20 +47,30 @@ export async function sendMail(options: {
   const { to, subject, html, text } = options;
 
   try {
-    const timeoutPromise = new Promise<'timeout'>((resolve) => {
-      setTimeout(() => resolve('timeout'), 10000);
+    const sendMailPromise = smtpTransport!.sendMail({
+      from: `"12% Café" <${from}>`,
+      to,
+      subject,
+      html,
+      text: text || html.replace(/<[^>]+>/g, ''),
     });
 
-    const result = await Promise.race([
-      smtpTransport!.sendMail({
-        from: `"12% Café" <${from}>`,
-        to,
-        subject,
-        html,
-        text: text || html.replace(/<[^>]+>/g, ''),
-      }),
-      timeoutPromise,
-    ]);
+    // Log late SMTP failures that occur after the race has already settled
+    sendMailPromise.catch((err) => {
+      console.warn(`[mail] Late SMTP failure for ${to}:`, err);
+    });
+
+    let timeoutHandle: NodeJS.Timeout | null = null;
+    const timeoutPromise = new Promise<'timeout'>((resolve) => {
+      timeoutHandle = setTimeout(() => resolve('timeout'), 10000);
+    });
+
+    const result = await Promise.race([sendMailPromise, timeoutPromise]);
+
+    // Clear timeout to prevent it from continuing to run
+    if (timeoutHandle !== null) {
+      clearTimeout(timeoutHandle);
+    }
 
     if (result === 'timeout') {
       console.warn(`[mail] SMTP timeout after 10s sending to ${to}`);

@@ -55,24 +55,40 @@ export async function sendMail(options: {
       text: text || html.replace(/<[^>]+>/g, ''),
     });
 
-    // Log late SMTP failures that occur after the race has already settled
-    sendMailPromise.catch((err) => {
-      console.warn(`[mail] Late SMTP failure for ${to}:`, err);
-    });
-
     let timeoutHandle: NodeJS.Timeout | null = null;
     const timeoutPromise = new Promise<'timeout'>((resolve) => {
       timeoutHandle = setTimeout(() => resolve('timeout'), 10000);
     });
 
+    let settledByTimeout = false;
+
+    // Observe late settlement (after the race already resolved via timeout) without
+    // affecting the value already returned to the caller. On-time outcomes are handled
+    // below and by the outer catch — this only logs when settledByTimeout is true.
+    sendMailPromise.then(
+      () => {
+        if (settledByTimeout) {
+          console.warn(`[mail] Late SMTP success for ${to} (after timeout already returned false)`);
+        }
+      },
+      (err) => {
+        if (settledByTimeout) {
+          console.warn(
+            `[mail] Late SMTP failure for ${to} (after timeout already returned false):`,
+            err,
+          );
+        }
+      },
+    );
+
     const result = await Promise.race([sendMailPromise, timeoutPromise]);
 
-    // Clear timeout to prevent it from continuing to run
     if (timeoutHandle !== null) {
       clearTimeout(timeoutHandle);
     }
 
     if (result === 'timeout') {
+      settledByTimeout = true;
       console.warn(`[mail] SMTP timeout after 10s sending to ${to}`);
       return false;
     }

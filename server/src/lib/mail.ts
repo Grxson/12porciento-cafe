@@ -47,13 +47,25 @@ export async function sendMail(options: {
   const { to, subject, html, text } = options;
 
   try {
-    await smtpTransport!.sendMail({
-      from: `"12% Café" <${from}>`,
-      to,
-      subject,
-      html,
-      text: text || html.replace(/<[^>]+>/g, ''),
+    const timeoutPromise = new Promise<'timeout'>((resolve) => {
+      setTimeout(() => resolve('timeout'), 10000);
     });
+
+    const result = await Promise.race([
+      smtpTransport!.sendMail({
+        from: `"12% Café" <${from}>`,
+        to,
+        subject,
+        html,
+        text: text || html.replace(/<[^>]+>/g, ''),
+      }),
+      timeoutPromise,
+    ]);
+
+    if (result === 'timeout') {
+      console.warn(`[mail] SMTP timeout after 10s sending to ${to}`);
+      return false;
+    }
     console.log(`[mail] Sent via SMTP to ${to}: "${subject}"`);
     return true;
   } catch (err) {

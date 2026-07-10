@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { authApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
-import { getApiError } from '../lib/api-error';
+import { getApiError } from '@12porciento/shared';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');

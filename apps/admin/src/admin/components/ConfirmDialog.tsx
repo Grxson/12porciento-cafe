@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import FocusTrap from '../../components/FocusTrap';
+import { FocusTrap } from '@12porciento/ui';
 
 interface ConfirmDialogProps {
   open: boolean;

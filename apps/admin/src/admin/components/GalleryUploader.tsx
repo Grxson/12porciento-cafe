@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Plus, X, Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { uploadsApi } from '../../api';
-import { resolveImageUrl } from '../utils/imageUrl';
+import { resolveImageUrl } from '@12porciento/shared';
 
 interface GalleryUploaderProps {
   value: string[];

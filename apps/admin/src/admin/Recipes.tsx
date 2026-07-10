@@ -10,7 +10,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 import type { Recipe, RecipeStep } from '../types';
 import type { RecipeFormData } from '../hooks/useRecipeForm';
 import { PageMeta } from '../hooks/usePageMeta';
-import { getApiError } from '../lib/api-error';
+import { getApiError } from '@12porciento/shared';
 
 // ─── Step modal state shape ──────────────────────────────────────────────────
 interface StepModalState {

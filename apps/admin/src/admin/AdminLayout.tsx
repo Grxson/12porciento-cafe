@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   LayoutDashboard,
   Package,
@@ -28,6 +29,8 @@ import {
   DollarSign,
   Briefcase,
   MapPin,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -116,7 +119,23 @@ function AdminLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('admin_sidebar_collapsed');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const adminTheme = useAdminTheme();
+
+  const toggleGroup = useCallback((label: string) => {
+    setCollapsedGroups((prev) => {
+      const next = { ...prev, [label]: !prev[label] };
+      localStorage.setItem('admin_sidebar_collapsed', JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const currentTitle = pageTitles[location.pathname] ?? 'Admin';
 
@@ -178,33 +197,55 @@ function AdminLayoutInner() {
             </li>
           </ul>
 
-          {navGroups.map((group) => (
-            <div key={group.label} className="mt-4">
-              <div className="px-3 pb-1 text-[11px] font-semibold tracking-widest text-coffee-500 dark:text-coffee-500 uppercase">
-                {group.label}
-              </div>
-              <ul className="space-y-1">
-                {group.items.map(({ to, label, icon: Icon }) => (
-                  <li key={to}>
-                    <NavLink
-                      to={to}
-                      onClick={() => setSidebarOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 border-l-2 pl-[10px] ${
-                          isActive
-                            ? 'bg-coffee-200 dark:bg-coffee-800 text-coffee-900 dark:text-cream border-gold-500'
-                            : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200/60 dark:hover:bg-coffee-800/40 border-transparent'
-                        }`
-                      }
+          {navGroups.map((group) => {
+            const isCollapsed = collapsedGroups[group.label] ?? false;
+            return (
+              <div key={group.label} className="mt-4">
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className="w-full flex items-center justify-between px-3 pb-1 text-[11px] font-semibold tracking-widest text-coffee-500 dark:text-coffee-500 uppercase hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
+                >
+                  {group.label}
+                  {isCollapsed ? (
+                    <ChevronRight className="w-3 h-3" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
+                </button>
+                <AnimatePresence initial={false}>
+                  {!isCollapsed && (
+                    <motion.ul
+                      key="content"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="space-y-1 overflow-hidden"
                     >
-                      <Icon className="w-4 h-4 shrink-0" />
-                      {label}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                      {group.items.map(({ to, label, icon: Icon }) => (
+                        <li key={to}>
+                          <NavLink
+                            to={to}
+                            onClick={() => setSidebarOpen(false)}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 border-l-2 pl-[10px] ${
+                                isActive
+                                  ? 'bg-coffee-200 dark:bg-coffee-800 text-coffee-900 dark:text-cream border-gold-500'
+                                  : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200/60 dark:hover:bg-coffee-800/40 border-transparent'
+                              }`
+                            }
+                          >
+                            <Icon className="w-4 h-4 shrink-0" />
+                            {label}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t border-coffee-200 dark:border-coffee-800 space-y-1">

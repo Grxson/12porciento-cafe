@@ -16,14 +16,14 @@ import {
 import api from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import QuickAdjustPopover from './components/QuickAdjustPopover';
-import { resolveImageUrl } from './utils/imageUrl';
+import { resolveImageUrl } from '@12porciento/shared';
 import SearchableProductSelect from '../components/SearchableProductSelect';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
-import { getApiError } from '../lib/api-error';
+import { getApiError } from '@12porciento/shared';
 import {
   useInventoryOverviewQuery,
   useInventoryMovementsQuery,

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Upload, Camera, X, Loader2 } from 'lucide-react';
 import { uploadsApi } from '../../api';
-import { resolveImageUrl } from '../utils/imageUrl';
+import { resolveImageUrl } from '@12porciento/shared';
 
 interface ImageUploaderProps {
   value: string;

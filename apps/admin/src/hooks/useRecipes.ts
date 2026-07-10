@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { recipesApi } from '../api';
 import type { Recipe } from '../types';
-import { getApiError } from '../lib/api-error';
+import { getApiError } from '@12porciento/shared';
 
 export function useRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);

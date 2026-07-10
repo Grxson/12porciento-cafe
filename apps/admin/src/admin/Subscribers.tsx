@@ -11,7 +11,7 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
-import { getApiError } from '../lib/api-error';
+import { getApiError } from '@12porciento/shared';
 
 function FulfillmentBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {

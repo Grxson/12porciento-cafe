@@ -15,6 +15,7 @@ const allLinks = [
   { to: '/recetas', label: 'Recetas', gated: false },
   { to: '/galeria', label: 'Galería', gated: false },
   { to: '/leaderboard', label: 'Ranking', gated: true },
+  { to: '/feed', label: 'Feed', gated: true },
   { to: '/logros', label: 'Logros', gated: true },
   { to: '/suscripciones', label: 'Suscripciones', gated: false },
   { to: '/nosotros', label: 'Nosotros', gated: false },
@@ -33,6 +34,7 @@ const secondaryLinks = [
   { to: '/galeria', label: 'Galería', gated: false },
   { to: '/b2b', label: 'Empresas', gated: false },
   { to: '/leaderboard', label: 'Ranking', gated: true },
+  { to: '/feed', label: 'Feed', gated: true },
   { to: '/logros', label: 'Logros', gated: true },
   { to: '/quiz', label: 'Quiz', gated: false },
 ];

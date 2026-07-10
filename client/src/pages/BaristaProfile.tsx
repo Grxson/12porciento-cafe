@@ -1,9 +1,11 @@
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Zap, Coffee, Star } from 'lucide-react';
+import { Trophy, Zap, Coffee, Star, Share2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useBarista } from '../hooks/useBarista';
 import PushPermissionBanner from '../components/PushPermissionBanner';
 import { useUser } from '../context/UserContext';
+import { useShare } from '../hooks/useShare';
+import FollowButton from '../components/FollowButton';
 import BrewComparator from '../components/barista/BrewComparator';
 import StreakHeatmap from '../components/StreakHeatmap';
 import RankBadge from '../components/RankBadge';
@@ -27,6 +29,7 @@ export default function BaristaProfile() {
   const isOwnProfile = currentUser?.id === userId;
   const [stats, setStats] = useState<UserStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const { share } = useShare();
 
   useEffect(() => {
     if (!userId) return;
@@ -180,6 +183,29 @@ export default function BaristaProfile() {
               <p className="text-sm text-coffee-600 dark:text-coffee-400 italic mt-1 leading-relaxed line-clamp-2">
                 {profile.bio}
               </p>
+            )}
+            {/* Follow + Share — only on other profiles */}
+            {!isOwnProfile && profile.user && (
+              <div className="flex items-center gap-2 mt-3">
+                <FollowButton
+                  targetUserId={profile.user.id}
+                  targetUserName={profile.user.name}
+                  size="sm"
+                />
+                <button
+                  onClick={() =>
+                    share({
+                      title: `Perfil de ${profile.user!.name}`,
+                      text: `Mira el perfil barista de ${profile.user!.name} en 12% Café`,
+                    })
+                  }
+                  className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full border border-coffee-300 dark:border-coffee-600 text-coffee-600 dark:text-coffee-400 hover:bg-coffee-100 dark:hover:bg-coffee-800 transition-colors"
+                  aria-label="Compartir perfil"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Compartir</span>
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { listQueue } from '../hooks/useBrewQueue';
+import { useOfflineMode } from '../hooks/useOfflineMode';
 import { syncBrews } from '../services/brewSync';
 
 export default function OfflineBanner() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [syncing, setSyncing] = useState(false);
   const [queueCount, setQueueCount] = useState(0);
+
+  const location = useLocation();
+  const offlineEnabled = useOfflineMode((s) => s.enabled);
 
   const refreshQueueCount = () => {
     listQueue()
@@ -41,7 +46,18 @@ export default function OfflineBanner() {
     setTimeout(() => setSyncing(false), 1500);
   };
 
+  const getContextualMessage = (): string => {
+    const path = location.pathname;
+    if (path === '/checkout') return 'Stripe requiere conexión para procesar pagos.';
+    if (path === '/tienda')
+      return 'Catálogo en modo offline — los precios y stock pueden no estar actualizados.';
+    if (path.startsWith('/recetas/'))
+      return 'Receta guardada localmente — disponible sin conexión.';
+    return 'Tus datos se guardan localmente hasta que recuperes conexión.';
+  };
+
   if (!isOffline && !syncing && queueCount === 0) return null;
+  if (isOffline && !offlineEnabled) return null;
 
   return (
     <div
@@ -53,12 +69,17 @@ export default function OfflineBanner() {
           : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400/40 dark:border-yellow-500/30 text-yellow-800 dark:text-yellow-300'
       }`}
     >
-      <span>
-        {syncing
-          ? '🔄 Sincronizando brews...'
-          : isOffline
-            ? `☁️ Sin conexión${queueCount > 0 ? ` — ${queueCount} brew${queueCount !== 1 ? 's' : ''} pendiente${queueCount !== 1 ? 's' : ''}` : ' — tus brews se guardan localmente'}`
-            : `${queueCount} brew${queueCount !== 1 ? 's' : ''} pendiente${queueCount !== 1 ? 's' : ''} de sincronizar`}
+      <span className="flex flex-col gap-0.5">
+        {syncing ? (
+          '🔄 Sincronizando brews...'
+        ) : isOffline ? (
+          <>
+            <span className="font-medium">☁️ Sin conexión</span>
+            <span className="text-xs opacity-80">{getContextualMessage()}</span>
+          </>
+        ) : (
+          `${queueCount} brew${queueCount !== 1 ? 's' : ''} pendiente${queueCount !== 1 ? 's' : ''} de sincronizar`
+        )}
       </span>
       {!syncing && queueCount > 0 && !isOffline && (
         <button

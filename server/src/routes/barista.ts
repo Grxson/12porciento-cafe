@@ -1105,4 +1105,274 @@ router.get('/rewards/claims', requireUserAuth, async (req: UserAuthRequest, res:
   }
 });
 
+// ── F2 — Social: Follow/Unfollow ──
+
+// POST /barista/follow/:userId — follow a user
+router.post('/follow/:userId', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const followerId = req.user!.id;
+    const followingId = req.params.userId;
+
+    if (followerId === followingId) {
+      return res.status(400).json({ error: 'No puedes seguirte a ti mismo' });
+    }
+
+    const existing = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId, followingId } },
+    });
+    if (existing) {
+      return res.status(409).json({ error: 'Ya sigues a este usuario' });
+    }
+
+    const targetUser = await prisma.user.findUnique({ where: { id: followingId } });
+    if (!targetUser) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    await prisma.follow.create({ data: { followerId, followingId } });
+
+    res.status(201).json({ data: { followerId, followingId } });
+  } catch (err) {
+    console.error('[barista/follow] Error:', err);
+    res.status(500).json({ error: 'Error al seguir usuario' });
+  }
+});
+
+// DELETE /barista/follow/:userId — unfollow a user
+router.delete('/follow/:userId', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const followerId = req.user!.id;
+    const followingId = req.params.userId;
+
+    await prisma.follow.delete({
+      where: { followerId_followingId: { followerId, followingId } },
+    });
+
+    res.json({ data: { followerId, followingId } });
+  } catch (err) {
+    console.error('[barista/follow] Error:', err);
+    res.status(500).json({ error: 'Error al dejar de seguir usuario' });
+  }
+});
+
+// GET /barista/followers/:userId — list followers
+router.get('/followers/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const [followers, total] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followingId: userId },
+        include: { follower: { select: { id: true, name: true, avatarUrl: true } } },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.follow.count({ where: { followingId: userId } }),
+    ]);
+
+    res.json({
+      data: followers.map((f) => ({
+        userId: f.follower.id,
+        name: f.follower.name,
+        avatarUrl: f.follower.avatarUrl,
+        followedAt: f.createdAt,
+      })),
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    console.error('[barista/followers] Error:', err);
+    res.status(500).json({ error: 'Error al obtener seguidores' });
+  }
+});
+
+// GET /barista/following/:userId — list who user follows
+router.get('/following/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const [following, total] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followerId: userId },
+        include: { following: { select: { id: true, name: true, avatarUrl: true } } },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.follow.count({ where: { followerId: userId } }),
+    ]);
+
+    res.json({
+      data: following.map((f) => ({
+        userId: f.following.id,
+        name: f.following.name,
+        avatarUrl: f.following.avatarUrl,
+        followedAt: f.createdAt,
+      })),
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    console.error('[barista/following] Error:', err);
+    res.status(500).json({ error: 'Error al obtener seguidos' });
+  }
+});
+
+// GET /barista/follow/status?ids=id1,id2,id3 — batch check follow status
+router.get('/follow/status', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const followerId = req.user!.id;
+    const idsParam = req.query.ids as string;
+    if (!idsParam) return res.json({ data: {} });
+
+    const targetIds = idsParam.split(',').filter(Boolean);
+
+    const follows = await prisma.follow.findMany({
+      where: { followerId, followingId: { in: targetIds } },
+      select: { followingId: true },
+    });
+
+    const statusMap: Record<string, boolean> = {};
+    targetIds.forEach((id) => {
+      statusMap[id] = follows.some((f) => f.followingId === id);
+    });
+
+    res.json({ data: statusMap });
+  } catch (err) {
+    console.error('[barista/follow/status] Error:', err);
+    res.status(500).json({ error: 'Error al obtener estado de seguimiento' });
+  }
+});
+
+// ── F2 — Social: Feed (cursor pagination) ──
+
+// GET /barista/feed — brew logs from followed users
+router.get('/feed', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const cursor = req.query.cursor as string | undefined;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+
+    // Get IDs of followed users
+    const follows = await prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const followingIds = follows.map((f) => f.followingId);
+
+    if (followingIds.length === 0) {
+      return res.json({ data: [], meta: { nextCursor: null, hasMore: false } });
+    }
+
+    const where: { userId: { in: string[] }; createdAt?: { lt: Date } } = {
+      userId: { in: followingIds },
+    };
+    if (cursor) {
+      where.createdAt = { lt: new Date(cursor) };
+    }
+
+    const brews = await prisma.brewLog.findMany({
+      where,
+      include: {
+        recipe: { select: { title: true, method: true } },
+        bean: { select: { name: true, slug: true } },
+        likes: { select: { id: true, userId: true } },
+        baristaProfile: {
+          include: {
+            user: { select: { id: true, name: true, avatarUrl: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit + 1, // fetch one extra to detect hasMore
+    });
+
+    const hasMore = brews.length > limit;
+    const feedItems = brews.slice(0, limit);
+
+    res.json({
+      data: feedItems.map((b) => ({
+        id: b.id,
+        userId: b.userId,
+        authorName: b.baristaProfile?.user?.name || 'Unknown',
+        authorAvatar: b.baristaProfile?.user?.avatarUrl || null,
+        recipeName: b.recipe?.title || null,
+        method: b.recipe?.method || null,
+        beanName: b.bean?.name || null,
+        beanSlug: b.bean?.slug || null,
+        rating: b.rating,
+        notes: b.notes,
+        photoUrl: b.photoUrl,
+        tags: b.tags,
+        xpEarned: b.xpEarned,
+        likeCount: b.likes.length,
+        isLiked: b.likes.some((l) => l.userId === userId),
+        createdAt: b.createdAt,
+      })),
+      meta: {
+        nextCursor: hasMore ? feedItems[feedItems.length - 1]?.createdAt.toISOString() : null,
+        hasMore,
+      },
+    });
+  } catch (err) {
+    console.error('[barista/feed] Error:', err);
+    res.status(500).json({ error: 'Error al obtener feed' });
+  }
+});
+
+// ── F2 — Social: Brew Likes ──
+
+// POST /barista/brews/:brewId/like — like a brew log
+router.post('/brews/:brewId/like', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const brewId = req.params.brewId;
+
+    const brew = await prisma.brewLog.findUnique({ where: { id: brewId } });
+    if (!brew) {
+      return res.status(404).json({ error: 'Brew log no encontrado' });
+    }
+
+    const existing = await prisma.brewLogLike.findUnique({
+      where: { userId_brewLogId: { userId, brewLogId: brewId } },
+    });
+    if (existing) {
+      return res.status(409).json({ error: 'Ya te gusta este brew' });
+    }
+
+    const like = await prisma.brewLogLike.create({ data: { userId, brewLogId: brewId } });
+
+    res.status(201).json({ data: like });
+  } catch (err) {
+    console.error('[barista/brews/like] Error:', err);
+    res.status(500).json({ error: 'Error al dar like' });
+  }
+});
+
+// DELETE /barista/brews/:brewId/like — unlike a brew log
+router.delete(
+  '/brews/:brewId/like',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const brewId = req.params.brewId;
+
+      await prisma.brewLogLike.delete({
+        where: { userId_brewLogId: { userId, brewLogId: brewId } },
+      });
+
+      res.json({ data: { userId, brewLogId: brewId } });
+    } catch (err) {
+      console.error('[barista/brews/like] Error:', err);
+      res.status(500).json({ error: 'Error al quitar like' });
+    }
+  },
+);
+
 export default router;

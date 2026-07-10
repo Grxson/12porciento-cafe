@@ -71,4 +71,18 @@ export const baristaApi = {
   getRewards: () => api.get('/barista/rewards'),
   claimReward: (id: string) => api.post(`/barista/rewards/${id}/claim`),
   getClaims: () => api.get('/barista/rewards/claims'),
+
+  // ── Fase 2: Social ──
+
+  followUser: (userId: string) => api.post(`/barista/follow/${userId}`),
+  unfollowUser: (userId: string) => api.delete(`/barista/follow/${userId}`),
+  getFollowers: (userId: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/barista/followers/${userId}`, { params }),
+  getFollowing: (userId: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/barista/following/${userId}`, { params }),
+  getFollowStatus: (userIds: string[]) =>
+    api.get('/barista/follow/status', { params: { ids: userIds.join(',') } }),
+  getFeed: (params?: { cursor?: string; limit?: number }) => api.get('/barista/feed', { params }),
+  likeBrew: (brewId: string) => api.post(`/barista/brews/${brewId}/like`),
+  unlikeBrew: (brewId: string) => api.delete(`/barista/brews/${brewId}/like`),
 };

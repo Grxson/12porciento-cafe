@@ -381,6 +381,9 @@ model User {
   receivedGiftCards             GiftCard[]         @relation("receivedGiftCards")
   baristaEquipment              BaristaEquipment[]
   rewardClaims                  RewardClaim[]
+  brewLogLikes                  BrewLogLike[]
+  followers                     Follow[]         @relation("Following")
+  following                     Follow[]         @relation("FollowedBy")
 }
 
 model BaristaProfile {
@@ -451,12 +454,27 @@ model BrewLog {
   equipmentIds   String[]       @default([]) // IDs of BaristaEquipment used (PostgreSQL text[])
   tags           String[]       @default([]) // flavor tags (PostgreSQL text[])
 
+  likes          BrewLogLike[]
+
   createdAt      DateTime       @default(now())
 
   @@index([userId])
   @@index([recipeId])
   @@index([clientBrewId])
   @@index([beanId])
+}
+
+model BrewLogLike {
+  id        String   @id @default(cuid())
+  userId    String
+  brewLogId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brewLog   BrewLog  @relation(fields: [brewLogId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, brewLogId])
+  @@index([userId])
+  @@index([brewLogId])
 }
 
 model Achievement {
@@ -482,6 +500,19 @@ model AchievementUnlock {
 
   @@unique([userId, achievementId])
   @@index([userId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("FollowedBy", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model PushSubscription {

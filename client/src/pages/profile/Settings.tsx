@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, Wifi, WifiOff, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
 import { mexicanStates } from '../../constants/mexico';
@@ -7,6 +7,9 @@ import NotificationSettings from '../../components/NotificationSettings';
 import EmailVerificationBanner from '../../components/EmailVerificationBanner';
 import { baristaApi } from '../../api/barista';
 import { uploadsApi } from '../../api';
+import { useCacheStats } from '../../hooks/useCacheStats';
+import { useOfflineMode } from '../../hooks/useOfflineMode';
+import { ConfirmDialog } from '@12porciento/ui';
 
 function resizeToBase64(file: File, size = 256): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -33,6 +36,9 @@ export default function ProfileSettings() {
   const user = useUser((s) => s.user);
   const updateProfile = useUser((s) => s.updateProfile);
   const { add } = useToast();
+  const offlineEnabled = useOfflineMode((s) => s.enabled);
+  const toggleOffline = useOfflineMode((s) => s.toggle);
+  const cacheStats = useCacheStats();
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: '',
@@ -46,6 +52,8 @@ export default function ProfileSettings() {
   const [baristaData, setBaristaData] = useState({ bio: '', bannerUrl: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const bannerFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -365,6 +373,150 @@ export default function ProfileSettings() {
       <div className="max-w-lg mt-12 pt-8 border-t border-coffee-200 dark:border-coffee-800">
         <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Notificaciones</h3>
         <NotificationSettings />
+      </div>
+
+      <div className="max-w-lg mt-12 pt-8 border-t border-coffee-200 dark:border-coffee-800">
+        <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">
+          Modo sin conexión
+        </h3>
+        <div className="p-4 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800">
+          <div className="flex items-start gap-3">
+            {offlineEnabled ? (
+              <Wifi className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
+            ) : (
+              <WifiOff className="w-5 h-5 text-coffee-400 shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm font-medium text-coffee-900 dark:text-cream mb-1">
+                  Navegación sin conexión
+                </p>
+                <button
+                  onClick={toggleOffline}
+                  role="switch"
+                  aria-checked={offlineEnabled}
+                  aria-label="Activar navegación sin conexión"
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500/60 focus:ring-offset-2 focus:ring-offset-coffee-50 dark:focus:ring-offset-coffee-900 ${
+                    offlineEnabled ? 'bg-gold-500' : 'bg-coffee-300 dark:bg-coffee-700'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition-transform ${
+                      offlineEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+              <p className="text-xs text-coffee-600 dark:text-coffee-400">
+                {offlineEnabled
+                  ? 'Los datos se guardan automáticamente para navegar sin conexión a internet.'
+                  : 'Siempre se cargarán los datos más recientes desde el servidor.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Almacenamiento offline ── */}
+      <ConfirmDialog
+        open={showClearConfirm}
+        title="Limpiar caché"
+        description="Se eliminarán todos los datos guardados localmente (recetas, imágenes, API). Las próximas visitas cargarán datos nuevos desde el servidor."
+        confirmLabel="Limpiar todo"
+        confirmVariant="danger"
+        loading={clearing}
+        onConfirm={async () => {
+          setClearing(true);
+          await cacheStats.clearAllCache();
+          setClearing(false);
+          setShowClearConfirm(false);
+          add('Caché limpiado exitosamente', 'success');
+        }}
+        onCancel={() => setShowClearConfirm(false)}
+      />
+
+      <div className="max-w-lg mt-12 pt-8 border-t border-coffee-200 dark:border-coffee-800">
+        <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">
+          Almacenamiento offline
+        </h3>
+        <div className="p-4 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800">
+          {cacheStats.loading ? (
+            <div className="flex items-center gap-2 text-coffee-500 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Calculando almacenamiento...
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Resumen */}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-coffee-600 dark:text-coffee-400">Total almacenado</span>
+                <span className="text-coffee-900 dark:text-cream font-medium">
+                  {cacheStats.totalEstimatedSize} ({cacheStats.totalEntries} archivos)
+                </span>
+              </div>
+
+              {/* Lista de cachés */}
+              {cacheStats.caches.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-xs text-coffee-500 dark:text-coffee-500 uppercase tracking-wider">
+                    Detalle por tipo
+                  </p>
+                  {cacheStats.caches.map((c) => (
+                    <div
+                      key={c.name}
+                      className="flex items-center justify-between text-xs text-coffee-600 dark:text-coffee-400"
+                    >
+                      <span className="truncate">{c.name}</span>
+                      <span className="shrink-0 ml-2">
+                        {c.estimatedSize} ({c.entries} {c.entries === 1 ? 'archivo' : 'archivos'})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Brews pendientes */}
+              {cacheStats.pendingBrews > 0 && (
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-coffee-200 dark:border-coffee-700">
+                  <span className="text-coffee-600 dark:text-coffee-400">
+                    {cacheStats.pendingBrews} brew{cacheStats.pendingBrews !== 1 ? 's' : ''}{' '}
+                    pendiente{cacheStats.pendingBrews !== 1 ? 's' : ''}
+                  </span>
+                  <button
+                    onClick={cacheStats.syncPendingBrews}
+                    disabled={cacheStats.syncing}
+                    className="inline-flex items-center gap-1 text-xs text-gold-500 hover:text-gold-400 font-medium disabled:opacity-50 transition-colors"
+                  >
+                    {cacheStats.syncing ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3 h-3" />
+                    )}
+                    {cacheStats.syncing ? 'Sincronizando...' : 'Sincronizar ahora'}
+                  </button>
+                </div>
+              )}
+
+              {/* Acciones */}
+              <div className="flex gap-3 pt-2 border-t border-coffee-200 dark:border-coffee-700">
+                <button
+                  onClick={() => setShowClearConfirm(true)}
+                  className="inline-flex items-center gap-1.5 text-xs text-coffee-500 hover:text-red-400 border border-coffee-300 dark:border-coffee-700 px-3 py-2 transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Limpiar caché
+                </button>
+                <button
+                  onClick={cacheStats.refresh}
+                  className="inline-flex items-center gap-1.5 text-xs text-coffee-500 hover:text-gold-500 border border-coffee-300 dark:border-coffee-700 px-3 py-2 transition-colors"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Actualizar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

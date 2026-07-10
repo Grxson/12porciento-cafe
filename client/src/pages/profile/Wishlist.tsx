@@ -14,6 +14,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { PageMeta } from '../../hooks/usePageMeta';
+import StaleDataBadge from '../../components/StaleDataBadge';
 import type { Product } from '../../types';
 
 function OfflineBanner({ message }: { message: string }) {
@@ -26,7 +27,7 @@ function OfflineBanner({ message }: { message: string }) {
 }
 
 export default function Wishlist() {
-  const { items, loading, error, isOffline, fetchItems, removeItem } = useWishlist();
+  const { items, loading, error, isOffline, lastSyncAt, fetchItems, removeItem } = useWishlist();
   const addItem = useCart((s) => s.addItem);
   const { add: addToast } = useToast();
 
@@ -80,7 +81,7 @@ export default function Wishlist() {
   return (
     <div>
       <PageMeta title="Lista de Deseos" />
-      {isOffline && <OfflineBanner message="Modo offline — datos guardados localmente." />}
+      {isOffline && <StaleDataBadge cachedAt={lastSyncAt ?? undefined} className="mb-4 w-full" />}
       <div className="space-y-4">
         {items.map((item, i) => {
           const product = item.product;

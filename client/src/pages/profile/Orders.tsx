@@ -8,6 +8,7 @@ import { PageMeta } from '../../hooks/usePageMeta';
 import PageSkeleton from '../../components/PageSkeleton';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+import StaleDataBadge from '../../components/StaleDataBadge';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   PENDING: { label: 'Pendiente', color: 'text-yellow-400' },
@@ -27,7 +28,7 @@ function OfflineBanner({ message }: { message: string }) {
 }
 
 export default function Orders() {
-  const { orders, loading, error, isOffline, fetchOrders } = useOrderHistory();
+  const { orders, loading, error, isOffline, lastSyncAt, fetchOrders } = useOrderHistory();
   const addItem = useCart((s) => s.addItem);
   const { add: addToast } = useToast();
 
@@ -72,7 +73,7 @@ export default function Orders() {
   return (
     <div className="space-y-4">
       <PageMeta title="Mis Pedidos" />
-      {isOffline && <OfflineBanner message="Modo offline — pedidos guardados localmente." />}
+      {isOffline && <StaleDataBadge cachedAt={lastSyncAt ?? undefined} className="mb-4 w-full" />}
       {orders.map((order: Order, i: number) => (
         <motion.div
           key={order.id}

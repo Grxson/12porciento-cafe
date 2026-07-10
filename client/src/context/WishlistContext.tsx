@@ -16,6 +16,7 @@ interface WishlistStore {
   loading: boolean;
   error: string;
   isOffline: boolean;
+  lastSyncAt: string | null;
   fetchItems: () => Promise<void>;
   addItem: (productId: string) => Promise<void>;
   removeItem: (productId: string) => Promise<void>;
@@ -29,6 +30,7 @@ export const useWishlist = create<WishlistStore>()(
       loading: false,
       error: '',
       isOffline: false,
+      lastSyncAt: null,
 
       fetchItems: async () => {
         set({ loading: true, error: '' });
@@ -39,7 +41,7 @@ export const useWishlist = create<WishlistStore>()(
             product: item.product,
             wishlistId: item.id,
           }));
-          set({ items, isOffline: false, loading: false });
+          set({ items, isOffline: false, loading: false, lastSyncAt: new Date().toISOString() });
         } catch {
           // Network error — use cached items
           set({
@@ -92,7 +94,7 @@ export const useWishlist = create<WishlistStore>()(
     {
       name: 'wishlist-store',
       storage: createJSONStorage(() => idbStorage),
-      partialize: (state) => ({ items: state.items }),
+      partialize: (state) => ({ items: state.items, lastSyncAt: state.lastSyncAt }),
     },
   ),
 );

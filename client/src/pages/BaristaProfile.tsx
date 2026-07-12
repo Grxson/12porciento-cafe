@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { Trophy, Zap, Coffee, Star, Share2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useBarista } from '../hooks/useBarista';
+import { useBaristaProfileQuery } from '../hooks/queries/useBaristaProfileQuery';
 import PushPermissionBanner from '../components/PushPermissionBanner';
 import { useUser } from '../context/UserContext';
 import { useShare } from '../hooks/useShare';
@@ -12,6 +12,12 @@ import RankBadge from '../components/RankBadge';
 import StreakWidget from '../components/StreakWidget';
 import { PageMeta } from '../hooks/usePageMeta';
 import { baristaApi } from '../api/barista';
+import BrewLikeButton from '../components/BrewLikeButton';
+import BrewPurchaseButton from '../components/BrewPurchaseButton';
+import BaristaRecords from '../components/BaristaRecords';
+import EquipmentRecs from '../components/EquipmentRecs';
+import SubscriptionMatchBanner from '../components/SubscriptionMatchBanner';
+import FlavorRadarChart from '../components/FlavorRadarChart';
 
 interface UserStats {
   favoriteMethod: string | null;
@@ -20,11 +26,15 @@ interface UserStats {
   totalBrews: number;
   brewsPerMethod: Record<string, number>;
   xpPerWeek: Array<{ week: string; xp: number }>;
+  flavorRadar?: {
+    user: { flavor: string; value: number }[];
+    community: { flavor: string; value: number }[];
+  };
 }
 
 export default function BaristaProfile() {
   const { userId } = useParams<{ userId: string }>();
-  const { profile, loading, error } = useBarista(userId);
+  const { data: profile, isLoading: loading, error } = useBaristaProfileQuery(userId);
   const currentUser = useUser((s) => s.user);
   const isOwnProfile = currentUser?.id === userId;
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -321,6 +331,17 @@ export default function BaristaProfile() {
           <div className="mb-8">
             <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Tus Stats</h2>
             <div className="space-y-4">
+              {/* F3 Radar: real data */}
+              {stats.flavorRadar && (
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                  <p className="text-xs text-coffee-500 uppercase mb-3">Tu Perfil de Sabor</p>
+                  <FlavorRadarChart
+                    userData={stats.flavorRadar.user}
+                    communityData={stats.flavorRadar.community}
+                  />
+                </div>
+              )}
+
               {/* Favorite Method */}
               {stats.favoriteMethod && (
                 <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
@@ -401,6 +422,14 @@ export default function BaristaProfile() {
         {/* Brew Comparator */}
         {profile.brewLogs.length > 0 && <BrewComparator brews={profile.brewLogs} />}
 
+        {/* F3 Records + F4 Equipment Recs */}
+        {profile.brewLogs.length > 0 && (
+          <>
+            <BaristaRecords userId={userId} />
+            <EquipmentRecs userId={userId} />
+          </>
+        )}
+
         {/* Recent Brews */}
         {profile.brewLogs.length > 0 && (
           <div>
@@ -435,11 +464,18 @@ export default function BaristaProfile() {
                         </p>
                       )}
                     </div>
-                    <div className="text-right ml-4 shrink-0">
+                    <div className="text-right ml-4 shrink-0 flex flex-col items-end gap-1">
                       <p className="text-gold-400">
                         {brew.rating}/10 <span className="text-coffee-500">★</span>
                       </p>
-                      <p className="text-xs text-gold-500 mt-1">+{brew.xpEarned} XP</p>
+                      <p className="text-xs text-gold-500">+{brew.xpEarned} XP</p>
+                      <BrewLikeButton
+                        brewId={brew.id}
+                        initialLiked={false}
+                        initialCount={0}
+                        size="sm"
+                      />
+                      {brew.beanId && <BrewPurchaseButton beanId={brew.beanId} className="mt-1" />}
                     </div>
                   </div>
                 </div>
@@ -447,6 +483,9 @@ export default function BaristaProfile() {
             </div>
           </div>
         )}
+
+        {/* F4 Subscription Match Banner */}
+        <SubscriptionMatchBanner userId={userId} />
 
         {profile.brewLogs.length === 0 && profile.achievements.length === 0 && (
           <div className="text-center py-12">

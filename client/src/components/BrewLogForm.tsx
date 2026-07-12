@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Star, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useBarista } from '../hooks/useBarista';
+import { useSubmitBrewLogMutation } from '../hooks/queries/useSubmitBrewLogMutation';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import { uploadsApi, baristaApi } from '../api';
@@ -16,7 +16,7 @@ interface BrewLogFormProps {
 
 export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormProps) {
   const user = useUser((s) => s.user);
-  const { submitBrewLog, error } = useBarista(user?.id);
+  const { submitBrewLog, error } = useSubmitBrewLogMutation(user?.id);
   const addToast = useToast((s) => s.add);
 
   const [rating, setRating] = useState(3);

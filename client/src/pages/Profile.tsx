@@ -1,4 +1,4 @@
-import { NavLink, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { NavLink, Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
   Package,
   Star,
@@ -10,10 +10,11 @@ import {
   Gift,
   Wrench,
   Coffee,
+  Sparkles,
   ChevronLeft,
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
-import { useBarista } from '../hooks/useBarista';
+import { useBaristaProfileQuery } from '../hooks/queries/useBaristaProfileQuery';
 import Orders from './profile/Orders';
 import Reviews from './profile/Reviews';
 import Subscription from './profile/Subscription';
@@ -24,6 +25,7 @@ import Wishlist from './profile/Wishlist';
 import GiftCards from './profile/GiftCards';
 import Equipment from './profile/Equipment';
 import CoffeeTracker from './profile/CoffeeTracker';
+import FlavorProfile from './profile/FlavorProfile';
 import { PageMeta } from '../hooks/usePageMeta';
 
 interface NavItem {
@@ -52,6 +54,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
     items: [
       { to: '/perfil/equipo', label: 'Equipo', icon: Wrench },
       { to: '/perfil/cafes', label: 'Cafés', icon: Coffee },
+      { to: '/perfil/sabor', label: 'Perfil de sabor', icon: Sparkles },
     ],
   },
   {
@@ -69,7 +72,7 @@ const allNavItems = navGroups.flatMap((g) => g.items);
 
 export default function Profile() {
   const user = useUser((s) => s.user);
-  const { profile: baristaProfile } = useBarista(user?.id);
+  const { data: baristaProfile } = useBaristaProfileQuery(user?.id);
   const location = useLocation();
   const isRoot = location.pathname === '/perfil' || location.pathname === '/perfil/';
 
@@ -209,6 +212,7 @@ export default function Profile() {
             <Route path="gift-cards" element={<GiftCards />} />
             <Route path="equipo" element={<Equipment />} />
             <Route path="cafes" element={<CoffeeTracker />} />
+            <Route path="sabor" element={<FlavorProfile />} />
           </Routes>
         )}
       </div>

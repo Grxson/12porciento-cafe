@@ -1,5 +1,5 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { lazy } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from '@12porciento/shared';
@@ -7,7 +7,6 @@ import { ErrorBoundary } from '@12porciento/ui';
 import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
 import Dashboard from './admin/Dashboard';
-import AdminSkeleton from './admin/components/AdminSkeleton';
 
 const AdminProducts = lazy(() => import('./admin/Products'));
 const AdminOrders = lazy(() => import('./admin/Orders'));
@@ -20,6 +19,7 @@ const AdminCustomers = lazy(() => import('./admin/Customers'));
 const AdminInventory = lazy(() => import('./admin/Inventory'));
 const AdminRecipesPage = lazy(() => import('./admin/Recipes'));
 const Achievements = lazy(() => import('./admin/Achievements'));
+const AdminRewards = lazy(() => import('./admin/Rewards'));
 const SubscriptionPayments = lazy(() => import('./admin/SubscriptionPayments'));
 const AdminNotificationSettings = lazy(() => import('./admin/AdminNotificationSettings'));
 const AdminB2BOrders = lazy(() => import('./admin/B2BOrders'));
@@ -69,6 +69,7 @@ export default function App() {
               <Route path="inventario" element={<AdminInventory />} />
               <Route path="recetas" element={<AdminRecipesPage />} />
               <Route path="logros" element={<Achievements />} />
+              <Route path="recompensas" element={<AdminRewards />} />
               <Route path="pagos-suscripciones" element={<SubscriptionPayments />} />
               <Route path="notificaciones" element={<AdminNotificationSettings />} />
               <Route path="b2b" element={<AdminB2BOrders />} />

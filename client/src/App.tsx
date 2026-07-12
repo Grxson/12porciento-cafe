@@ -7,6 +7,7 @@ import { NotificationsProvider } from './context/NotificationsContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useUpdateNotification } from './hooks/useUpdateNotification';
 import UpdateNotificationModal from './components/UpdateNotificationModal';
+import MonthlyWrapTrigger from './components/MonthlyWrapTrigger';
 import { useToast } from './context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpToLine } from 'lucide-react';
@@ -199,6 +200,7 @@ function PWAUpdateManager() {
 
 export default function App() {
   const clientTheme = useClientTheme();
+  const user = useUser((s) => s.user);
   return (
     <>
       <a
@@ -214,6 +216,7 @@ export default function App() {
               <ThemeSync store={clientTheme} />
               <ToastContainer />
               <PWAUpdateManager />
+              <MonthlyWrapTrigger key={user?.id} />
               <ScrollToTop />
               <Routes>
                 {/* Public client routes (with Navbar/Footer layout) */}

@@ -51,6 +51,20 @@ export interface ProductsListResponse {
   totalPages: number;
 }
 
+export interface Reward {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  xpCost: number;
+  discountPct: number;
+  maxUses: number;
+  stock: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const productsApi = {
   list: (params?: Record<string, string>) => api.get<ProductsListResponse>('/products', { params }),
   adminList: (params?: Record<string, string>) => api.get('/products/admin/all', { params }),
@@ -423,6 +437,15 @@ export const achievementsApi = {
     },
   ) => api.put<{ data: Achievement }>(`/barista/admin-achievements/${id}`, data),
   delete: (id: string) => api.delete(`/barista/admin-achievements/${id}`),
+};
+
+export const rewardsAdminApi = {
+  list: () => api.get<{ data: Reward[] }>('/admin/rewards'),
+  create: (data: Omit<Reward, 'id' | 'createdAt' | 'updatedAt' | 'isActive'>) =>
+    api.post<{ data: Reward }>('/admin/rewards', data),
+  update: (id: string, data: Partial<Omit<Reward, 'id' | 'createdAt' | 'updatedAt'>>) =>
+    api.put<{ data: Reward }>(`/admin/rewards/${id}`, data),
+  delete: (id: string) => api.delete<{ data: Reward }>(`/admin/rewards/${id}`),
 };
 
 export const wishlistApi = {

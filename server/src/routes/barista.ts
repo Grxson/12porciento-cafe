@@ -606,6 +606,58 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
     );
     const daysBrewed = uniqueDays.size;
 
+    // ── F3 Radar: tag-based dimensions ──
+    const RADAR_DIMS = ['Dulzor', 'Acidez', 'Cuerpo', 'Amargor', 'Final', 'Intensidad'] as const;
+    const tagToDim: Record<string, string> = {
+      caramelo: 'Dulzor',
+      chocolate: 'Dulzor',
+      dulce: 'Dulzor',
+      vainilla: 'Dulzor',
+      citrico: 'Acidez',
+      citricos: 'Acidez',
+      frutos: 'Acidez',
+      floral: 'Acidez',
+      acido: 'Acidez',
+      cuerpo: 'Cuerpo',
+      nueces: 'Cuerpo',
+      cremoso: 'Cuerpo',
+      amargo: 'Amargor',
+      cacao: 'Amargor',
+      especias: 'Amargor',
+      herbal: 'Amargor',
+      final: 'Final',
+      persistente: 'Final',
+      intenso: 'Intensidad',
+      fuerte: 'Intensidad',
+    };
+
+    function computeRadar(brewsArr: typeof brews): { flavor: string; value: number }[] {
+      const sums: Record<string, { total: number; count: number }> = {};
+      RADAR_DIMS.forEach((d) => (sums[d] = { total: 0, count: 0 }));
+      brewsArr.forEach((b: (typeof brews)[number]) => {
+        if (!b.tags || !Array.isArray(b.tags)) return;
+        b.tags.forEach((tag: string) => {
+          const t = tag.toLowerCase();
+          const dim = tagToDim[t] ?? Object.entries(tagToDim).find(([k]) => t.includes(k))?.[1];
+          if (dim && sums[dim]) {
+            sums[dim].total += b.rating;
+            sums[dim].count += 1;
+          }
+        });
+      });
+      return RADAR_DIMS.map((d) => {
+        const { total, count } = sums[d];
+        const avg = count > 0 ? total / count : 0;
+        return { flavor: d, value: Math.round(avg * 10) };
+      });
+    }
+
+    const flavorRadarUser = computeRadar(brews);
+    const allBrewsForCommunity = await prisma.brewLog.findMany({
+      select: { tags: true, rating: true },
+    });
+    const flavorRadarCommunity = computeRadar(allBrewsForCommunity as unknown as typeof brews);
+
     res.json({
       data: {
         favoriteMethod,
@@ -620,6 +672,7 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
         equipmentUsage: Object.fromEntries(equipmentUsage),
         monthlyTrends,
         timeStats: { earlyBirdCount, nightOwlCount, weekendCount },
+        flavorRadar: { user: flavorRadarUser, community: flavorRadarCommunity },
       },
     });
   } catch (err) {

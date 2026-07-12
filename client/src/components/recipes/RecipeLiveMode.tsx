@@ -6,7 +6,7 @@ import type { RecipeDraft, StepDraft } from '../../types';
 import { saveDraft, loadDraft, clearDraft } from '../../hooks/useRecipeDraft';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
-import { useBarista } from '../../hooks/useBarista';
+import { useSubmitBrewLogMutation } from '../../hooks/queries/useSubmitBrewLogMutation';
 import { recipesApi } from '../../api';
 import RatingSlider from './RatingSlider';
 import NotesCapture from './NotesCapture';
@@ -36,7 +36,7 @@ function getRelativeTime(dateString: string): string {
 export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps) {
   const user = useUser((s) => s.user);
   const { add: addToast } = useToast();
-  const { submitBrewLog } = useBarista(user?.id);
+  const { submitBrewLog } = useSubmitBrewLogMutation(user?.id);
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [timerActive, setTimerActive] = useState<number | null>(null);

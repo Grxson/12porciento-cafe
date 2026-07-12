@@ -20,6 +20,7 @@ import {
   Sun,
   Moon,
   Award,
+  Medal,
   CreditCard,
   MessageCircle,
   Bell,
@@ -75,6 +76,7 @@ const navGroups = [
       { to: '/suscriptores', label: 'Suscriptores', icon: Users },
       { to: '/resenas', label: 'Reseñas', icon: Star },
       { to: '/logros', label: 'Logros', icon: Award },
+      { to: '/recompensas', label: 'Recompensas', icon: Medal },
     ],
   },
   {
@@ -101,6 +103,7 @@ const pageTitles: Record<string, string> = {
   '/usuarios': 'Usuarios Admin',
   '/descuentos': 'Descuentos',
   '/logros': 'Logros',
+  '/recompensas': 'Recompensas',
   '/pagos-suscripciones': 'Pagos Suscripciones',
   '/consultas-b2b': 'Leads B2B',
   '/notificaciones': 'Notificaciones',

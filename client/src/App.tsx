@@ -103,8 +103,7 @@ function ScrollToTopFab() {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-50 w-10 h-10 bg-gold-500 text-coffee-950 flex items-center justify-center shadow-lg hover:bg-gold-400 transition-colors"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      className="scroll-top-fab fixed z-50 bg-gold-500 text-coffee-950 flex items-center justify-center shadow-lg hover:bg-gold-400 transition-colors"
       aria-label="Volver arriba"
     >
       <ArrowUpToLine className="w-4 h-4" />
@@ -114,6 +113,7 @@ function ScrollToTopFab() {
 
 function PublicLayout() {
   const location = useLocation();
+  const showBottomNav = location.pathname !== '/checkout';
 
   const FOOTER_ROUTES = [
     '/',
@@ -129,7 +129,7 @@ function PublicLayout() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="app-shell flex flex-col">
       <Helmet>
         <title>12% — Café de Especialidad</title>
         <meta
@@ -152,7 +152,7 @@ function PublicLayout() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="flex-1 pt-16 md:pt-20 pb-20 md:pb-0 focus:outline-none"
+        className={`app-main flex-1 focus:outline-none ${showBottomNav ? '' : 'app-main--no-bottom-nav'}`}
       >
         <AnimatePresence>
           <motion.div
@@ -167,7 +167,7 @@ function PublicLayout() {
         </AnimatePresence>
       </main>
       {showFooter && <Footer />}
-      <BottomNav />
+      {showBottomNav && <BottomNav />}
       <OfflineIndicator />
       <OfflineBanner />
       <InstallPrompt />

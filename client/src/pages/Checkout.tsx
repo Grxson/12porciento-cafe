@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Tag, Loader2, MapPin, CreditCard, Package, ShoppingBag } from 'lucide-react';
+import {
+  Check,
+  ChevronRight,
+  ChevronLeft,
+  Tag,
+  Loader2,
+  MapPin,
+  CreditCard,
+  Package,
+  ShoppingBag,
+} from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { ordersApi, paymentsApi, promoCodesApi, usersApi, abandonedCartApi } from '../api';
 import { retryWithBackoff } from '../services/paymentRetry';
@@ -96,7 +106,8 @@ export default function Checkout() {
     if (!user?.stripeCustomerId) return;
     let cancelled = false;
     setLoadingMethods(true);
-    usersApi.listPaymentMethods()
+    usersApi
+      .listPaymentMethods()
       .then((res) => {
         if (cancelled) return;
         const { methods, defaultId } = res.data;
@@ -110,8 +121,12 @@ export default function Checkout() {
           setSelectedMethodId('new');
         }
       })
-      .finally(() => { if (!cancelled) setLoadingMethods(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoadingMethods(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user?.stripeCustomerId]);
 
   useEffect(() => {
@@ -128,9 +143,19 @@ export default function Checkout() {
     const data = {
       items: items.map((i) => {
         if (i.itemType === 'product') {
-          return { productId: i.product.id, name: i.product.name, quantity: i.quantity, price: i.product.price };
+          return {
+            productId: i.product.id,
+            name: i.product.name,
+            quantity: i.quantity,
+            price: i.product.price,
+          };
         }
-        return { productId: i.bundleId, name: i.bundle.name, quantity: i.quantity, price: i.bundle.finalPrice };
+        return {
+          productId: i.bundleId,
+          name: i.bundle.name,
+          quantity: i.quantity,
+          price: i.bundle.finalPrice,
+        };
       }),
       email: user.email,
       couponCode: promoCode || undefined,
@@ -155,7 +180,9 @@ export default function Checkout() {
     };
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     if (fieldErrors[e.target.name as keyof FormData]) {
       setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
@@ -211,7 +238,10 @@ export default function Checkout() {
       const expandedItems = items.flatMap((i) =>
         i.itemType === 'product'
           ? [{ productId: i.product.id, quantity: i.quantity }]
-          : i.bundle.items.map((bi) => ({ productId: bi.product.id, quantity: bi.quantity * i.quantity })),
+          : i.bundle.items.map((bi) => ({
+              productId: bi.product.id,
+              quantity: bi.quantity * i.quantity,
+            })),
       );
       const payload = {
         items: expandedItems,
@@ -280,21 +310,30 @@ export default function Checkout() {
       const orderItems = items.flatMap((i) =>
         i.itemType === 'product'
           ? [{ productId: i.product.id, quantity: i.quantity }]
-          : i.bundle.items.map((bi) => ({ productId: bi.product.id, quantity: bi.quantity * i.quantity })),
+          : i.bundle.items.map((bi) => ({
+              productId: bi.product.id,
+              quantity: bi.quantity * i.quantity,
+            })),
       );
-      await retryWithBackoff(() => ordersApi.create({
-        ...form,
-        ...(user ? { userId: user.id } : {}),
-        ...(paymentIntentId ? { paymentIntentId } : {}),
-        ...(promoCode ? { promoCode } : {}),
-        items: orderItems,
-      }));
+      await retryWithBackoff(() =>
+        ordersApi.create({
+          ...form,
+          ...(user ? { userId: user.id } : {}),
+          ...(paymentIntentId ? { paymentIntentId } : {}),
+          ...(promoCode ? { promoCode } : {}),
+          items: orderItems,
+        }),
+      );
       setSuccess(true);
       clearCart();
     } catch (err: unknown) {
       console.error('Order creation failed after payment:', err);
       setSuccess(true);
-      addToast('Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte.', 'error', 8000);
+      addToast(
+        'Tu pago fue procesado pero no pudimos registrar tu pedido. Contacta soporte.',
+        'error',
+        8000,
+      );
       clearCart();
     }
   };
@@ -306,17 +345,24 @@ export default function Checkout() {
   if (items.length === 0 && !success) {
     return (
       <div className="min-h-screen pt-20 flex flex-col items-center justify-center gap-6 px-4 bg-coffee-50 dark:bg-coffee-950">
-        <PageMeta title="Pago" description="Finaliza tu compra de café de especialidad de forma segura." />
+        <PageMeta
+          title="Pago"
+          description="Finaliza tu compra de café de especialidad de forma segura."
+        />
         <div className="w-24 h-24 border border-coffee-200 dark:border-coffee-800 flex items-center justify-center">
           <ShoppingBag className="w-10 h-10 text-coffee-700 dark:text-coffee-300" />
         </div>
         <div className="text-center">
-          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">Carrito vacío</h2>
+          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">
+            Carrito vacío
+          </h2>
           <p className="text-coffee-500 max-w-xs leading-relaxed text-sm">
             Agrega productos a tu carrito antes de proceder al pago.
           </p>
         </div>
-        <Link to="/tienda" className="btn-primary">Ir a la tienda</Link>
+        <Link to="/tienda" className="btn-primary">
+          Ir a la tienda
+        </Link>
       </div>
     );
   }
@@ -324,7 +370,10 @@ export default function Checkout() {
   if (success) {
     return (
       <div className="min-h-screen pt-20 flex flex-col items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
-        <PageMeta title="Pago" description="Finaliza tu compra de café de especialidad de forma segura." />
+        <PageMeta
+          title="Pago"
+          description="Finaliza tu compra de café de especialidad de forma segura."
+        />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -333,14 +382,18 @@ export default function Checkout() {
           <div className="w-16 h-16 border-2 border-gold-500 flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-gold-500" />
           </div>
-          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">¡Pedido confirmado!</h2>
+          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">
+            ¡Pedido confirmado!
+          </h2>
           <p className="text-coffee-700 dark:text-coffee-300 leading-relaxed mb-8">
-            Tu pago fue procesado exitosamente. Tostamos a pedido para garantizar frescura máxima — recibirás
-            tu café dentro de los próximos 3-5 días hábiles.
+            Tu pago fue procesado exitosamente. Tostamos a pedido para garantizar frescura máxima —
+            recibirás tu café dentro de los próximos 3-5 días hábiles.
           </p>
           {!user && (
             <div className="bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 p-5 mb-6 text-left">
-              <p className="text-coffee-900 dark:text-cream text-sm font-medium mb-1">¿Quieres rastrear este pedido?</p>
+              <p className="text-coffee-900 dark:text-cream text-sm font-medium mb-1">
+                ¿Quieres rastrear este pedido?
+              </p>
               <p className="text-coffee-600 dark:text-coffee-400 text-xs mb-3">
                 Crea tu cuenta con el mismo email y podrás ver tu historial de pedidos.
               </p>
@@ -352,7 +405,9 @@ export default function Checkout() {
               </Link>
             </div>
           )}
-          <Link to="/tienda" className="btn-primary block">Seguir comprando</Link>
+          <Link to="/tienda" className="btn-primary block">
+            Seguir comprando
+          </Link>
         </motion.div>
         <div className="max-w-md w-full mt-4">
           <PushPermissionBanner />
@@ -362,9 +417,12 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-24 md:pb-0 bg-coffee-50 dark:bg-coffee-950">
-      <PageMeta title="Pago" description="Finaliza tu compra de café de especialidad de forma segura." />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
+      <PageMeta
+        title="Pago"
+        description="Finaliza tu compra de café de especialidad de forma segura."
+      />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
         <div className="gold-line mb-4" />
         <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-4">Checkout</h1>
 
@@ -381,15 +439,36 @@ export default function Checkout() {
             <MapPin className="w-4 h-4 text-gold-600 shrink-0 mt-0.5" />
             <p className="text-coffee-700 dark:text-coffee-300 text-xs leading-relaxed">
               Completa tu dirección aquí y{' '}
-              <Link to="/perfil/datos" className="text-gold-600 dark:text-gold-400 hover:text-gold-700 underline">guárdala en tu perfil</Link>
-              {' '}para que se autocomplete en futuros pedidos.
+              <Link
+                to="/perfil/datos"
+                className="text-gold-600 dark:text-gold-400 hover:text-gold-700 underline"
+              >
+                guárdala en tu perfil
+              </Link>{' '}
+              para que se autocomplete en futuros pedidos.
             </p>
           </div>
         )}
 
         {/* Step indicator */}
+        <div className="mb-8 sm:hidden" aria-current="step">
+          <div className="mb-2 flex items-center justify-between text-xs">
+            <span className="font-semibold uppercase tracking-wider text-gold-600">
+              Paso {step} de 3
+            </span>
+            <span className="text-coffee-500">
+              {step === 1 ? 'Datos de envío' : step === 2 ? 'Método de pago' : 'Confirmar'}
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-coffee-200 dark:bg-coffee-800">
+            <div
+              className="h-full bg-gold-500 transition-all"
+              style={{ width: `${(step / 3) * 100}%` }}
+            />
+          </div>
+        </div>
         <div
-          className="flex items-center gap-3 mb-10"
+          className="mb-10 hidden items-center gap-3 sm:flex"
           role="progressbar"
           aria-valuenow={step === 1 ? 0 : step === 2 ? 50 : 100}
           aria-valuemin={0}
@@ -405,16 +484,28 @@ export default function Checkout() {
             const isActive = stepNum === n;
             const isPast = stepNum > n;
             return (
-              <div key={n} className="flex items-center gap-2" aria-current={isActive ? 'step' : undefined}>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                  stepNum >= n ? 'bg-gold-500 text-coffee-950' : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400'
-                }`}>
+              <div
+                key={n}
+                className="flex items-center gap-2"
+                aria-current={isActive ? 'step' : undefined}
+              >
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                    stepNum >= n
+                      ? 'bg-gold-500 text-coffee-950'
+                      : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400'
+                  }`}
+                >
                   {isPast ? <Check className="w-3.5 h-3.5" /> : n}
                 </div>
-                <span className={`text-sm transition-colors ${isActive ? 'text-coffee-900 dark:text-cream font-medium' : 'text-coffee-600 dark:text-coffee-400'}`}>
+                <span
+                  className={`text-sm transition-colors ${isActive ? 'text-coffee-900 dark:text-cream font-medium' : 'text-coffee-600 dark:text-coffee-400'}`}
+                >
                   {label}
                 </span>
-                {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-coffee-400 dark:text-coffee-700 ml-1" />}
+                {i < arr.length - 1 && (
+                  <ChevronRight className="w-4 h-4 text-coffee-400 dark:text-coffee-700 ml-1" />
+                )}
               </div>
             );
           })}
@@ -433,26 +524,48 @@ export default function Checkout() {
                   onSubmit={handleShippingSubmit}
                   className="space-y-4"
                 >
-                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">Datos de envío</h2>
+                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-4">
+                    Datos de envío
+                  </h2>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="checkout-customername" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Nombre completo *</label>
+                      <label
+                        htmlFor="checkout-customername"
+                        className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                      >
+                        Nombre completo *
+                      </label>
                       <input
                         id="checkout-customername"
-                        name="customerName" type="text" required
-                        value={form.customerName} onChange={handleChange}
+                        name="customerName"
+                        type="text"
+                        required
+                        autoComplete="name"
+                        value={form.customerName}
+                        onChange={handleChange}
                         className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.customerName ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                         placeholder="Tu nombre"
                       />
-                      {fieldErrors.customerName && <p className="text-red-400 text-xs mt-1">{fieldErrors.customerName}</p>}
+                      {fieldErrors.customerName && (
+                        <p className="text-red-400 text-xs mt-1">{fieldErrors.customerName}</p>
+                      )}
                     </div>
                     <div>
-                      <label htmlFor="checkout-email" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email *</label>
+                      <label
+                        htmlFor="checkout-email"
+                        className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                      >
+                        Email *
+                      </label>
                       <input
                         id="checkout-email"
-                        name="email" type="email" required
-                        value={form.email} onChange={handleChange}
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        value={form.email}
+                        onChange={handleChange}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
                         placeholder="tu@email.com"
                       />
@@ -460,57 +573,148 @@ export default function Checkout() {
                   </div>
 
                   <div>
-                    <label htmlFor="checkout-phone" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Teléfono</label>
-                    <input id="checkout-phone" name="phone" value={form.phone} onChange={handleChange}
+                    <label
+                      htmlFor="checkout-phone"
+                      className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                    >
+                      Teléfono
+                    </label>
+                    <input
+                      id="checkout-phone"
+                      name="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      value={form.phone}
+                      onChange={handleChange}
                       className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
-                      placeholder="55 1234 5678" />
-                    {fieldErrors.phone && <p className="text-red-400 text-xs mt-1">{fieldErrors.phone}</p>}
+                      placeholder="55 1234 5678"
+                    />
+                    {fieldErrors.phone && (
+                      <p className="text-red-400 text-xs mt-1">{fieldErrors.phone}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label htmlFor="checkout-address" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Dirección *</label>
-                    <input id="checkout-address" name="address" required value={form.address} onChange={handleChange}
+                    <label
+                      htmlFor="checkout-address"
+                      className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                    >
+                      Dirección *
+                    </label>
+                    <input
+                      id="checkout-address"
+                      name="address"
+                      autoComplete="street-address"
+                      required
+                      value={form.address}
+                      onChange={handleChange}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
-                      placeholder="Calle, número, colonia" />
+                      placeholder="Calle, número, colonia"
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label htmlFor="checkout-city" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Ciudad *</label>
-                      <input id="checkout-city" name="city" required value={form.city} onChange={handleChange}
+                      <label
+                        htmlFor="checkout-city"
+                        className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                      >
+                        Ciudad *
+                      </label>
+                      <input
+                        id="checkout-city"
+                        name="city"
+                        autoComplete="address-level2"
+                        required
+                        value={form.city}
+                        onChange={handleChange}
                         className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
-                        placeholder="Ciudad" />
+                        placeholder="Ciudad"
+                      />
                     </div>
                     <div>
-                      <label htmlFor="checkout-state" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Estado *</label>
-                      <select id="checkout-state" name="state" required value={form.state} onChange={handleChange}
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none">
+                      <label
+                        htmlFor="checkout-state"
+                        className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                      >
+                        Estado *
+                      </label>
+                      <select
+                        id="checkout-state"
+                        name="state"
+                        autoComplete="address-level1"
+                        required
+                        value={form.state}
+                        onChange={handleChange}
+                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                      >
                         <option value="">Seleccionar</option>
-                        {mexicanStates.map((s) => <option key={s} value={s}>{s}</option>)}
+                        {mexicanStates.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="checkout-zipcode" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">CP *</label>
-                      <input id="checkout-zipcode" name="zipCode" required value={form.zipCode} onChange={handleChange}
+                      <label
+                        htmlFor="checkout-zipcode"
+                        className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                      >
+                        CP *
+                      </label>
+                      <input
+                        id="checkout-zipcode"
+                        name="zipCode"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
+                        maxLength={5}
+                        pattern="[0-9]{5}"
+                        required
+                        value={form.zipCode}
+                        onChange={handleChange}
                         className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.zipCode ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
-                        placeholder="12345" />
-                      {fieldErrors.zipCode && <p className="text-red-400 text-xs mt-1">{fieldErrors.zipCode}</p>}
+                        placeholder="12345"
+                      />
+                      {fieldErrors.zipCode && (
+                        <p className="text-red-400 text-xs mt-1">{fieldErrors.zipCode}</p>
+                      )}
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="checkout-notes" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Notas adicionales</label>
-                    <textarea id="checkout-notes" name="notes" value={form.notes} onChange={handleChange} rows={3}
+                    <label
+                      htmlFor="checkout-notes"
+                      className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2"
+                    >
+                      Notas adicionales
+                    </label>
+                    <textarea
+                      id="checkout-notes"
+                      name="notes"
+                      value={form.notes}
+                      onChange={handleChange}
+                      rows={3}
                       className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base focus:border-gold-500 focus:outline-none resize-none"
-                      placeholder="Instrucciones especiales..." />
+                      placeholder="Instrucciones especiales..."
+                    />
                   </div>
 
                   {error && <p className="text-red-400 text-sm">{error}</p>}
 
-                  <button type="submit" disabled={loadingIntent || isOffline}
-                    className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                    {loadingIntent ? 'Iniciando pago...' : (
-                      <><span>Continuar al pago</span><ChevronRight className="w-4 h-4" /></>
+                  <button
+                    type="submit"
+                    disabled={loadingIntent || isOffline}
+                    className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loadingIntent ? (
+                      'Iniciando pago...'
+                    ) : (
+                      <>
+                        <span>Continuar al pago</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </>
                     )}
                   </button>
                 </motion.form>
@@ -526,13 +730,18 @@ export default function Checkout() {
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <button
-                      onClick={() => { setStep(1); setError(''); }}
+                      onClick={() => {
+                        setStep(1);
+                        setError('');
+                      }}
                       className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors text-sm"
                     >
                       <ChevronLeft className="w-4 h-4" /> Volver a envío
                     </button>
                   </div>
-                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-6">Método de pago</h2>
+                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-6">
+                    Método de pago
+                  </h2>
 
                   {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
@@ -598,7 +807,9 @@ export default function Checkout() {
                           <CreditCard
                             className={`w-5 h-5 shrink-0 ${selectedMethodId === 'new' ? 'text-gold-600' : 'text-coffee-600 dark:text-coffee-400'}`}
                           />
-                          <p className="text-coffee-900 dark:text-cream text-sm font-medium">Usar tarjeta nueva</p>
+                          <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+                            Usar tarjeta nueva
+                          </p>
                         </label>
                       </>
                     )}
@@ -610,9 +821,14 @@ export default function Checkout() {
                     className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loadingIntent ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Iniciando pago...</>
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Iniciando pago...
+                      </>
                     ) : (
-                      <><span>Continuar</span><ChevronRight className="w-4 h-4" /></>
+                      <>
+                        <span>Continuar</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </>
                     )}
                   </button>
                 </motion.div>
@@ -639,11 +855,14 @@ export default function Checkout() {
                       <ChevronLeft className="w-4 h-4" /> Volver
                     </button>
                   </div>
-                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-6">Pago seguro</h2>
+                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-6">
+                    Pago seguro
+                  </h2>
 
                   {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
-                  {selectedMethodId !== 'new' && savedMethods.some((m) => m.id === selectedMethodId) ? (
+                  {selectedMethodId !== 'new' &&
+                  savedMethods.some((m) => m.id === selectedMethodId) ? (
                     (() => {
                       const savedCard = savedMethods.find((m) => m.id === selectedMethodId)!;
                       return (
@@ -655,7 +874,8 @@ export default function Checkout() {
                                 {savedCard.brand} •••• {savedCard.last4}
                               </p>
                               <p className="text-coffee-500 text-xs">
-                                Vence {String(savedCard.expMonth).padStart(2, '0')}/{savedCard.expYear}
+                                Vence {String(savedCard.expMonth).padStart(2, '0')}/
+                                {savedCard.expYear}
                               </p>
                             </div>
                           </div>
@@ -665,7 +885,9 @@ export default function Checkout() {
                             className="btn-primary w-full min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                           >
                             {confirmingSaved ? (
-                              <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" /> Procesando...
+                              </>
                             ) : (
                               `Pagar $${intentAmount.toLocaleString('es-MX')} MXN`
                             )}
@@ -694,10 +916,18 @@ export default function Checkout() {
                 {items.map((item) =>
                   item.itemType === 'product' ? (
                     <div key={`prod_${item.product.id}`} className="flex gap-3">
-                      <img src={item.product.imageUrl} alt={item.product.name} className="w-12 h-12 object-cover shrink-0" />
+                      <img
+                        src={item.product.imageUrl}
+                        alt={item.product.name}
+                        className="w-12 h-12 object-cover shrink-0"
+                      />
                       <div className="flex-1 min-w-0">
-                        <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{item.product?.name ?? 'Producto'}</p>
-                        <p className="text-coffee-500 dark:text-coffee-400 text-xs">{item.product.weight}g · x{item.quantity}</p>
+                        <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">
+                          {item.product?.name ?? 'Producto'}
+                        </p>
+                        <p className="text-coffee-500 dark:text-coffee-400 text-xs">
+                          {item.product.weight}g · x{item.quantity}
+                        </p>
                       </div>
                       <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">
                         ${(Number(item.product.price) * item.quantity).toLocaleString('es-MX')}
@@ -706,21 +936,31 @@ export default function Checkout() {
                   ) : (
                     <div key={`bund_${item.bundleId}`} className="flex gap-3">
                       {item.bundle.imageUrl ? (
-                        <img src={item.bundle.imageUrl} alt={item.bundle.name} className="w-12 h-12 object-cover shrink-0" />
+                        <img
+                          src={item.bundle.imageUrl}
+                          alt={item.bundle.name}
+                          className="w-12 h-12 object-cover shrink-0"
+                        />
                       ) : (
                         <div className="w-12 h-12 bg-gold-50 dark:bg-gold-500/10 flex items-center justify-center shrink-0">
                           <Package className="w-5 h-5 text-gold-500" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">{item.bundle?.name ?? 'Paquete'}</p>
+                        <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">
+                          {item.bundle?.name ?? 'Paquete'}
+                        </p>
                         <p className="text-coffee-500 dark:text-coffee-400 text-xs">
-                          {item.bundle.items.length} producto{item.bundle.items.length !== 1 ? 's' : ''}
+                          {item.bundle.items.length} producto
+                          {item.bundle.items.length !== 1 ? 's' : ''}
                           {item.bundle.discountPct > 0 && ` · ${item.bundle.discountPct}% OFF`}
                         </p>
                       </div>
                       <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">
-                        ${(Number(item.bundle?.finalPrice ?? 0) * item.quantity).toLocaleString('es-MX')}
+                        $
+                        {(Number(item.bundle?.finalPrice ?? 0) * item.quantity).toLocaleString(
+                          'es-MX',
+                        )}
                       </p>
                     </div>
                   ),
@@ -729,16 +969,28 @@ export default function Checkout() {
               {/* Promo code */}
               {step === 1 && (
                 <div className="border-t border-coffee-200 dark:border-coffee-700 pt-4 mb-4">
-                  <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Código de descuento</p>
+                  <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">
+                    Código de descuento
+                  </p>
                   {promoCode ? (
                     <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 px-3 py-2">
                       <div className="flex items-center gap-2">
                         <Tag className="w-3.5 h-3.5 text-green-600" />
-                        <span className="text-green-700 dark:text-green-400 text-xs font-medium">{promoCode}</span>
-                        <span className="text-green-600 dark:text-green-400 text-xs">− ${promoDiscount.toLocaleString('es-MX')}</span>
+                        <span className="text-green-700 dark:text-green-400 text-xs font-medium">
+                          {promoCode}
+                        </span>
+                        <span className="text-green-600 dark:text-green-400 text-xs">
+                          − ${promoDiscount.toLocaleString('es-MX')}
+                        </span>
                       </div>
-                      <button onClick={() => { setPromoCode(''); setPromoDiscount(0); setPromoInput(''); }}
-                        className="text-coffee-600 dark:text-coffee-400 hover:text-red-500 transition-colors">
+                      <button
+                        onClick={() => {
+                          setPromoCode('');
+                          setPromoDiscount(0);
+                          setPromoInput('');
+                        }}
+                        className="text-coffee-600 dark:text-coffee-400 hover:text-red-500 transition-colors"
+                      >
                         <Check className="w-3 h-3 rotate-45" />
                       </button>
                     </div>
@@ -746,13 +998,24 @@ export default function Checkout() {
                     <div className="flex gap-2 w-full min-w-0">
                       <input
                         value={promoInput}
-                        onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyPromo(); } }}
+                        onChange={(e) => {
+                          setPromoInput(e.target.value.toUpperCase());
+                          setPromoError('');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleApplyPromo();
+                          }
+                        }}
                         placeholder="CÓDIGO"
                         className="flex-1 min-w-0 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 text-base min-h-[44px] focus:border-gold-500 focus:outline-none uppercase"
                       />
-                      <button onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()}
-                        className="shrink-0 bg-coffee-100 dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 px-3 text-sm min-h-[44px] hover:bg-coffee-200 dark:hover:bg-coffee-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1 whitespace-nowrap">
+                      <button
+                        onClick={handleApplyPromo}
+                        disabled={promoLoading || !promoInput.trim()}
+                        className="shrink-0 bg-coffee-100 dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 px-3 text-sm min-h-[44px] hover:bg-coffee-200 dark:hover:bg-coffee-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1 whitespace-nowrap"
+                      >
                         {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aplicar'}
                       </button>
                     </div>
@@ -765,20 +1028,28 @@ export default function Checkout() {
                 {promoDiscount > 0 && (
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-coffee-600 dark:text-coffee-400">Subtotal</span>
-                    <span className="text-coffee-800 dark:text-coffee-200">${total().toLocaleString('es-MX')}</span>
+                    <span className="text-coffee-800 dark:text-coffee-200">
+                      ${total().toLocaleString('es-MX')}
+                    </span>
                   </div>
                 )}
                 {promoDiscount > 0 && (
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-green-600">Descuento</span>
-                    <span className="text-green-600">− ${promoDiscount.toLocaleString('es-MX')}</span>
+                    <span className="text-green-600">
+                      − ${promoDiscount.toLocaleString('es-MX')}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between font-semibold">
                   <span className="text-coffee-900 dark:text-cream">Total</span>
-                  <span className="text-gold-600 text-lg">${Math.max(total() - promoDiscount, 0).toLocaleString('es-MX')}</span>
+                  <span className="text-gold-600 text-lg">
+                    ${Math.max(total() - promoDiscount, 0).toLocaleString('es-MX')}
+                  </span>
                 </div>
-                <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">+ envío según destino</p>
+                <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
+                  + envío según destino
+                </p>
               </div>
             </div>
           </div>

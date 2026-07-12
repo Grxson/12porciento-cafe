@@ -16,38 +16,45 @@ export default function VerifyEmail() {
       setMessage('Token no proporcionado.');
       return;
     }
-    usersApi.verifyEmail(token)
+    usersApi
+      .verifyEmail(token)
       .then((res: { data: { message?: string } }) => {
         setStatus('success');
         setMessage(res.data.message || 'Correo verificado correctamente.');
       })
       .catch((err: unknown) => {
         setStatus('error');
-        setMessage(getApiError(err, 'Error al verificar el correo. El enlace puede haber expirado.'));
+        setMessage(
+          getApiError(err, 'Error al verificar el correo. El enlace puede haber expirado.'),
+        );
       });
   }, [token]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-coffee-50 dark:bg-coffee-950 px-4">
+    <div className="auth-shell">
       <PageMeta title="Verificar Correo" />
       <div className="w-full max-w-md text-center">
-        <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">
+        <div
+          className="border border-coffee-200 bg-white p-5 dark:border-coffee-800 dark:bg-coffee-900 sm:p-8"
+          aria-live="polite"
+        >
           {status === 'loading' && (
             <>
               <Loader2 className="w-12 h-12 text-gold-500 mx-auto mb-4 animate-spin" />
-              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">Verificando...</h1>
+              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">
+                Verificando...
+              </h1>
               <p className="text-coffee-600 dark:text-coffee-400 text-sm">Un momento por favor</p>
             </>
           )}
           {status === 'success' && (
             <>
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">Correo verificado!</h1>
+              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">
+                Correo verificado!
+              </h1>
               <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-6">{message}</p>
-              <Link
-                to="/perfil/configuracion"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gold-500 text-coffee-950 font-semibold text-sm hover:bg-gold-400 transition-colors"
-              >
+              <Link to="/perfil/configuracion" className="btn-primary gap-2">
                 Ir a mi perfil
               </Link>
             </>
@@ -55,18 +62,17 @@ export default function VerifyEmail() {
           {status === 'error' && (
             <>
               <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">No se pudo verificar</h1>
+              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">
+                No se pudo verificar
+              </h1>
               <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-6">{message}</p>
               <div className="flex flex-col gap-3">
-                <Link
-                  to="/perfil/configuracion"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gold-500 text-coffee-950 font-semibold text-sm hover:bg-gold-400 transition-colors"
-                >
+                <Link to="/perfil/configuracion" className="btn-primary gap-2">
                   <Mail className="w-4 h-4" /> Reenviar email de verificacion
                 </Link>
                 <Link
                   to="/"
-                  className="text-coffee-500 dark:text-coffee-400 text-sm hover:text-coffee-700 dark:hover:text-cream transition-colors"
+                  className="inline-flex min-h-11 items-center justify-center text-sm text-coffee-500 transition-colors hover:text-coffee-700 dark:text-coffee-400 dark:hover:text-cream"
                 >
                   Volver al inicio
                 </Link>

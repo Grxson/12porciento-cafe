@@ -10,6 +10,8 @@ export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,52 +32,74 @@ export default function ForgotPassword() {
     }
   };
 
+  const handleResend = async () => {
+    setResending(true);
+    setResent(false);
+    try {
+      await usersApi.forgotPassword(email);
+      setResent(true);
+    } catch (err: unknown) {
+      setError(getApiError(err, 'No pudimos reenviar el enlace.'));
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-coffee-50 dark:bg-coffee-950 px-4">
+    <div className="auth-shell">
       <PageMeta title="Olvidé mi Contraseña" />
       <div className="w-full max-w-md">
-        <Link to="/login" className="inline-flex items-center gap-2 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-sm mb-8 transition-colors">
+        <Link
+          to="/login"
+          className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm text-coffee-500 transition-colors hover:text-coffee-900 dark:text-coffee-400 dark:hover:text-cream sm:mb-8"
+        >
           <ArrowLeft className="w-4 h-4" /> Volver a iniciar sesión
         </Link>
 
-        <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">
+        <div className="border border-coffee-200 bg-white p-5 dark:border-coffee-800 dark:bg-coffee-900 sm:p-8">
           {submitted ? (
             <div className="text-center">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">Revisa tu correo</h1>
+              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">
+                Revisa tu correo
+              </h1>
               <p className="text-coffee-600 dark:text-coffee-400 text-sm leading-relaxed">
-                Si existe una cuenta con <strong className="text-coffee-800 dark:text-coffee-200">{email}</strong>,
-                recibirás un enlace para restablecer tu contraseña en unos minutos.
+                Si existe una cuenta con{' '}
+                <strong className="text-coffee-800 dark:text-coffee-200">{email}</strong>, recibirás
+                un enlace para restablecer tu contraseña en unos minutos.
               </p>
-              <p className="text-coffee-500 dark:text-coffee-500 text-xs mt-4">¿No recibiste el correo? Revisa tu bandeja de spam.</p>
+              <p className="text-coffee-500 dark:text-coffee-500 text-xs mt-4">
+                ¿No recibiste el correo? Revisa tu bandeja de spam.
+              </p>
               <div className="flex flex-col gap-3 mt-6">
                 <button
-                  onClick={async () => {
-                    const btn = document.activeElement as HTMLButtonElement;
-                    btn!.disabled = true;
-                    try {
-                      await usersApi.forgotPassword(email);
-                      btn!.textContent = '¡Reenviado!';
-                    } catch { btn!.disabled = false; }
-                  }}
-                  className="text-xs text-gold-500 hover:text-gold-400 underline transition-colors"
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="min-h-11 text-xs text-gold-500 underline transition-colors hover:text-gold-400 disabled:opacity-50"
                 >
-                  Reenviar enlace
+                  {resending ? 'Reenviando…' : resent ? '¡Reenviado!' : 'Reenviar enlace'}
                 </button>
-                <Link to="/login" className="text-xs text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors">
+                <Link
+                  to="/login"
+                  className="inline-flex min-h-11 items-center justify-center text-xs text-coffee-500 transition-colors hover:text-coffee-900 dark:hover:text-cream"
+                >
                   Volver a iniciar sesión
                 </Link>
               </div>
             </div>
           ) : (
             <>
-              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">Olvidé mi contraseña</h1>
+              <h1 className="text-xl font-semibold text-coffee-900 dark:text-cream mb-2">
+                Olvidé mi contraseña
+              </h1>
               <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-6">
                 Ingresa tu email y te enviaremos un enlace para restablecerla.
               </p>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="forgot-email" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-1">Email</label>
+                  <label htmlFor="forgot-email" className="field-label">
+                    Email
+                  </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400" />
                     <input
@@ -86,13 +110,23 @@ export default function ForgotPassword() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tu@email.com"
+                      autoComplete="email"
+                      inputMode="email"
                       autoFocus
-                      className="w-full pl-10 bg-white dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-600 text-coffee-900 dark:text-cream px-3 py-2.5 text-sm focus:border-gold-500 focus:outline-none"
+                      className="field-control pl-10"
                     />
                   </div>
                 </div>
-                {error && <p className="text-red-500 text-xs">{error}</p>}
-                <button type="submit" disabled={loading} className="w-full btn-primary disabled:opacity-50">
+                {error && (
+                  <p role="alert" className="text-red-500 text-xs">
+                    {error}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full btn-primary disabled:opacity-50"
+                >
                   {loading ? 'Enviando…' : 'Enviar enlace'}
                 </button>
               </form>

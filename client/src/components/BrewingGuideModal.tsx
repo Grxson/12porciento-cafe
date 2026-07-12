@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { X, Thermometer, Coffee, Droplets } from 'lucide-react';
 import type { Recipe } from '../types';
 import StepVideoPlayer from './recipes/StepVideoPlayer';
@@ -23,6 +23,46 @@ const methodIcons: Record<string, string> = {
 
 export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
   const [active, setActive] = useState(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!open) return;
+    openerRef.current = document.activeElement as HTMLElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => closeRef.current?.focus());
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      openerRef.current?.focus();
+    };
+  }, [open, onClose]);
 
   if (!open || recipes.length === 0) return null;
   const recipe = recipes[active];
@@ -39,36 +79,45 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
             onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="brewing-guide-title"
+            initial={reduceMotion ? false : { opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
-            className="fixed inset-x-4 bottom-4 top-16 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-xl z-50 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 flex flex-col overflow-hidden"
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[calc(100dvh-var(--app-safe-top)-0.5rem)] flex-col overflow-hidden border border-coffee-200 bg-coffee-100 dark:border-coffee-700 dark:bg-coffee-900 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-xl sm:-translate-x-1/2 sm:-translate-y-1/2"
+            style={{ paddingBottom: 'var(--app-safe-bottom)' }}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-coffee-200 dark:border-coffee-800">
               <div>
                 <p className="text-gold-500 text-xs tracking-[0.3em] uppercase">
                   Guía de Preparación
                 </p>
-                <h3 className="text-coffee-900 dark:text-cream font-serif text-xl mt-0.5">
+                <h3
+                  id="brewing-guide-title"
+                  className="text-coffee-900 dark:text-cream font-serif text-xl mt-0.5"
+                >
                   {recipe.title}
                 </h3>
               </div>
               <button
+                ref={closeRef}
                 onClick={onClose}
                 aria-label="Cerrar guía"
-                className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+                className="icon-button text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {recipes.length > 1 && (
-              <div className="flex gap-2 px-6 pt-4 flex-wrap">
+              <div className="flex shrink-0 gap-2 overflow-x-auto px-6 pt-4 pb-1">
                 {recipes.map((r, i) => (
                   <button
                     key={i}
                     onClick={() => setActive(i)}
-                    className={`px-3 py-1.5 text-xs tracking-widest uppercase transition-all ${
+                    className={`min-h-11 shrink-0 px-3 py-2 text-xs tracking-widest uppercase transition-all ${
                       i === active
                         ? 'bg-gold-500 text-coffee-950'
                         : 'border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
@@ -81,8 +130,8 @@ export default function BrewingGuideModal({ recipes, open, onClose }: Props) {
             )}
 
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                <div className="bg-white dark:bg-coffee-800/50 p-3 text-center">
+              <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="col-span-2 bg-white p-3 text-center dark:bg-coffee-800/50 sm:col-span-1">
                   <Thermometer className="w-4 h-4 text-gold-500 mx-auto mb-1" />
                   <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-wider">
                     Temp

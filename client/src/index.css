@@ -1,4 +1,11 @@
 :root {
+  --app-header-height: 4rem;
+  --app-bottom-nav-height: 3.5rem;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+  --app-page-inline: clamp(1rem, 4vw, 2rem);
   color-scheme: light;
   --chart-bg: #ffffff;
   --chart-grid: #e8d5c4;
@@ -33,16 +40,25 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--app-header-height) + var(--app-safe-top) + 1rem);
   }
 
   body {
     @apply bg-coffee-50 dark:bg-coffee-950 text-coffee-900 dark:text-cream font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: 'kern' 1, 'liga' 1;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
+    min-width: 320px;
+    min-height: 100dvh;
+    overflow-x: clip;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     @apply font-serif;
     font-feature-settings: 'smcp' 0;
   }
@@ -81,17 +97,93 @@
   /* Eliminate 300ms tap delay in PWA mode */
   button,
   a,
-  [role="button"],
-  [role="tab"],
-  [role="link"] {
+  [role='button'],
+  [role='tab'],
+  [role='link'] {
     touch-action: manipulation;
   }
 }
 
 @layer components {
+  .app-shell {
+    min-height: 100dvh;
+  }
+
+  .app-main {
+    min-height: calc(100dvh - var(--app-header-height) - var(--app-safe-top));
+    padding-top: calc(var(--app-header-height) + var(--app-safe-top));
+    padding-bottom: calc(var(--app-bottom-nav-height) + var(--app-safe-bottom));
+  }
+
+  .app-main--no-bottom-nav {
+    padding-bottom: var(--app-safe-bottom);
+  }
+
+  .scroll-top-fab {
+    right: calc(var(--app-safe-right) + 1rem);
+    bottom: calc(var(--app-bottom-nav-height) + var(--app-safe-bottom) + 1rem);
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .app-main--no-bottom-nav ~ .scroll-top-fab {
+    bottom: calc(var(--app-safe-bottom) + 1rem);
+  }
+
+  .auth-shell {
+    @apply flex justify-center bg-coffee-50 px-4 dark:bg-coffee-950;
+    min-height: 100dvh;
+    align-items: flex-start;
+    padding-top: calc(var(--app-safe-top) + 2rem);
+    padding-right: max(var(--app-safe-right), 1rem);
+    padding-bottom: calc(var(--app-safe-bottom) + 2rem);
+    padding-left: max(var(--app-safe-left), 1rem);
+  }
+
+  .field-label {
+    @apply mb-2 block text-xs uppercase tracking-widest text-coffee-600 dark:text-coffee-400;
+  }
+
+  .field-control {
+    @apply min-h-12 w-full border border-coffee-300 bg-white px-4 py-3 text-base text-coffee-900
+           placeholder:text-coffee-400 focus:border-gold-500 focus:outline-none focus:ring-0
+           dark:border-coffee-700 dark:bg-coffee-800 dark:text-cream;
+  }
+
+  .icon-button {
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center transition-colors;
+  }
+
+  .chip-button {
+    @apply inline-flex min-h-11 items-center justify-center border px-3 py-2 text-sm transition-colors;
+  }
+
+  @media (min-height: 700px) {
+    .auth-shell {
+      align-items: center;
+    }
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --app-header-height: 5rem;
+      --app-bottom-nav-height: 0px;
+    }
+
+    .app-main,
+    .app-main--no-bottom-nav {
+      padding-bottom: 0;
+    }
+
+    .scroll-top-fab {
+      right: 2rem;
+      bottom: 2rem;
+    }
+  }
+
   /* ── Buttons ── */
   .btn-primary {
-    @apply inline-flex items-center justify-center bg-gold-500 text-coffee-950 px-8 py-3.5
+    @apply inline-flex min-h-12 items-center justify-center bg-gold-500 text-coffee-950 px-8 py-3.5
            font-semibold tracking-[0.15em] text-sm uppercase
            hover:bg-gold-400 active:scale-[0.98]
            transition-all duration-200 cursor-pointer select-none
@@ -104,7 +196,7 @@
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center border border-coffee-800 text-coffee-900 px-8 py-3.5
+    @apply inline-flex min-h-12 items-center justify-center border border-coffee-800 text-coffee-900 px-8 py-3.5
            text-sm tracking-[0.15em] uppercase font-medium
            hover:bg-coffee-900 hover:text-cream
            transition-all duration-300 cursor-pointer
@@ -289,16 +381,46 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

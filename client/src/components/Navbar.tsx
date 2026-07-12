@@ -90,7 +90,11 @@ export default function Navbar() {
   return (
     <>
       <header
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        style={{
+          paddingTop: 'var(--app-safe-top)',
+          paddingLeft: 'var(--app-safe-left)',
+          paddingRight: 'var(--app-safe-right)',
+        }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
             ? 'bg-coffee-50/98 dark:bg-coffee-950/98 backdrop-blur-sm shadow-lg shadow-coffee-400/20 dark:shadow-coffee-950/20 border-b border-coffee-200/60 dark:border-coffee-800/60'
@@ -127,7 +131,7 @@ export default function Navbar() {
             <div ref={moreRef} className="relative">
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
-                className={`text-sm tracking-widest uppercase transition-colors duration-200 ${
+                className={`min-h-11 px-2 text-sm tracking-widest uppercase transition-colors duration-200 ${
                   moreOpen
                     ? 'text-gold-500'
                     : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
@@ -174,7 +178,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <button
               onClick={toggle}
-              className="text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              className="flex min-h-11 min-w-11 items-center justify-center text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
               aria-label="Cambiar tema"
             >
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -183,7 +187,7 @@ export default function Navbar() {
             {user && <NotificationBell />}
             <button
               onClick={openDrawer}
-              className="relative text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              className="relative flex min-h-11 min-w-11 items-center justify-center text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
               aria-label="Carrito"
             >
               <ShoppingBag className="w-5 h-5" />
@@ -201,7 +205,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setOpen(!open)}
-              className="md:hidden text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              className="flex min-h-11 min-w-11 items-center justify-center md:hidden text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
               aria-label="Menú"
             >
               <AnimatePresence>
@@ -248,7 +252,7 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 z-50 max-w-[18rem] w-full bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-20 pb-[max(2rem,env(safe-area-inset-bottom,0px))] md:hidden outline-none"
+              className="fixed top-0 right-0 bottom-0 z-50 max-w-[18rem] w-full bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-[calc(var(--app-header-height)+var(--app-safe-top)+1rem)] pb-[max(2rem,var(--app-safe-bottom))] pr-[var(--app-safe-right)] md:hidden outline-none"
               tabIndex={-1}
             >
               <nav className="flex flex-col px-6 gap-1">

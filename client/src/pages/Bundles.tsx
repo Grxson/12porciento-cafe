@@ -31,7 +31,8 @@ export default function Bundles() {
   const addBundle = useCart((s) => s.addBundle);
 
   useEffect(() => {
-    bundlesApi.list()
+    bundlesApi
+      .list()
       .then((res) => setBundles(res.data.data || []))
       .catch(() => setBundlesError('Error al cargar paquetes'))
       .finally(() => setLoading(false));
@@ -47,8 +48,11 @@ export default function Bundles() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-coffee-50 dark:bg-coffee-950">
-      <PageMeta title="Paquetes" description="Paquetes y combos de café de especialidad con descuento." />
+    <div className="min-h-dvh bg-coffee-50 py-6 dark:bg-coffee-950 sm:py-10">
+      <PageMeta
+        title="Paquetes"
+        description="Paquetes y combos de café de especialidad con descuento."
+      />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="gold-line mb-4" />
         <div className="flex items-center gap-3 mb-2">
@@ -61,7 +65,9 @@ export default function Bundles() {
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => <BundleSkeleton key={i} />)}
+            {Array.from({ length: 6 }).map((_, i) => (
+              <BundleSkeleton key={i} />
+            ))}
           </div>
         ) : bundlesError ? (
           <div className="text-center py-20">
@@ -70,12 +76,13 @@ export default function Bundles() {
               onClick={() => {
                 setLoading(true);
                 setBundlesError('');
-                bundlesApi.list()
+                bundlesApi
+                  .list()
                   .then((res) => setBundles(res.data.data || []))
                   .catch(() => setBundlesError('Error al cargar paquetes'))
                   .finally(() => setLoading(false));
               }}
-              className="text-gold-500 hover:text-gold-400 underline text-sm"
+              className="inline-flex min-h-12 items-center px-4 text-sm text-gold-500 underline hover:text-gold-400"
             >
               Reintentar
             </button>
@@ -123,14 +130,17 @@ export default function Bundles() {
                   <div className="space-y-1.5 mb-5">
                     <p className="text-xs text-coffee-500 uppercase tracking-widest">Incluye</p>
                     {bundle.items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-2 text-sm text-coffee-700 dark:text-coffee-300">
+                      <div
+                        key={item.id}
+                        className="flex items-start gap-2 text-sm text-coffee-700 dark:text-coffee-300"
+                      >
                         <span className="w-1.5 h-1.5 rounded-full bg-gold-500 shrink-0" />
                         <span className="font-medium">
                           {item.quantity > 1 ? `${item.quantity}x ` : ''}
                           {item.product?.name || 'Producto'}
                         </span>
                         {item.product?.price && (
-                          <span className="text-coffee-500 text-xs ml-auto">
+                          <span className="ml-auto shrink-0 text-xs text-coffee-500">
                             ${Number(item.product.price).toLocaleString('es-MX')}
                           </span>
                         )}
@@ -152,7 +162,7 @@ export default function Bundles() {
                     <button
                       onClick={() => handleAddToCart(bundle)}
                       disabled={addingId === bundle.id}
-                      className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50"
+                      className="btn-primary min-h-12 flex items-center gap-2 px-5 text-sm disabled:opacity-50"
                     >
                       {addingId === bundle.id ? (
                         <span className="w-4 h-4 border-2 border-coffee-950/30 border-t-coffee-950 rounded-full animate-spin" />

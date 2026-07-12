@@ -265,8 +265,8 @@ export default function ProductDetail() {
           })}
         </script>
       </Helmet>
-      <div className="pt-20 min-h-screen pb-28 md:pb-0 bg-coffee-50 dark:bg-coffee-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="min-h-dvh bg-coffee-50 pb-20 dark:bg-coffee-950 md:pb-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
           <Breadcrumbs
             crumbs={[
               { label: 'Inicio', to: '/' },
@@ -276,7 +276,7 @@ export default function ProductDetail() {
           />
           <Link
             to="/tienda"
-            className="inline-flex items-center gap-2 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors text-sm mb-10"
+            className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm text-coffee-500 transition-colors hover:text-coffee-900 dark:text-coffee-400 dark:hover:text-cream sm:mb-10"
           >
             <ArrowLeft className="w-4 h-4" /> Volver a la tienda
           </Link>
@@ -357,7 +357,7 @@ export default function ProductDetail() {
                       <button
                         key={f}
                         onClick={() => navigate(`/tienda?flavors=${encodeURIComponent(f)}`)}
-                        className="bg-coffee-100 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm px-3 py-1.5 hover:border-gold-500 hover:text-gold-600 transition-all cursor-pointer"
+                        className="min-h-11 bg-coffee-100 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-700 dark:text-coffee-300 text-sm px-3 py-2 hover:border-gold-500 hover:text-gold-600 transition-all cursor-pointer"
                         title={`Ver cafés con nota "${f}"`}
                       >
                         {f}
@@ -435,7 +435,8 @@ export default function ProductDetail() {
                   <div className="flex items-center border border-coffee-300 dark:border-coffee-700">
                     <button
                       onClick={() => setQty(Math.max(1, qty - 1))}
-                      className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors dark:text-coffee-400"
+                      className="flex min-h-12 min-w-12 items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors dark:text-coffee-400"
+                      aria-label="Reducir cantidad"
                     >
                       −
                     </button>
@@ -443,7 +444,8 @@ export default function ProductDetail() {
                     <button
                       onClick={handleQtyIncrease}
                       disabled={product.stock === 0}
-                      className="w-11 min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-40 disabled:cursor-not-allowed dark:text-coffee-400"
+                      className="flex min-h-12 min-w-12 items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors disabled:opacity-40 disabled:cursor-not-allowed dark:text-coffee-400"
+                      aria-label="Aumentar cantidad"
                     >
                       +
                     </button>
@@ -452,7 +454,7 @@ export default function ProductDetail() {
                   <button
                     onClick={handleAdd}
                     disabled={product.stock === 0}
-                    className={`flex-1 flex items-center justify-center gap-2 h-10 font-medium text-sm uppercase tracking-wide transition-all ${
+                    className={`flex min-h-12 flex-1 items-center justify-center gap-2 px-3 font-medium text-sm uppercase tracking-wide transition-all ${
                       added
                         ? 'bg-green-600 text-white'
                         : 'bg-gold-500 text-coffee-950 hover:bg-gold-400'
@@ -504,7 +506,7 @@ export default function ProductDetail() {
                     <button
                       onClick={handleWishlistToggle}
                       disabled={wishlistLoading}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-medium transition-colors border border-coffee-300 dark:border-coffee-700 hover:border-gold-500/50 disabled:opacity-50"
+                      className="flex min-h-12 w-full items-center justify-center gap-2 border border-coffee-300 px-3 text-sm font-medium transition-colors hover:border-gold-500/50 disabled:opacity-50 dark:border-coffee-700"
                     >
                       <Heart
                         className={`w-4 h-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-coffee-500 dark:text-coffee-400'}`}
@@ -523,12 +525,25 @@ export default function ProductDetail() {
 
           {/* Tabs */}
           <div className="mt-16 border-t border-coffee-200 dark:border-coffee-800">
-            <div className="flex gap-0 border-b border-coffee-200 dark:border-coffee-800">
+            <div
+              role="tablist"
+              aria-label="Información del producto"
+              className="flex snap-x snap-mandatory gap-0 overflow-x-auto border-b border-coffee-200 [scrollbar-width:none] dark:border-coffee-800 [&::-webkit-scrollbar]:hidden"
+            >
               {tabs.map(({ id, label, icon: Icon, count }) => (
                 <button
                   key={id}
-                  onClick={() => setTab(id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-all ${
+                  role="tab"
+                  aria-selected={tab === id}
+                  onClick={(event) => {
+                    setTab(id);
+                    event.currentTarget.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'nearest',
+                      inline: 'center',
+                    });
+                  }}
+                  className={`flex min-h-12 shrink-0 snap-center items-center gap-2 border-b-2 px-4 text-sm font-medium transition-all sm:px-6 ${
                     tab === id
                       ? 'border-gold-500 text-gold-600 dark:text-gold-500'
                       : 'border-transparent text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
@@ -1045,14 +1060,19 @@ export default function ProductDetail() {
 
         {/* Sticky mobile add-to-cart bar — sits above BottomNav */}
         <div
-          className="md:hidden fixed left-0 right-0 z-40 bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] flex items-center gap-3"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom,0px) + 3.75rem)' }}
+          className="fixed left-0 right-0 z-40 flex min-h-[4.5rem] items-center gap-3 border-t border-coffee-800 bg-coffee-950 px-3 py-2 md:hidden"
+          style={{
+            bottom: 'calc(var(--app-bottom-nav-height) + var(--app-safe-bottom))',
+            paddingLeft: 'max(var(--app-safe-left), 0.75rem)',
+            paddingRight: 'max(var(--app-safe-right), 0.75rem)',
+          }}
         >
           {loggedUser && (
             <button
               onClick={handleWishlistToggle}
               disabled={wishlistLoading}
-              className="shrink-0 p-3 border border-coffee-700 hover:border-gold-500/50 transition-colors disabled:opacity-50"
+              className="flex min-h-12 min-w-12 shrink-0 items-center justify-center border border-coffee-700 hover:border-gold-500/50 transition-colors disabled:opacity-50"
+              aria-label={inWishlist ? 'Quitar de lista de deseos' : 'Agregar a lista de deseos'}
             >
               <Heart
                 className={`w-5 h-5 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-coffee-400'}`}
@@ -1060,7 +1080,7 @@ export default function ProductDetail() {
             </button>
           )}
           <div className="shrink-0">
-            <p className="text-gold-500 font-semibold text-lg">${product.price}</p>
+            <p className="text-base font-semibold text-gold-500 sm:text-lg">${product.price}</p>
           </div>
           <button
             onClick={handleAdd}

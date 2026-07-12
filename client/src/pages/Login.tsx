@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useUser } from '../context/UserContext';
 import { PageMeta } from '../hooks/usePageMeta';
 import PasswordField from '../components/PasswordField';
@@ -14,6 +14,7 @@ export default function Login() {
   const login = useUser((s) => s.login);
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const reduceMotion = useReducedMotion();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,30 +31,38 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen pt-20 flex items-center justify-center px-4 bg-coffee-50 dark:bg-coffee-950">
+    <div className="auth-shell">
       <PageMeta title="Iniciar Sesión" />
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-sm"
       >
-        <div className="text-center mb-10">
-          <div className="font-serif text-5xl font-black text-coffee-900 dark:text-cream">12%</div>
+        <div className="mb-6 text-center sm:mb-10">
+          <div className="font-serif text-4xl font-black text-coffee-900 dark:text-cream sm:text-5xl">
+            12%
+          </div>
           <div className="text-xs tracking-widest text-gold-500 uppercase mt-1">mi cuenta</div>
         </div>
 
-        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-8">
-          <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Iniciar sesión</h1>
+        <div className="border border-coffee-200 bg-coffee-100 p-5 dark:border-coffee-800 dark:bg-coffee-900 sm:p-8">
+          <h1 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
+            Iniciar sesión
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-2">Email</label>
+              <label htmlFor="login-email" className="field-label">
+                Email
+              </label>
               <input
                 id="login-email"
-                type="email" required value={email}
+                type="email"
+                required
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500/60 focus:outline-none transition-colors"
+                className="field-control"
                 placeholder="tu@email.com"
               />
             </div>
@@ -67,13 +76,19 @@ export default function Login() {
               id="login-password"
             />
             <div className="flex justify-end">
-              <Link to="/olvide-contrasena" className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors">
+              <Link
+                to="/olvide-contrasena"
+                className="inline-flex min-h-11 items-center text-xs text-coffee-500 transition-colors hover:text-gold-500 dark:text-coffee-400 dark:hover:text-gold-400"
+              >
                 Olvidé mi contraseña
               </Link>
             </div>
             {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button type="submit" disabled={loading}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {loading ? 'Verificando...' : 'Entrar'}
             </button>
           </form>

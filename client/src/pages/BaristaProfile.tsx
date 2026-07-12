@@ -120,7 +120,7 @@ export default function BaristaProfile() {
   const xpToNext = 100 - xpInCurrentLevel;
 
   return (
-    <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 pb-24">
+    <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
       <PageMeta
         title={`Perfil de ${currentUser?.name || 'Barista'}`}
         description="Nivel barista, experiencia y logros."
@@ -158,7 +158,7 @@ export default function BaristaProfile() {
           {/* Name + Level + XP */}
           <div className="flex-1 min-w-0 pb-1">
             {profile.user && (
-              <p className="font-serif text-xl md:text-2xl text-coffee-900 dark:text-cream truncate">
+              <p className="line-clamp-2 break-words font-serif text-xl leading-tight text-coffee-900 dark:text-cream md:text-2xl">
                 {profile.user.name}
               </p>
             )}
@@ -199,7 +199,7 @@ export default function BaristaProfile() {
                       text: `Mira el perfil barista de ${profile.user!.name} en 12% Café`,
                     })
                   }
-                  className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full border border-coffee-300 dark:border-coffee-600 text-coffee-600 dark:text-coffee-400 hover:bg-coffee-100 dark:hover:bg-coffee-800 transition-colors"
+                  className="inline-flex min-h-11 items-center gap-1 rounded-full border border-coffee-300 px-4 text-xs text-coffee-600 transition-colors hover:bg-coffee-100 dark:border-coffee-600 dark:text-coffee-400 dark:hover:bg-coffee-800"
                   aria-label="Compartir perfil"
                 >
                   <Share2 className="w-3.5 h-3.5" />
@@ -229,7 +229,7 @@ export default function BaristaProfile() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
           {[
             {
               icon: <Trophy className="w-5 h-5 text-gold-500" />,
@@ -249,11 +249,13 @@ export default function BaristaProfile() {
           ].map(({ icon, label, value }) => (
             <div
               key={label}
-              className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 text-center"
+              className={`border border-coffee-200 bg-white p-4 text-center dark:border-coffee-800 dark:bg-coffee-900 ${label === 'Nivel' ? 'col-span-2 sm:col-span-1' : ''}`}
             >
               <div className="flex justify-center mb-2">{icon}</div>
               <p className="text-xs text-coffee-500 uppercase mb-1">{label}</p>
-              <p className="text-2xl font-bold text-coffee-900 dark:text-cream">{value}</p>
+              <p className="text-xl font-bold text-coffee-900 dark:text-cream sm:text-2xl">
+                {value}
+              </p>
             </div>
           ))}
         </div>

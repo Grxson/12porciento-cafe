@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, ShoppingBag, Plus, Minus, Trash2, Package } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import type { CartItemFull } from '../types';
@@ -25,7 +25,7 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
     >
       <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight truncate">
+        <p className="line-clamp-2 text-sm font-medium leading-tight text-coffee-900 dark:text-cream">
           {product.name}
         </p>
         {product.weight && (
@@ -67,7 +67,7 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
         <button
           onClick={() => removeItem(key)}
           aria-label="Eliminar producto"
-          className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors"
+          className="flex h-11 w-11 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -118,7 +118,7 @@ function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' 
         <button
           onClick={() => removeItem(key)}
           aria-label="Eliminar producto"
-          className="flex w-10 h-10 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors"
+          className="flex h-11 w-11 items-center justify-center text-coffee-400 dark:text-coffee-300 hover:text-red-400 transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -133,6 +133,9 @@ function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' 
 export default function CartDrawer() {
   const { items, drawerOpen, closeDrawer, total } = useCart();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const reduceMotion = useReducedMotion();
   const { pathname } = useLocation();
 
   // Close drawer on route change — only for non-cart-related navigation
@@ -147,18 +150,40 @@ export default function CartDrawer() {
     }
   }, [pathname]);
 
-  // Focus trap: focus close button when drawer opens
   useEffect(() => {
-    if (drawerOpen && closeButtonRef.current) {
-      closeButtonRef.current.focus();
-    }
-  }, [drawerOpen]);
+    if (!drawerOpen) return;
+    openerRef.current = document.activeElement as HTMLElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => closeButtonRef.current?.focus());
 
-  // Lock body scroll when drawer open
-  useEffect(() => {
-    document.body.style.overflow = drawerOpen ? 'hidden' : '';
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeDrawer();
+        return;
+      }
+      if (event.key !== 'Tab' || !drawerRef.current) return;
+      const focusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      openerRef.current?.focus();
     };
   }, [drawerOpen]);
 
@@ -167,6 +192,7 @@ export default function CartDrawer() {
       {drawerOpen && (
         <>
           <motion.div
+            aria-hidden="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -174,16 +200,26 @@ export default function CartDrawer() {
             className="fixed inset-0 bg-coffee-950/60 backdrop-blur-sm z-40"
           />
           <motion.div
-            initial={{ x: '100%' }}
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cart-drawer-title"
+            initial={reduceMotion ? false : { x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-white dark:bg-coffee-900 shadow-2xl flex flex-col"
+            transition={
+              reduceMotion ? { duration: 0 } : { type: 'spring', damping: 28, stiffness: 300 }
+            }
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-white shadow-2xl dark:bg-coffee-900"
+            style={{ paddingTop: 'var(--app-safe-top)', paddingRight: 'var(--app-safe-right)' }}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-coffee-200 dark:border-coffee-700">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-gold-500" />
-                <span className="font-serif text-lg text-coffee-900 dark:text-cream">
+                <span
+                  id="cart-drawer-title"
+                  className="font-serif text-lg text-coffee-900 dark:text-cream"
+                >
                   Tu carrito
                 </span>
                 {items.length > 0 && (
@@ -196,7 +232,7 @@ export default function CartDrawer() {
                 ref={closeButtonRef}
                 onClick={closeDrawer}
                 aria-label="Cerrar carrito"
-                className="text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+                className="icon-button text-coffee-400 hover:text-coffee-900 dark:hover:text-cream"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -232,7 +268,7 @@ export default function CartDrawer() {
             {items.length > 0 && (
               <div
                 className="px-5 pt-4 border-t border-coffee-200 dark:border-coffee-700 bg-coffee-50 dark:bg-coffee-800"
-                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+                style={{ paddingBottom: 'calc(var(--app-safe-bottom) + 1rem)' }}
               >
                 <div className="flex justify-between mb-4">
                   <span className="text-coffee-700 dark:text-coffee-300 font-medium">Subtotal</span>

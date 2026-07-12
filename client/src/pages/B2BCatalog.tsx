@@ -261,27 +261,45 @@ export default function B2BCatalog() {
                           {p.description}
                         </p>
                         {p.b2bPriceTiers.length > 0 && (
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="text-xs text-coffee-500 dark:text-cream/50 text-left">
-                                <th className="pb-1.5 font-medium">Cantidad</th>
-                                <th className="pb-1.5 font-medium">Precio por unidad</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-coffee-100 dark:divide-coffee-700">
+                          <>
+                            <table className="hidden md:table w-full text-sm">
+                              <thead>
+                                <tr className="text-xs text-coffee-500 dark:text-cream/50 text-left">
+                                  <th className="pb-1.5 font-medium">Cantidad</th>
+                                  <th className="pb-1.5 font-medium">Precio por unidad</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-coffee-100 dark:divide-coffee-700">
+                                {p.b2bPriceTiers.map((tier) => (
+                                  <tr key={tier.id}>
+                                    <td className="py-1.5 text-coffee-900 dark:text-cream">
+                                      {tier.minQty}
+                                      {tier.maxQty ? `–${tier.maxQty}` : '+'} uds
+                                    </td>
+                                    <td className="py-1.5 text-coffee-900 dark:text-cream font-medium">
+                                      ${tier.pricePerUnit.toFixed(2)} MXN
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            <div className="md:hidden space-y-2">
                               {p.b2bPriceTiers.map((tier) => (
-                                <tr key={tier.id}>
-                                  <td className="py-1.5 text-coffee-900 dark:text-cream">
+                                <div
+                                  key={tier.id}
+                                  className="flex items-center justify-between gap-2 bg-white dark:bg-coffee-900 border border-coffee-100 dark:border-coffee-700 px-3 py-2.5"
+                                >
+                                  <span className="text-sm text-coffee-600 dark:text-cream/70 truncate">
                                     {tier.minQty}
                                     {tier.maxQty ? `–${tier.maxQty}` : '+'} uds
-                                  </td>
-                                  <td className="py-1.5 text-coffee-900 dark:text-cream font-medium">
+                                  </span>
+                                  <span className="text-sm font-medium text-coffee-900 dark:text-cream shrink-0">
                                     ${tier.pricePerUnit.toFixed(2)} MXN
-                                  </td>
-                                </tr>
+                                  </span>
+                                </div>
                               ))}
-                            </tbody>
-                          </table>
+                            </div>
+                          </>
                         )}
                         <button
                           onClick={openForm}

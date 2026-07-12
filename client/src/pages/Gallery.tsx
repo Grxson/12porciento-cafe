@@ -28,7 +28,8 @@ export default function Gallery() {
   const fetchImages = () => {
     setLoading(true);
     setError(false);
-    api.get<GalleryResponse>('/products/gallery')
+    api
+      .get<GalleryResponse>('/products/gallery')
       .then((r) => {
         setImages(r.data.images ?? []);
         setLoading(false);
@@ -44,7 +45,7 @@ export default function Gallery() {
   }, []);
 
   return (
-    <div className="min-h-screen pt-24 pb-24 bg-coffee-50 dark:bg-coffee-950">
+    <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
       <PageMeta
         title="Galería"
         description="Imágenes de nuestros cafés de especialidad, fincas y procesos."
@@ -58,7 +59,7 @@ export default function Gallery() {
             transition={{ duration: 0.5 }}
           >
             <div className="gold-line mb-4" />
-            <h1 className="font-serif text-5xl md:text-6xl text-coffee-900 dark:text-cream mb-2">
+            <h1 className="mb-2 font-serif text-4xl text-coffee-900 dark:text-cream sm:text-5xl md:text-6xl">
               Galería
             </h1>
             <p className="text-coffee-600 dark:text-coffee-400 text-sm tracking-wide">
@@ -73,12 +74,10 @@ export default function Gallery() {
 
         {error && (
           <div className="text-center py-24">
-            <p className="font-serif text-2xl text-coffee-400 mb-3">
-              Error al cargar la galería
-            </p>
+            <p className="font-serif text-2xl text-coffee-400 mb-3">Error al cargar la galería</p>
             <button
               onClick={fetchImages}
-              className="inline-flex items-center gap-2 text-sm text-gold-500 hover:text-gold-400 transition-colors"
+              className="inline-flex min-h-12 items-center gap-2 px-4 text-sm text-gold-500 transition-colors hover:text-gold-400"
             >
               <RefreshCw className="w-4 h-4" />
               Intentar de nuevo
@@ -88,40 +87,36 @@ export default function Gallery() {
 
         {!loading && !error && images.length === 0 && (
           <div className="text-center py-24">
-            <p className="font-serif text-2xl text-coffee-400">
-              No hay imágenes disponibles
-            </p>
+            <p className="font-serif text-2xl text-coffee-400">No hay imágenes disponibles</p>
           </div>
         )}
 
         {!loading && !error && images.length > 0 && (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {images.map((img, i) => (
               <div
                 key={img.id}
-                className="break-inside-avoid mb-4 bg-coffee-100 dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-800 overflow-hidden group min-h-[180px]"
+                className="group overflow-hidden border border-coffee-200 bg-coffee-100 dark:border-coffee-800 dark:bg-coffee-800"
               >
                 <button
                   onClick={() => setLightboxIndex(i)}
-                  className="relative w-full block overflow-hidden cursor-pointer"
+                  className="relative block aspect-[4/3] min-h-11 w-full cursor-pointer overflow-hidden"
                   aria-label={`Ver imagen: ${img.alt || img.productName}`}
                 >
                   <img
                     src={img.url}
                     alt={img.alt || img.productName}
-                    className="w-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                    <span className="text-white text-sm font-medium">
-                      {img.productName}
-                    </span>
+                  <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 opacity-60 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100">
+                    <span className="text-white text-sm font-medium">{img.productName}</span>
                   </div>
                 </button>
                 <div className="p-3">
                   <Link
                     to={`/tienda/${img.productSlug}`}
-                    className="text-sm text-coffee-900 dark:text-cream hover:text-gold-500 dark:hover:text-gold-400 transition-colors"
+                    className="inline-flex min-h-11 items-center text-sm text-coffee-900 transition-colors hover:text-gold-500 dark:text-cream dark:hover:text-gold-400"
                   >
                     {img.productName}
                   </Link>

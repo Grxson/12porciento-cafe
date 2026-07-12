@@ -1,16 +1,14 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Store, Package, ShoppingBag, Building2, User, BookOpen, Heart } from 'lucide-react';
+import { Store, ShoppingBag, User, BookOpen, Users } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
 const tabs = [
   { to: '/tienda', label: 'Tienda', icon: Store },
   { to: '/recetas', label: 'Recetas', icon: BookOpen },
-  { to: '/paquetes', label: 'Paquetes', icon: Package },
   { to: '/carrito', label: 'Carrito', icon: ShoppingBag, badge: true },
-  { to: '/b2b', label: 'Empresas', icon: Building2 },
+  { to: '/feed', label: 'Comunidad', icon: Users, gated: true },
   { to: '/perfil', label: 'Perfil', icon: User },
-  { to: '/perfil/lista-deseos', label: 'Deseos', icon: Heart },
 ];
 
 export default function BottomNav() {
@@ -18,19 +16,21 @@ export default function BottomNav() {
   const user = useUser((s) => s.user);
   const { pathname } = useLocation();
 
-  const gatedRoutes = ['/perfil', '/perfil/lista-deseos'];
-  const resolveTo = (to: string) => (gatedRoutes.includes(to) && !user ? '/login' : to);
+  const resolveTo = (to: string, gated?: boolean) => (gated && !user ? '/login' : to);
 
   return (
     <nav
       aria-label="Navegación móvil"
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-coffee-950/95 backdrop-blur-sm border-t border-coffee-200 dark:border-coffee-800"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      style={{ paddingBottom: 'var(--app-safe-bottom)' }}
     >
-      <div className="grid grid-cols-7 overflow-hidden">
-        {tabs.map(({ to, label, icon: Icon, badge }) => {
-          const target = resolveTo(to);
-          const active = pathname === to || pathname.startsWith(to + '/');
+      <div
+        className="grid grid-cols-5"
+        style={{ paddingLeft: 'var(--app-safe-left)', paddingRight: 'var(--app-safe-right)' }}
+      >
+        {tabs.map(({ to, label, icon: Icon, badge, gated }) => {
+          const target = resolveTo(to, gated);
+          const active = pathname === to || (to !== '/carrito' && pathname.startsWith(to + '/'));
           const isCart = badge;
           return (
             <NavLink
@@ -43,7 +43,7 @@ export default function BottomNav() {
                     : 'Carrito'
                   : undefined
               }
-              className={`relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-xs tracking-wide transition-colors ${
+              className={`relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[11px] tracking-wide transition-colors ${
                 active ? 'text-gold-500' : 'text-coffee-500 dark:text-coffee-400'
               }`}
             >
@@ -55,7 +55,7 @@ export default function BottomNav() {
                   </span>
                 )}
               </span>
-              {label}
+              <span className="max-w-full truncate">{label}</span>
             </NavLink>
           );
         })}

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   Check,
   X,
@@ -164,10 +164,49 @@ export default function Subscriptions() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showB2BConfirm, setShowB2BConfirm] = useState(false);
+  const confirmDialogRef = useRef<HTMLDivElement>(null);
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
+  const confirmOpenerRef = useRef<HTMLElement | null>(null);
+  const reduceMotion = useReducedMotion();
   const [error, setError] = useState('');
   const [isUpgrade, setIsUpgrade] = useState(false);
 
   const hasAddress = !!(user?.address && user?.city && user?.state && user?.zipCode);
+
+  useEffect(() => {
+    if (!showB2BConfirm) return;
+    confirmOpenerRef.current = document.activeElement as HTMLElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => confirmButtonRef.current?.focus());
+    const close = () => setShowB2BConfirm(false);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        close();
+        return;
+      }
+      if (event.key !== 'Tab' || !confirmDialogRef.current) return;
+      const focusable = Array.from(
+        confirmDialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]'),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      confirmOpenerRef.current?.focus();
+    };
+  }, [showB2BConfirm]);
 
   useEffect(() => {
     if (hasSubscription) {
@@ -293,7 +332,6 @@ export default function Subscriptions() {
   };
 
   const stepLabels = ['Elige tu plan', 'Tus cafés', 'Tus datos', 'Método de pago'];
-  const stepShortLabels = ['Plan', 'Cafés', 'Datos', 'Pago'];
 
   if (success) {
     return (
@@ -339,13 +377,13 @@ export default function Subscriptions() {
   }
 
   return (
-    <div className="bg-coffee-50 dark:bg-coffee-950 pt-20 min-h-screen">
+    <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
       <PageMeta
         title="Suscripciones"
         description="Recibe café de especialidad cada mes. Personaliza tu dosis y frecuencia."
       />
       {/* Hero */}
-      <div className="bg-coffee-100 dark:bg-coffee-900 border-b border-coffee-200 dark:border-coffee-800 py-12">
+      <div className="border-b border-coffee-200 bg-coffee-100 py-8 dark:border-coffee-800 dark:bg-coffee-900 sm:py-12">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -378,8 +416,22 @@ export default function Subscriptions() {
       </div>
 
       {/* Step indicator */}
-      <div className="max-w-xl mx-auto px-4 pt-10 pb-4">
-        <div className="flex items-center">
+      <div className="mx-auto max-w-xl px-4 pb-4 pt-6 sm:pt-10">
+        <div className="sm:hidden" aria-current="step">
+          <div className="mb-2 flex items-center justify-between text-xs">
+            <span className="font-semibold uppercase tracking-wider text-gold-600">
+              Paso {step} de 4
+            </span>
+            <span className="text-coffee-500">{stepLabels[step - 1]}</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-coffee-200 dark:bg-coffee-800">
+            <div
+              className="h-full bg-gold-500 transition-all"
+              style={{ width: `${(step / 4) * 100}%` }}
+            />
+          </div>
+        </div>
+        <div className="hidden items-center sm:flex">
           {stepLabels.map((label, i) => {
             const n = (i + 1) as Step;
             return (
@@ -400,11 +452,6 @@ export default function Subscriptions() {
                     className={`hidden sm:inline text-xs transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}
                   >
                     {label}
-                  </span>
-                  <span
-                    className={`sm:hidden text-xs leading-tight transition-colors ${step === n ? 'text-coffee-900 dark:text-cream' : 'text-coffee-500 dark:text-coffee-600'}`}
-                  >
-                    {stepShortLabels[i]}
                   </span>
                 </div>
                 {i < stepLabels.length - 1 && (
@@ -877,6 +924,10 @@ export default function Subscriptions() {
                         <input
                           name={name}
                           type={type}
+                          autoComplete={
+                            name === 'name' ? 'name' : name === 'email' ? 'email' : 'tel'
+                          }
+                          inputMode={name === 'phone' ? 'tel' : undefined}
                           required={required}
                           placeholder={placeholder}
                           value={form[name as keyof FormData]}
@@ -898,6 +949,7 @@ export default function Subscriptions() {
                           </label>
                           <input
                             name="address"
+                            autoComplete="street-address"
                             required
                             value={form.address}
                             onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
@@ -912,6 +964,7 @@ export default function Subscriptions() {
                             </label>
                             <input
                               name="city"
+                              autoComplete="address-level2"
                               required
                               value={form.city}
                               onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
@@ -925,6 +978,7 @@ export default function Subscriptions() {
                             </label>
                             <select
                               name="state"
+                              autoComplete="address-level1"
                               required
                               value={form.state}
                               onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
@@ -944,6 +998,10 @@ export default function Subscriptions() {
                             </label>
                             <input
                               name="zipCode"
+                              inputMode="numeric"
+                              autoComplete="postal-code"
+                              maxLength={5}
+                              pattern="[0-9]{5}"
                               required
                               value={form.zipCode}
                               onChange={(e) => setForm((f) => ({ ...f, zipCode: e.target.value }))}
@@ -1098,20 +1156,36 @@ export default function Subscriptions() {
         {/* B2B Confirmation Modal */}
         {showB2BConfirm && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={() => setShowB2BConfirm(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              ref={confirmDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="b2b-confirm-title"
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="max-w-md w-full bg-white dark:bg-coffee-900 border border-gold-500/30 p-8 text-center"
+              onClick={(event) => event.stopPropagation()}
+              className="relative max-h-[calc(100dvh-var(--app-safe-top)-var(--app-safe-bottom)-2rem)] w-full max-w-md overflow-y-auto border border-gold-500/30 bg-white p-5 text-center dark:bg-coffee-900 sm:p-8"
             >
+              <button
+                onClick={() => setShowB2BConfirm(false)}
+                className="icon-button absolute right-2 top-2 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream"
+                aria-label="Cerrar confirmación"
+              >
+                <X className="h-5 w-5" />
+              </button>
               <div className="w-16 h-16 border-2 border-gold-500 flex items-center justify-center mx-auto mb-6">
                 <Check className="w-8 h-8 text-gold-500" />
               </div>
-              <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3">
+              <h2
+                id="b2b-confirm-title"
+                className="font-serif text-3xl text-coffee-900 dark:text-cream mb-3"
+              >
                 ¡Solicitud enviada!
               </h2>
               <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed mb-6">
@@ -1119,6 +1193,7 @@ export default function Subscriptions() {
                 diseñar tu plan personalizado.
               </p>
               <button
+                ref={confirmButtonRef}
                 onClick={() => {
                   setShowB2BConfirm(false);
                   goToStep(1);

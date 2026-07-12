@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Star, Upload, ChevronDown, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useBarista } from '../hooks/useBarista';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
@@ -26,6 +26,11 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const objectUrlRef = useRef<string | null>(null);
+  const formDialogRef = useRef<HTMLFormElement>(null);
+  const loginDialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const reduceMotion = useReducedMotion();
 
   // Technical params state
   const [showTechnical, setShowTechnical] = useState(false);
@@ -79,6 +84,42 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    openerRef.current = document.activeElement as HTMLElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => closeRef.current?.focus());
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      const dialog = formDialogRef.current ?? loginDialogRef.current;
+      if (event.key !== 'Tab' || !dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      openerRef.current?.focus();
+    };
+  }, [onClose]);
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -141,14 +182,23 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
   if (!user) {
     return (
       <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
-        <div className="bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-6 max-w-sm w-full">
-          <h3 className="text-coffee-900 dark:text-cream font-serif text-lg mb-3">
+        <div
+          ref={loginDialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="brew-login-title"
+          className="bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-6 max-w-sm w-full"
+        >
+          <h3
+            id="brew-login-title"
+            className="text-coffee-900 dark:text-cream font-serif text-lg mb-3"
+          >
             Inicia sesión para registrar tu brew
           </h3>
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">
             Necesitas una cuenta para guardar tus brews y ganar XP.
           </p>
-          <button onClick={onClose} className="btn-primary w-full">
+          <button ref={closeRef} onClick={onClose} className="btn-primary w-full">
             Cerrar
           </button>
         </div>
@@ -158,27 +208,34 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <motion.form
-        initial={{ scale: 0.95, opacity: 0 }}
+        ref={formDialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="brew-log-title"
+        initial={reduceMotion ? false : { scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         onClick={(e) => e.stopPropagation()}
         onSubmit={handleSubmit}
-        className="bg-coffee-100 dark:bg-coffee-900 border border-gold-500/30 p-6 max-w-md w-full max-h-[min(90vh,calc(100dvh-8rem))] overflow-y-auto overscroll-contain"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)' }}
+        className="max-h-[calc(100dvh-var(--app-safe-top)-var(--app-safe-bottom)-1rem)] w-full max-w-md overflow-y-auto overscroll-contain border border-gold-500/30 bg-coffee-100 p-5 dark:bg-coffee-900 sm:p-6"
+        style={{ paddingBottom: 'calc(var(--app-safe-bottom) + 1rem)' }}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-coffee-900 dark:text-cream font-serif text-lg">Registrar Brew</h3>
+        <div className="sticky top-0 z-10 -mx-2 mb-4 flex items-center justify-between bg-coffee-100 px-2 py-2 dark:bg-coffee-900">
+          <h3 id="brew-log-title" className="text-coffee-900 dark:text-cream font-serif text-lg">
+            Registrar Brew
+          </h3>
           <button
             type="button"
+            ref={closeRef}
             onClick={onClose}
             aria-label="Cerrar formulario"
-            className="p-1 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            className="icon-button text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream"
           >
             <X className="w-5 h-5" />
           </button>
@@ -200,14 +257,15 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
           <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-2">
             Calificación
           </label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="grid grid-cols-5 gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
               <button
                 key={r}
                 type="button"
                 onClick={() => setRating(r)}
-                aria-label={`${r} estrellas`}
-                className={`transition-colors ${r <= rating ? 'text-gold-400' : 'text-coffee-600 hover:text-gold-300'}`}
+                aria-label={`Calificación ${r} de 10`}
+                aria-pressed={rating === r}
+                className={`flex min-h-11 min-w-11 items-center justify-center transition-colors ${r <= rating ? 'text-gold-400' : 'text-coffee-600 hover:text-gold-300'}`}
               >
                 <Star className="w-5 h-5 fill-current" />
               </button>
@@ -226,7 +284,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
             maxLength={500}
             rows={3}
             placeholder="Describe tu experiencia..."
-            className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none resize-none"
+            className="field-control min-h-24 resize-none"
           />
           <p className="text-xs text-coffee-600 mt-1 text-right">{notes.length}/500</p>
         </div>
@@ -250,13 +308,13 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   setPhotoUrl('');
                 }}
                 aria-label="Eliminar foto"
-                className="absolute top-1 right-1 p-1 bg-red-600/80 text-white rounded"
+                className="absolute right-1 top-1 flex min-h-11 min-w-11 items-center justify-center rounded bg-red-600/80 text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
-            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-200 dark:border-coffee-700 p-4 rounded cursor-pointer hover:border-gold-500 transition-colors">
+            <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded border-2 border-dashed border-coffee-200 p-4 transition-colors hover:border-gold-500 dark:border-coffee-700">
               <Upload className="w-4 h-4 text-coffee-500" />
               <span className="text-xs text-coffee-600 dark:text-coffee-400">Subir foto</span>
               <input
@@ -275,7 +333,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
           <button
             type="button"
             onClick={() => setShowTechnical(!showTechnical)}
-            className="flex items-center gap-2 text-xs text-coffee-500 uppercase tracking-wider mb-2 w-full text-left hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
+            className="flex min-h-11 w-full items-center gap-2 text-left text-xs uppercase tracking-wider text-coffee-500 transition-colors hover:text-coffee-700 dark:hover:text-coffee-300"
           >
             {showTechnical ? (
               <ChevronDown className="w-3.5 h-3.5" />
@@ -294,7 +352,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 <select
                   value={grindSize}
                   onChange={(e) => setGrindSize(e.target.value)}
-                  className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
+                  className="field-control"
                 >
                   <option value="">Seleccionar</option>
                   {GRIND_OPTIONS.map((g) => (
@@ -317,7 +375,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   min={0}
                   max={110}
                   placeholder="93"
-                  className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
+                  className="field-control"
                 />
               </div>
 
@@ -333,7 +391,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   min={1}
                   max={3600}
                   placeholder="180"
-                  className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
+                  className="field-control"
                 />
               </div>
 
@@ -349,7 +407,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   min={1}
                   max={100}
                   placeholder="15"
-                  className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
+                  className="field-control"
                 />
               </div>
 
@@ -365,7 +423,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   min={1}
                   max={2000}
                   placeholder="250"
-                  className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
+                  className="field-control"
                 />
               </div>
 
@@ -381,7 +439,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   {equipmentList?.map((eq) => (
                     <label
                       key={eq.id}
-                      className="flex items-center gap-2 cursor-pointer text-sm text-coffee-900 dark:text-cream"
+                      className="flex min-h-11 cursor-pointer items-center gap-3 px-2 text-sm text-coffee-900 dark:text-cream"
                     >
                       <input
                         type="checkbox"
@@ -411,7 +469,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                         type="button"
                         onClick={() => !atMax && toggleFlavorTag(tag)}
                         disabled={atMax}
-                        className={`text-xs px-2 py-1 border transition-colors ${
+                        className={`min-h-11 px-3 py-2 text-xs border transition-colors ${
                           selected
                             ? 'bg-gold-500/20 border-gold-500 text-gold-400'
                             : atMax
@@ -429,22 +487,22 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
           )}
         </div>
 
-        {/* XP preview */}
-        <div className="bg-gold-500/10 border border-gold-500/20 p-3 mb-5 text-xs text-gold-400 rounded">
-          Ganarás <span className="font-bold">+{xpPreview} XP</span> por este brew
+        <div className="sticky bottom-0 z-10 -mx-2 bg-coffee-100 px-2 pb-1 pt-3 dark:bg-coffee-900">
+          <div className="mb-3 rounded border border-gold-500/20 bg-gold-500/10 p-3 text-xs text-gold-500">
+            Ganarás <span className="font-bold">+{xpPreview} XP</span> por este brew
+          </div>
+          <button
+            type="submit"
+            disabled={submitting || uploading}
+            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {uploading
+              ? 'Subiendo foto...'
+              : submitting
+                ? 'Registrando...'
+                : `Registrar Brew (+${xpPreview} XP)`}
+          </button>
         </div>
-
-        <button
-          type="submit"
-          disabled={submitting || uploading}
-          className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {uploading
-            ? 'Subiendo foto...'
-            : submitting
-              ? 'Registrando...'
-              : `Registrar Brew (+${xpPreview} XP)`}
-        </button>
       </motion.form>
     </motion.div>
   );

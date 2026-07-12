@@ -40,10 +40,28 @@ import { getApiError } from '../lib/api-error';
 
 type Tab = 'info' | 'ficha' | 'recipes' | 'reviews';
 
+type VerifiedCertification = {
+  certificateId?: string | null;
+  evidenceUrl?: string | null;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  certification: {
+    slug: string;
+    name: string;
+    issuer: string;
+    description?: string | null;
+    websiteUrl?: string | null;
+  };
+};
+
+type DetailedProduct = Product & {
+  productCertifications?: VerifiedCertification[];
+};
+
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -698,6 +716,54 @@ export default function ProductDetail() {
                         </div>
                       </div>
 
+                      {product.productCertifications &&
+                        product.productCertifications.length > 0 && (
+                          <div className="mt-6 border border-coffee-200 bg-white p-6 dark:border-coffee-700 dark:bg-coffee-900">
+                            <div className="mb-4 flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              <p className="text-xs uppercase tracking-widest text-coffee-700 dark:text-coffee-300">
+                                Certificaciones verificadas
+                              </p>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              {product.productCertifications.map((record) => (
+                                <div
+                                  key={record.certification.slug}
+                                  className="border-l-2 border-green-600 pl-4 dark:border-green-400"
+                                >
+                                  <p className="font-serif text-lg text-coffee-900 dark:text-cream">
+                                    {record.certification.name}
+                                  </p>
+                                  <p className="text-xs text-coffee-500 dark:text-coffee-400">
+                                    Emitida por {record.certification.issuer}
+                                  </p>
+                                  {record.certificateId && (
+                                    <p className="mt-1 text-xs text-coffee-600 dark:text-coffee-300">
+                                      Certificado: {record.certificateId}
+                                    </p>
+                                  )}
+                                  {record.validUntil && (
+                                    <p className="mt-1 text-xs text-coffee-500 dark:text-coffee-400">
+                                      Vigente hasta{' '}
+                                      {new Date(record.validUntil).toLocaleDateString('es-MX')}
+                                    </p>
+                                  )}
+                                  {record.evidenceUrl && (
+                                    <a
+                                      href={record.evidenceUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="mt-2 inline-flex items-center gap-1 text-xs text-gold-600 hover:text-gold-500"
+                                    >
+                                      <Globe className="h-3.5 w-3.5" /> Ver evidencia
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                       {/* Tasting notes */}
                       {product.flavors.length > 0 && (
                         <div className="mt-6 bg-coffee-900 dark:bg-coffee-950 p-6">
@@ -733,7 +799,7 @@ export default function ProductDetail() {
                             </span>
                           </div>
                           <span className="font-medium text-coffee-900 dark:text-cream">
-                            {product.weight}g · Grano entero o molido
+                            {product.weight}g · Grano entero
                           </span>
                         </div>
                       )}

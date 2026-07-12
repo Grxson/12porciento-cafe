@@ -126,17 +126,32 @@ const parseProduct = (p: Record<string, unknown>) => ({
 
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { process, roast, limited, limit, category, sort, search, flavors, page, pageSize } =
-      req.query;
+    const {
+      process,
+      roast,
+      limited,
+      limit,
+      category,
+      sort,
+      search,
+      flavors,
+      page,
+      pageSize,
+      body,
+      acidity,
+      brewMethod,
+      certifications,
+    } = req.query;
     const where: Prisma.ProductWhereInput = { isActive: true };
+    const andConditions: Prisma.ProductWhereInput[] = [];
     if (process) where.process = process as string;
     if (roast) where.roastLevel = roast as string;
     if (limited === 'true') where.isLimited = true;
     if (category && category !== 'TODOS') where.category = category as string;
     if (search) {
       where.OR = [
-        { name: { contains: search as string } },
-        { description: { contains: search as string } },
+        { name: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } },
       ];
     }
     if (flavors) {
@@ -146,14 +161,65 @@ router.get('/', async (req: Request, res: Response) => {
         .filter(Boolean);
       if (flavorArray.length > 0) {
         const flavorConditions = flavorArray.map((f) => ({ flavors: { contains: f } }));
-        if (where.OR) {
-          where.AND = [{ OR: where.OR }, { OR: flavorConditions }];
-          delete where.OR;
-        } else {
-          where.OR = flavorConditions;
-        }
+        andConditions.push({ OR: flavorConditions });
       }
     }
+    if (body && typeof body === 'string') {
+      const aliases: Record<string, string[]> = {
+        Ligero: ['Ligero', 'Sedoso'],
+        Medio: ['Medio', 'Balanceado'],
+        Completo: ['Completo', 'Robusto', 'Alto'],
+      };
+      const values = aliases[body] ?? [body];
+      andConditions.push({
+        OR: values.map((value) => ({ body: { contains: value, mode: 'insensitive' } })),
+      });
+    }
+    if (acidity && typeof acidity === 'string') {
+      const aliases: Record<string, string[]> = {
+        Baja: ['Baja', 'Suave'],
+        Media: ['Media', 'Balanceada'],
+        Alta: ['Alta', 'Brillante'],
+      };
+      const values = aliases[acidity] ?? [acidity];
+      andConditions.push({
+        OR: values.map((value) => ({ acidity: { contains: value, mode: 'insensitive' } })),
+      });
+    }
+    if (brewMethod && typeof brewMethod === 'string') {
+      andConditions.push({ recommendedBrewMethod: { contains: brewMethod, mode: 'insensitive' } });
+    }
+    if (certifications && typeof certifications === 'string') {
+      const values = certifications
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .slice(0, 10);
+      if (values.length > 0) {
+        andConditions.push({
+          productCertifications: {
+            some: {
+              isVerified: true,
+              OR: [{ validUntil: null }, { validUntil: { gte: new Date() } }],
+              certification: {
+                isActive: true,
+                OR: [
+                  { slug: { in: values, mode: 'insensitive' } },
+                  ...values.map((value) => ({
+                    name: { equals: value, mode: 'insensitive' as const },
+                  })),
+                ],
+              },
+            },
+          },
+        });
+      }
+    }
+    if (where.OR) {
+      andConditions.unshift({ OR: where.OR });
+      delete where.OR;
+    }
+    if (andConditions.length > 0) where.AND = andConditions;
 
     const orderBy: Prisma.ProductOrderByWithRelationInput =
       sort === 'sca'
@@ -276,6 +342,30 @@ router.get('/gallery', async (_req: Request, res: Response) => {
   }
 });
 
+router.get('/certifications', async (_req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const certifications = await prisma.certification.findMany({
+      where: {
+        isActive: true,
+        products: {
+          some: {
+            isVerified: true,
+            OR: [{ validUntil: null }, { validUntil: { gte: now } }],
+            product: { isActive: true },
+          },
+        },
+      },
+      select: { slug: true, name: true, issuer: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json({ data: certifications });
+  } catch (err) {
+    console.error('[products/certifications] Error:', err);
+    res.status(500).json({ error: 'Error al cargar certificaciones' });
+  }
+});
+
 // IMPORTANT: keep /:slug route after /gallery so 'gallery' is not caught as a slug param
 
 router.get('/:slug', async (req: Request, res: Response) => {
@@ -283,9 +373,34 @@ router.get('/:slug', async (req: Request, res: Response) => {
     const product = await prisma.product.findUnique({
       where: { slug: req.params.slug },
       include: {
+        productCertifications: {
+          where: {
+            isVerified: true,
+            OR: [{ validUntil: null }, { validUntil: { gte: new Date() } }],
+            certification: { isActive: true },
+          },
+          select: {
+            certificateId: true,
+            evidenceUrl: true,
+            validFrom: true,
+            validUntil: true,
+            certification: {
+              select: { slug: true, name: true, issuer: true, description: true, websiteUrl: true },
+            },
+          },
+        },
         versions: {
           where: { isActive: true },
-          include: { caficultor: { select: { nombre: true, region: true } } },
+          include: {
+            caficultor: { select: { nombre: true, region: true } },
+            lote: {
+              include: {
+                ubicacion: { select: { nombre: true, estado: true, pais: true } },
+                traceabilityEvents: { orderBy: [{ sortOrder: 'asc' }, { occurredAt: 'asc' }] },
+              },
+            },
+          },
+          orderBy: { version: 'desc' },
           take: 1,
         },
       },

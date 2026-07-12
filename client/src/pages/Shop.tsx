@@ -11,7 +11,7 @@ import {
   SearchX,
   WifiOff,
 } from 'lucide-react';
-import { productsApi } from '../api';
+import api, { productsApi } from '../api';
 import ProductCard from '../components/ProductCard';
 import type { Product } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -69,12 +69,29 @@ export default function Shop() {
   const [acidity, setAcidity] = useState('');
   const [brewMethod, setBrewMethod] = useState('');
   const [certifications, setCertifications] = useState<string[]>([]);
+  const [availableCertifications, setAvailableCertifications] = useState<
+    Array<{ slug: string; name: string; issuer: string }>
+  >([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const location = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    api
+      .get('/products/certifications')
+      .then((response) => setAvailableCertifications(response.data.data ?? []))
+      .catch((err) => console.error('[shop] certifications', err));
+  }, []);
+
+  const toggleCertification = (slug: string) => {
+    setCertifications((current) =>
+      current.includes(slug) ? current.filter((value) => value !== slug) : [...current, slug],
+    );
+    setPage(1);
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -384,6 +401,28 @@ export default function Shop() {
                     ))}
                   </div>
                 )}
+                {category === 'CAFÉ' && availableCertifications.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">
+                      Certificación
+                    </span>
+                    {availableCertifications.map((certification) => (
+                      <button
+                        key={certification.slug}
+                        onClick={() => toggleCertification(certification.slug)}
+                        aria-pressed={certifications.includes(certification.slug)}
+                        title={`Emitida por ${certification.issuer}`}
+                        className={`text-xs px-3 py-1 border transition-all duration-150 cursor-pointer ${
+                          certifications.includes(certification.slug)
+                            ? 'border-green-600 text-green-700 bg-green-500/10 font-medium dark:text-green-400'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-green-600'
+                        }`}
+                      >
+                        {certification.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-1.5 items-center">
                   <span className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mr-1">
@@ -688,6 +727,31 @@ export default function Shop() {
                           }`}
                         >
                           {v || 'Todo'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {category === 'CAFÉ' && availableCertifications.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      Certificación
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {availableCertifications.map((certification) => (
+                        <button
+                          key={certification.slug}
+                          onClick={() => toggleCertification(certification.slug)}
+                          aria-pressed={certifications.includes(certification.slug)}
+                          title={`Emitida por ${certification.issuer}`}
+                          className={`text-xs px-3 py-1.5 border transition-all duration-150 cursor-pointer ${
+                            certifications.includes(certification.slug)
+                              ? 'border-green-600 text-green-700 bg-green-500/10 font-medium dark:text-green-400'
+                              : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-300 hover:border-green-600'
+                          }`}
+                        >
+                          {certification.name}
                         </button>
                       ))}
                     </div>

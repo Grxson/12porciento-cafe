@@ -9,7 +9,10 @@
     "test:watch": "vitest",
     "db:setup": "npx prisma generate && npx prisma migrate dev --name init && npx tsx prisma/seed.ts",
     "db:seed": "npx tsx prisma/seed.ts",
-    "db:reset": "npx prisma migrate reset --force && npx ts-node prisma/seed.ts"
+    "db:reset": "npx prisma migrate reset --force && npx ts-node prisma/seed.ts",
+    "db:bootstrap:validate": "tsx prisma/bootstrap-production.ts --validate-only",
+    "db:bootstrap:dry": "tsx prisma/bootstrap-production.ts --dry-run",
+    "db:bootstrap": "tsx prisma/bootstrap-production.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",

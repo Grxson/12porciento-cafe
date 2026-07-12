@@ -8,32 +8,32 @@ datasource db {
 }
 
 model Product {
-  id          String      @id @default(cuid())
-  name        String
-  slug        String      @unique
-  category    String      @default("CAFÉ")
-  origin      String?
-  region      String?
-  altitude    Int?
-  variety     String?
-  process     String?
-  scaScore    Float?
-  roastLevel  String?
-  flavors     String?
-  images      String?
-  recipes     String?
-  price       Float
-  weight      Int?
-  stock       Int
-  lowStockThreshold Int    @default(10)
-  sku           String?  @unique
-  costPrice     Float?
-  supplier      String?
-  minOrderQty   Int?     @default(1)
-  imageUrl    String
-  description String
-  isLimited   Boolean     @default(false)
-  isActive    Boolean     @default(true)
+  id                    String                 @id @default(cuid())
+  name                  String
+  slug                  String                 @unique
+  category              String                 @default("CAFÉ")
+  origin                String?
+  region                String?
+  altitude              Int?
+  variety               String?
+  process               String?
+  scaScore              Float?
+  roastLevel            String?
+  flavors               String?
+  images                String?
+  recipes               String?
+  price                 Float
+  weight                Int?
+  stock                 Int
+  lowStockThreshold     Int                    @default(10)
+  sku                   String?                @unique
+  costPrice             Float?
+  supplier              String?
+  minOrderQty           Int?                   @default(1)
+  imageUrl              String
+  description           String
+  isLimited             Boolean                @default(false)
+  isActive              Boolean                @default(true)
   producer              String?
   farmName              String?
   harvestYear           Int?
@@ -47,43 +47,44 @@ model Product {
   grindSize             String?
   tastingNotes          String?
   pairingSuggestions    String?
-  isMemberExclusive     Boolean     @default(false)
+  isMemberExclusive     Boolean                @default(false)
   caficultorId          String?
-  caficultor            Caficultor? @relation(fields: [caficultorId], references: [id])
-  createdAt             DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  orderItems        OrderItem[]
-  bundleItems       BundleItem[]
-  reviews           Review[]
-  subscriptionItems SubscriptionItem[]
-  stockMovements    StockMovement[]
-  linkedRecipes Recipe[] @relation("productRecipes")
-  wishlistItems  WishlistItem[]
-  priceRecords   PriceRecord[]
-  lotes           Lote[]
-  pricingConfig  PricingConfig?
-  versions        ProductVersion[]
-  b2bPriceTiers B2BPriceTier[]
-  brewLogs      BrewLog[]      @relation("beanBrews")
+  caficultor            Caficultor?            @relation(fields: [caficultorId], references: [id])
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  orderItems            OrderItem[]
+  bundleItems           BundleItem[]
+  reviews               Review[]
+  subscriptionItems     SubscriptionItem[]
+  stockMovements        StockMovement[]
+  linkedRecipes         Recipe[]               @relation("productRecipes")
+  wishlistItems         WishlistItem[]
+  priceRecords          PriceRecord[]
+  lotes                 Lote[]
+  pricingConfig         PricingConfig?
+  versions              ProductVersion[]
+  productCertifications ProductCertification[]
+  b2bPriceTiers         B2BPriceTier[]
+  brewLogs              BrewLog[]              @relation("beanBrews")
 
   @@index([caficultorId])
 }
 
 model StockMovement {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   productId     String
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  type          String   // SALE | RESTOCK | ADJUSTMENT | LOSS | RETURN | INITIAL
-  quantity      Int      // positive = in, negative = out
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type          String // SALE | RESTOCK | ADJUSTMENT | LOSS | RETURN | INITIAL
+  quantity      Int // positive = in, negative = out
   previousStock Int
   newStock      Int
   notes         String?
   orderId       String?
-  unitCost    Float?
-  batchNumber String?
-  expiryDate  DateTime?
-  supplier    String?
-  createdAt     DateTime @default(now())
+  unitCost      Float?
+  batchNumber   String?
+  expiryDate    DateTime?
+  supplier      String?
+  createdAt     DateTime  @default(now())
 
   @@index([productId])
   @@index([type])
@@ -91,30 +92,30 @@ model StockMovement {
 }
 
 model Order {
-  id           String      @id @default(cuid())
-  customerName String
-  email        String
-  phone        String?
-  address      String
-  city         String
-  state        String
-  zipCode      String
-  total            Float
-  status           String      @default("PENDING")
-  notes            String?
-  trackingNumber   String?
-  carrier          String?
+  id                String      @id @default(cuid())
+  customerName      String
+  email             String
+  phone             String?
+  address           String
+  city              String
+  state             String
+  zipCode           String
+  total             Float
+  status            String      @default("PENDING")
+  notes             String?
+  trackingNumber    String?
+  carrier           String?
   estimatedDelivery DateTime?
-  userId           String?
-  paymentIntentId  String?     @unique
-  orderType     String   @default("D2C")
-  businessName  String?
-  rfc           String?
-  paymentTerms  String?
-  user             User?       @relation(fields: [userId], references: [id])
-  items            OrderItem[]
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  userId            String?
+  paymentIntentId   String?     @unique
+  orderType         String      @default("D2C")
+  businessName      String?
+  rfc               String?
+  paymentTerms      String?
+  user              User?       @relation(fields: [userId], references: [id])
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model OrderItem {
@@ -150,14 +151,14 @@ model Subscription {
 
   lastPaymentId     String?
   lastPaymentDate   DateTime?
-  failedAttempts    Int     @default(0)
+  failedAttempts    Int       @default(0)
   lastFailureReason String?
 
-  pausedAt      DateTime?
-  pausedUntil   DateTime?
-  pausedReason  String?
-  skipCount     Int      @default(0)   // how many billings skipped
-  maxSkips      Int      @default(0)   // 0 = unlimited
+  pausedAt     DateTime?
+  pausedUntil  DateTime?
+  pausedReason String?
+  skipCount    Int       @default(0) // how many billings skipped
+  maxSkips     Int       @default(0) // 0 = unlimited
 
   payments SubscriptionPayment[]
 }
@@ -192,17 +193,17 @@ model SubscriptionItem {
 }
 
 model Bundle {
-  id            String         @id @default(cuid())
-  name          String
-  description   String
-  basePrice     Float
-  discountPct   Int            @default(0)
-  finalPrice    Float
-  imageUrl      String?
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  items         BundleItem[]
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  basePrice   Float
+  discountPct Int          @default(0)
+  finalPrice  Float
+  imageUrl    String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  items       BundleItem[]
 }
 
 model BundleItem {
@@ -215,48 +216,48 @@ model BundleItem {
 }
 
 model Review {
-  id         String   @id @default(cuid())
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name       String
-  email      String
-  rating     Int
-  comment    String
-  isApproved    Boolean   @default(false)
+  id            String        @id @default(cuid())
+  productId     String
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String
+  email         String
+  rating        Int
+  comment       String
+  isApproved    Boolean       @default(false)
   adminResponse String?
   respondedAt   DateTime?
   userId        String?
-  user          User?     @relation(fields: [userId], references: [id])
+  user          User?         @relation(fields: [userId], references: [id])
   replies       ReviewReply[] @relation("replies")
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime      @default(now())
 }
 
 model Recipe {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
-  slug        String   @unique
+  slug        String  @unique
   description String?
   method      String
-  difficulty  String   @default("MEDIA")
+  difficulty  String  @default("MEDIA")
   prepTime    Int?
   yield       String?
   temp        String?
   grind       String?
   ratio       String?
   imageUrl    String?
-  isPremium   Boolean  @default(false)
-  isPublished Boolean  @default(false)
+  isPremium   Boolean @default(false)
+  isPublished Boolean @default(false)
 
-  productId   String?
-  product     Product? @relation("productRecipes", fields: [productId], references: [id], onDelete: SetNull)
+  productId String?
+  product   Product? @relation("productRecipes", fields: [productId], references: [id], onDelete: SetNull)
 
-  steps       RecipeStep[]
-  brewLogs    BrewLog[]
-  ratings     RecipeRating[]
-  favorites   RecipeFavorite[]
+  steps     RecipeStep[]
+  brewLogs  BrewLog[]
+  ratings   RecipeRating[]
+  favorites RecipeFavorite[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([productId])
   @@index([method])
@@ -287,8 +288,8 @@ model RecipeStep {
   videoUrl    String?
   duration    Int?
 
-  @@index([recipeId])
   @@unique([recipeId, order])
+  @@index([recipeId])
 }
 
 model ReviewReply {
@@ -311,15 +312,15 @@ model ReviewReply {
 }
 
 model PromoCode {
-  id          String    @id @default(cuid())
-  code        String    @unique
-  discount    Float
-  type        String    @default("PERCENT")
-  maxUses     Int?
-  usedCount   Int       @default(0)
-  expiresAt   DateTime?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
+  id        String    @id @default(cuid())
+  code      String    @unique
+  discount  Float
+  type      String    @default("PERCENT")
+  maxUses   Int?
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
 }
 
 model AdminUser {
@@ -335,10 +336,10 @@ model AdminLog {
   id        String     @id @default(cuid())
   adminId   String?
   admin     AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
-  action    String     // CREATE | UPDATE | DELETE | TOGGLE | APPROVE | STATUS_CHANGE | ADJUST
-  entity    String     // Product | Order | Subscription | PromoCode | Recipe | Review | Inventory
+  action    String // CREATE | UPDATE | DELETE | TOGGLE | APPROVE | STATUS_CHANGE | ADJUST
+  entity    String // Product | Order | Subscription | PromoCode | Recipe | Review | Inventory
   entityId  String?
-  metadata  String?    // JSON: { before, after, notes, ... }
+  metadata  String? // JSON: { before, after, notes, ... }
   createdAt DateTime   @default(now())
 
   @@index([adminId])
@@ -349,41 +350,41 @@ model AdminLog {
 }
 
 model User {
-  id                           String         @id @default(cuid())
-  name                         String
-  email                        String         @unique
-  password                     String
-  phone                        String?
-  address                      String?
-  city                         String?
-  state                        String?
-  zipCode                      String?
-  avatarUrl                    String?
-  emailVerified                Boolean        @default(false)
-  emailVerificationToken      String?
+  id                            String             @id @default(cuid())
+  name                          String
+  email                         String             @unique
+  password                      String
+  phone                         String?
+  address                       String?
+  city                          String?
+  state                         String?
+  zipCode                       String?
+  avatarUrl                     String?
+  emailVerified                 Boolean            @default(false)
+  emailVerificationToken        String?
   emailVerificationTokenExpires DateTime?
-  resetToken                   String?
-  resetTokenExpires            DateTime?
-  stripeCustomerId             String?        @unique
-  stripeDefaultPaymentMethodId String?
-  createdAt                    DateTime       @default(now())
-  updatedAt                    DateTime       @updatedAt
-  orders                       Order[]
-  reviews                      Review[]
-  subscriptions                Subscription[]
-  reviewReplies                ReviewReply[] @relation("reviewReplies")
-  baristaProfile               BaristaProfile?
-  pushSubscriptions            PushSubscription[]
-  wishlistItems                WishlistItem[]
-  recipeRatings                RecipeRating[]
-  recipeFavorites              RecipeFavorite[]
-  sentGiftCards                GiftCard[]         @relation("sentGiftCards")
+  resetToken                    String?
+  resetTokenExpires             DateTime?
+  stripeCustomerId              String?            @unique
+  stripeDefaultPaymentMethodId  String?
+  createdAt                     DateTime           @default(now())
+  updatedAt                     DateTime           @updatedAt
+  orders                        Order[]
+  reviews                       Review[]
+  subscriptions                 Subscription[]
+  reviewReplies                 ReviewReply[]      @relation("reviewReplies")
+  baristaProfile                BaristaProfile?
+  pushSubscriptions             PushSubscription[]
+  wishlistItems                 WishlistItem[]
+  recipeRatings                 RecipeRating[]
+  recipeFavorites               RecipeFavorite[]
+  sentGiftCards                 GiftCard[]         @relation("sentGiftCards")
   receivedGiftCards             GiftCard[]         @relation("receivedGiftCards")
   baristaEquipment              BaristaEquipment[]
   rewardClaims                  RewardClaim[]
   brewLogLikes                  BrewLogLike[]
-  followers                     Follow[]         @relation("Following")
-  following                     Follow[]         @relation("FollowedBy")
+  followers                     Follow[]           @relation("Following")
+  following                     Follow[]           @relation("FollowedBy")
 }
 
 model BaristaProfile {
@@ -397,7 +398,7 @@ model BaristaProfile {
   bio            String?             @db.VarChar(280)
   bannerUrl      String?
   activeTitleId  String?
-  flavorProfile  Json?               // { favorites: string[], preferredOrigin: string, preferredRoast: string }
+  flavorProfile  Json? // { favorites: string[], preferredOrigin: string, preferredRoast: string }
   brewLogs       BrewLog[]
   achievements   AchievementUnlock[]
   createdAt      DateTime            @default(now())
@@ -412,21 +413,21 @@ model BaristaTitle {
   name        String
   description String
   icon        String
-  requirement String   // achievement slug needed to unlock
+  requirement String // achievement slug needed to unlock
   createdAt   DateTime @default(now())
 }
 
 model BaristaEquipment {
-  id         String         @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name       String
   brand      String?
-  category   String         // GRINDER, KETTLE, DRIPPER, SCALE, OTHER
+  category   String // GRINDER, KETTLE, DRIPPER, SCALE, OTHER
   photoUrl   String?
-  isFavorite Boolean        @default(false)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([userId])
 }
@@ -444,19 +445,19 @@ model BrewLog {
   xpEarned       Int            @default(0)
 
   // F3 — Extended brew parameters
-  grindSize      String?        // grind size label: "medio-fino", "grueso", etc.
-  waterTemp      Int?           // water temperature in °C
-  brewTime       Int?           // total brew time in seconds
-  coffeeWeight   Int?           // coffee dose in grams
-  waterVolume    Int?           // water volume in ml
-  beanId         String?        // link to Product (coffee bean used)
-  bean           Product?       @relation("beanBrews", fields: [beanId], references: [id], onDelete: SetNull)
-  equipmentIds   String[]       @default([]) // IDs of BaristaEquipment used (PostgreSQL text[])
-  tags           String[]       @default([]) // flavor tags (PostgreSQL text[])
+  grindSize    String? // grind size label: "medio-fino", "grueso", etc.
+  waterTemp    Int? // water temperature in °C
+  brewTime     Int? // total brew time in seconds
+  coffeeWeight Int? // coffee dose in grams
+  waterVolume  Int? // water volume in ml
+  beanId       String? // link to Product (coffee bean used)
+  bean         Product? @relation("beanBrews", fields: [beanId], references: [id], onDelete: SetNull)
+  equipmentIds String[] @default([]) // IDs of BaristaEquipment used (PostgreSQL text[])
+  tags         String[] @default([]) // flavor tags (PostgreSQL text[])
 
-  likes          BrewLogLike[]
+  likes BrewLogLike[]
 
-  createdAt      DateTime       @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([recipeId])
@@ -525,7 +526,7 @@ model PushSubscription {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("push_subscriptions")
@@ -562,7 +563,7 @@ model RecipeRating {
   recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating    Int      // 1-5
+  rating    Int // 1-5
   comment   String?
   createdAt DateTime @default(now())
 
@@ -584,38 +585,38 @@ model PriceRecord {
 }
 
 model GiftCard {
-  id            String   @id @default(cuid())
-  code          String   @unique
-  initialAmount Float
-  balance       Float
-  senderId      String?
-  sender        User?    @relation("sentGiftCards", fields: [senderId], references: [id], onDelete: SetNull)
-  recipientId   String?
-  recipient     User?    @relation("receivedGiftCards", fields: [recipientId], references: [id], onDelete: SetNull)
-  senderName    String?
-  senderEmail   String?
-  recipientName String?
+  id             String    @id @default(cuid())
+  code           String    @unique
+  initialAmount  Float
+  balance        Float
+  senderId       String?
+  sender         User?     @relation("sentGiftCards", fields: [senderId], references: [id], onDelete: SetNull)
+  recipientId    String?
+  recipient      User?     @relation("receivedGiftCards", fields: [recipientId], references: [id], onDelete: SetNull)
+  senderName     String?
+  senderEmail    String?
+  recipientName  String?
   recipientEmail String?
-  message       String?
-  isActive      Boolean  @default(true)
-  expiresAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  message        String?
+  isActive       Boolean   @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([code])
 }
 
 model AbandonedCart {
-  id        String   @id @default(cuid())
-  userId    String?
-  email     String
-  items     String   // JSON: [{productId, quantity}]
-  couponCode String?
+  id             String    @id @default(cuid())
+  userId         String?
+  email          String
+  items          String // JSON: [{productId, quantity}]
+  couponCode     String?
   reminderSentAt DateTime?
-  reminderCount Int      @default(0)
-  recovered  Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  reminderCount  Int       @default(0)
+  recovered      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([email])
   @@index([recovered])
@@ -623,15 +624,15 @@ model AbandonedCart {
 }
 
 model B2BInquiry {
-  id String @id @default(cuid())
-  empresa String
-  rfc String
-  contactoNombre String
-  contactoEmail String
+  id               String  @id @default(cuid())
+  empresa          String
+  rfc              String
+  contactoNombre   String
+  contactoEmail    String
   contactoTelefono String
-  volumenEstimado String
-  giroNegocio String?
-  status String @default("NEW") // NEW | CONTACTED | RESOLVED
+  volumenEstimado  String
+  giroNegocio      String?
+  status           String  @default("NEW") // NEW | CONTACTED | RESOLVED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -654,6 +655,7 @@ model TipoCata {
 
 model Ubicacion {
   id        String   @id @default(cuid())
+  slug      String?  @unique
   nombre    String
   pais      String
   estado    String?
@@ -667,7 +669,8 @@ model Ubicacion {
 }
 
 model Caficultor {
-  id              String    @id @default(cuid())
+  id              String           @id @default(cuid())
+  slug            String?          @unique
   nombre          String
   region          String
   altitud         Int?
@@ -676,51 +679,53 @@ model Caficultor {
   contacto        String?
   bio             String?
   acuerdoPrecioKg Float?
-  modalidad       String    @default("DIRECTO")
-  fairTrade       Boolean   @default(false)
+  modalidad       String           @default("DIRECTO")
+  fairTrade       Boolean          @default(false)
   notas           String?
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   lotes           Lote[]
   productVersions ProductVersion[]
   products        Product[]
-  tiposCata       TipoCata[] @relation("CaficultorTiposCata")
+  tiposCata       TipoCata[]       @relation("CaficultorTiposCata")
 }
 
 model Lote {
-  id              String    @id @default(cuid())
-  productId       String
-  product         Product   @relation(fields: [productId], references: [id])
-  caficultorId    String?
-  caficultor      Caficultor? @relation(fields: [caficultorId], references: [id])
-  ubicacionId     String?
-  ubicacion       Ubicacion? @relation(fields: [ubicacionId], references: [id])
-  batchNumber     String    @unique
-  quantity        Int
-  costPerKg       Float?
-  unitCost        Float?
-  supplier        String?
-  origin          String?
-  receivedAt      DateTime  @default(now())
-  expiryDate      DateTime?
-  status          String    @default("CUARENTENA")
-  notes           String?
-  humedad         Float?
-  defectos        Int?
-  scoreAroma      Float?
-  scoreSabor      Float?
-  scoreAcidez     Float?
-  scoreBody       Float?
-  scoreFinal      Float?
-  evaluadoPor     String?
-  approvedAt      DateTime?
-  approvedBy      String?
-  rejectedAt      DateTime?
-  rejectedBy      String?
-  rejectionReason String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                 String              @id @default(cuid())
+  productId          String
+  product            Product             @relation(fields: [productId], references: [id])
+  caficultorId       String?
+  caficultor         Caficultor?         @relation(fields: [caficultorId], references: [id])
+  ubicacionId        String?
+  ubicacion          Ubicacion?          @relation(fields: [ubicacionId], references: [id])
+  batchNumber        String              @unique
+  quantity           Int
+  costPerKg          Float?
+  unitCost           Float?
+  supplier           String?
+  origin             String?
+  receivedAt         DateTime            @default(now())
+  expiryDate         DateTime?
+  status             String              @default("CUARENTENA")
+  notes              String?
+  humedad            Float?
+  defectos           Int?
+  scoreAroma         Float?
+  scoreSabor         Float?
+  scoreAcidez        Float?
+  scoreBody          Float?
+  scoreFinal         Float?
+  evaluadoPor        String?
+  approvedAt         DateTime?
+  approvedBy         String?
+  rejectedAt         DateTime?
+  rejectedBy         String?
+  rejectionReason    String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  productVersions    ProductVersion[]
+  traceabilityEvents TraceabilityEvent[]
 
   @@index([productId])
   @@index([status])
@@ -738,6 +743,7 @@ model ProductVersion {
   caficultorId String?
   caficultor   Caficultor? @relation(fields: [caficultorId], references: [id])
   loteId       String?
+  lote         Lote?       @relation(fields: [loteId], references: [id], onDelete: SetNull)
   scoreFinal   Float?
   notasSabor   String?
   isActive     Boolean     @default(true)
@@ -745,6 +751,58 @@ model ProductVersion {
 
   @@unique([productId, version])
   @@index([productId])
+  @@index([loteId])
+}
+
+model TraceabilityEvent {
+  id          String   @id @default(cuid())
+  loteId      String
+  lote        Lote     @relation(fields: [loteId], references: [id], onDelete: Cascade)
+  eventType   String
+  title       String
+  description String?
+  location    String?
+  occurredAt  DateTime
+  source      String?
+  isDemo      Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([loteId, eventType, occurredAt])
+  @@index([loteId, sortOrder])
+  @@index([occurredAt])
+}
+
+model Certification {
+  id          String                 @id @default(cuid())
+  slug        String                 @unique
+  name        String
+  issuer      String
+  description String?
+  websiteUrl  String?
+  isActive    Boolean                @default(true)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  products    ProductCertification[]
+}
+
+model ProductCertification {
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  certificationId String
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  certificateId   String?
+  evidenceUrl     String?
+  validFrom       DateTime?
+  validUntil      DateTime?
+  isVerified      Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@id([productId, certificationId])
+  @@index([certificationId])
+  @@index([isVerified])
 }
 
 model B2BPriceTier {
@@ -773,31 +831,31 @@ model PricingConfig {
 }
 
 model Reward {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String
-  icon        String       @default("🎁")
-  xpCost      Int          // XP needed to claim
-  discountPct Int          @default(10)    // discount percentage
-  maxUses     Int          @default(1)     // per user
-  isActive    Boolean      @default(true)
-  stock       Int?         // null = unlimited
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  icon        String        @default("🎁")
+  xpCost      Int // XP needed to claim
+  discountPct Int           @default(10) // discount percentage
+  maxUses     Int           @default(1) // per user
+  isActive    Boolean       @default(true)
+  stock       Int? // null = unlimited
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   claims      RewardClaim[]
 
   @@index([isActive])
 }
 
 model RewardClaim {
-  id         String   @id @default(cuid())
-  rewardId   String
-  reward     Reward   @relation(fields: [rewardId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code       String?  @unique    // generated discount code
-  usedAt     DateTime?
-  createdAt  DateTime @default(now())
+  id        String    @id @default(cuid())
+  rewardId  String
+  reward    Reward    @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String?   @unique // generated discount code
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
   @@unique([rewardId, userId])
   @@index([userId])

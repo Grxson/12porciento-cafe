@@ -49,7 +49,6 @@ export default function Subscription() {
   const [pauseUntil, setPauseUntil] = useState('');
   const [editing, setEditing] = useState(false);
   const [editCoffees, setEditCoffees] = useState<string[]>([]);
-  const [editGrind, setEditGrind] = useState<'MOLIDO' | 'GRANO'>('GRANO');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const setHasSubscription = useUser((s) => s.setHasSubscription);
@@ -65,7 +64,6 @@ export default function Subscription() {
             r.data.items?.map((i) => String((i as unknown as Record<string, unknown>).productId)) ??
               [],
           );
-          setEditGrind((r.data.grindPreference as 'MOLIDO' | 'GRANO') ?? 'GRANO');
         }
       })
       .catch(console.error)
@@ -127,7 +125,7 @@ export default function Subscription() {
     setSaving(true);
     setSaveError('');
     try {
-      const updated = await subscriptionsApi.updateItems(sub.id, editCoffees, editGrind);
+      const updated = await subscriptionsApi.updateItems(sub.id, editCoffees, 'GRANO');
       setSub(updated.data);
       setEditing(false);
       addToast('Selección de cafés actualizada ✓', 'success');
@@ -193,8 +191,7 @@ export default function Subscription() {
               })()}
             </div>
             <p className="text-coffee-600 dark:text-coffee-400 text-sm">
-              {sub.frequency === 'bimonthly' ? 'Cada 2 meses' : 'Mensual'} ·{' '}
-              {sub.grindPreference === 'GRANO' ? 'Grano entero' : 'Molido'}
+              {sub.frequency === 'bimonthly' ? 'Cada 2 meses' : 'Mensual'} · Grano entero
             </p>
           </div>
           <span className={`text-xs px-3 py-1 border rounded-sm ${fulfillment.color}`}>
@@ -282,8 +279,6 @@ export default function Subscription() {
                 plan={sub.plan as SubscriptionPlan}
                 selected={editCoffees}
                 onChange={setEditCoffees}
-                grindPreference={editGrind}
-                onGrindChange={setEditGrind}
               />
               {saveError && <p className="text-red-400 text-xs mt-4">{saveError}</p>}
               <div className="flex gap-3 mt-6">

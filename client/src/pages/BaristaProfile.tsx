@@ -423,7 +423,7 @@ export default function BaristaProfile() {
         {profile.brewLogs.length > 0 && <BrewComparator brews={profile.brewLogs} />}
 
         {/* F3 Records + F4 Equipment Recs */}
-        {profile.brewLogs.length > 0 && (
+        {profile.brewLogs.length > 0 && userId && (
           <>
             <BaristaRecords userId={userId} />
             <EquipmentRecs userId={userId} />
@@ -485,7 +485,7 @@ export default function BaristaProfile() {
         )}
 
         {/* F4 Subscription Match Banner */}
-        <SubscriptionMatchBanner userId={userId} />
+        {userId && <SubscriptionMatchBanner userId={userId} />}
 
         {profile.brewLogs.length === 0 && profile.achievements.length === 0 && (
           <div className="text-center py-12">

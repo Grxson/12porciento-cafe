@@ -113,6 +113,16 @@ Full-stack specialty coffee web app. User-facing features: recipes (V60, AeroPre
 - **Server error logging:** Added `console.error` to `/me/orders` and `/me/payment-methods`
 - **Script:** `scripts/fix-broken-images.ts` for future broken URL repair
 
+### Admin Refactor Sprint (July 2026) - SHIPPED
+
+- **Collapsible sidebar:** 4 nav groups (Catálogo, Ventas, Clientes, Config) now accordion-style with framer-motion animation + localStorage persistence (`collapsedGroups` key)
+- **Dead code removal:** Deleted unused `lib/api.ts` (duplicate axios instance, 0 imports), empty `lib/` dir, stale `utils/imageUrl.ts` re-export chain
+- **Shared package consolidation:**
+  - `getApiError`/`getErrorStatus` → 6 files import from `@12porciento/shared` instead of local `lib/api-error`
+  - `resolveImageUrl` → 4 files import from `@12porciento/shared` instead of local `utils/imageUrl`
+  - `FocusTrap` → 2 files import from `@12porciento/ui` instead of local `components/FocusTrap`
+- **Net:** ~160 lines removed, 80 added. Build clean. Commit `98d379f`
+
 ### Roadmap Status
 
 All initiatives shipped:
@@ -131,10 +141,15 @@ All initiatives shipped:
 
 ```
 12porciento-cafe/
-├── client/               # React app
+├── client/               # React app (storefront + PWA)
 ├── server/               # Express API
-├── docs/                 # Documentation
-├── docker-compose.yml    # Local dev setup
+├── apps/admin/           # Admin dashboard (React + Vite)
+├── packages/
+│   ├── shared/           # Shared types, API client, utils, hooks
+│   ├── ui/               # Shared UI components (FocusTrap, ConfirmDialog, ErrorBoundary)
+│   └── config-tailwind/  # Shared Tailwind theme
+├── specs/                # Feature specs & plans
+├── docker-compose.yml    # Local dev PostgreSQL
 └── .claude/              # Claude Code config
 ```
 
@@ -163,6 +178,7 @@ All initiatives shipped:
 7. **Dark mode colors:** Every color class must have a `dark:` variant — e.g., `text-coffee-900 dark:text-cream`, `bg-coffee-50 dark:bg-coffee-950`. Exception: components that intentionally use a dark background (admin modals, dark overlays, recipe live mode) may use `text-cream` without `dark:` since their bg is always dark.
 8. **Safe-area inset (Navbar):** `Navbar` `<header>` uses `style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}` to clear transparent system status bar on iOS/Android. Requires `viewport-fit=cover` in `index.html` meta viewport. Any new fixed header must do the same. Bottom-fixed elements use `padding-bottom: env(safe-area-inset-bottom, 0px)`.
 9. **PWA update flow:** `vite.config.ts` uses `registerType: 'prompt'` (NOT `autoUpdate`). `useUpdateNotification` hook handles SW updates; `UpdateNotificationModal` shown when update available. After update, `localStorage('pwa_just_updated')` triggers toast on reload. Do not re-add `skipWaiting: true` to workbox config — it bypasses the prompt flow.
+10. **Admin sidebar collapsible state:** Persisted in `localStorage key 'admin_sidebar_collapsed'` as `Record<string, boolean>` map of group labels. Clear key to reset.
 
 ## Key Contacts
 
@@ -176,7 +192,7 @@ All initiatives shipped:
 
 ---
 
-Last updated: 2026-06-28 (PWA + Offline Sprint + DB Fix Sprint)
+Last updated: 2026-07-09 (Admin Refactor Sprint — collapsible sidebar, shared consolidation)
 
 <!-- SPECKIT START -->
 

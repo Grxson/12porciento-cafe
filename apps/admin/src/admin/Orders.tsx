@@ -1,5 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Search, X, Download, ShoppingBag } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { adminApi } from '../api';
 import Pagination from './components/Pagination';
 import { exportToCsv } from './utils/csvExport';
 import { useModuleToast } from './context/ModuleContext';
@@ -74,6 +76,7 @@ export default function AdminOrders() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState('');
   const [confirmBulk, setConfirmBulk] = useState<string | null>(null);
+  const [orderSummary, setOrderSummary] = useState<Record<string, number> | null>(null);
 
   const {
     orders,
@@ -92,6 +95,10 @@ export default function AdminOrders() {
     dateFrom: committedDateFrom,
     dateTo: committedDateTo,
   });
+
+  useEffect(() => {
+    adminApi.ordersSummary().then((r) => setOrderSummary(r.data.statusCounts));
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,6 +207,41 @@ export default function AdminOrders() {
           <Download size={16} /> Exportar CSV
         </button>
       </div>
+
+      {orderSummary && Object.keys(orderSummary).length > 0 && (
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6">
+          <p className="text-xs text-coffee-500 uppercase mb-3">Pipeline de Estados</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart
+              data={Object.entries(orderSummary).map(([st, count]) => ({
+                name: statusConfig[st as OrderStatus]?.label ?? st,
+                count,
+              }))}
+              margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#2c1810" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: '#a05a2c', fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis tick={{ fill: '#a05a2c', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{
+                  background: '#1a0f0a',
+                  border: '1px solid #2c1810',
+                  borderRadius: 0,
+                }}
+                labelStyle={{ color: '#c9a96e', fontSize: 11 }}
+                itemStyle={{ color: '#e8d5b7', fontSize: 12 }}
+                formatter={(v) => [`${v} pedidos`, '']}
+              />
+              <Bar dataKey="count" fill="#c9a96e" radius={[2, 2, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <form
         onSubmit={handleSearch}

@@ -6,6 +6,7 @@ import type { Ubicacion } from '../types';
 interface Props {
   value: string;
   onChange: (id: string) => void;
+  onSelectLabel?: (label: string) => void;
   initialLabel?: string;
 }
 
@@ -18,7 +19,12 @@ async function fetchUbicaciones(search?: string): Promise<Ubicacion[]> {
   return json.data;
 }
 
-export default function SearchableUbicacionSelect({ value, onChange, initialLabel }: Props) {
+export default function SearchableUbicacionSelect({
+  value,
+  onChange,
+  onSelectLabel,
+  initialLabel,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Ubicacion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,6 +108,10 @@ export default function SearchableUbicacionSelect({ value, onChange, initialLabe
                     type="button"
                     onClick={() => {
                       onChange(u.id);
+                      if (onSelectLabel) {
+                        const label = `${u.nombre}${u.estado ? `, ${u.estado}` : ''} — ${u.pais}`;
+                        onSelectLabel(label);
+                      }
                       setOpen(false);
                       setSearch('');
                     }}
@@ -132,6 +142,7 @@ export default function SearchableUbicacionSelect({ value, onChange, initialLabe
                   type="button"
                   onClick={() => {
                     onChange('');
+                    if (onSelectLabel) onSelectLabel('');
                     setSearch('');
                   }}
                   className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"

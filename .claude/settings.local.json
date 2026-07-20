@@ -134,7 +134,11 @@
       "Bash(railway list *)",
       "Bash(railway variables *)",
       "Bash(DATABASE_URL=\"postgresql://postgres:FlDyqWTuuQczCxXEGjXyjpgCoCbPaIUs@metro.proxy.rlwy.net:18743/railway\" npx prisma db seed)",
-      "Bash(DATABASE_URL=\"postgresql://postgres:FlDyqWTuuQczCxXEGjXyjpgCoCbPaIUs@metro.proxy.rlwy.net:18743/railway\" npx prisma *)"
+      "Bash(DATABASE_URL=\"postgresql://postgres:FlDyqWTuuQczCxXEGjXyjpgCoCbPaIUs@metro.proxy.rlwy.net:18743/railway\" npx prisma *)",
+      "Bash(claude --version)",
+      "PowerShell($PSVersionTable.PSVersion; if \\(Test-Path $PROFILE:CurrentUserAllHosts\\) { \"Shell profile exists\" } else { \"No shell profile\" })",
+      "PowerShell(if \\(Test-Path \"C:\\\\Users\\\\gaelg\\\\.claude.json\"\\) { $json = Get-Content \"C:\\\\Users\\\\gaelg\\\\.claude.json\" -Raw | ConvertFrom-Json; $json | Select-Object installMethod, @{N='mcpServers';E={$_.mcpServers | If {$_} {$_.Keys} else {@\\(\\)}}} } else { \"No ~/.claude.json\" })",
+      "PowerShell(if \\(Test-Path \"C:\\\\Users\\\\gaelg\\\\.claude\\\\settings.json\"\\) { $json = Get-Content \"C:\\\\Users\\\\gaelg\\\\.claude\\\\settings.json\" -Raw | ConvertFrom-Json; $json.permissions | Select-Object defaultMode } else { \"No user settings.json\" })"
     ]
   }
 }

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Star, Check, Trash2, MessageSquare, X, Download } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { reviewsApi } from '../api';
 import { exportToCsv } from './utils/csvExport';
 import { useModuleToast } from './context/ModuleContext';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -20,6 +22,12 @@ export default function AdminReviews() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmBulkApprove, setConfirmBulkApprove] = useState(false);
+  const [summary, setSummary] = useState<{
+    total: number;
+    pending: number;
+    approved: number;
+    ratingDistribution: Record<number, number>;
+  } | null>(null);
 
   const {
     reviews,
@@ -32,6 +40,10 @@ export default function AdminReviews() {
     delete: deleteReview,
     respond: respondReview,
   } = useReviewsQuery(page, filter);
+
+  useEffect(() => {
+    reviewsApi.summary().then((r) => setSummary(r.data));
+  }, []);
 
   const approve = async (id: string) => {
     try {
@@ -154,6 +166,56 @@ export default function AdminReviews() {
           <Download size={14} /> CSV
         </button>
       </div>
+
+      {summary && (
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6">
+          <p className="text-xs text-coffee-500 uppercase mb-3">Distribución de Calificaciones</p>
+          <div className="flex items-center gap-6">
+            <ResponsiveContainer width={160} height={160}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Pendientes', value: summary.pending },
+                    { name: 'Aprobadas', value: summary.approved },
+                  ].filter((d) => d.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={35}
+                  outerRadius={65}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  <Cell fill="#eab308" />
+                  <Cell fill="#22c55e" />
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: '#1a0f0a',
+                    border: '1px solid #2c1810',
+                    borderRadius: 0,
+                  }}
+                  formatter={(v) => [`${v} reseñas`, '']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-4 flex-1">
+              {Object.entries(summary.ratingDistribution)
+                .sort((a, b) => Number(a[0]) - Number(b[0]))
+                .map(([rating, count]) => (
+                  <div key={rating} className="text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Star className="w-3 h-3 text-gold-500 fill-gold-500" />
+                      <span className="text-sm font-medium text-coffee-900 dark:text-cream">
+                        {rating}
+                      </span>
+                    </div>
+                    <p className="text-lg font-bold text-coffee-900 dark:text-cream">{count}</p>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {pendingSelected > 0 && (
         <div className="bg-gold-500/10 border border-gold-500/30 p-3 flex items-center justify-between mb-4">

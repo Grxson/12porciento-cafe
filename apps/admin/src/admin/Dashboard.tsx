@@ -19,13 +19,17 @@ import {
   Area,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { dashboardApi, baristaApi, adminApi } from '../api';
+import { dashboardApi, baristaApi, adminApi, inventoryApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
 import type { DashboardStats, FinancialData } from '../types';
 
@@ -99,6 +103,14 @@ export default function Dashboard() {
     }[]
   >([]);
   const [financial, setFinancial] = useState<FinancialData | null>(null);
+  const [inventorySummary, setInventorySummary] = useState<{
+    totalSKUs: number;
+    activeSKUs: number;
+    totalUnits: number;
+    totalValue: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+  } | null>(null);
   const chartColors = useChartColors();
 
   useEffect(() => {
@@ -116,6 +128,10 @@ export default function Dashboard() {
       .financial()
       .then((r) => setFinancial(r.data))
       .catch((e) => console.error('[financial]', e));
+    inventoryApi
+      .overview()
+      .then((r) => setInventorySummary(r.data.summary))
+      .catch((e) => console.error('[inventory]', e));
   }, []);
 
   useEffect(() => {
@@ -135,7 +151,7 @@ export default function Dashboard() {
 
   const ordersByDayData = useMemo(() => {
     if (!stats?.ordersByDay) return [];
-    return stats.ordersByDay.slice(-7).map((d) => ({
+    return stats.ordersByDay.slice(-14).map((d) => ({
       dia: new Date(d.date + 'T12:00:00').toLocaleDateString('es-MX', {
         weekday: 'short',
         day: 'numeric',
@@ -144,6 +160,34 @@ export default function Dashboard() {
       ingresos: d.revenue,
     }));
   }, [stats]);
+
+  const statusPieData = useMemo(() => {
+    if (!financial?.statusBreakdown) return [];
+    return Object.entries(financial.statusBreakdown).map(([status, data]) => ({
+      name: statusConfig[status]?.label ?? status,
+      value: data.count,
+      revenue: data.revenue,
+      hex: statusConfig[status]?.hex ?? '#8884d8',
+    }));
+  }, [financial]);
+
+  const categoryPieData = useMemo(() => {
+    if (!financial?.revenueByCategory) return [];
+    const palette = ['#c9a96e', '#8b5a2b', '#d4a76a', '#6b3a1f', '#e8d5b7', '#a05a2c', '#4a3728'];
+    return financial.revenueByCategory.map((cat, i) => ({
+      name: cat.category,
+      value: cat.revenue,
+      fill: palette[i % palette.length],
+    }));
+  }, [financial]);
+
+  const revenueMonthBarData = useMemo(() => {
+    if (!financial?.revenueByMonth) return [];
+    return financial.revenueByMonth.map((m) => ({
+      mes: MONTHS[m.month],
+      ingresos: m.total,
+    }));
+  }, [financial]);
 
   if (loading) {
     return (
@@ -401,7 +445,7 @@ export default function Dashboard() {
         >
           <div className="mb-6">
             <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Pedidos por día</h2>
-            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Últimos 7 días</p>
+            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Últimos 14 días</p>
           </div>
           {ordersByDayData.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-coffee-500 dark:text-coffee-400 text-sm">
@@ -594,6 +638,60 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Inventory Summary */}
+      {inventorySummary && (
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream flex items-center gap-2">
+              <Package className="w-4 h-4 text-gold-500/60" />
+              Inventario
+            </h2>
+            <Link
+              to="/inventario"
+              className="text-xs text-gold-500 hover:text-gold-400 transition-colors"
+            >
+              Ver detalle →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              {
+                label: 'SKUs',
+                value: inventorySummary.activeSKUs,
+                sub: `de ${inventorySummary.totalSKUs}`,
+              },
+              { label: 'Unidades', value: inventorySummary.totalUnits.toLocaleString('es-MX') },
+              { label: 'Valor', value: `$${inventorySummary.totalValue.toLocaleString('es-MX')}` },
+              {
+                label: 'Stock bajo',
+                value: inventorySummary.lowStockCount,
+                alert: inventorySummary.lowStockCount > 0,
+              },
+              {
+                label: 'Sin stock',
+                value: inventorySummary.outOfStockCount,
+                alert: inventorySummary.outOfStockCount > 0,
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className={`border p-3 ${item.alert ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-500/30' : 'border-coffee-200 dark:border-coffee-800'}`}
+              >
+                <p className="text-coffee-500 dark:text-coffee-400 text-xs uppercase tracking-widest mb-1">
+                  {item.label}
+                </p>
+                <p
+                  className={`font-serif text-xl font-bold ${item.alert ? 'text-yellow-600 dark:text-yellow-400' : 'text-coffee-900 dark:text-cream'}`}
+                >
+                  {item.value}
+                </p>
+                {item.sub && <p className="text-coffee-500 text-xs mt-0.5">{item.sub}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Financial Overview — only when data loaded */}
       {financial && (
         <div className="space-y-6">
@@ -651,119 +749,207 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Revenue by category + Top products row */}
+          {/* Order Status Pie + Category Pie row */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Order Status Donut */}
+            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
+                Estado de pedidos
+              </h3>
+              {statusPieData.length === 0 ? (
+                <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={statusPieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {statusPieData.map((entry, i) => (
+                        <Cell key={i} fill={entry.hex} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: chartColors.tooltipBg,
+                        border: `1px solid ${chartColors.tooltipBorder}`,
+                        borderRadius: 0,
+                      }}
+                      labelStyle={{ color: chartColors.gold, fontSize: 11 }}
+                      itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
+                      formatter={(value) => [`${value} pedidos`, 'Pedidos']}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: 11, color: chartColors.text }}
+                      formatter={(value) => (
+                        <span style={{ color: chartColors.tooltipText, fontSize: 11 }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Revenue by Category Pie */}
             <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
               <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
                 Ingresos por categoría
               </h3>
-              {financial.revenueByCategory.length === 0 ? (
+              {categoryPieData.length === 0 ? (
                 <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
               ) : (
-                <div className="space-y-2">
-                  {financial.revenueByCategory.map((cat) => {
-                    const pct =
-                      financial.revenue.total > 0
-                        ? ((cat.revenue / financial.revenue.total) * 100).toFixed(1)
-                        : '0';
-                    return (
-                      <div key={cat.category} className="flex items-center gap-3 py-1.5">
-                        <span className="text-coffee-800 dark:text-coffee-200 text-sm w-32 truncate shrink-0">
-                          {cat.category}
-                        </span>
-                        <div className="flex-1 h-5 bg-coffee-200 dark:bg-coffee-800 relative">
-                          <div
-                            className="absolute inset-y-0 left-0 bg-gold-500/60"
-                            style={{ width: `${Math.min(100, parseFloat(pct))}%` }}
-                          />
-                        </div>
-                        <span className="text-coffee-600 dark:text-coffee-400 text-xs w-20 text-right shrink-0">
-                          ${cat.revenue.toLocaleString('es-MX')}
-                        </span>
-                        <span className="text-coffee-500 text-xs w-12 text-right shrink-0">
-                          {pct}%
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
-              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
-                Top ingresos por producto
-              </h3>
-              {financial.topRevenueProducts.length === 0 ? (
-                <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
-              ) : (
-                <div className="space-y-3">
-                  {financial.topRevenueProducts.map((p, i) => (
-                    <div
-                      key={p.name}
-                      className="flex items-center justify-between py-2 border-b border-coffee-200/50 dark:border-coffee-800/50 last:border-0"
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={categoryPieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      dataKey="value"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="text-coffee-500 text-xs w-5 text-right shrink-0">
-                          {i + 1}
+                      {categoryPieData.map((entry, i) => (
+                        <Cell key={i} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: chartColors.tooltipBg,
+                        border: `1px solid ${chartColors.tooltipBorder}`,
+                        borderRadius: 0,
+                      }}
+                      labelStyle={{ color: chartColors.gold, fontSize: 11 }}
+                      itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
+                      formatter={(value) => [
+                        `$${Number(value).toLocaleString('es-MX')}`,
+                        'Ingresos',
+                      ]}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: 11, color: chartColors.text }}
+                      formatter={(value) => (
+                        <span style={{ color: chartColors.tooltipText, fontSize: 11 }}>
+                          {value}
                         </span>
-                        <p className="text-coffee-800 dark:text-coffee-200 text-sm truncate">
-                          {p.name}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0 ml-4">
-                        <p className="text-coffee-900 dark:text-cream text-sm font-medium">
-                          {p.units} uds
-                        </p>
-                        <p className="text-gold-500 text-xs">
-                          ${p.revenue.toLocaleString('es-MX')}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               )}
             </div>
           </div>
 
-          {/* Revenue by month mini chart (last 6 months) */}
-          {financial.revenueByMonth.length > 0 && (
+          {/* Top products by revenue — horizontal bar chart */}
+          <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+            <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
+              Top ingresos por producto
+            </h3>
+            {financial.topRevenueProducts.length === 0 ? (
+              <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
+            ) : (
+              <ResponsiveContainer
+                width="100%"
+                height={Math.max(200, financial.topRevenueProducts.length * 36)}
+              >
+                <BarChart
+                  data={financial.topRevenueProducts}
+                  layout="vertical"
+                  margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={chartColors.grid}
+                    horizontal={false}
+                  />
+                  <XAxis
+                    type="number"
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={160}
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: chartColors.tooltipBg,
+                      border: `1px solid ${chartColors.tooltipBorder}`,
+                      borderRadius: 0,
+                    }}
+                    labelStyle={{
+                      color: chartColors.gold,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                    }}
+                    itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
+                    formatter={(v, _name, props) => [
+                      `$${Number(v).toLocaleString('es-MX')} · ${props.payload.units} uds`,
+                      'Ingresos',
+                    ]}
+                  />
+                  <Bar dataKey="revenue" fill={chartColors.gold} radius={[0, 2, 2, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* Revenue by month bar chart (last 6 months) */}
+          {revenueMonthBarData.length > 0 && (
             <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
               <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
                 Tendencia ingresos (6 meses)
               </h3>
-              <div className="flex items-end gap-2 h-32">
-                {financial.revenueByMonth.map((m) => {
-                  const max = Math.max(...financial.revenueByMonth.map((x) => x.total), 1);
-                  const h = (m.total / max) * 100;
-                  const monthNames = [
-                    'Ene',
-                    'Feb',
-                    'Mar',
-                    'Abr',
-                    'May',
-                    'Jun',
-                    'Jul',
-                    'Ago',
-                    'Sep',
-                    'Oct',
-                    'Nov',
-                    'Dic',
-                  ];
-                  return (
-                    <div key={m.key} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-coffee-600 dark:text-coffee-400 text-xs">
-                        ${(m.total / 1000).toFixed(0)}k
-                      </span>
-                      <div
-                        className="w-full bg-gold-500/60 rounded-t"
-                        style={{ height: `${Math.max(h, 2)}%` }}
-                      />
-                      <span className="text-coffee-500 text-xs">{monthNames[m.month]}</span>
-                    </div>
-                  );
-                })}
-              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart
+                  data={revenueMonthBarData}
+                  margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+                  <XAxis
+                    dataKey="mes"
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: chartColors.tooltipBg,
+                      border: `1px solid ${chartColors.tooltipBorder}`,
+                      borderRadius: 0,
+                    }}
+                    labelStyle={{
+                      color: chartColors.gold,
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                    }}
+                    itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
+                    formatter={(v) => [`$${Number(v).toLocaleString('es-MX')}`, 'Ingresos']}
+                  />
+                  <Bar dataKey="ingresos" fill={chartColors.gold} radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           )}
         </div>

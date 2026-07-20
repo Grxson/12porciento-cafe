@@ -1,6 +1,21 @@
 import { useParams, Link } from 'react-router-dom';
 import { Trophy, Zap, Coffee, Star, Share2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 import { useBaristaProfileQuery } from '../hooks/queries/useBaristaProfileQuery';
 import PushPermissionBanner from '../components/PushPermissionBanner';
 import { useUser } from '../context/UserContext';
@@ -26,6 +41,9 @@ interface UserStats {
   totalBrews: number;
   brewsPerMethod: Record<string, number>;
   xpPerWeek: Array<{ week: string; xp: number }>;
+  monthlyTrends: Array<{ month: string; count: number }>;
+  flavorTags: Record<string, number>;
+  timeStats: { earlyBirdCount: number; nightOwlCount: number; weekendCount: number };
   flavorRadar?: {
     user: { flavor: string; value: number }[];
     community: { flavor: string; value: number }[];
@@ -40,9 +58,11 @@ export default function BaristaProfile() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const { share } = useShare();
+  const statsFetched = useRef(false);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || statsFetched.current) return;
+    statsFetched.current = true;
     setStatsLoading(true);
     baristaApi
       .getStats(userId)
@@ -377,44 +397,269 @@ export default function BaristaProfile() {
                 </div>
               )}
 
-              {/* Brews Per Method */}
+              {/* Brews Per Method — PieChart */}
               {Object.keys(stats.brewsPerMethod).length > 0 && (
                 <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
                   <p className="text-xs text-coffee-500 uppercase mb-3">Brews por Método</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(stats.brewsPerMethod).map(([method, count]) => (
-                      <div
-                        key={method}
-                        className="bg-coffee-50 dark:bg-coffee-800 p-2 text-center rounded"
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie
+                        data={Object.entries(stats.brewsPerMethod).map(([method, count]) => ({
+                          name: method,
+                          value: count,
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={80}
+                        paddingAngle={2}
+                        dataKey="value"
                       >
-                        <p className="text-xs text-coffee-600 dark:text-coffee-300">{method}</p>
-                        <p className="text-lg font-bold text-coffee-900 dark:text-cream">{count}</p>
-                      </div>
-                    ))}
-                  </div>
+                        {Object.entries(stats.brewsPerMethod).map((_, i) => {
+                          const palette = [
+                            '#c9a96e',
+                            '#8b5a2b',
+                            '#d4a76a',
+                            '#6b3a1f',
+                            '#e8d5b7',
+                            '#a05a2c',
+                          ];
+                          return <Cell key={i} fill={palette[i % palette.length]} />;
+                        })}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          background: '#1a0f0a',
+                          border: '1px solid #2c1810',
+                          borderRadius: 0,
+                          color: '#e8d5b7',
+                        }}
+                        formatter={(value) => [`${value} brews`, 'Brews']}
+                      />
+                      <Legend
+                        formatter={(value) => (
+                          <span className="text-coffee-700 dark:text-coffee-300 text-xs">
+                            {value}
+                          </span>
+                        )}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               )}
 
-              {/* XP Per Week */}
+              {/* XP Per Week — BarChart */}
               {stats.xpPerWeek.length > 0 && (
                 <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
                   <p className="text-xs text-coffee-500 uppercase mb-3">XP/Semana (Últimas 8)</p>
-                  <div className="flex items-end gap-1 h-24">
-                    {stats.xpPerWeek.map((week, i) => {
-                      const maxXp = Math.max(...stats.xpPerWeek.map((w) => w.xp));
-                      const height = maxXp > 0 ? (week.xp / maxXp) * 100 : 0;
-                      return (
-                        <div
-                          key={i}
-                          className="flex-1 bg-gold-500 rounded-t hover:bg-gold-400 transition-colors"
-                          style={{ height: `${Math.max(height, 5)}%` }}
-                          title={`${week.week}: ${week.xp} XP`}
-                        />
-                      );
-                    })}
-                  </div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <BarChart
+                      data={stats.xpPerWeek.map((w) => ({
+                        semana: new Date(w.week + 'T12:00:00').toLocaleDateString('es-MX', {
+                          day: 'numeric',
+                          month: 'short',
+                        }),
+                        xp: w.xp,
+                      }))}
+                      margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e8d5c4" vertical={false} />
+                      <XAxis
+                        dataKey="semana"
+                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: '#fff',
+                          border: '1px solid #e8d5c4',
+                          borderRadius: 0,
+                        }}
+                        labelStyle={{
+                          color: '#c9a96e',
+                          fontSize: 11,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                        }}
+                        itemStyle={{ color: '#4a3728', fontSize: 12 }}
+                        formatter={(v) => [`${v} XP`, 'Experiencia']}
+                      />
+                      <Bar dataKey="xp" fill="#c9a96e" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               )}
+
+              {/* Monthly Trends — AreaChart */}
+              {stats.monthlyTrends && stats.monthlyTrends.length > 0 && (
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                  <p className="text-xs text-coffee-500 uppercase mb-3">Brews por Mes</p>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <AreaChart
+                      data={stats.monthlyTrends.map((m) => ({
+                        mes: new Date(m.month + '-15T12:00:00').toLocaleDateString('es-MX', {
+                          month: 'short',
+                          year: '2-digit',
+                        }),
+                        brews: m.count,
+                      }))}
+                      margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="goldGradClient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#c9a96e" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#c9a96e" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e8d5c4" vertical={false} />
+                      <XAxis
+                        dataKey="mes"
+                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        axisLine={false}
+                        tickLine={false}
+                        allowDecimals={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: '#fff',
+                          border: '1px solid #e8d5c4',
+                          borderRadius: 0,
+                        }}
+                        labelStyle={{
+                          color: '#c9a96e',
+                          fontSize: 11,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                        }}
+                        itemStyle={{ color: '#4a3728', fontSize: 12 }}
+                        formatter={(v) => [`${v}`, 'Brews']}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="brews"
+                        stroke="#c9a96e"
+                        strokeWidth={2}
+                        fill="url(#goldGradClient)"
+                        dot={false}
+                        activeDot={{ r: 4, fill: '#c9a96e', strokeWidth: 0 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Flavor Tags — Horizontal Bar Chart */}
+              {stats.flavorTags && Object.keys(stats.flavorTags).length > 0 && (
+                <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                  <p className="text-xs text-coffee-500 uppercase mb-3">Tags de Sabor</p>
+                  <ResponsiveContainer
+                    width="100%"
+                    height={Math.max(160, Object.keys(stats.flavorTags).slice(0, 8).length * 32)}
+                  >
+                    <BarChart
+                      data={Object.entries(stats.flavorTags)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 8)
+                        .map(([tag, count]) => ({ tag, count }))}
+                      layout="vertical"
+                      margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2c1810" horizontal={false} />
+                      <XAxis
+                        type="number"
+                        tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="tag"
+                        width={100}
+                        tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: '#1a0f0a',
+                          border: '1px solid #2c1810',
+                          borderRadius: 0,
+                          color: '#e8d5b7',
+                        }}
+                        formatter={(value) => [`${value} menciones`, 'Frecuencia']}
+                      />
+                      <Bar dataKey="count" fill="#c9a96e" radius={[0, 2, 2, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Time Stats — Pie Chart */}
+              {stats.timeStats &&
+                stats.timeStats.earlyBirdCount +
+                  stats.timeStats.nightOwlCount +
+                  stats.timeStats.weekendCount >
+                  0 && (
+                  <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+                    <p className="text-xs text-coffee-500 uppercase mb-3">Horarios de Brew</p>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            {
+                              name: 'Madrugador',
+                              value: stats.timeStats.earlyBirdCount,
+                              fill: '#c9a96e',
+                            },
+                            {
+                              name: 'Búho nocturno',
+                              value: stats.timeStats.nightOwlCount,
+                              fill: '#8b5a2b',
+                            },
+                            {
+                              name: 'Fines de semana',
+                              value: stats.timeStats.weekendCount,
+                              fill: '#d4a76a',
+                            },
+                          ].filter((d) => d.value > 0)}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={70}
+                          paddingAngle={2}
+                          dataKey="value"
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            background: '#fff',
+                            border: '1px solid #e8d5c4',
+                            borderRadius: 0,
+                          }}
+                          formatter={(value) => [`${value} brews`, '']}
+                        />
+                        <Legend
+                          formatter={(value) => (
+                            <span className="text-coffee-700 dark:text-coffee-300 text-xs">
+                              {value}
+                            </span>
+                          )}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
             </div>
           </div>
         )}

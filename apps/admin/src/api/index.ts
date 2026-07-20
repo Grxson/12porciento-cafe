@@ -135,6 +135,10 @@ export const subscriptionsApi = {
   b2bGet: (id: string) => api.get(`/subscriptions/b2b-inquiries/${id}`),
   b2bUpdateStatus: (id: string, status: string) =>
     api.put(`/subscriptions/b2b-inquiries/${id}/status`, { status }),
+  summary: () =>
+    api.get<{ statusCounts: Record<string, number>; planCounts: Record<string, number> }>(
+      '/subscriptions/summary',
+    ),
 };
 
 export const recipesApi = {
@@ -272,6 +276,13 @@ export const reviewsApi = {
     api.post(`/reviews/${reviewId}/reply`, data),
   approveReply: (replyId: string) => api.put(`/reviews/reply/${replyId}/approve`),
   deleteReply: (replyId: string) => api.delete(`/reviews/reply/${replyId}`),
+  summary: () =>
+    api.get<{
+      total: number;
+      pending: number;
+      approved: number;
+      ratingDistribution: Record<number, number>;
+    }>('/reviews/admin/summary'),
 };
 
 export const authApi = {
@@ -496,6 +507,8 @@ export const abandonedCartApi = {
       `/abandoned-cart?${p.toString()}`,
     );
   },
+  summary: () =>
+    api.get<{ total: number; recovered: number; abandoned: number }>('/abandoned-cart/summary'),
 };
 
 export default api;
@@ -516,6 +529,7 @@ export const adminApi = {
   ) => api.patch(`/admin/orders/${id}/tracking`, data),
   logs: (params?: Record<string, string>) => api.get('/admin/logs', { params }),
   financial: () => api.get('/dashboard/financial'),
+  ordersSummary: () => api.get<{ statusCounts: Record<string, number> }>('/admin/orders/summary'),
 };
 
 export const pricingApi = {

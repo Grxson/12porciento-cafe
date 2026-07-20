@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Search, X, Download } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { exportToCsv } from './utils/csvExport';
 import { subscriptionsApi, productsApi } from '../api';
 import SearchableProductSelect from '../components/SearchableProductSelect';
@@ -99,7 +100,6 @@ function EditModal({ sub, onClose, onSaved }: EditModalProps) {
       })
       .catch(() => addToast('No se pudieron cargar los productos.', 'error'))
       .finally(() => setLoadingProducts(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const slots = PLAN_SLOTS[plan] ?? { min: 1, max: 99 };
@@ -317,6 +317,14 @@ export default function AdminSubscribers() {
   const [cancelConfirm, setCancelConfirm] = useState<{ id: string; name: string } | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
+  const [subSummary, setSubSummary] = useState<{
+    statusCounts: Record<string, number>;
+    planCounts: Record<string, number>;
+  } | null>(null);
+
+  useEffect(() => {
+    subscriptionsApi.summary().then((r) => setSubSummary(r.data));
+  }, []);
 
   const load = useCallback(
     (p: number) => {
@@ -444,6 +452,77 @@ export default function AdminSubscribers() {
           </select>
         </div>
       </div>
+
+      {subSummary && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+            <p className="text-xs text-coffee-500 uppercase mb-3">Por Estado</p>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(subSummary.statusCounts)
+                    .filter(([, v]) => v > 0)
+                    .map(([status, count]) => ({ name: status, value: count }))}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {Object.entries(subSummary.statusCounts)
+                    .filter(([, v]) => v > 0)
+                    .map(([, _count], i) => {
+                      const palette = ['#22c55e', '#eab308', '#ef4444', '#6b7280'];
+                      return <Cell key={i} fill={palette[i % palette.length]} />;
+                    })}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: '#1a0f0a',
+                    border: '1px solid #2c1810',
+                    borderRadius: 0,
+                  }}
+                  formatter={(v) => [`${v} suscripciones`, '']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4">
+            <p className="text-xs text-coffee-500 uppercase mb-3">Por Plan</p>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(subSummary.planCounts)
+                    .filter(([, v]) => v > 0)
+                    .map(([plan, count]) => ({ name: plan, value: count }))}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {Object.entries(subSummary.planCounts)
+                    .filter(([, v]) => v > 0)
+                    .map(([, _count], i) => {
+                      const palette = ['#c9a96e', '#8b5a2b', '#d4a76a', '#6b3a1f'];
+                      return <Cell key={i} fill={palette[i % palette.length]} />;
+                    })}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: '#1a0f0a',
+                    border: '1px solid #2c1810',
+                    borderRadius: 0,
+                  }}
+                  formatter={(v) => [`${v} suscripciones`, '']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-500" />

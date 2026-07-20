@@ -157,4 +157,17 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   }
 });
 
+// GET /summary — aggregate counts for charts
+router.get('/summary', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const [total, recovered] = await Promise.all([
+      prisma.abandonedCart.count(),
+      prisma.abandonedCart.count({ where: { recovered: true } }),
+    ]);
+    res.json({ total, recovered, abandoned: total - recovered });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener resumen de carritos' });
+  }
+});
+
 export default router;

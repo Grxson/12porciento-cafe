@@ -44,12 +44,14 @@ router.post('/product/:productId', reviewLimiter, async (req: Request, res: Resp
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const payload = jwt.verify(
-          authHeader.replace('Bearer ', ''),
-          process.env.JWT_SECRET!,
-        ) as { id: string; role?: string };
+        const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as {
+          id: string;
+          role?: string;
+        };
         if (payload.role === 'USER') userId = payload.id;
-      } catch { /* anonymous review */ }
+      } catch {
+        /* anonymous review */
+      }
     }
     if (!name || !email || !rating || !comment) {
       return res.status(400).json({ error: 'Todos los campos son requeridos' });
@@ -57,7 +59,11 @@ router.post('/product/:productId', reviewLimiter, async (req: Request, res: Resp
     if (typeof name !== 'string' || name.trim().length < 2 || name.length > 100) {
       return res.status(400).json({ error: 'Nombre debe tener entre 2 y 100 caracteres' });
     }
-    if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (
+      typeof email !== 'string' ||
+      email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
       return res.status(400).json({ error: 'Email inválido' });
     }
     if (typeof comment !== 'string' || comment.trim().length < 10 || comment.length > 1000) {
@@ -78,7 +84,8 @@ router.post('/product/:productId', reviewLimiter, async (req: Request, res: Resp
     });
     if (recent) {
       return res.status(409).json({
-        error: 'Ya enviaste una reseña recientemente. Espera un momento antes de intentarlo de nuevo.',
+        error:
+          'Ya enviaste una reseña recientemente. Espera un momento antes de intentarlo de nuevo.',
       });
     }
 
@@ -224,10 +231,9 @@ router.post('/:reviewId/reply', replyLimiter, async (req: Request, res: Response
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
-        const payload = jwt.verify(
-          authHeader.replace('Bearer ', ''),
-          process.env.JWT_SECRET!
-        ) as { id: string };
+        const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET!) as {
+          id: string;
+        };
         userId = payload.id;
       } catch {
         // invalid token — proceed as guest
@@ -246,7 +252,8 @@ router.post('/:reviewId/reply', replyLimiter, async (req: Request, res: Response
 
     const review = await prisma.review.findUnique({ where: { id: req.params.reviewId } });
     if (!review) return res.status(404).json({ error: 'Reseña no encontrada' });
-    if (!review.isApproved) return res.status(403).json({ error: 'No se puede responder a una reseña no aprobada' });
+    if (!review.isApproved)
+      return res.status(403).json({ error: 'No se puede responder a una reseña no aprobada' });
 
     let authorName = name?.trim() || 'Anónimo';
     if (userId) {
@@ -271,6 +278,22 @@ router.post('/:reviewId/reply', replyLimiter, async (req: Request, res: Response
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al crear respuesta' });
+  }
+});
+
+// GET /admin/summary — aggregate counts for charts
+router.get('/admin/summary', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const [total, pending, ratingGroups] = await Promise.all([
+      prisma.review.count(),
+      prisma.review.count({ where: { isApproved: false } }),
+      prisma.review.groupBy({ by: ['rating'], _count: true }),
+    ]);
+    const ratingDistribution: Record<number, number> = {};
+    for (const g of ratingGroups) ratingDistribution[g.rating] = g._count;
+    res.json({ total, pending, approved: total - pending, ratingDistribution });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener resumen de reseñas' });
   }
 });
 

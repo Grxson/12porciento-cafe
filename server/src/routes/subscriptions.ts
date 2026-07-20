@@ -91,11 +91,9 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
     }
 
     if (!Array.isArray(items) || items.length < slots.min || items.length > slots.max) {
-      res
-        .status(400)
-        .json({
-          error: `El plan ${plan} requiere entre ${slots.min} y ${slots.max} cafés seleccionados`,
-        });
+      res.status(400).json({
+        error: `El plan ${plan} requiere entre ${slots.min} y ${slots.max} cafés seleccionados`,
+      });
       return;
     }
 
@@ -297,21 +295,17 @@ router.put('/:id/items', requireUserAuth, async (req: UserAuthRequest, res: Resp
     }
 
     if (sub.fulfillmentStatus !== 'PENDIENTE') {
-      res
-        .status(400)
-        .json({
-          error: 'No puedes editar tu selección mientras el pedido está en preparación o tránsito',
-        });
+      res.status(400).json({
+        error: 'No puedes editar tu selección mientras el pedido está en preparación o tránsito',
+      });
       return;
     }
 
     const slots = PLAN_SLOTS[sub.plan];
     if (!slots || !Array.isArray(items) || items.length < slots.min || items.length > slots.max) {
-      res
-        .status(400)
-        .json({
-          error: `El plan ${sub.plan} requiere entre ${slots?.min ?? 2} y ${slots?.max ?? 99} cafés`,
-        });
+      res.status(400).json({
+        error: `El plan ${sub.plan} requiere entre ${slots?.min ?? 2} y ${slots?.max ?? 99} cafés`,
+      });
       return;
     }
 
@@ -420,11 +414,9 @@ router.put('/:id/admin', requireAuth, async (req: AuthRequest, res: Response) =>
     // If items provided, validate against the effective plan's slot range
     if (items !== undefined) {
       if (!Array.isArray(items) || items.length < slots.min || items.length > slots.max) {
-        res
-          .status(400)
-          .json({
-            error: `El plan ${effectivePlan} requiere entre ${slots.min} y ${slots.max} cafés`,
-          });
+        res.status(400).json({
+          error: `El plan ${effectivePlan} requiere entre ${slots.min} y ${slots.max} cafés`,
+        });
         return;
       }
     } else if (plan) {
@@ -847,6 +839,23 @@ router.get('/pause-info', requireUserAuth, async (req: UserAuthRequest, res: Res
     res.json({ data: subscription });
   } catch {
     res.status(500).json({ error: 'Error al obtener información de pausa' });
+  }
+});
+
+// GET /summary — aggregate counts for charts
+router.get('/summary', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const [statusGroups, planGroups] = await Promise.all([
+      prisma.subscription.groupBy({ by: ['status'], _count: true }),
+      prisma.subscription.groupBy({ by: ['plan'], _count: true }),
+    ]);
+    const statusCounts: Record<string, number> = {};
+    for (const g of statusGroups) statusCounts[g.status] = g._count;
+    const planCounts: Record<string, number> = {};
+    for (const g of planGroups) planCounts[g.plan] = g._count;
+    res.json({ statusCounts, planCounts });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener resumen de suscripciones' });
   }
 });
 

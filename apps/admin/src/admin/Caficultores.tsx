@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Users, Plus, Edit2, Trash2, MapPin, Mountain, Tag } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, MapPin, Mountain } from 'lucide-react';
 import { caficultoresApi } from '../api';
 import { Caficultor, TipoCata } from '../types';
 import { useModuleToast } from './context/ModuleContext';
@@ -8,6 +8,7 @@ import AdminErrorState from './components/AdminErrorState';
 import ConfirmDialog from './components/ConfirmDialog';
 import Pagination from './components/Pagination';
 import ImageUploader from './components/ImageUploader';
+import SearchableUbicacionSelect from '../components/SearchableUbicacionSelect';
 
 const EMPTY_FORM: Partial<Caficultor> & { tipoCataIds: string[] } = {
   nombre: '',
@@ -32,8 +33,10 @@ export default function AdminCaficultores() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Caficultor | null>(null);
+  const [viewing, setViewing] = useState<Caficultor | null>(null);
 
   const [tiposCata, setTiposCata] = useState<TipoCata[]>([]);
+  const [ubicacionId, setUbicacionId] = useState('');
 
   useEffect(() => {
     fetch('/api/tipos-cata', { credentials: 'include' })
@@ -65,6 +68,7 @@ export default function AdminCaficultores() {
   const openCreate = () => {
     setEditing(null);
     setForm(EMPTY_FORM);
+    setUbicacionId('');
     setShowForm(true);
   };
   const openEdit = (c: Caficultor) => {
@@ -73,6 +77,7 @@ export default function AdminCaficultores() {
       ...c,
       tipoCataIds: c.tiposCata?.map((t) => t.id) ?? [],
     });
+    setUbicacionId('');
     setShowForm(true);
   };
 
@@ -128,7 +133,6 @@ export default function AdminCaficultores() {
 
   const formFields = [
     { key: 'nombre', label: 'Nombre *', placeholder: 'Don Ernesto Méndez' },
-    { key: 'region', label: 'Región *', placeholder: 'Chiapas, México' },
     { key: 'altitud', label: 'Altitud (msnm)', placeholder: '1800', type: 'number' },
     { key: 'variedad', label: 'Variedad', placeholder: 'Bourbon, Typica' },
     { key: 'contacto', label: 'Contacto', placeholder: '+52 999 000 0000' },
@@ -186,6 +190,12 @@ export default function AdminCaficultores() {
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0">
+                  <button
+                    onClick={() => setViewing(c)}
+                    className="p-1.5 text-coffee-400 hover:text-coffee-700 dark:hover:text-cream hover:bg-coffee-50 dark:hover:bg-coffee-800 rounded-lg"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => openEdit(c)}
                     className="p-1.5 text-coffee-400 hover:text-coffee-700 dark:hover:text-cream hover:bg-coffee-50 dark:hover:bg-coffee-800 rounded-lg"
@@ -249,6 +259,24 @@ export default function AdminCaficultores() {
               </h2>
             </div>
             <div className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
+                  Región *
+                </label>
+                <SearchableUbicacionSelect
+                  value={ubicacionId}
+                  onChange={setUbicacionId}
+                  onSelectLabel={(label) => setForm((f) => ({ ...f, region: label }))}
+                  initialLabel={form.region || 'Seleccionar región'}
+                />
+                <input
+                  type="text"
+                  placeholder="O escribir manualmente..."
+                  value={form.region ?? ''}
+                  onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
+                  className="w-full mt-2 border border-coffee-200 dark:border-coffee-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream"
+                />
+              </div>
               {formFields.map(({ key, label, placeholder, type }) => (
                 <div key={key}>
                   <label className="block text-sm text-coffee-700 dark:text-cream/70 mb-1">
@@ -256,7 +284,7 @@ export default function AdminCaficultores() {
                   </label>
                   {key === 'foto' ? (
                     <ImageUploader
-                      value={(form as any)[key]?.toString() ?? ''}
+                      value={(form[key as keyof typeof form] as string | undefined) ?? ''}
                       onChange={(url) => setForm((f) => ({ ...f, [key]: url }))}
                       label=""
                     />
@@ -363,6 +391,110 @@ export default function AdminCaficultores() {
               >
                 {saving ? 'Guardando...' : editing ? 'Guardar cambios' : 'Crear'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewing && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-coffee-900 rounded-2xl w-full max-w-lg shadow-xl">
+            <div className="p-6 border-b border-coffee-100 dark:border-coffee-700 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-coffee-900 dark:text-cream">
+                {viewing.nombre}
+              </h2>
+              <button
+                onClick={() => setViewing(null)}
+                className="text-coffee-400 hover:text-coffee-700 dark:hover:text-cream text-sm"
+              >
+                Cerrar
+              </button>
+            </div>
+            <div className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
+              {viewing.foto && (
+                <img
+                  src={viewing.foto}
+                  alt={viewing.nombre}
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+              )}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Región</p>
+                  <p className="text-coffee-900 dark:text-cream">{viewing.region}</p>
+                </div>
+                {viewing.altitud && (
+                  <div>
+                    <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Altitud</p>
+                    <p className="text-coffee-900 dark:text-cream">{viewing.altitud} msnm</p>
+                  </div>
+                )}
+                {viewing.variedad && (
+                  <div>
+                    <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Variedad</p>
+                    <p className="text-coffee-900 dark:text-cream">{viewing.variedad}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Modalidad</p>
+                  <p className="text-coffee-900 dark:text-cream">{viewing.modalidad}</p>
+                </div>
+                {viewing.contacto && (
+                  <div>
+                    <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Contacto</p>
+                    <p className="text-coffee-900 dark:text-cream">{viewing.contacto}</p>
+                  </div>
+                )}
+                {viewing.acuerdoPrecioKg && (
+                  <div>
+                    <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">
+                      Precio/kg
+                    </p>
+                    <p className="text-coffee-900 dark:text-cream">${viewing.acuerdoPrecioKg}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Fair Trade</p>
+                  <p className="text-coffee-900 dark:text-cream">
+                    {viewing.fairTrade ? 'Sí' : 'No'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Estado</p>
+                  <p className="text-coffee-900 dark:text-cream">
+                    {viewing.isActive ? 'Activo' : 'Inactivo'}
+                  </p>
+                </div>
+              </div>
+              {viewing.bio && (
+                <div>
+                  <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase mb-1">Bio</p>
+                  <p className="text-sm text-coffee-700 dark:text-cream/80">{viewing.bio}</p>
+                </div>
+              )}
+              {viewing.tiposCata && viewing.tiposCata.length > 0 && (
+                <div>
+                  <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase mb-1">
+                    Tipos de Cata
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {viewing.tiposCata.map((t) => (
+                      <span
+                        key={t.id}
+                        className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs"
+                      >
+                        {t.nombre}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {viewing._count && (
+                <p className="text-xs text-coffee-400 dark:text-cream/40">
+                  {viewing._count.lotes} lote{viewing._count.lotes !== 1 ? 's' : ''} registrado
+                  {viewing._count.lotes !== 1 ? 's' : ''}
+                </p>
+              )}
             </div>
           </div>
         </div>

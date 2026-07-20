@@ -42,7 +42,10 @@ router.get('/logistics', requireAuth, async (req: AuthRequest, res: Response) =>
       total,
       page,
       totalPages: Math.ceil(total / limit),
-      statusCounts: statusCounts.reduce((acc, s) => ({ ...acc, [s.status]: s._count }), {} as Record<string, number>),
+      statusCounts: statusCounts.reduce(
+        (acc, s) => ({ ...acc, [s.status]: s._count }),
+        {} as Record<string, number>,
+      ),
     });
   } catch {
     res.status(500).json({ error: 'Error al obtener pedidos' });
@@ -53,7 +56,14 @@ router.get('/logistics', requireAuth, async (req: AuthRequest, res: Response) =>
 router.patch('/:id/status', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { status } = req.body;
-    const validStatuses = ['PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+    const validStatuses = [
+      'PENDING',
+      'CONFIRMED',
+      'PREPARING',
+      'SHIPPED',
+      'DELIVERED',
+      'CANCELLED',
+    ];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
@@ -63,7 +73,13 @@ router.patch('/:id/status', requireAuth, async (req: AuthRequest, res: Response)
       data: { status },
       include: { user: { select: { id: true, name: true, email: true } }, items: true },
     });
-    logAdminAction({ adminId: req.admin?.id, action: 'STATUS_CHANGE', entity: 'Order', entityId: req.params.id, metadata: { status } });
+    logAdminAction({
+      adminId: req.admin?.id,
+      action: 'STATUS_CHANGE',
+      entity: 'Order',
+      entityId: req.params.id,
+      metadata: { status },
+    });
     res.json({ data: order });
   } catch {
     res.status(500).json({ error: 'Error al actualizar estado' });
@@ -75,7 +91,10 @@ router.patch('/:id/tracking', requireAuth, async (req: AuthRequest, res: Respons
   try {
     const { trackingNumber, carrier, estimatedDelivery } = req.body;
 
-    if (trackingNumber !== undefined && (typeof trackingNumber !== 'string' || trackingNumber.length > 100)) {
+    if (
+      trackingNumber !== undefined &&
+      (typeof trackingNumber !== 'string' || trackingNumber.length > 100)
+    ) {
       return res.status(400).json({ error: 'Número de guía inválido (máx 100 caracteres)' });
     }
     if (carrier !== undefined && (typeof carrier !== 'string' || carrier.length > 80)) {
@@ -89,7 +108,8 @@ router.patch('/:id/tracking', requireAuth, async (req: AuthRequest, res: Respons
     const data: Prisma.OrderUpdateInput = {};
     if (trackingNumber !== undefined) data.trackingNumber = trackingNumber?.trim() || null;
     if (carrier !== undefined) data.carrier = carrier?.trim() || null;
-    if (estimatedDelivery !== undefined) data.estimatedDelivery = estimatedDelivery ? new Date(estimatedDelivery) : null;
+    if (estimatedDelivery !== undefined)
+      data.estimatedDelivery = estimatedDelivery ? new Date(estimatedDelivery) : null;
 
     if (Object.keys(data).length === 0) {
       return res.status(400).json({ error: 'No hay campos para actualizar' });
@@ -98,7 +118,15 @@ router.patch('/:id/tracking', requireAuth, async (req: AuthRequest, res: Respons
     const order = await prisma.order.update({
       where: { id: req.params.id },
       data,
-      select: { id: true, trackingNumber: true, carrier: true, estimatedDelivery: true, status: true, email: true, customerName: true },
+      select: {
+        id: true,
+        trackingNumber: true,
+        carrier: true,
+        estimatedDelivery: true,
+        status: true,
+        email: true,
+        customerName: true,
+      },
     });
 
     logAdminAction({
@@ -112,7 +140,11 @@ router.patch('/:id/tracking', requireAuth, async (req: AuthRequest, res: Respons
     // Fire-and-forget tracking email — only when trackingNumber is being set
     if (order.trackingNumber && order.email) {
       const estDate = order.estimatedDelivery
-        ? new Date(order.estimatedDelivery).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+        ? new Date(order.estimatedDelivery).toLocaleDateString('es-MX', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })
         : null;
       sendMail({
         to: order.email,
@@ -124,10 +156,18 @@ router.patch('/:id/tracking', requireAuth, async (req: AuthRequest, res: Respons
             <table style="border-collapse:collapse;margin:16px 0">
               <tr><td style="padding:6px 12px 6px 0;color:#6b4226;font-size:13px">Número de guía</td>
                   <td style="padding:6px 0;font-weight:bold">${order.trackingNumber}</td></tr>
-              ${order.carrier ? `<tr><td style="padding:6px 12px 6px 0;color:#6b4226;font-size:13px">Transportista</td>
-                  <td style="padding:6px 0">${order.carrier}</td></tr>` : ''}
-              ${estDate ? `<tr><td style="padding:6px 12px 6px 0;color:#6b4226;font-size:13px">Entrega estimada</td>
-                  <td style="padding:6px 0">${estDate}</td></tr>` : ''}
+              ${
+                order.carrier
+                  ? `<tr><td style="padding:6px 12px 6px 0;color:#6b4226;font-size:13px">Transportista</td>
+                  <td style="padding:6px 0">${order.carrier}</td></tr>`
+                  : ''
+              }
+              ${
+                estDate
+                  ? `<tr><td style="padding:6px 12px 6px 0;color:#6b4226;font-size:13px">Entrega estimada</td>
+                  <td style="padding:6px 0">${estDate}</td></tr>`
+                  : ''
+              }
             </table>
             <p style="color:#6b4226;font-size:13px">Puedes rastrear tu paquete con el número de guía en el sitio del transportista.</p>
             <hr style="border:none;border-top:1px solid #e8d5b0;margin:24px 0"/>
@@ -139,6 +179,18 @@ router.patch('/:id/tracking', requireAuth, async (req: AuthRequest, res: Respons
     res.json({ data: order });
   } catch {
     res.status(500).json({ error: 'Error al actualizar tracking' });
+  }
+});
+
+// GET /api/admin/orders/summary — aggregate status counts for charts
+router.get('/summary', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const statusGroups = await prisma.order.groupBy({ by: ['status'], _count: true });
+    const statusCounts: Record<string, number> = {};
+    for (const g of statusGroups) statusCounts[g.status] = g._count;
+    res.json({ statusCounts });
+  } catch {
+    res.status(500).json({ error: 'Error al obtener resumen de pedidos' });
   }
 });
 

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ShoppingBag, Send, CheckCircle, Loader2, Search, X, Download } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { abandonedCartApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useModuleToast } from './context/ModuleContext';
 import { exportToCsv } from './utils/csvExport';
@@ -17,6 +19,15 @@ export default function AbandonedCarts() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [recovered, setRecovered] = useState('');
+  const [cartSummary, setCartSummary] = useState<{
+    total: number;
+    recovered: number;
+    abandoned: number;
+  } | null>(null);
+
+  useEffect(() => {
+    abandonedCartApi.summary().then((r) => setCartSummary(r.data));
+  }, []);
 
   const {
     carts,
@@ -83,6 +94,64 @@ export default function AbandonedCarts() {
           <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} carritos</p>
         </div>
       </div>
+
+      {cartSummary && (
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6">
+          <p className="text-xs text-coffee-500 uppercase mb-3">Tasa de Recuperación</p>
+          <div className="flex items-center gap-6">
+            <ResponsiveContainer width={160} height={160}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Abandonados', value: cartSummary.abandoned },
+                    { name: 'Recuperados', value: cartSummary.recovered },
+                  ].filter((d) => d.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={35}
+                  outerRadius={65}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  <Cell fill="#eab308" />
+                  <Cell fill="#22c55e" />
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: '#1a0f0a',
+                    border: '1px solid #2c1810',
+                    borderRadius: 0,
+                  }}
+                  formatter={(v) => [`${v} carritos`, '']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex gap-8">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-coffee-900 dark:text-cream">
+                  {cartSummary.abandoned}
+                </p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-400">Abandonados</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-coffee-900 dark:text-cream">
+                  {cartSummary.recovered}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400">Recuperados</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-coffee-900 dark:text-cream">
+                  {cartSummary.total > 0
+                    ? Math.round((cartSummary.recovered / cartSummary.total) * 100)
+                    : 0}
+                  %
+                </p>
+                <p className="text-xs text-gold-500">Tasa</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end mb-6">
         <button

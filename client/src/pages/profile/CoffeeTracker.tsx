@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Coffee, ShoppingBag, RotateCw } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { baristaApi } from '../../api/barista';
 import { productsApi } from '../../api';
 import { useUser } from '../../context/UserContext';
@@ -31,10 +32,10 @@ export default function CoffeeTracker() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const brews = Array.isArray(brewsResp) ? brewsResp : [];
-  const products = productsResp?.data ?? [];
-
   const coffeeCounts = useMemo(() => {
+    const brews = Array.isArray(brewsResp) ? brewsResp : [];
+    const products = productsResp?.data ?? [];
+
     const grouped: Record<string, { count: number; product: Product | null }> = {};
 
     for (const brew of brews) {
@@ -49,7 +50,16 @@ export default function CoffeeTracker() {
     return Object.values(grouped)
       .filter((entry) => entry.product)
       .sort((a, b) => b.count - a.count);
-  }, [brews, products]);
+  }, [brewsResp, productsResp]);
+
+  const topCoffeesChartData = useMemo(
+    () =>
+      coffeeCounts.slice(0, 8).map((e) => ({
+        name: e.product!.name.length > 24 ? e.product!.name.slice(0, 22) + '…' : e.product!.name,
+        brews: e.count,
+      })),
+    [coffeeCounts],
+  );
 
   const isLoading = brewsLoading || productsLoading;
 
@@ -114,6 +124,44 @@ export default function CoffeeTracker() {
   return (
     <div>
       <PageMeta title="Mis Cafés" />
+      {topCoffeesChartData.length > 0 && (
+        <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6">
+          <p className="text-xs text-coffee-500 uppercase mb-3">Cafés más brewados</p>
+          <ResponsiveContainer width="100%" height={Math.max(160, topCoffeesChartData.length * 32)}>
+            <BarChart
+              data={topCoffeesChartData}
+              layout="vertical"
+              margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#2c1810" horizontal={false} />
+              <XAxis
+                type="number"
+                tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={160}
+                tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#1a0f0a',
+                  border: '1px solid #2c1810',
+                  borderRadius: 0,
+                  color: '#e8d5b7',
+                }}
+                formatter={(value) => [`${value} brews`, 'Brews']}
+              />
+              <Bar dataKey="brews" fill="#c9a96e" radius={[0, 2, 2, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {coffeeCounts.map((entry, i) => {
           const product = entry.product!;

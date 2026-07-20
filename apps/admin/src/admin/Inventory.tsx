@@ -13,6 +13,7 @@ import {
   Download,
   History,
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import QuickAdjustPopover from './components/QuickAdjustPopover';
@@ -259,6 +260,59 @@ export default function Inventory() {
             </p>
             <p className="text-gold-400 text-sm font-medium">Ajustar stock →</p>
           </button>
+        </div>
+      )}
+
+      {/* Stock Levels Bar Chart */}
+      {products.length > 0 && (
+        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-6">
+          <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
+            Niveles de Stock por Producto
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart
+              data={products
+                .filter((p) => p.isActive)
+                .sort((a, b) => b.stock - a.stock)
+                .slice(0, 12)
+                .map((p) => ({
+                  name: p.name.length > 16 ? p.name.slice(0, 14) + '…' : p.name,
+                  stock: p.stock,
+                  umbral: p.lowStockThreshold,
+                }))}
+              margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+              layout="vertical"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e8d5c4" horizontal={false} />
+              <XAxis
+                type="number"
+                tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                width={100}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#fff',
+                  border: '1px solid #e8d5c4',
+                  borderRadius: 0,
+                }}
+                labelStyle={{ color: '#c9a96e', fontSize: 11 }}
+                itemStyle={{ color: '#4a3728', fontSize: 12 }}
+                formatter={(v, name) => [`${v} unidades`, name === 'umbral' ? 'Umbral' : 'Stock']}
+              />
+              <Bar dataKey="stock" fill="#c9a96e" radius={[0, 2, 2, 0]} barSize={14} />
+              <Bar dataKey="umbral" fill="#e8d5b7" radius={[0, 2, 2, 0]} barSize={14} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       )}
 

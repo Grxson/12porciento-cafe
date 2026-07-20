@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Users, Plus, Edit2, Trash2, MapPin, Mountain } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, MapPin, Mountain, Eye } from 'lucide-react';
 import { caficultoresApi } from '../api';
 import { Caficultor, TipoCata } from '../types';
 import { useModuleToast } from './context/ModuleContext';

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, MapPin, Mountain, Eye } from 'lucide-react';
-import { caficultoresApi } from '../api';
+import { caficultoresApi, tiposCataApi } from '../api';
 import { Caficultor, TipoCata } from '../types';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -39,9 +39,9 @@ export default function AdminCaficultores() {
   const [ubicacionId, setUbicacionId] = useState('');
 
   useEffect(() => {
-    fetch('/api/tipos-cata', { credentials: 'include' })
-      .then((r) => r.json())
-      .then((d) => setTiposCata(d.data || []))
+    tiposCataApi
+      .list()
+      .then((r) => setTiposCata(r.data.data || []))
       .catch(() => {});
   }, []);
 

@@ -24,6 +24,8 @@ import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
 import Pagination from './components/Pagination';
 import { PageMeta } from '../hooks/usePageMeta';
+import { useChartColors } from '../hooks/useChartColors';
+import CollapsibleChart from './components/CollapsibleChart';
 import { getApiError } from '@12porciento/shared';
 import {
   useInventoryOverviewQuery,
@@ -79,6 +81,7 @@ export default function Inventory() {
   const [filterTo, setFilterTo] = useState('');
   const [search, setSearch] = useState('');
   const { addToast } = useModuleToast();
+  const chartColors = useChartColors();
 
   // Adjust form
   const [adjProduct, setAdjProduct] = useState('');
@@ -265,10 +268,7 @@ export default function Inventory() {
 
       {/* Stock Levels Bar Chart */}
       {products.length > 0 && (
-        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 mb-6">
-          <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
-            Niveles de Stock por Producto
-          </h3>
+        <CollapsibleChart id="inventory-stock-levels" title="Niveles de stock por producto">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart
               data={products
@@ -280,13 +280,13 @@ export default function Inventory() {
                   stock: p.stock,
                   umbral: p.lowStockThreshold,
                 }))}
-              margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
               layout="vertical"
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e8d5c4" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} />
               <XAxis
                 type="number"
-                tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                tick={{ fill: chartColors.text, fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
@@ -294,26 +294,26 @@ export default function Inventory() {
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                tick={{ fill: chartColors.text, fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 width={100}
               />
               <Tooltip
                 contentStyle={{
-                  background: '#fff',
-                  border: '1px solid #e8d5c4',
+                  background: chartColors.tooltipBg,
+                  border: `1px solid ${chartColors.tooltipBorder}`,
                   borderRadius: 0,
                 }}
-                labelStyle={{ color: '#c9a96e', fontSize: 11 }}
-                itemStyle={{ color: '#4a3728', fontSize: 12 }}
+                labelStyle={{ color: chartColors.gold, fontSize: 11 }}
+                itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
                 formatter={(v, name) => [`${v} unidades`, name === 'umbral' ? 'Umbral' : 'Stock']}
               />
               <Bar dataKey="stock" fill="#c9a96e" radius={[0, 2, 2, 0]} barSize={14} />
               <Bar dataKey="umbral" fill="#e8d5b7" radius={[0, 2, 2, 0]} barSize={14} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </CollapsibleChart>
       )}
 
       {/* Tabs */}

@@ -10,6 +10,8 @@ import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useOrdersQuery } from './hooks/useOrdersQuery';
+import { useChartColors } from '../hooks/useChartColors';
+import CollapsibleChart from './components/CollapsibleChart';
 import type { OrderStatus } from '../types';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
@@ -77,6 +79,7 @@ export default function AdminOrders() {
   const [bulkStatus, setBulkStatus] = useState('');
   const [confirmBulk, setConfirmBulk] = useState<string | null>(null);
   const [orderSummary, setOrderSummary] = useState<Record<string, number> | null>(null);
+  const chartColors = useChartColors();
 
   const {
     orders,
@@ -209,38 +212,41 @@ export default function AdminOrders() {
       </div>
 
       {orderSummary && Object.keys(orderSummary).length > 0 && (
-        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6">
-          <p className="text-xs text-coffee-500 uppercase mb-3">Pipeline de Estados</p>
+        <CollapsibleChart id="orders-pipeline" title="Pipeline de estados">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart
               data={Object.entries(orderSummary).map(([st, count]) => ({
                 name: statusConfig[st as OrderStatus]?.label ?? st,
                 count,
               }))}
-              margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#2c1810" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
               <XAxis
                 dataKey="name"
-                tick={{ fill: '#a05a2c', fontSize: 11 }}
+                tick={{ fill: chartColors.text, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
-              <YAxis tick={{ fill: '#a05a2c', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis
+                tick={{ fill: chartColors.text, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
               <Tooltip
                 contentStyle={{
-                  background: '#1a0f0a',
-                  border: '1px solid #2c1810',
+                  background: chartColors.tooltipBg,
+                  border: `1px solid ${chartColors.tooltipBorder}`,
                   borderRadius: 0,
                 }}
-                labelStyle={{ color: '#c9a96e', fontSize: 11 }}
-                itemStyle={{ color: '#e8d5b7', fontSize: 12 }}
+                labelStyle={{ color: chartColors.gold, fontSize: 11 }}
+                itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
                 formatter={(v) => [`${v} pedidos`, '']}
               />
               <Bar dataKey="count" fill="#c9a96e" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </CollapsibleChart>
       )}
 
       <form

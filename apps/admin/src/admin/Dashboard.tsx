@@ -31,53 +31,9 @@ import {
 } from 'recharts';
 import { dashboardApi, baristaApi, adminApi, inventoryApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
+import { useChartColors } from '../hooks/useChartColors';
 import type { DashboardStats, FinancialData } from '../types';
-
-interface ChartColors {
-  grid: string;
-  text: string;
-  gold: string;
-  tooltipBg: string;
-  tooltipBorder: string;
-  tooltipText: string;
-}
-
-function useChartColors(): ChartColors {
-  const [colors, setColors] = useState<ChartColors>({
-    grid: '#2c1810',
-    text: '#a05a2c',
-    gold: '#c9a96e',
-    tooltipBg: '#1a0f0a',
-    tooltipBorder: '#2c1810',
-    tooltipText: '#e8d5b7',
-  });
-  useEffect(() => {
-    const root = document.documentElement;
-    const computed = getComputedStyle(root);
-    const update = () => {
-      const isDark = root.classList.contains('dark');
-      setColors({
-        grid: isDark ? '#2c1810' : computed.getPropertyValue('--chart-grid').trim() || '#e8d5c4',
-        text: isDark ? '#a05a2c' : computed.getPropertyValue('--chart-text').trim() || '#8b5a2b',
-        gold: '#c9a96e',
-        tooltipBg: isDark
-          ? '#1a0f0a'
-          : computed.getPropertyValue('--chart-tooltip-bg').trim() || '#ffffff',
-        tooltipBorder: isDark
-          ? '#2c1810'
-          : computed.getPropertyValue('--chart-tooltip-border').trim() || '#e8d5c4',
-        tooltipText: isDark
-          ? '#e8d5b7'
-          : computed.getPropertyValue('--chart-tooltip-text').trim() || '#4a3728',
-      });
-    };
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
-  return colors;
-}
+import CollapsibleChart from './components/CollapsibleChart';
 
 const statusConfig: Record<string, { label: string; color: string; hex: string }> = {
   PENDING: { label: 'Pendiente', color: 'text-yellow-700 dark:text-yellow-400', hex: '#eab308' },
@@ -178,14 +134,6 @@ export default function Dashboard() {
       name: cat.category,
       value: cat.revenue,
       fill: palette[i % palette.length],
-    }));
-  }, [financial]);
-
-  const revenueMonthBarData = useMemo(() => {
-    if (!financial?.revenueByMonth) return [];
-    return financial.revenueByMonth.map((m) => ({
-      mes: MONTHS[m.month],
-      ingresos: m.total,
     }));
   }, [financial]);
 
@@ -370,90 +318,76 @@ export default function Dashboard() {
       {/* Charts row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Revenue trend */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="xl:col-span-2 bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6"
+        <CollapsibleChart
+          id="dashboard-revenue-trend"
+          title="Tendencia de ingresos"
+          subtitle="Últimos 12 meses"
+          badge="MXN"
         >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">
-                Tendencia de ingresos
-              </h2>
-              <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
-                Últimos 12 meses
-              </p>
-            </div>
-            <span className="text-gold-500 text-xs tracking-widest uppercase">MXN</span>
+          <div className="xl:col-span-2">
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={revenueData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#c9a96e" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#c9a96e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+                <XAxis
+                  dataKey="mes"
+                  tick={{ fill: chartColors.text, fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: chartColors.text, fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
+                    borderRadius: 0,
+                  }}
+                  labelStyle={{
+                    color: chartColors.gold,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                  }}
+                  itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
+                  formatter={(v) => [`$${Number(v).toLocaleString('es-MX')}`, 'Ingresos']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="ingresos"
+                  stroke={chartColors.gold}
+                  strokeWidth={2}
+                  fill="url(#goldGrad)"
+                  dot={false}
+                  activeDot={{ r: 4, fill: chartColors.gold, strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={revenueData} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
-              <defs>
-                <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#c9a96e" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#c9a96e" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
-              <XAxis
-                dataKey="mes"
-                tick={{ fill: chartColors.text, fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fill: chartColors.text, fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: chartColors.tooltipBg,
-                  border: `1px solid ${chartColors.tooltipBorder}`,
-                  borderRadius: 0,
-                }}
-                labelStyle={{
-                  color: chartColors.gold,
-                  fontSize: 11,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                }}
-                itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
-                formatter={(v) => [`$${Number(v).toLocaleString('es-MX')}`, 'Ingresos']}
-              />
-              <Area
-                type="monotone"
-                dataKey="ingresos"
-                stroke={chartColors.gold}
-                strokeWidth={2}
-                fill="url(#goldGrad)"
-                dot={false}
-                activeDot={{ r: 4, fill: chartColors.gold, strokeWidth: 0 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
+        </CollapsibleChart>
 
         {/* Orders by day */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.42 }}
-          className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6"
+        <CollapsibleChart
+          id="dashboard-orders-day"
+          title="Pedidos por día"
+          subtitle="Últimos 14 días"
         >
-          <div className="mb-6">
-            <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Pedidos por día</h2>
-            <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">Últimos 14 días</p>
-          </div>
           {ordersByDayData.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-coffee-500 dark:text-coffee-400 text-sm">
               Sin datos aún
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={ordersByDayData} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+              <BarChart data={ordersByDayData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
                 <XAxis
                   dataKey="dia"
@@ -486,7 +420,7 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </motion.div>
+        </CollapsibleChart>
       </div>
 
       {/* Bottom row */}
@@ -752,10 +686,7 @@ export default function Dashboard() {
           {/* Order Status Pie + Category Pie row */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Order Status Donut */}
-            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
-              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
-                Estado de pedidos
-              </h3>
+            <CollapsibleChart id="dashboard-order-status" title="Estado de pedidos">
               {statusPieData.length === 0 ? (
                 <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
               ) : (
@@ -795,13 +726,10 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </CollapsibleChart>
 
             {/* Revenue by Category Pie */}
-            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
-              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
-                Ingresos por categoría
-              </h3>
+            <CollapsibleChart id="dashboard-category-revenue" title="Ingresos por categoría">
               {categoryPieData.length === 0 ? (
                 <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
               ) : (
@@ -844,14 +772,11 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               )}
-            </div>
+            </CollapsibleChart>
           </div>
 
           {/* Top products by revenue — horizontal bar chart */}
-          <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
-            <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
-              Top ingresos por producto
-            </h3>
+          <CollapsibleChart id="dashboard-top-products" title="Top ingresos por producto">
             {financial.topRevenueProducts.length === 0 ? (
               <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
             ) : (
@@ -906,52 +831,7 @@ export default function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </div>
-
-          {/* Revenue by month bar chart (last 6 months) */}
-          {revenueMonthBarData.length > 0 && (
-            <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
-              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream mb-4">
-                Tendencia ingresos (6 meses)
-              </h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart
-                  data={revenueMonthBarData}
-                  margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
-                  <XAxis
-                    dataKey="mes"
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: chartColors.tooltipBg,
-                      border: `1px solid ${chartColors.tooltipBorder}`,
-                      borderRadius: 0,
-                    }}
-                    labelStyle={{
-                      color: chartColors.gold,
-                      fontSize: 11,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                    }}
-                    itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
-                    formatter={(v) => [`$${Number(v).toLocaleString('es-MX')}`, 'Ingresos']}
-                  />
-                  <Bar dataKey="ingresos" fill={chartColors.gold} radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          </CollapsibleChart>
         </div>
       )}
     </div>

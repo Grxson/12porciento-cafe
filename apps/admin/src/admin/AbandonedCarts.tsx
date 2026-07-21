@@ -8,10 +8,13 @@ import { exportToCsv } from './utils/csvExport';
 import Pagination from './components/Pagination';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import { useChartColors } from '../hooks/useChartColors';
 import { useAbandonedCartsQuery } from './hooks/useAbandonedCartsQuery';
+import CollapsibleChart from './components/CollapsibleChart';
 
 export default function AbandonedCarts() {
   const { addToast } = useModuleToast();
+  const chartColors = useChartColors();
   const [page, setPage] = useState(1);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [recoveringId, setRecoveringId] = useState<string | null>(null);
@@ -96,10 +99,9 @@ export default function AbandonedCarts() {
       </div>
 
       {cartSummary && (
-        <div className="bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6">
-          <p className="text-xs text-coffee-500 uppercase mb-3">Tasa de Recuperación</p>
+        <CollapsibleChart id="carts-recovery" title="Tasa de recuperación">
           <div className="flex items-center gap-6">
-            <ResponsiveContainer width={160} height={160}>
+            <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
                   data={[
@@ -118,8 +120,8 @@ export default function AbandonedCarts() {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    background: '#1a0f0a',
-                    border: '1px solid #2c1810',
+                    background: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: 0,
                   }}
                   formatter={(v) => [`${v} carritos`, '']}
@@ -150,7 +152,7 @@ export default function AbandonedCarts() {
               </div>
             </div>
           </div>
-        </div>
+        </CollapsibleChart>
       )}
 
       <div className="flex justify-end mb-6">

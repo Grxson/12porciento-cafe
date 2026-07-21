@@ -776,7 +776,7 @@ export default function Dashboard() {
             </CollapsibleChart>
           </div>
 
-          {/* Top products by revenue — horizontal bar chart */}
+          {/* Top products by revenue — area chart */}
           <CollapsibleChart id="dashboard-top-products" title="Top ingresos por producto">
             {financial.topRevenueProducts.length === 0 ? (
               <p className="text-coffee-500 dark:text-coffee-400 text-sm">Sin datos aún.</p>
@@ -785,30 +785,30 @@ export default function Dashboard() {
                 width="100%"
                 height={Math.max(240, financial.topRevenueProducts.length * 44)}
               >
-                <BarChart
-                  data={financial.topRevenueProducts}
-                  layout="vertical"
-                  margin={{ top: 4, right: 48, left: 8, bottom: 4 }}
+                <AreaChart
+                  data={financial.topRevenueProducts.map((p, i) => ({ ...p, rank: i + 1 }))}
+                  margin={{ top: 4, right: 24, left: 8, bottom: 80 }}
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={chartColors.grid}
-                    horizontal={false}
-                  />
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={chartColors.gold} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={chartColors.gold} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
                   <XAxis
-                    type="number"
-                    tick={{ fill: chartColors.text, fontSize: 12 }}
+                    dataKey="rank"
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `#${v}`}
+                  />
+                  <YAxis
+                    tick={{ fill: chartColors.text, fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={200}
-                    tick={{ fill: chartColors.text, fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
+                    width={48}
                   />
                   <Tooltip
                     contentStyle={{
@@ -825,18 +825,28 @@ export default function Dashboard() {
                     itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
                     formatter={(v, _name, props) => [
                       `$${Number(v).toLocaleString('es-MX')} · ${props.payload.units} uds`,
-                      'Ingresos',
+                      props.payload.name,
                     ]}
+                    labelFormatter={(v) => `#${v}`}
                   />
-                  <Bar dataKey="revenue" fill={chartColors.gold} radius={[0, 6, 6, 0]} barSize={24}>
-                    <LabelList
-                      dataKey="revenue"
-                      position="right"
-                      formatter={(v) => `$${(Number(v) / 1000).toFixed(0)}k`}
-                      style={{ fill: chartColors.text, fontSize: 11, fontWeight: 500 }}
-                    />
-                  </Bar>
-                </BarChart>
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke={chartColors.gold}
+                    strokeWidth={2}
+                    fill="url(#revenueGradient)"
+                    dot={{ r: 4, fill: chartColors.gold, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: chartColors.gold, strokeWidth: 0 }}
+                  />
+                  <LabelList
+                    dataKey="name"
+                    position="bottom"
+                    style={{ fill: chartColors.text, fontSize: 10 }}
+                    angle={-35}
+                    textAnchor="end"
+                    height={60}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </CollapsibleChart>

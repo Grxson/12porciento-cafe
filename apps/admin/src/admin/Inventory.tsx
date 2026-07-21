@@ -275,65 +275,78 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* Stock Levels Bar Chart */}
+      {/* Stock Levels Gauge Grid */}
       {products.length > 0 && (
         <CollapsibleChart id="inventory-stock-levels" title="Niveles de stock por producto">
-          <ResponsiveContainer
-            width="100%"
-            height={Math.max(240, products.filter((p) => p.isActive).slice(0, 12).length * 44)}
-          >
-            <BarChart
-              data={products
-                .filter((p) => p.isActive)
-                .sort((a, b) => b.stock - a.stock)
-                .slice(0, 12)
-                .map((p) => ({
-                  name: p.name.length > 18 ? p.name.slice(0, 16) + '…' : p.name,
-                  stock: p.stock,
-                  umbral: p.lowStockThreshold,
-                }))}
-              margin={{ top: 4, right: 48, left: 8, bottom: 4 }}
-              layout="vertical"
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} />
-              <XAxis
-                type="number"
-                tick={{ fill: chartColors.text, fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-                allowDecimals={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                tick={{ fill: chartColors.text, fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-                width={140}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: chartColors.tooltipBg,
-                  border: `1px solid ${chartColors.tooltipBorder}`,
-                  borderRadius: 0,
-                }}
-                labelStyle={{ color: chartColors.gold, fontSize: 11 }}
-                itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
-                formatter={(v, name) => [`${v} unidades`, name === 'umbral' ? 'Umbral' : 'Stock']}
-              />
-              {/* Umbral as thin reference bar */}
-              <Bar dataKey="umbral" fill="#e8d5b7" radius={0} barSize={4} />
-              {/* Stock as main thick bar */}
-              <Bar dataKey="stock" fill={chartColors.gold} radius={[0, 6, 6, 0]} barSize={22}>
-                <LabelList
-                  dataKey="stock"
-                  position="right"
-                  formatter={(v) => `${v}`}
-                  style={{ fill: chartColors.text, fontSize: 11, fontWeight: 500 }}
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {products
+              .filter((p) => p.isActive)
+              .sort((a, b) => b.stock - a.stock)
+              .slice(0, 12)
+              .map((p) => {
+                const maxRef = Math.max(p.stock, p.lowStockThreshold, 1);
+                const stockPct = Math.min(100, (p.stock / maxRef) * 100);
+                const umbralPct = Math.min(100, (p.lowStockThreshold / maxRef) * 100);
+                const isLow = p.stock <= p.lowStockThreshold;
+                const stockColor = isLow ? '#ef4444' : '#c9a96e';
+                // Arc path for a semicircle gauge (180° sweep)
+                const describeArc = (pct: number) => {
+                  if (pct <= 0) return '';
+                  const clamped = Math.min(pct, 100);
+                  const angle = (clamped / 100) * 180;
+                  const rad = (angle - 90) * (Math.PI / 180);
+                  const rad2 = -90 * (Math.PI / 180);
+                  const x1 = 0.5 + 0.5 * Math.cos(rad2);
+                  const y1 = 0.5 + 0.5 * Math.sin(rad2);
+                  const x2 = 0.5 + 0.5 * Math.cos(rad);
+                  const y2 = 0.5 + 0.5 * Math.sin(rad);
+                  const large = clamped > 50 ? 1 : 0;
+                  return `M ${x1} ${y1} A 0.5 0.5 0 ${large} 1 ${x2} ${y2}`;
+                };
+
+                return (
+                  <div
+                    key={p.id}
+                    className="flex flex-col items-center p-3 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800"
+                  >
+                    <p className="text-xs text-coffee-700 dark:text-coffee-300 text-center mb-1 truncate w-full leading-tight">
+                      {p.name.length > 16 ? p.name.slice(0, 15) + '…' : p.name}
+                    </p>
+                    <svg
+                      viewBox="-0.05 -0.05 1.1 0.6"
+                      className="w-full"
+                      style={{ overflow: 'visible' }}
+                    >
+                      {/* Track (umbral reference) */}
+                      <path
+                        d={describeArc(umbralPct)}
+                        fill="none"
+                        stroke="#e8d5b7"
+                        strokeWidth={4}
+                        strokeLinecap="round"
+                      />
+                      {/* Stock arc */}
+                      <path
+                        d={describeArc(stockPct)}
+                        fill="none"
+                        stroke={stockColor}
+                        strokeWidth={6}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="text-center -mt-1">
+                      <span
+                        className={`text-sm font-bold ${isLow ? 'text-red-500' : 'text-coffee-900 dark:text-cream'}`}
+                      >
+                        {p.stock}
+                      </span>
+                      <span className="text-xs text-coffee-400"> / {p.lowStockThreshold}</span>
+                    </div>
+                    <p className="text-[10px] text-coffee-400">uds · umbral</p>
+                  </div>
+                );
+              })}
+          </div>
         </CollapsibleChart>
       )}
 

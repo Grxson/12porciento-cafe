@@ -12,9 +12,18 @@ interface AdminModalProps {
   maxWidth?: string; // tailwind max-w-* class, default max-w-lg
 }
 
-export default function AdminModal({ open, title, onClose, children, footer, maxWidth = 'max-w-lg' }: AdminModalProps) {
+export default function AdminModal({
+  open,
+  title,
+  onClose,
+  children,
+  footer,
+  maxWidth = 'max-w-lg',
+}: AdminModalProps) {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
@@ -41,13 +50,26 @@ export default function AdminModal({ open, title, onClose, children, footer, max
               aria-labelledby="admin-modal-title"
             >
               <div className="flex items-center justify-between p-5 border-b border-coffee-200 dark:border-coffee-800">
-                <h2 id="admin-modal-title" className="font-serif text-xl text-coffee-900 dark:text-cream">{title}</h2>
-                <button onClick={onClose} className="text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors" aria-label="Cerrar">
-                  <X size={20} />
+                <h2
+                  id="admin-modal-title"
+                  className="font-serif text-xl text-coffee-900 dark:text-cream"
+                >
+                  {title}
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-lg hover:bg-coffee-100 dark:hover:bg-coffee-800 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+                  aria-label="Cerrar"
+                >
+                  <X size={22} />
                 </button>
               </div>
               <div className="p-5 overflow-y-auto space-y-4">{children}</div>
-              {footer && <div className="p-5 border-t border-coffee-200 dark:border-coffee-800 flex gap-3">{footer}</div>}
+              {footer && (
+                <div className="p-5 border-t border-coffee-200 dark:border-coffee-800 flex gap-3">
+                  {footer}
+                </div>
+              )}
             </motion.div>
           </FocusTrap>
         </motion.div>

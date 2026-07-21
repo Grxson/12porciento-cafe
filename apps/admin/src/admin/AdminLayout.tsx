@@ -1,5 +1,7 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Suspense, useState, useCallback } from 'react';
+import { Suspense, useState, useCallback, useEffect } from 'react';
+import { urlBase64ToUint8Array } from '@12porciento/shared';
+import api from '../api';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -142,6 +144,71 @@ function AdminLayoutInner() {
 
   const currentTitle = pageTitles[location.pathname] ?? 'Admin';
 
+  // Auto-subscribe to push notifications for admin
+  useEffect(() => {
+    const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY ?? '';
+    const token = localStorage.getItem('admin_token');
+
+    if (
+      !token ||
+      !VAPID_PUBLIC_KEY ||
+      !('Notification' in window) ||
+      !('serviceWorker' in navigator) ||
+      !('PushManager' in window)
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    let registration: ServiceWorkerRegistration | null = null;
+
+    (async () => {
+      try {
+        registration = await navigator.serviceWorker.ready;
+
+        // Check if already subscribed — skip if so
+        const existingSub = await registration.pushManager.getSubscription();
+        if (cancelled || existingSub) return;
+
+        // Request permission if not already granted
+        if (Notification.permission === 'default') {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted' || cancelled) return;
+        } else if (Notification.permission !== 'granted') {
+          return;
+        }
+
+        const sub = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+        });
+
+        if (cancelled) {
+          await sub.unsubscribe();
+          return;
+        }
+
+        const subJSON = sub.toJSON();
+        await api.post('/push/subscribe', {
+          endpoint: subJSON.endpoint,
+          keys: subJSON.keys,
+        });
+      } catch (err) {
+        console.error('[ADMIN PUSH] subscribe error:', err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      // Unsubscribe on cleanup (e.g. logout / route away)
+      if (registration) {
+        registration.pushManager.getSubscription().then((sub) => {
+          if (sub) sub.unsubscribe().catch(() => {});
+        });
+      }
+    };
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
     navigate('/login', { replace: true });
@@ -173,10 +240,10 @@ function AdminLayoutInner() {
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            className="lg:hidden p-2 -mr-1 rounded-lg hover:bg-coffee-100 dark:hover:bg-coffee-800 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Cerrar menú"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -187,7 +254,7 @@ function AdminLayoutInner() {
                 to={dashboardLink.to}
                 onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 border-l-2 pl-[10px] ${
+                  `flex items-center gap-3 px-3 py-3 min-h-[44px] text-sm transition-all duration-150 border-l-2 pl-[10px] ${
                     isActive
                       ? 'bg-coffee-200 dark:bg-coffee-800 text-coffee-900 dark:text-cream border-gold-500'
                       : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200/60 dark:hover:bg-coffee-800/40 border-transparent'
@@ -206,7 +273,7 @@ function AdminLayoutInner() {
               <div key={group.label} className="mt-4">
                 <button
                   onClick={() => toggleGroup(group.label)}
-                  className="w-full flex items-center justify-between px-3 pb-1 text-[11px] font-semibold tracking-widest text-coffee-500 dark:text-coffee-500 uppercase hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2 min-h-[36px] text-[11px] font-semibold tracking-widest text-coffee-500 dark:text-coffee-500 uppercase hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
                 >
                   {group.label}
                   {isCollapsed ? (
@@ -231,7 +298,7 @@ function AdminLayoutInner() {
                             to={to}
                             onClick={() => setSidebarOpen(false)}
                             className={({ isActive }) =>
-                              `flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150 border-l-2 pl-[10px] ${
+                              `flex items-center gap-3 px-3 py-3 min-h-[44px] text-sm transition-all duration-150 border-l-2 pl-[10px] ${
                                 isActive
                                   ? 'bg-coffee-200 dark:bg-coffee-800 text-coffee-900 dark:text-cream border-gold-500'
                                   : 'text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200/60 dark:hover:bg-coffee-800/40 border-transparent'
@@ -278,10 +345,13 @@ function AdminLayoutInner() {
         className="flex-1 lg:ml-60 min-h-screen flex flex-col focus:outline-none"
       >
         {/* Top header */}
-        <header className="sticky top-0 z-20 bg-coffee-50/95 dark:bg-coffee-950/95 backdrop-blur-sm border-b border-coffee-200 dark:border-coffee-800 h-14 flex items-center px-4 sm:px-6 gap-4">
+        <header
+          className="sticky top-0 z-20 bg-coffee-50/95 dark:bg-coffee-950/95 backdrop-blur-sm border-b border-coffee-200 dark:border-coffee-800 h-14 flex items-center px-4 sm:px-6 gap-4"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+            className="lg:hidden p-2.5 -ml-1 rounded-lg hover:bg-coffee-100 dark:hover:bg-coffee-800 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"
             aria-label="Abrir menú"
           >
             <Menu className="w-5 h-5" />
@@ -303,10 +373,10 @@ function AdminLayoutInner() {
             </span>
             <button
               onClick={adminTheme.toggle}
-              className="p-1.5 rounded-md text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-200 dark:hover:bg-coffee-800 transition-colors"
+              className="p-2 rounded-lg text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-800 transition-colors"
               aria-label="Toggle theme"
             >
-              {adminTheme.dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {adminTheme.dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <NotificationBell />
             <div className="w-7 h-7 bg-gold-500/20 border border-gold-500/30 flex items-center justify-center">
@@ -315,7 +385,7 @@ function AdminLayoutInner() {
           </div>
         </header>
 
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8">
           <Suspense fallback={<AdminSkeleton rows={6} />}>
             <Outlet />
           </Suspense>

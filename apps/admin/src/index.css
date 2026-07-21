@@ -278,6 +278,24 @@
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2;
   }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-both {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 @keyframes shimmer {

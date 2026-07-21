@@ -7,6 +7,10 @@ import { ErrorBoundary } from '@12porciento/ui';
 import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
 import Dashboard from './admin/Dashboard';
+import InstallPrompt from './components/InstallPrompt';
+import UpdateNotificationModal from './components/UpdateNotificationModal';
+import OfflineIndicator from './components/OfflineIndicator';
+import { useUpdateNotification } from './hooks/useUpdateNotification';
 
 const AdminProducts = lazy(() => import('./admin/Products'));
 const AdminOrders = lazy(() => import('./admin/Orders'));
@@ -40,10 +44,19 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function App() {
+  const { showNotification, handleDismiss, handleUpdate } = useUpdateNotification();
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>
+          <InstallPrompt />
+          <UpdateNotificationModal
+            open={showNotification}
+            onUpdate={handleUpdate}
+            onDismiss={handleDismiss}
+          />
+          <OfflineIndicator />
           <Routes>
             <Route path="/login" element={<AdminLogin />} />
             <Route

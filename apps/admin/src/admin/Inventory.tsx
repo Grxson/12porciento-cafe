@@ -317,7 +317,7 @@ export default function Inventory() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-coffee-200 dark:border-coffee-800 mb-6">
+      <div className="flex gap-1 overflow-x-auto border-b border-coffee-200 dark:border-coffee-800 mb-6">
         {(
           [
             { id: 'overview', label: 'Resumen' },
@@ -329,7 +329,7 @@ export default function Inventory() {
           <button
             key={id}
             onClick={() => setTab(id)}
-            className={`px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors ${
+            className={`px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors whitespace-nowrap ${
               tab === id
                 ? 'border-gold-500 text-gold-500'
                 : 'border-transparent text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream'
@@ -787,7 +787,7 @@ export default function Inventory() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="inventory-unit-cost"
@@ -1023,63 +1023,65 @@ export default function Inventory() {
             Sin movimientos registrados
           </p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                {['Fecha', 'Tipo', 'Cantidad', 'Antes → Después', 'Notas'].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {historyMovements.map((m) => {
-                const mt = MOVEMENT_TYPES[m.type] ?? MOVEMENT_TYPES.ADJUSTMENT;
-                const Icon = mt.icon;
-                return (
-                  <tr
-                    key={m.id}
-                    className="border-b border-coffee-200/40 dark:border-coffee-800/40 hover:bg-coffee-100 dark:hover:bg-coffee-800/20 transition-colors"
-                  >
-                    <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs whitespace-nowrap">
-                      {new Date(m.createdAt).toLocaleString('es-MX', {
-                        day: '2-digit',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <div className={`flex items-center gap-1.5 ${mt.color}`}>
-                        <Icon className="w-3.5 h-3.5" />
-                        <span className="text-xs font-medium">{mt.label}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span
-                        className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
-                      >
-                        {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs">
-                      {m.previousStock} →{' '}
-                      <span className="text-coffee-900 dark:text-cream font-medium">
-                        {m.newStock}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-coffee-500 dark:text-coffee-400 text-xs max-w-[160px] truncate">
-                      {m.notes ?? '—'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-coffee-200 dark:border-coffee-800">
+                  {['Fecha', 'Tipo', 'Cantidad', 'Antes → Después', 'Notas'].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {historyMovements.map((m) => {
+                  const mt = MOVEMENT_TYPES[m.type] ?? MOVEMENT_TYPES.ADJUSTMENT;
+                  const Icon = mt.icon;
+                  return (
+                    <tr
+                      key={m.id}
+                      className="border-b border-coffee-200/40 dark:border-coffee-800/40 hover:bg-coffee-100 dark:hover:bg-coffee-800/20 transition-colors"
+                    >
+                      <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs whitespace-nowrap">
+                        {new Date(m.createdAt).toLocaleString('es-MX', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className={`flex items-center gap-1.5 ${mt.color}`}>
+                          <Icon className="w-3.5 h-3.5" />
+                          <span className="text-xs font-medium">{mt.label}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span
+                          className={`text-sm font-bold ${m.quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                        >
+                          {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-coffee-600 dark:text-coffee-400 text-xs">
+                        {m.previousStock} →{' '}
+                        <span className="text-coffee-900 dark:text-cream font-medium">
+                          {m.newStock}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-coffee-500 dark:text-coffee-400 text-xs max-w-[160px] truncate">
+                        {m.notes ?? '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </AdminModal>
     </div>

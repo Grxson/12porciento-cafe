@@ -17,7 +17,17 @@ interface RecipeListProps {
   onReorderStep: (recipeId: string, stepIds: string[]) => Promise<void>;
 }
 
-export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNew, onAddStep, onEditStep, onDeleteStep, onReorderStep }: RecipeListProps) {
+export default function RecipeList({
+  recipes,
+  loading,
+  onEdit,
+  onDelete,
+  onAddNew,
+  onAddStep,
+  onEditStep,
+  onDeleteStep,
+  onReorderStep,
+}: RecipeListProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   if (loading) {
@@ -33,7 +43,9 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-coffee-500 dark:text-coffee-400">{recipes.length} receta{recipes.length !== 1 ? 's' : ''}</p>
+        <p className="text-xs text-coffee-500 dark:text-coffee-400">
+          {recipes.length} receta{recipes.length !== 1 ? 's' : ''}
+        </p>
         <button
           onClick={onAddNew}
           className="flex items-center gap-2 px-4 py-2 bg-gold-500 text-coffee-950 text-xs font-semibold uppercase hover:bg-gold-400 transition-colors"
@@ -49,7 +61,7 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
             <p className="text-sm">Sin recetas. Crea la primera.</p>
           </div>
         ) : (
-          recipes.map(recipe => (
+          recipes.map((recipe) => (
             <motion.div
               key={recipe.id}
               layout
@@ -69,36 +81,54 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
-                    <h3 className="font-serif text-coffee-900 dark:text-cream truncate">{recipe.title}</h3>
+                    <h3 className="font-serif text-coffee-900 dark:text-cream truncate">
+                      {recipe.title}
+                    </h3>
                     <div className="flex gap-1 shrink-0">
                       {recipe.isPublished ? (
-                        <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1">Publicada</span>
+                        <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1">
+                          Publicada
+                        </span>
                       ) : (
-                        <span className="text-xs bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 px-2 py-1">Borrador</span>
+                        <span className="text-xs bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 px-2 py-1">
+                          Borrador
+                        </span>
                       )}
                       {recipe.isPremium && (
-                        <span className="text-xs bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 px-2 py-1">Premium</span>
+                        <span className="text-xs bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 px-2 py-1">
+                          Premium
+                        </span>
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-1">{recipe.method} • {recipe.difficulty}</p>
+                  <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-1">
+                    {recipe.method} • {recipe.difficulty}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={(e) => { e.stopPropagation(); onEdit(recipe); }}
-                    className="p-1.5 text-coffee-500 dark:text-coffee-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(recipe);
+                    }}
+                    className="p-2.5 text-coffee-500 dark:text-coffee-400 hover:text-gold-500 dark:hover:text-gold-400 transition-colors"
                     aria-label="Editar receta"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(recipe); }}
-                    className="p-1.5 text-coffee-500 dark:text-coffee-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(recipe);
+                    }}
+                    className="p-2.5 text-coffee-500 dark:text-coffee-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                     aria-label="Eliminar receta"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                  <ChevronDown className={`w-4 h-4 text-coffee-500 dark:text-coffee-400 transition-transform ${expanded === recipe.id ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 text-coffee-500 dark:text-coffee-400 transition-transform ${expanded === recipe.id ? 'rotate-180' : ''}`}
+                  />
                 </div>
               </div>
 
@@ -112,7 +142,9 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
                   >
                     <div className="p-4 space-y-3">
                       {recipe.description && (
-                        <p className="text-xs text-coffee-600 dark:text-coffee-300">{recipe.description}</p>
+                        <p className="text-xs text-coffee-600 dark:text-coffee-300">
+                          {recipe.description}
+                        </p>
                       )}
                       <div className="flex flex-wrap gap-x-4 gap-y-1">
                         <p className="text-xs text-coffee-500 dark:text-coffee-400">
@@ -130,7 +162,9 @@ export default function RecipeList({ recipes, loading, onEdit, onDelete, onAddNe
                         )}
                       </div>
                       <div>
-                        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2"><strong>Pasos ({recipe.steps.length})</strong></p>
+                        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2">
+                          <strong>Pasos ({recipe.steps.length})</strong>
+                        </p>
                         <StepList
                           steps={recipe.steps}
                           onAddNew={() => onAddStep(recipe.id)}

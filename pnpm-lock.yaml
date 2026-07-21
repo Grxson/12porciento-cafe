@@ -83,6 +83,12 @@ importers:
       recharts:
         specifier: ^3.8.1
         version: 3.8.1(@types/react@18.3.29)(react-dom@18.3.1(react@18.3.1))(react-is@19.2.6)(react@18.3.1)(redux@5.0.1)
+      vite-plugin-pwa:
+        specifier: ^1.3.0
+        version: 1.3.0(@vite-pwa/assets-generator@1.0.2)(vite@5.4.21(@types/node@20.19.41)(terser@5.48.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
+      workbox-window:
+        specifier: ^7.4.1
+        version: 7.4.1
       zustand:
         specifier: ^4.5.4
         version: 4.5.7(@types/react@18.3.29)(immer@11.1.8)(react@18.3.1)
@@ -114,6 +120,21 @@ importers:
       vite:
         specifier: ^5.3.1
         version: 5.4.21(@types/node@20.19.41)(terser@5.48.0)
+      workbox-cacheable-response:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-expiration:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-precaching:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-routing:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-strategies:
+        specifier: ^7.4.1
+        version: 7.4.1
 
   client:
     dependencies:

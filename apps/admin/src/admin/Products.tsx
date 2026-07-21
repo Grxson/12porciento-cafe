@@ -249,10 +249,14 @@ export default function AdminProducts() {
   return (
     <div>
       <PageMeta title="Productos" noSuffix />
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-serif text-3xl text-coffee-900 dark:text-cream">Productos</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">{total} en catálogo</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="min-w-0">
+          <h1 className="font-serif text-2xl sm:text-3xl text-coffee-900 dark:text-cream">
+            Productos
+          </h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1 hidden sm:block">
+            {total} en catálogo
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -271,7 +275,7 @@ export default function AdminProducts() {
             className="flex items-center gap-1.5 px-3 py-2 border border-coffee-200 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 text-sm hover:text-coffee-900 dark:hover:text-cream transition-colors"
             title="Exportar CSV"
           >
-            <Download size={14} /> CSV
+            <Download size={14} /> <span className="hidden sm:inline">CSV</span>
           </button>
           <button
             onClick={openAdd}
@@ -294,7 +298,7 @@ export default function AdminProducts() {
       </div>
 
       {/* Category filter */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         {['TODOS', 'CAFÉ', 'ACCESORIOS', 'MERCH'].map((cat) => (
           <button
             key={cat}
@@ -328,7 +332,7 @@ export default function AdminProducts() {
       </div>
 
       {selected.size > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
+        <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
           <span className="text-sm text-coffee-700 dark:text-coffee-300">
             {selected.size} seleccionado{selected.size !== 1 ? 's' : ''}
           </span>
@@ -468,13 +472,13 @@ export default function AdminProducts() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => openEdit(p)}
-                            className="text-coffee-400 dark:text-coffee-500 hover:text-gold-500 transition-colors"
+                            className="p-2 rounded hover:bg-coffee-100 dark:hover:bg-coffee-800 min-h-[44px] min-w-[44px] flex items-center justify-center text-coffee-400 dark:text-coffee-500 hover:text-gold-500 transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(p.id, p.name)}
-                            className="text-coffee-400 dark:text-coffee-500 hover:text-red-400 transition-colors"
+                            className="p-2 rounded hover:bg-coffee-100 dark:hover:bg-coffee-800 min-h-[44px] min-w-[44px] flex items-center justify-center text-coffee-400 dark:text-coffee-500 hover:text-red-400 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -556,7 +560,7 @@ export default function AdminProducts() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { name: 'name', label: 'Nombre', required: true, id: 'product-name' },
               { name: 'slug', label: 'Slug (URL)', required: true, id: 'product-slug' },
@@ -739,7 +743,7 @@ export default function AdminProducts() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label
                         htmlFor="product-producer"
@@ -772,7 +776,7 @@ export default function AdminProducts() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label
                         htmlFor="product-certifications"
@@ -830,7 +834,7 @@ export default function AdminProducts() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label
                         htmlFor="product-brew-method"

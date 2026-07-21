@@ -203,7 +203,7 @@ function RecipesContent() {
       </div>
 
       {/* Status filter */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {(['all', 'published', 'draft', 'premium'] as const).map((f) => (
           <button
             key={f}

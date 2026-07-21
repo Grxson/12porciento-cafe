@@ -303,7 +303,7 @@ export default function AdminOrders() {
       </form>
 
       {selected.size > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
+        <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-coffee-50 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700">
           <span className="text-sm text-coffee-700 dark:text-coffee-300">
             {selected.size} seleccionado{selected.size !== 1 ? 's' : ''}
           </span>
@@ -467,7 +467,7 @@ export default function AdminOrders() {
                               <button
                                 key={s}
                                 onClick={() => updateStatus(order.id, s)}
-                                className={`text-xs px-3 py-1.5 border transition-all ${
+                                className={`text-xs px-3 py-2.5 min-h-[40px] border transition-all ${
                                   order.status === s
                                     ? `${statusConfig[s].color} ${statusConfig[s].bg} border-current`
                                     : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 dark:text-coffee-400 hover:border-coffee-400 dark:hover:border-coffee-500'

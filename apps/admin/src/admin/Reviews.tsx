@@ -172,7 +172,7 @@ export default function AdminReviews() {
 
       {summary && (
         <CollapsibleChart id="reviews-summary" title="Resumen de reseñas">
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
             <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
@@ -200,7 +200,7 @@ export default function AdminReviews() {
                 />
               </PieChart>
             </ResponsiveContainer>
-            <div className="grid grid-cols-3 gap-4 flex-1">
+            <div className="grid grid-cols-3 sm:grid-cols-3 gap-4 flex-1">
               {Object.entries(summary.ratingDistribution)
                 .sort((a, b) => Number(a[0]) - Number(b[0]))
                 .map(([rating, count]) => (

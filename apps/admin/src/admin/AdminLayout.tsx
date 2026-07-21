@@ -215,7 +215,7 @@ function AdminLayoutInner() {
   };
 
   return (
-    <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex">
+    <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950 flex">
       <ThemeSync store={adminTheme} />
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -342,13 +342,10 @@ function AdminLayoutInner() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="flex-1 lg:ml-60 min-h-screen flex flex-col focus:outline-none"
+        className="flex-1 lg:ml-60 min-h-dvh flex flex-col focus:outline-none"
       >
         {/* Top header */}
-        <header
-          className="sticky top-0 z-20 bg-coffee-50/95 dark:bg-coffee-950/95 backdrop-blur-sm border-b border-coffee-200 dark:border-coffee-800 h-14 flex items-center px-4 sm:px-6 gap-4"
-          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-        >
+        <header className="sticky top-0 z-20 bg-coffee-50/95 dark:bg-coffee-950/95 backdrop-blur-sm border-b border-coffee-200 dark:border-coffee-800 min-h-[var(--app-header-height)] flex items-center px-4 sm:px-6 gap-4 pt-[var(--app-safe-top)]">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2.5 -ml-1 rounded-lg hover:bg-coffee-100 dark:hover:bg-coffee-800 text-coffee-600 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream transition-colors"

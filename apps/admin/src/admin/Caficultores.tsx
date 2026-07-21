@@ -418,7 +418,7 @@ export default function AdminCaficultores() {
                   className="w-full h-48 object-cover rounded-lg"
                 />
               )}
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-coffee-500 dark:text-cream/50 text-xs uppercase">Región</p>
                   <p className="text-coffee-900 dark:text-cream">{viewing.region}</p>

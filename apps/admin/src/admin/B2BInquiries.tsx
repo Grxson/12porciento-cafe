@@ -308,7 +308,7 @@ export default function B2BInquiries() {
           >
             {selectedInquiry && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-1">
                       RFC

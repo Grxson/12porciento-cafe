@@ -123,7 +123,7 @@ export default function ProductVersionsSection({ productId }: Props) {
                   placeholder="Seleccionar..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs text-coffee-600 dark:text-coffee-400 mb-1">
                     SCA Score

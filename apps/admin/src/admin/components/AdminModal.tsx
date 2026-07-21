@@ -43,7 +43,7 @@ export default function AdminModal({
               initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.97, opacity: 0 }}
-              className={`bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 w-full ${maxWidth} max-h-[90vh] flex flex-col`}
+              className={`bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 w-full ${maxWidth} max-h-[min(90vh,90dvh)] flex flex-col`}
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
@@ -64,7 +64,7 @@ export default function AdminModal({
                   <X size={22} />
                 </button>
               </div>
-              <div className="p-5 overflow-y-auto space-y-4">{children}</div>
+              <div className="p-5 overflow-y-auto overscroll-contain space-y-4">{children}</div>
               {footer && (
                 <div className="p-5 border-t border-coffee-200 dark:border-coffee-800 flex gap-3">
                   {footer}

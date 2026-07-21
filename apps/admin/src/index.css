@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display+SC:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 :root {
+  --app-header-height: 3.5rem;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
   color-scheme: light;
   --chart-bg: #ffffff;
   --chart-grid: #e8d5c4;
@@ -42,6 +47,9 @@
     font-feature-settings:
       'kern' 1,
       'liga' 1;
+    min-width: 320px;
+    min-height: 100dvh;
+    overflow-x: clip;
   }
 
   h1,
@@ -280,16 +288,16 @@
   }
 
   .safe-area-top {
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: var(--app-safe-top);
   }
 
   .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: var(--app-safe-bottom);
   }
 
   .safe-area-both {
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-top: var(--app-safe-top);
+    padding-bottom: var(--app-safe-bottom);
   }
 
   .touch-target {

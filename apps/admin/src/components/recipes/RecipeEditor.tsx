@@ -5,7 +5,19 @@ import SearchableProductSelect from '../SearchableProductSelect';
 import { useRecipeForm, type RecipeFormData } from '../../hooks/useRecipeForm';
 import type { Recipe } from '../../types';
 
-const METHODS = ['Espresso', 'V60', 'Pour Over', 'Chemex', 'Kalita Wave', 'Prensa Francesa', 'Cold Brew', 'Moka', 'AeroPress', 'Sifón', 'Americano'];
+const METHODS = [
+  'Espresso',
+  'V60',
+  'Pour Over',
+  'Chemex',
+  'Kalita Wave',
+  'Prensa Francesa',
+  'Cold Brew',
+  'Moka',
+  'AeroPress',
+  'Sifón',
+  'Americano',
+];
 const DIFFICULTIES = ['FÁCIL', 'MEDIA', 'DIFÍCIL'] as const;
 
 interface RecipeEditorProps {
@@ -17,26 +29,36 @@ interface RecipeEditorProps {
   loading: boolean;
 }
 
-const inputCls = 'w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
+const inputCls =
+  'w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500';
 const labelCls = 'block text-xs text-coffee-600 dark:text-coffee-400 mb-1';
 
-export default function RecipeEditor({ open, recipe, mode, onClose, onSave, loading }: RecipeEditorProps) {
+export default function RecipeEditor({
+  open,
+  recipe,
+  mode,
+  onClose,
+  onSave,
+  loading,
+}: RecipeEditorProps) {
   const { form, errors, updateField, validate } = useRecipeForm(
-    recipe ? {
-      title: recipe.title,
-      slug: recipe.slug,
-      description: recipe.description || '',
-      method: recipe.method,
-      difficulty: recipe.difficulty,
-      prepTime: recipe.prepTime?.toString() || '',
-      yield: recipe.yield || '',
-      temp: recipe.temp || '',
-      grind: recipe.grind || '',
-      ratio: recipe.ratio || '',
-      isPremium: recipe.isPremium,
-      isPublished: recipe.isPublished,
-      productId: recipe.productId || '',
-    } : undefined
+    recipe
+      ? {
+          title: recipe.title,
+          slug: recipe.slug,
+          description: recipe.description || '',
+          method: recipe.method,
+          difficulty: recipe.difficulty,
+          prepTime: recipe.prepTime?.toString() || '',
+          yield: recipe.yield || '',
+          temp: recipe.temp || '',
+          grind: recipe.grind || '',
+          ratio: recipe.ratio || '',
+          isPremium: recipe.isPremium,
+          isPublished: recipe.isPublished,
+          productId: recipe.productId || '',
+        }
+      : undefined,
   );
 
   const handleSubmit = async (e: FormEvent) => {
@@ -73,9 +95,11 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
     >
       <form id="recipe-form" onSubmit={handleSubmit} className="space-y-4">
         {/* Campos básicos */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="recipe-title" className={labelCls}>Título *</label>
+            <label htmlFor="recipe-title" className={labelCls}>
+              Título *
+            </label>
             <input
               id="recipe-title"
               type="text"
@@ -88,7 +112,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label htmlFor="recipe-slug" className={labelCls}>Slug *</label>
+            <label htmlFor="recipe-slug" className={labelCls}>
+              Slug *
+            </label>
             <input
               id="recipe-slug"
               type="text"
@@ -102,7 +128,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
         </div>
 
         <div>
-          <label htmlFor="recipe-description" className={labelCls}>Descripción</label>
+          <label htmlFor="recipe-description" className={labelCls}>
+            Descripción
+          </label>
           <textarea
             id="recipe-description"
             value={form.description}
@@ -114,33 +142,49 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
         </div>
 
         {/* Método y dificultad */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="recipe-method" className={labelCls}>Método *</label>
+            <label htmlFor="recipe-method" className={labelCls}>
+              Método *
+            </label>
             <select
               id="recipe-method"
               value={form.method}
               onChange={(e) => updateField('method', e.target.value)}
               className={inputCls}
             >
-              {METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+              {METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label htmlFor="recipe-difficulty" className={labelCls}>Dificultad</label>
+            <label htmlFor="recipe-difficulty" className={labelCls}>
+              Dificultad
+            </label>
             <select
               id="recipe-difficulty"
               value={form.difficulty}
-              onChange={(e) => updateField('difficulty', e.target.value as typeof DIFFICULTIES[number])}
+              onChange={(e) =>
+                updateField('difficulty', e.target.value as (typeof DIFFICULTIES)[number])
+              }
               className={inputCls}
             >
-              {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
+              {DIFFICULTIES.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label htmlFor="recipe-prep-time" className={labelCls}>Tiempo (min)</label>
+            <label htmlFor="recipe-prep-time" className={labelCls}>
+              Tiempo (min)
+            </label>
             <input
               id="recipe-prep-time"
               type="number"
@@ -153,9 +197,11 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
         </div>
 
         {/* Parámetros técnicos */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="recipe-yield" className={labelCls}>Rendimiento</label>
+            <label htmlFor="recipe-yield" className={labelCls}>
+              Rendimiento
+            </label>
             <input
               id="recipe-yield"
               type="text"
@@ -167,7 +213,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label htmlFor="recipe-product" className={labelCls}>Café relacionado</label>
+            <label htmlFor="recipe-product" className={labelCls}>
+              Café relacionado
+            </label>
             <SearchableProductSelect
               value={form.productId}
               onChange={(id) => updateField('productId', id)}
@@ -176,9 +224,11 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="recipe-temp" className={labelCls}>Temperatura</label>
+            <label htmlFor="recipe-temp" className={labelCls}>
+              Temperatura
+            </label>
             <input
               id="recipe-temp"
               type="text"
@@ -190,7 +240,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label htmlFor="recipe-grind" className={labelCls}>Molido</label>
+            <label htmlFor="recipe-grind" className={labelCls}>
+              Molido
+            </label>
             <input
               id="recipe-grind"
               type="text"
@@ -202,7 +254,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
           </div>
 
           <div>
-            <label htmlFor="recipe-ratio" className={labelCls}>Ratio</label>
+            <label htmlFor="recipe-ratio" className={labelCls}>
+              Ratio
+            </label>
             <input
               id="recipe-ratio"
               type="text"
@@ -223,7 +277,9 @@ export default function RecipeEditor({ open, recipe, mode, onClose, onSave, load
               onChange={(e) => updateField('isPremium', e.target.checked)}
               className="w-4 h-4 accent-gold-500"
             />
-            <span className="text-xs text-coffee-600 dark:text-coffee-300">Premium (solo suscriptores)</span>
+            <span className="text-xs text-coffee-600 dark:text-coffee-300">
+              Premium (solo suscriptores)
+            </span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer">

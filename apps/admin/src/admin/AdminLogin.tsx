@@ -32,10 +32,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4"
-      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-    >
+    <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950 flex items-center justify-center px-4 pt-[var(--app-safe-top)]">
       <PageMeta title="Admin — Iniciar Sesión" noSuffix />
       <motion.div
         initial={{ opacity: 0, y: 30 }}

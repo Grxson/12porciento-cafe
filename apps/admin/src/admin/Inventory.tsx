@@ -13,7 +13,16 @@ import {
   Download,
   History,
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList,
+} from 'recharts';
 import api from '../api';
 import { useModuleToast } from './context/ModuleContext';
 import QuickAdjustPopover from './components/QuickAdjustPopover';
@@ -269,24 +278,27 @@ export default function Inventory() {
       {/* Stock Levels Bar Chart */}
       {products.length > 0 && (
         <CollapsibleChart id="inventory-stock-levels" title="Niveles de stock por producto">
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer
+            width="100%"
+            height={Math.max(240, products.filter((p) => p.isActive).slice(0, 12).length * 44)}
+          >
             <BarChart
               data={products
                 .filter((p) => p.isActive)
                 .sort((a, b) => b.stock - a.stock)
                 .slice(0, 12)
                 .map((p) => ({
-                  name: p.name.length > 16 ? p.name.slice(0, 14) + '…' : p.name,
+                  name: p.name.length > 18 ? p.name.slice(0, 16) + '…' : p.name,
                   stock: p.stock,
                   umbral: p.lowStockThreshold,
                 }))}
-              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+              margin={{ top: 4, right: 48, left: 8, bottom: 4 }}
               layout="vertical"
             >
               <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} />
               <XAxis
                 type="number"
-                tick={{ fill: chartColors.text, fontSize: 10 }}
+                tick={{ fill: chartColors.text, fontSize: 12 }}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
@@ -294,10 +306,10 @@ export default function Inventory() {
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fill: chartColors.text, fontSize: 10 }}
+                tick={{ fill: chartColors.text, fontSize: 12 }}
                 axisLine={false}
                 tickLine={false}
-                width={100}
+                width={140}
               />
               <Tooltip
                 contentStyle={{
@@ -309,8 +321,17 @@ export default function Inventory() {
                 itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
                 formatter={(v, name) => [`${v} unidades`, name === 'umbral' ? 'Umbral' : 'Stock']}
               />
-              <Bar dataKey="stock" fill="#c9a96e" radius={[0, 2, 2, 0]} barSize={14} />
-              <Bar dataKey="umbral" fill="#e8d5b7" radius={[0, 2, 2, 0]} barSize={14} />
+              {/* Umbral as thin reference bar */}
+              <Bar dataKey="umbral" fill="#e8d5b7" radius={0} barSize={4} />
+              {/* Stock as main thick bar */}
+              <Bar dataKey="stock" fill={chartColors.gold} radius={[0, 6, 6, 0]} barSize={22}>
+                <LabelList
+                  dataKey="stock"
+                  position="right"
+                  formatter={(v) => `${v}`}
+                  style={{ fill: chartColors.text, fontSize: 11, fontWeight: 500 }}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CollapsibleChart>

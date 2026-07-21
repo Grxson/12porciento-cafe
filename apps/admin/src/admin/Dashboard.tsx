@@ -28,6 +28,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LabelList,
 } from 'recharts';
 import { dashboardApi, baristaApi, adminApi, inventoryApi } from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -782,12 +783,12 @@ export default function Dashboard() {
             ) : (
               <ResponsiveContainer
                 width="100%"
-                height={Math.max(200, financial.topRevenueProducts.length * 36)}
+                height={Math.max(240, financial.topRevenueProducts.length * 44)}
               >
                 <BarChart
                   data={financial.topRevenueProducts}
                   layout="vertical"
-                  margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+                  margin={{ top: 4, right: 48, left: 8, bottom: 4 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -796,7 +797,7 @@ export default function Dashboard() {
                   />
                   <XAxis
                     type="number"
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    tick={{ fill: chartColors.text, fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
@@ -804,8 +805,8 @@ export default function Dashboard() {
                   <YAxis
                     type="category"
                     dataKey="name"
-                    width={160}
-                    tick={{ fill: chartColors.text, fontSize: 11 }}
+                    width={200}
+                    tick={{ fill: chartColors.text, fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -827,7 +828,14 @@ export default function Dashboard() {
                       'Ingresos',
                     ]}
                   />
-                  <Bar dataKey="revenue" fill={chartColors.gold} radius={[0, 2, 2, 0]} />
+                  <Bar dataKey="revenue" fill={chartColors.gold} radius={[0, 6, 6, 0]} barSize={24}>
+                    <LabelList
+                      dataKey="revenue"
+                      position="right"
+                      formatter={(v) => `$${(Number(v) / 1000).toFixed(0)}k`}
+                      style={{ fill: chartColors.text, fontSize: 11, fontWeight: 500 }}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}

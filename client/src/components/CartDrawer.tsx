@@ -240,7 +240,7 @@ export default function CartDrawer() {
             transition={
               reduceMotion ? { duration: 0 } : { type: 'spring', damping: 28, stiffness: 300 }
             }
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-white shadow-2xl dark:bg-coffee-900"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm sm:max-w-md flex-col bg-white shadow-2xl dark:bg-coffee-900"
             style={{ paddingTop: 'var(--app-safe-top)', paddingRight: 'var(--app-safe-right)' }}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-coffee-200 dark:border-coffee-700">

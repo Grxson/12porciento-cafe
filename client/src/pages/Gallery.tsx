@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Camera, ChefHat } from 'lucide-react';
 import api from '../api';
 import { PageMeta } from '../hooks/usePageMeta';
+import Breadcrumbs from '../components/Breadcrumbs';
 import PageSkeleton from '../components/PageSkeleton';
 import GalleryLightbox from '../components/GalleryLightbox';
 
@@ -53,6 +54,7 @@ export default function Gallery() {
 
       <div className="page-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Breadcrumbs crumbs={[{ label: 'Inicio', to: '/' }, { label: 'Galería' }]} />
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,7 +89,19 @@ export default function Gallery() {
 
         {!loading && !error && images.length === 0 && (
           <div className="text-center py-24">
-            <p className="font-serif text-2xl text-coffee-400">No hay imágenes disponibles</p>
+            <div className="w-20 h-20 mx-auto mb-6 border-2 border-gold-500 flex items-center justify-center">
+              <Camera className="w-10 h-10 text-gold-500" />
+            </div>
+            <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+              La galería está vacía
+            </h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-8 max-w-sm mx-auto">
+              Aún no se han compartido fotos
+            </p>
+            <Link to="/recetas" className="btn-primary inline-flex items-center gap-2">
+              <ChefHat className="w-4 h-4" />
+              Explorar recetas
+            </Link>
           </div>
         )}
 

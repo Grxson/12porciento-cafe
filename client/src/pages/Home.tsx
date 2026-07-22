@@ -297,7 +297,7 @@ export default function Home() {
       </section>
 
       {/* ── PROCESO DE ESPECIALIDAD ── */}
-      <section className="py-20 bg-coffee-100 dark:bg-coffee-900">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-100 dark:bg-coffee-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -508,7 +508,7 @@ export default function Home() {
       </section>
 
       {/* ── ESTADÍSTICAS ── */}
-      <section className="py-20 bg-gold-500 dark:bg-gold-500/10">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gold-500 dark:bg-gold-500/10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
@@ -531,7 +531,7 @@ export default function Home() {
       </section>
 
       {/* ── RECETAS & BARISTA ── */}
-      <section className="py-16 sm:py-20 bg-coffee-100 dark:bg-coffee-900 border-t border-coffee-200/40 dark:border-coffee-800/40">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-100 dark:bg-coffee-900 border-t border-coffee-200/40 dark:border-coffee-800/40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Experiencia</p>
           <h2 className="section-title mb-4">Aprende con cada taza</h2>
@@ -590,7 +590,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-coffee-50 dark:to-coffee-950" />
             </div>
             {/* Text side */}
-            <div className="flex flex-col justify-center py-14 sm:py-16 lg:py-20 lg:pl-12">
+            <div className="flex flex-col justify-center py-16 sm:py-20 lg:py-24 lg:pl-12">
               <ScrollReveal direction="right">
                 <div className="gold-line mb-6" />
                 <h2 className="section-title mb-4">
@@ -626,7 +626,7 @@ export default function Home() {
       <TestimonialsSlider />
 
       {/* ── ROASTING SCHEDULE ── */}
-      <section className="py-16 px-4 bg-coffee-50 dark:bg-coffee-950 border-t border-coffee-200/40 dark:border-coffee-800/40">
+      <section className="py-16 sm:py-20 lg:py-24 px-4 bg-coffee-50 dark:bg-coffee-950 border-t border-coffee-200/40 dark:border-coffee-800/40">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-3">

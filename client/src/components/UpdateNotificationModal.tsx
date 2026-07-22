@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 
 interface UpdateNotificationModalProps {
   open: boolean;
@@ -7,7 +8,24 @@ interface UpdateNotificationModalProps {
   onDismiss: () => void;
 }
 
-export default function UpdateNotificationModal({ open, onUpdate, onDismiss }: UpdateNotificationModalProps) {
+const VERSION = '1.0.0';
+
+const CHANGELOG = [
+  'Nuevo sistema de gamificación barista con niveles, XP y logros.',
+  'Catálogo de paquetes con descuento y suscripciones mensuales.',
+  'Perfil barista con equipo, cafés preparados y perfil de sabor.',
+  'Modo receta en vivo con temporizador paso a paso.',
+  'PWA instalable: acceso rápido sin abrir el navegador.',
+];
+
+export default function UpdateNotificationModal({
+  open,
+  onUpdate,
+  onDismiss,
+}: UpdateNotificationModalProps) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleChangelog = expanded ? CHANGELOG : CHANGELOG.slice(0, 3);
+
   return (
     <AnimatePresence>
       {open && (
@@ -29,24 +47,51 @@ export default function UpdateNotificationModal({ open, onUpdate, onDismiss }: U
               <div className="w-9 h-9 bg-gold-500/20 border border-gold-500/40 flex items-center justify-center shrink-0">
                 <RefreshCw className="w-4 h-4 text-gold-500" />
               </div>
-              <h3 className="font-serif text-lg text-coffee-900 dark:text-cream">
-                Actualización disponible
-              </h3>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-serif text-lg text-coffee-900 dark:text-cream leading-tight">
+                  Actualización disponible
+                </h3>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-gold-500 mt-0.5">
+                  Versión {VERSION}
+                </p>
+              </div>
             </div>
-            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-6 leading-relaxed">
-              Hemos mejorado el diseño de la app. Actualiza para ver los cambios.
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-3 leading-relaxed">
+              Hemos mejorado el diseño de la app. Novedades:
             </p>
-            <div className="flex gap-3">
+            <ul className="space-y-1.5 mb-3">
+              {visibleChangelog.map((item, i) => (
+                <li
+                  key={i}
+                  className="flex gap-2 text-xs text-coffee-700 dark:text-coffee-300 leading-relaxed"
+                >
+                  <span className="text-gold-500 shrink-0">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center justify-between mb-5">
               <button
-                onClick={onDismiss}
-                className="flex-1 btn-outline text-sm py-3 min-h-[44px]"
+                onClick={() => setExpanded((v) => !v)}
+                className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 transition-colors flex items-center gap-1"
+                aria-expanded={expanded}
               >
+                {expanded ? 'Ver menos' : 'Ver más'}
+                {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              <a
+                href="/changelog"
+                className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 transition-colors flex items-center gap-1"
+              >
+                Historial completo
+                <ExternalLink size={11} />
+              </a>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={onDismiss} className="flex-1 btn-outline text-sm py-3 min-h-[44px]">
                 Ahora no
               </button>
-              <button
-                onClick={onUpdate}
-                className="flex-1 btn-primary text-sm py-3 min-h-[44px]"
-              >
+              <button onClick={onUpdate} className="flex-1 btn-primary text-sm py-3 min-h-[44px]">
                 Actualizar
               </button>
             </div>

@@ -33,6 +33,7 @@ import BaristaRecords from '../components/BaristaRecords';
 import EquipmentRecs from '../components/EquipmentRecs';
 import SubscriptionMatchBanner from '../components/SubscriptionMatchBanner';
 import FlavorRadarChart from '../components/FlavorRadarChart';
+import { useClientTheme } from '../context/ThemeContext';
 
 interface UserStats {
   favoriteMethod: string | null;
@@ -59,6 +60,14 @@ export default function BaristaProfile() {
   const [statsLoading, setStatsLoading] = useState(false);
   const { share } = useShare();
   const statsFetched = useRef(false);
+  const { dark } = useClientTheme();
+  const chartColors = {
+    text: dark ? '#e8d5b7' : '#4a3728',
+    grid: dark ? '#3d2015' : '#e8d5c4',
+    bg: dark ? '#1a0f0a' : '#ffffff',
+    border: dark ? '#2c1810' : '#e8d5c4',
+    accent: '#c9a96e',
+  };
 
   useEffect(() => {
     if (!userId || statsFetched.current) return;
@@ -440,7 +449,7 @@ export default function BaristaProfile() {
                             '#8b5a2b',
                             '#d4a76a',
                             '#6b3a1f',
-                            '#e8d5b7',
+                            '#a08055',
                             '#a05a2c',
                           ];
                           return <Cell key={i} fill={palette[i % palette.length]} />;
@@ -448,11 +457,12 @@ export default function BaristaProfile() {
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          background: '#1a0f0a',
-                          border: '1px solid #2c1810',
+                          background: chartColors.bg,
+                          border: `1px solid ${chartColors.border}`,
                           borderRadius: 0,
-                          color: '#e8d5b7',
+                          color: chartColors.text,
                         }}
+                        itemStyle={{ color: chartColors.text }}
                         formatter={(value) => [`${value} brews`, 'Brews']}
                       />
                       <Legend
@@ -482,35 +492,40 @@ export default function BaristaProfile() {
                       }))}
                       margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e8d5c4" vertical={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={chartColors.grid}
+                        vertical={false}
+                      />
                       <XAxis
                         dataKey="semana"
-                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        tick={{ fill: chartColors.text, fontSize: 10 }}
                         axisLine={false}
                         tickLine={false}
                       />
                       <YAxis
-                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        tick={{ fill: chartColors.text, fontSize: 10 }}
                         axisLine={false}
                         tickLine={false}
                         allowDecimals={false}
                       />
                       <Tooltip
                         contentStyle={{
-                          background: '#fff',
-                          border: '1px solid #e8d5c4',
+                          background: chartColors.bg,
+                          border: `1px solid ${chartColors.border}`,
                           borderRadius: 0,
+                          color: chartColors.text,
                         }}
                         labelStyle={{
-                          color: '#c9a96e',
+                          color: chartColors.accent,
                           fontSize: 11,
                           textTransform: 'uppercase',
                           letterSpacing: '0.1em',
                         }}
-                        itemStyle={{ color: '#4a3728', fontSize: 12 }}
+                        itemStyle={{ color: chartColors.text, fontSize: 12 }}
                         formatter={(v) => [`${v} XP`, 'Experiencia']}
                       />
-                      <Bar dataKey="xp" fill="#c9a96e" radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="xp" fill={chartColors.accent} radius={[2, 2, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -537,42 +552,47 @@ export default function BaristaProfile() {
                           <stop offset="95%" stopColor="#c9a96e" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e8d5c4" vertical={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={chartColors.grid}
+                        vertical={false}
+                      />
                       <XAxis
                         dataKey="mes"
-                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        tick={{ fill: chartColors.text, fontSize: 10 }}
                         axisLine={false}
                         tickLine={false}
                       />
                       <YAxis
-                        tick={{ fill: '#8b5a2b', fontSize: 10 }}
+                        tick={{ fill: chartColors.text, fontSize: 10 }}
                         axisLine={false}
                         tickLine={false}
                         allowDecimals={false}
                       />
                       <Tooltip
                         contentStyle={{
-                          background: '#fff',
-                          border: '1px solid #e8d5c4',
+                          background: chartColors.bg,
+                          border: `1px solid ${chartColors.border}`,
                           borderRadius: 0,
+                          color: chartColors.text,
                         }}
                         labelStyle={{
-                          color: '#c9a96e',
+                          color: chartColors.accent,
                           fontSize: 11,
                           textTransform: 'uppercase',
                           letterSpacing: '0.1em',
                         }}
-                        itemStyle={{ color: '#4a3728', fontSize: 12 }}
+                        itemStyle={{ color: chartColors.text, fontSize: 12 }}
                         formatter={(v) => [`${v}`, 'Brews']}
                       />
                       <Area
                         type="monotone"
                         dataKey="brews"
-                        stroke="#c9a96e"
+                        stroke={chartColors.accent}
                         strokeWidth={2}
                         fill="url(#goldGradClient)"
                         dot={false}
-                        activeDot={{ r: 4, fill: '#c9a96e', strokeWidth: 0 }}
+                        activeDot={{ r: 4, fill: chartColors.accent, strokeWidth: 0 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -595,10 +615,14 @@ export default function BaristaProfile() {
                       layout="vertical"
                       margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#2c1810" horizontal={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={chartColors.grid}
+                        horizontal={false}
+                      />
                       <XAxis
                         type="number"
-                        tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                        tick={{ fill: chartColors.text, fontSize: 11 }}
                         axisLine={false}
                         tickLine={false}
                       />
@@ -606,20 +630,20 @@ export default function BaristaProfile() {
                         type="category"
                         dataKey="tag"
                         width={100}
-                        tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                        tick={{ fill: chartColors.text, fontSize: 11 }}
                         axisLine={false}
                         tickLine={false}
                       />
                       <Tooltip
                         contentStyle={{
-                          background: '#1a0f0a',
-                          border: '1px solid #2c1810',
+                          background: chartColors.bg,
+                          border: `1px solid ${chartColors.border}`,
                           borderRadius: 0,
-                          color: '#e8d5b7',
+                          color: chartColors.text,
                         }}
                         formatter={(value) => [`${value} menciones`, 'Frecuencia']}
                       />
-                      <Bar dataKey="count" fill="#c9a96e" radius={[0, 2, 2, 0]} />
+                      <Bar dataKey="count" fill={chartColors.accent} radius={[0, 2, 2, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -662,10 +686,12 @@ export default function BaristaProfile() {
                         />
                         <Tooltip
                           contentStyle={{
-                            background: '#fff',
-                            border: '1px solid #e8d5c4',
+                            background: chartColors.bg,
+                            border: `1px solid ${chartColors.border}`,
                             borderRadius: 0,
+                            color: chartColors.text,
                           }}
+                          itemStyle={{ color: chartColors.text }}
                           formatter={(value) => [`${value} brews`, '']}
                         />
                         <Legend

@@ -11,6 +11,8 @@ import {
   ChevronUp,
   Download,
   Play,
+  ChefHat,
+  X,
 } from 'lucide-react';
 import { recipesApi } from '../api';
 import { useUser } from '../context/UserContext';
@@ -23,6 +25,7 @@ import { playTimerBeep } from '../utils/audio';
 import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
 import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
 import { PageMeta } from '../hooks/usePageMeta';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 function avgRating(ratings: { rating: number }[] | undefined): number {
   if (!ratings || ratings.length === 0) return 0;
@@ -279,6 +282,7 @@ export default function Recipes() {
         description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso."
       />
       <div className="max-w-4xl mx-auto">
+        <Breadcrumbs crumbs={[{ label: 'Inicio', to: '/' }, { label: 'Recetas' }]} />
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">
             Guías de preparación
@@ -431,9 +435,30 @@ export default function Recipes() {
         )}
 
         {recipes.length === 0 && !loading && (
-          <p className="text-coffee-500 dark:text-coffee-400 text-center py-12">
-            No hay recetas con esos filtros.
-          </p>
+          <div className="text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-6 border-2 border-gold-500 flex items-center justify-center">
+              <ChefHat className="w-10 h-10 text-gold-500" />
+            </div>
+            <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+              Sin recetas con esos filtros
+            </h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-8 max-w-sm mx-auto">
+              Intenta ajustar los filtros
+            </p>
+            {methodFilter !== 'TODOS' || difficultyFilter !== 'TODOS' || search !== '' ? (
+              <Link to="/recetas" className="btn-primary inline-flex items-center gap-2">
+                <X className="w-4 h-4" />
+                Limpiar filtros
+              </Link>
+            ) : (
+              <button
+                onClick={() => fetchRecipes()}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                Actualizar
+              </button>
+            )}
+          </div>
         )}
 
         <div className="space-y-4">

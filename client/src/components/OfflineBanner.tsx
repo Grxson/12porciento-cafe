@@ -63,7 +63,7 @@ export default function OfflineBanner() {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed bottom-[5rem] left-3 right-3 md:left-auto md:right-4 md:w-80 z-[150] px-4 py-3 text-sm border flex items-center justify-between gap-3 ${
+      className={`fixed bottom-[calc(var(--app-bottom-nav-height)+var(--app-safe-bottom))] left-3 right-3 md:left-auto md:right-4 md:w-80 z-[150] px-4 py-3 text-sm border flex items-center justify-between gap-3 ${
         syncing
           ? 'bg-green-900/20 dark:bg-green-900/20 border-green-500/30 text-green-700 dark:text-green-300'
           : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400/40 dark:border-yellow-500/30 text-yellow-800 dark:text-yellow-300'

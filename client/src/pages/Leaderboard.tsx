@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy, Flame } from 'lucide-react';
+import { Trophy, Flame, ChefHat } from 'lucide-react';
 import { baristaApi } from '../api';
 import RankBadge from '../components/RankBadge';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -26,7 +26,8 @@ export default function Leaderboard() {
 
   useEffect(() => {
     setLoading(true);
-    baristaApi.getLeaderboard(50, period)
+    baristaApi
+      .getLeaderboard(50, period)
       .then((res) => setEntries(res.data.data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -42,12 +43,19 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-20 pb-24">
-      <PageMeta title="Ranking Barista" description="Tabla de líderes de la comunidad barista 12%. Gana experiencia con cada preparación." />
+      <PageMeta
+        title="Ranking Barista"
+        description="Tabla de líderes de la comunidad barista 12%. Gana experiencia con cada preparación."
+      />
       <div className="max-w-2xl mx-auto px-4">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Clasificación</p>
-          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-2">Mejores Baristas</h1>
-          <p className="text-coffee-600 dark:text-coffee-400 text-sm">Top 50 por experiencia acumulada</p>
+          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-2">
+            Mejores Baristas
+          </h1>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm">
+            Top 50 por experiencia acumulada
+          </p>
 
           {/* Period Filter Tabs */}
           <div className="flex justify-center gap-2 mt-6 flex-wrap">
@@ -70,7 +78,10 @@ export default function Leaderboard() {
         {loading && (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between py-3 border-b border-coffee-200 dark:border-coffee-800">
+              <div
+                key={i}
+                className="flex items-center justify-between py-3 border-b border-coffee-200 dark:border-coffee-800"
+              >
                 <div className="flex items-center gap-4">
                   <div className="shimmer dark:shimmer-dark w-6 h-4" />
                   <div className="shimmer dark:shimmer-dark w-8 h-8 rounded-full" />
@@ -92,7 +103,15 @@ export default function Leaderboard() {
           <div className="text-center py-12">
             <p className="text-coffee-500">No se pudo cargar el ranking.</p>
             <button
-              onClick={() => { setError(false); setLoading(true); baristaApi.getLeaderboard(50, period).then((res) => setEntries(res.data.data)).catch(() => setError(true)).finally(() => setLoading(false)); }}
+              onClick={() => {
+                setError(false);
+                setLoading(true);
+                baristaApi
+                  .getLeaderboard(50, period)
+                  .then((res) => setEntries(res.data.data))
+                  .catch(() => setError(true))
+                  .finally(() => setLoading(false));
+              }}
               className="text-xs text-gold-500 hover:text-gold-400 mt-2 underline"
               aria-label="Reintentar carga del ranking"
             >
@@ -102,10 +121,20 @@ export default function Leaderboard() {
         )}
 
         {!loading && !error && entries.length === 0 && (
-          <div className="text-center py-12">
-            <Trophy className="w-12 h-12 text-coffee-700 mx-auto mb-3" />
-            <p className="text-coffee-500">Aún no hay baristas registrados.</p>
-            <p className="text-coffee-500 text-sm mt-1">¡Prepara tu primer café y sé el primero!</p>
+          <div className="text-center py-16">
+            <div className="w-20 h-20 mx-auto mb-6 border-2 border-gold-500 flex items-center justify-center">
+              <Trophy className="w-10 h-10 text-gold-500" />
+            </div>
+            <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+              Aún no hay baristas en el ranking
+            </h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-8 max-w-sm mx-auto">
+              Brew tu primer café para aparecer aquí
+            </p>
+            <Link to="/recetas" className="btn-primary inline-flex items-center gap-2">
+              <ChefHat className="w-4 h-4" />
+              Explorar recetas
+            </Link>
           </div>
         )}
 
@@ -122,7 +151,11 @@ export default function Leaderboard() {
                 }`}
               >
                 <span className="text-xl w-8 text-center shrink-0">
-                  {medals[idx] ?? <span className="text-coffee-500 dark:text-coffee-600 text-sm font-mono">{idx + 1}</span>}
+                  {medals[idx] ?? (
+                    <span className="text-coffee-500 dark:text-coffee-600 text-sm font-mono">
+                      {idx + 1}
+                    </span>
+                  )}
                 </span>
 
                 {/* Rank Badge */}
@@ -131,7 +164,9 @@ export default function Leaderboard() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-coffee-900 dark:text-cream font-medium truncate">{entry.user.name}</p>
+                  <p className="text-coffee-900 dark:text-cream font-medium truncate">
+                    {entry.user.name}
+                  </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {entry.favoriteMethod && (
                       <p className="text-xs text-coffee-500">{entry.favoriteMethod}</p>
@@ -139,7 +174,9 @@ export default function Leaderboard() {
                     {entry.currentStreak && entry.currentStreak > 0 && (
                       <p className="text-xs flex items-center gap-1">
                         <Flame className="w-3 h-3 text-red-500" />
-                        <span className="text-red-600 dark:text-red-400">{entry.currentStreak}d</span>
+                        <span className="text-red-600 dark:text-red-400">
+                          {entry.currentStreak}d
+                        </span>
                       </p>
                     )}
                   </div>
@@ -147,7 +184,9 @@ export default function Leaderboard() {
 
                 <div className="text-right shrink-0">
                   <p className="text-gold-400 font-bold">Nv. {entry.level}</p>
-                  <p className="text-xs text-coffee-500">{entry.totalXp} XP · {entry.totalBrews} brews</p>
+                  <p className="text-xs text-coffee-500">
+                    {entry.totalXp} XP · {entry.totalBrews} brews
+                  </p>
                 </div>
               </Link>
             ))}

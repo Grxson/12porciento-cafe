@@ -7,12 +7,21 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { baristaApi } from '../../api/barista';
 import { productsApi } from '../../api';
 import { useUser } from '../../context/UserContext';
+import { useClientTheme } from '../../context/ThemeContext';
 import { PageMeta } from '../../hooks/usePageMeta';
 import type { BrewLog, Product } from '../../types';
 
 export default function CoffeeTracker() {
   const user = useUser((s) => s.user);
   const userId = user?.id;
+  const { dark } = useClientTheme();
+  const chartColors = {
+    text: dark ? '#e8d5b7' : '#4a3728',
+    grid: dark ? '#3d2015' : '#e8d5c4',
+    bg: dark ? '#1a0f0a' : '#ffffff',
+    border: dark ? '#2c1810' : '#e8d5c4',
+    accent: '#c9a96e',
+  };
 
   const {
     data: brewsResp,
@@ -133,10 +142,10 @@ export default function CoffeeTracker() {
               layout="vertical"
               margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#2c1810" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} horizontal={false} />
               <XAxis
                 type="number"
-                tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                tick={{ fill: chartColors.text, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -144,20 +153,20 @@ export default function CoffeeTracker() {
                 type="category"
                 dataKey="name"
                 width={160}
-                tick={{ fill: '#e8d5b7', fontSize: 11 }}
+                tick={{ fill: chartColors.text, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip
                 contentStyle={{
-                  background: '#1a0f0a',
-                  border: '1px solid #2c1810',
+                  background: chartColors.bg,
+                  border: `1px solid ${chartColors.border}`,
                   borderRadius: 0,
-                  color: '#e8d5b7',
+                  color: chartColors.text,
                 }}
                 formatter={(value) => [`${value} brews`, 'Brews']}
               />
-              <Bar dataKey="brews" fill="#c9a96e" radius={[0, 2, 2, 0]} />
+              <Bar dataKey="brews" fill={chartColors.accent} radius={[0, 2, 2, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

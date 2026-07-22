@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ShoppingBag, Package } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { bundlesApi } from '../api';
 import { useCart } from '../context/CartContext';
 import type { Bundle } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 function BundleSkeleton() {
   return (
@@ -54,6 +56,7 @@ export default function Bundles() {
         description="Paquetes y combos de café de especialidad con descuento."
       />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Breadcrumbs crumbs={[{ label: 'Inicio', to: '/' }, { label: 'Paquetes' }]} />
         <div className="gold-line mb-4" />
         <div className="flex items-center gap-3 mb-2">
           <Package className="w-6 h-6 text-gold-500" />
@@ -88,9 +91,20 @@ export default function Bundles() {
             </button>
           </div>
         ) : bundles.length === 0 ? (
-          <div className="text-center py-20 text-coffee-500">
-            <Package size={48} className="mx-auto mb-4" />
-            <p className="text-lg">No hay paquetes disponibles.</p>
+          <div className="text-center py-16 sm:py-20">
+            <div className="w-20 h-20 mx-auto mb-6 border-2 border-gold-500 flex items-center justify-center">
+              <Package className="w-10 h-10 text-gold-500" />
+            </div>
+            <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+              No hay paquetes disponibles
+            </h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-8 max-w-sm mx-auto">
+              Vuelve pronto para descubrir nuevas ofertas
+            </p>
+            <Link to="/tienda" className="btn-primary inline-flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              Ver tienda
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

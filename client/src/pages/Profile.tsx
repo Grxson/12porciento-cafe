@@ -27,6 +27,7 @@ import Equipment from './profile/Equipment';
 import CoffeeTracker from './profile/CoffeeTracker';
 import FlavorProfile from './profile/FlavorProfile';
 import { PageMeta } from '../hooks/usePageMeta';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 interface NavItem {
   to: string;
@@ -85,6 +86,17 @@ export default function Profile() {
     <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
       <PageMeta title={currentItem ? `${currentItem.label} · Mi Perfil` : 'Mi Perfil'} />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <Breadcrumbs
+          crumbs={
+            currentItem
+              ? [
+                  { label: 'Inicio', to: '/' },
+                  { label: 'Mi Perfil', to: '/perfil' },
+                  { label: currentItem.label },
+                ]
+              : [{ label: 'Inicio', to: '/' }, { label: 'Mi Perfil' }]
+          }
+        />
         {/* ── Header ── */}
         <div className="relative mb-10">
           {/* Banner con imagen o gradiente */}

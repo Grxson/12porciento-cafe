@@ -50,9 +50,11 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 w-80 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 shadow-xl z-50 rounded-lg overflow-hidden">
+        <div className="absolute right-0 top-10 w-[calc(100vw-2rem)] max-w-80 bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 shadow-xl z-50 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-coffee-200 dark:border-coffee-800 flex items-center justify-between">
-            <p className="text-xs font-semibold text-coffee-900 dark:text-cream uppercase tracking-wider">Notificaciones</p>
+            <p className="text-xs font-semibold text-coffee-900 dark:text-cream uppercase tracking-wider">
+              Notificaciones
+            </p>
             {notifications.length > 0 && (
               <button
                 onClick={() => setOpen(false)}
@@ -65,7 +67,9 @@ export default function NotificationBell() {
 
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-coffee-500 dark:text-coffee-400 text-sm text-center py-8">Sin notificaciones</p>
+              <p className="text-coffee-500 dark:text-coffee-400 text-sm text-center py-8">
+                Sin notificaciones
+              </p>
             ) : (
               notifications.map((n) => (
                 <div
@@ -77,10 +81,17 @@ export default function NotificationBell() {
                       {EVENT_ICONS[n.event] ?? '🔔'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-coffee-900 dark:text-cream">{n.title}</p>
-                      <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-0.5 break-words">{n.message}</p>
+                      <p className="text-xs font-semibold text-coffee-900 dark:text-cream">
+                        {n.title}
+                      </p>
+                      <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-0.5 break-words">
+                        {n.message}
+                      </p>
                       <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-1">
-                        {n.timestamp.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
+                        {n.timestamp.toLocaleTimeString('es-MX', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </p>
                     </div>
                   </div>

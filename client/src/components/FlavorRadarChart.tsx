@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { useMemo } from 'react';
+import { useClientTheme } from '../context/ThemeContext';
 
 const DIMENSIONS = ['Dulzor', 'Acidez', 'Cuerpo', 'Amargor', 'Final', 'Intensidad'];
 
@@ -22,6 +23,13 @@ interface FlavorRadarChartProps {
 }
 
 export default function FlavorRadarChart({ userData, communityData }: FlavorRadarChartProps) {
+  const { dark } = useClientTheme();
+  const colors = {
+    grid: dark ? '#3d2015' : '#8B7355',
+    text: dark ? '#e8d5b7' : '#4a3728',
+    accent: '#c9a96e',
+    community: '#a05a2c',
+  };
   const chartData = useMemo(
     () =>
       DIMENSIONS.map((flavor) => ({
@@ -51,32 +59,36 @@ export default function FlavorRadarChart({ userData, communityData }: FlavorRada
             outerRadius="72%"
             margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
           >
-            <PolarGrid stroke="var(--polar-grid-stroke, #8B7355)" strokeOpacity={0.3} />
-            <PolarAngleAxis
-              dataKey="flavor"
-              tick={{ fill: 'var(--angle-fill, #8B7355)', fontSize: 11 }}
-            />
+            <PolarGrid stroke={colors.grid} strokeOpacity={0.3} />
+            <PolarAngleAxis dataKey="flavor" tick={{ fill: colors.text, fontSize: 11 }} />
             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                background: dark ? '#1a0f0a' : '#ffffff',
+                border: `1px solid ${dark ? '#2c1810' : '#e8d5c4'}`,
+                borderRadius: 0,
+                color: colors.text,
+              }}
+            />
             <Radar
               name="Tú"
               dataKey="user"
-              fill="#c9a96e"
+              fill={colors.accent}
               fillOpacity={0.2}
-              stroke="#c9a96e"
+              stroke={colors.accent}
               strokeWidth={2}
-              dot={{ fill: '#c9a96e', strokeWidth: 0, r: 3 }}
+              dot={{ fill: colors.accent, strokeWidth: 0, r: 3 }}
             />
             {communityData && (
               <Radar
                 name="Comunidad"
                 dataKey="community"
-                fill="#a05a2c"
+                fill={colors.community}
                 fillOpacity={0.1}
-                stroke="#a05a2c"
+                stroke={colors.community}
                 strokeWidth={2}
                 strokeDasharray="4 4"
-                dot={{ fill: '#a05a2c', strokeWidth: 0, r: 3 }}
+                dot={{ fill: colors.community, strokeWidth: 0, r: 3 }}
               />
             )}
           </RadarChart>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Coffee } from 'lucide-react';
 import { baristaApi } from '../../api/barista';
 import { useUser } from '../../context/UserContext';
 import { useToast } from '../../context/ToastContext';
@@ -130,6 +131,12 @@ export default function FlavorProfile() {
     });
   };
 
+  const scrollToSelector = () => {
+    document
+      .getElementById('flavor-selector')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const handleCancel = () => {
     if (profileData?.flavorProfile) {
       setSelected(profileData.flavorProfile.favorites ?? []);
@@ -162,6 +169,27 @@ export default function FlavorProfile() {
       <PageMeta title="Perfil de Sabor" description="Define tus preferencias de sabor." />
 
       <div className="space-y-8">
+        {isOwnProfile && !profileData?.flavorProfile && (
+          <div className="text-center py-10 border border-coffee-200 dark:border-coffee-800 bg-coffee-100/40 dark:bg-coffee-900/40">
+            <div className="w-20 h-20 mx-auto mb-6 border-2 border-gold-500 flex items-center justify-center">
+              <Coffee className="w-10 h-10 text-gold-500" />
+            </div>
+            <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+              Define tu perfil de sabor
+            </h2>
+            <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-8 max-w-sm mx-auto">
+              Cuéntanos qué sabores te gustan para recomendarte cafés
+            </p>
+            <button
+              type="button"
+              onClick={scrollToSelector}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              Empezar
+            </button>
+          </div>
+        )}
+
         <div>
           <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
             Perfil de Sabor
@@ -181,7 +209,10 @@ export default function FlavorProfile() {
         </div>
 
         {/* Flavor selector */}
-        <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6">
+        <div
+          id="flavor-selector"
+          className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-6 scroll-mt-24"
+        >
           <FlavorSelector selected={selected} onChange={setSelected} max={5} />
         </div>
 

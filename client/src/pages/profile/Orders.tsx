@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, ShoppingBag, WifiOff } from 'lucide-react';
+import { ShoppingBag, WifiOff, Coffee } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useOrderHistory } from '../../context/OrderHistoryContext';
@@ -74,8 +74,19 @@ export default function Orders() {
     return (
       <div className="text-center py-16">
         <PageMeta title="Mis Pedidos" />
-        <Package className="w-12 h-12 text-coffee-400 dark:text-coffee-600 mx-auto mb-4" />
-        <p className="text-coffee-600 dark:text-coffee-400">Aún no tienes pedidos.</p>
+        <div className="w-20 h-20 mx-auto mb-6 border-2 border-gold-500 flex items-center justify-center">
+          <ShoppingBag className="w-10 h-10 text-gold-500" />
+        </div>
+        <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+          Aún no tienes pedidos
+        </h2>
+        <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-8 max-w-sm mx-auto">
+          Cuando hagas tu primer pedido, aparecerá aquí
+        </p>
+        <Link to="/tienda" className="btn-primary inline-flex items-center gap-2">
+          <Coffee className="w-4 h-4" />
+          Ir a la tienda
+        </Link>
       </div>
     );
   }

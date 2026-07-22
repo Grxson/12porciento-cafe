@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -62,6 +62,42 @@ const validateShipping = (form: FormData): Partial<Record<keyof FormData, string
   }
   return errors;
 };
+
+function Stepper({ step }: { step: 1 | 2 | 3 }) {
+  const steps = ['Envío', 'Pago', 'Confirmar'];
+  return (
+    <div className="flex items-center justify-center gap-2 mb-8 px-2">
+      {steps.map((label, i) => {
+        const n = i + 1;
+        const done = step > n;
+        const active = step === n;
+        return (
+          <Fragment key={n}>
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                  done
+                    ? 'bg-gold-500 text-coffee-950'
+                    : active
+                      ? 'bg-gold-500 text-coffee-950 ring-2 ring-gold-500/30'
+                      : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-500'
+                }`}
+              >
+                {done ? '✓' : n}
+              </div>
+              <span className="text-xs mt-1 text-coffee-600 dark:text-coffee-400">{label}</span>
+            </div>
+            {n < 3 && (
+              <div
+                className={`flex-1 h-px ${done ? 'bg-gold-500' : 'bg-coffee-200 dark:bg-coffee-800'}`}
+              />
+            )}
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart(
@@ -456,65 +492,7 @@ export default function Checkout() {
           )}
 
           {/* Step indicator */}
-          <div className="mb-8 sm:hidden" aria-current="step">
-            <div className="mb-2 flex items-center justify-between text-xs">
-              <span className="font-semibold uppercase tracking-wider text-gold-600">
-                Paso {step} de 3
-              </span>
-              <span className="text-coffee-500">
-                {step === 1 ? 'Datos de envío' : step === 2 ? 'Método de pago' : 'Confirmar'}
-              </span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-coffee-200 dark:bg-coffee-800">
-              <div
-                className="h-full bg-gold-500 transition-all"
-                style={{ width: `${(step / 3) * 100}%` }}
-              />
-            </div>
-          </div>
-          <div
-            className="mb-10 hidden items-center gap-3 sm:flex"
-            role="progressbar"
-            aria-valuenow={step === 1 ? 0 : step === 2 ? 50 : 100}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Progreso del pedido"
-          >
-            {[
-              { n: 1, label: 'Datos de envío' },
-              { n: 2, label: 'Método de pago' },
-              { n: 3, label: 'Confirmar' },
-            ].map(({ n, label }, i, arr) => {
-              const stepNum = step;
-              const isActive = stepNum === n;
-              const isPast = stepNum > n;
-              return (
-                <div
-                  key={n}
-                  className="flex items-center gap-2"
-                  aria-current={isActive ? 'step' : undefined}
-                >
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                      stepNum >= n
-                        ? 'bg-gold-500 text-coffee-950'
-                        : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400'
-                    }`}
-                  >
-                    {isPast ? <Check className="w-3.5 h-3.5" /> : n}
-                  </div>
-                  <span
-                    className={`text-sm transition-colors ${isActive ? 'text-coffee-900 dark:text-cream font-medium' : 'text-coffee-600 dark:text-coffee-400'}`}
-                  >
-                    {label}
-                  </span>
-                  {i < arr.length - 1 && (
-                    <ChevronRight className="w-4 h-4 text-coffee-400 dark:text-coffee-700 ml-1" />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <Stepper step={step} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">

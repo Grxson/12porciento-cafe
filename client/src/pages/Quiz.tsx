@@ -224,8 +224,30 @@ async function fetchRecommendations(answers: Answers): Promise<ScoredProduct[]> 
 }
 
 export default function Quiz() {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({});
+  const [step, setStep] = useState<number>(() => {
+    try {
+      const stored = sessionStorage.getItem('quiz-state');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return typeof parsed.step === 'number' ? parsed.step : 0;
+      }
+    } catch {
+      /* ignore */
+    }
+    return 0;
+  });
+  const [answers, setAnswers] = useState<Answers>(() => {
+    try {
+      const stored = sessionStorage.getItem('quiz-state');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.answers ?? {};
+      }
+    } catch {
+      /* ignore */
+    }
+    return {};
+  });
   const [done, setDone] = useState(false);
   const [recommendations, setRecommendations] = useState<ScoredProduct[]>([]);
   const [recsLoading, setRecsLoading] = useState(false);
@@ -259,6 +281,15 @@ export default function Quiz() {
     };
   }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Persist quiz progress to sessionStorage; clear on completion
+  useEffect(() => {
+    if (done) {
+      sessionStorage.removeItem('quiz-state');
+      return;
+    }
+    sessionStorage.setItem('quiz-state', JSON.stringify({ step, answers }));
+  }, [step, answers, done]);
+
   const answer = (value: string) => {
     const next = { ...answers, [q.id]: value };
     setAnswers(next);
@@ -276,6 +307,7 @@ export default function Quiz() {
     setRecommendations([]);
     setRecsLoading(false);
     setRecsError(false);
+    sessionStorage.removeItem('quiz-state');
   };
 
   return (
@@ -302,17 +334,20 @@ export default function Quiz() {
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-coffee-600 dark:text-coffee-500 text-xs tracking-widest uppercase">
-                  {step + 1} / {questions.length}
-                </span>
-                <div className="flex gap-1">
-                  {questions.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-1 w-8 transition-all duration-300 ${i <= step ? 'bg-gold-500' : 'bg-coffee-200 dark:bg-coffee-800'}`}
-                    />
-                  ))}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-coffee-600 dark:text-coffee-500 text-xs tracking-widest uppercase">
+                    Pregunta {step + 1} de {questions.length}
+                  </span>
+                  <span className="text-gold-500 text-xs font-semibold">
+                    {Math.round(((step + 1) / questions.length) * 100)}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-coffee-200 dark:bg-coffee-800 overflow-hidden rounded-full">
+                  <div
+                    className="h-full bg-gold-500 transition-all duration-300"
+                    style={{ width: `${((step + 1) / questions.length) * 100}%` }}
+                  />
                 </div>
               </div>
 

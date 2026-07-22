@@ -83,7 +83,7 @@ export default function About() {
       </section>
 
       {/* Mission — light bg */}
-      <section className="py-12 sm:py-24 bg-coffee-50 dark:bg-coffee-950">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <ScrollReveal>
@@ -129,7 +129,7 @@ export default function About() {
       </section>
 
       {/* Values — dark accent section */}
-      <section className="py-12 sm:py-24 bg-coffee-100 dark:bg-coffee-900">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-100 dark:bg-coffee-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mb-14">
             <div className="gold-line mb-5" />
@@ -156,7 +156,7 @@ export default function About() {
       </section>
 
       {/* Origins — light bg */}
-      <section id="origenes" className="py-12 sm:py-24 bg-coffee-50 dark:bg-coffee-950">
+      <section id="origenes" className="py-16 sm:py-20 lg:py-24 bg-coffee-50 dark:bg-coffee-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="mb-14">
             <div className="gold-line mb-5" />
@@ -193,7 +193,7 @@ export default function About() {
       </section>
 
       {/* CTA — dark section */}
-      <section className="py-20 bg-coffee-100 dark:bg-coffee-900 border-t border-coffee-200 dark:border-coffee-800">
+      <section className="py-16 sm:py-20 lg:py-24 bg-coffee-100 dark:bg-coffee-900 border-t border-coffee-200 dark:border-coffee-800">
         <div className="max-w-xl mx-auto px-4 text-center">
           <ScrollReveal>
             <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-4">

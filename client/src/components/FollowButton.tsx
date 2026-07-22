@@ -33,14 +33,17 @@ export default function FollowButton({
   // Check initial follow status
   useEffect(() => {
     let cancelled = false;
+    let ignoreResult = false;
     const check = async () => {
       setLoading(true);
       try {
         const res = await baristaApi.getFollowStatus([targetUserId]);
+        // Prevent setting state if component unmounted or user changed
+        if (cancelled || ignoreResult) return;
         const statusMap = res.data?.data ?? {};
         if (!cancelled) setIsFollowing(!!statusMap[targetUserId]);
       } catch (err) {
-        console.error('follow status check failed:', err);
+        if (!cancelled) console.error('follow status check failed:', err);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -48,6 +51,7 @@ export default function FollowButton({
     check();
     return () => {
       cancelled = true;
+      ignoreResult = true; // additionally ignore any in-flight result
     };
   }, [targetUserId]);
 

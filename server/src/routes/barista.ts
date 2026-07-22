@@ -653,10 +653,30 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
     }
 
     const flavorRadarUser = computeRadar(brews);
-    const allBrewsForCommunity = await prisma.brewLog.findMany({
-      select: { tags: true, rating: true },
+    // Community radar: aggregate in DB instead of fetching all brew logs
+    const communityRaw = await prisma.$queryRaw<Array<{ tag: string; total_rating: number; tag_count: bigint }>>`
+      SELECT
+        tag,
+        SUM(b.rating)::float AS total_rating,
+        COUNT(*)::bigint AS tag_count
+      FROM brew_log, unnest(brew_log.tags) AS tag
+      GROUP BY tag
+    `;
+    const communityTagSums: Record<string, { total: number; count: number }> = {};
+    RADAR_DIMS.forEach((d) => (communityTagSums[d] = { total: 0, count: 0 }));
+    communityRaw.forEach((row) => {
+      const tag = (row.tag || '').toLowerCase();
+      const dim = tagToDim[tag] ?? Object.entries(tagToDim).find(([k]) => tag.includes(k))?.[1];
+      if (dim && communityTagSums[dim]) {
+        communityTagSums[dim].total += row.total_rating;
+        communityTagSums[dim].count += Number(row.tag_count);
+      }
     });
-    const flavorRadarCommunity = computeRadar(allBrewsForCommunity as unknown as typeof brews);
+    const flavorRadarCommunity = RADAR_DIMS.map((d) => {
+      const { total, count } = communityTagSums[d];
+      const avg = count > 0 ? total / count : 0;
+      return { flavor: d, value: Math.round(avg * 10) };
+    });
 
     res.json({
       data: {
@@ -995,66 +1015,7 @@ router.get('/titles', requireUserAuth, async (req: UserAuthRequest, res: Respons
   }
 });
 
-// Admin: Create achievement
-router.post('/admin-achievements', requireAuth, async (req: AuthRequest, res: Response) => {
-  try {
-    const { name, slug, description, icon, rarity, xpReward } = req.body;
-    if (!name || !slug) {
-      return res.status(400).json({ error: 'Nombre y slug requeridos' });
-    }
-    const existing = await prisma.achievement.findUnique({ where: { slug } });
-    if (existing) {
-      return res.status(409).json({ error: 'Ya existe un logro con ese slug' });
-    }
-    const achievement = await prisma.achievement.create({
-      data: {
-        name,
-        slug,
-        description: description || '',
-        icon: icon || '🏆',
-        rarity: rarity || 'COMMON',
-        xpReward: xpReward || 20,
-      },
-    });
-    res.json(achievement);
-  } catch (err) {
-    console.error('[admin/achievements] Error:', err);
-    res.status(500).json({ error: 'Error al crear logro' });
-  }
-});
 
-// Admin: Update achievement
-router.put('/admin-achievements/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  try {
-    const { name, slug, description, icon, rarity, xpReward } = req.body;
-    const data: Prisma.AchievementUpdateInput = {};
-    if (name !== undefined) data.name = name;
-    if (slug !== undefined) data.slug = slug;
-    if (description !== undefined) data.description = description;
-    if (icon !== undefined) data.icon = icon;
-    if (rarity !== undefined) data.rarity = rarity;
-    if (xpReward !== undefined) data.xpReward = xpReward;
-    const achievement = await prisma.achievement.update({
-      where: { id: req.params.id },
-      data,
-    });
-    res.json(achievement);
-  } catch (err) {
-    console.error('[admin/achievements] Error:', err);
-    res.status(500).json({ error: 'Error al actualizar logro' });
-  }
-});
-
-// Admin: Delete achievement
-router.delete('/admin-achievements/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  try {
-    await prisma.achievement.delete({ where: { id: req.params.id } });
-    res.json({ ok: true });
-  } catch (err) {
-    console.error('[admin/achievements] Error:', err);
-    res.status(500).json({ error: 'Error al eliminar logro' });
-  }
-});
 
 // GET /barista/rewards — list active rewards with user claim status
 router.get('/rewards', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
@@ -1098,6 +1059,9 @@ router.post('/rewards/:id/claim', requireUserAuth, async (req: UserAuthRequest, 
     if (!reward.isActive) {
       return res.status(400).json({ error: 'Recompensa no disponible' });
     }
+    if (reward.stock !== null && reward.stock <= 0) {
+      return res.status(400).json({ error: 'Recompensa agotada' });
+    }
 
     const profile = await prisma.baristaProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -1128,6 +1092,32 @@ router.post('/rewards/:id/claim', requireUserAuth, async (req: UserAuthRequest, 
         data: { level: correctLevel },
       });
     }
+
+    // Decrement stock atomically if limited (prevents negative stock from race conditions)
+    if (reward.stock !== null && reward.stock > 0) {
+      const updated = await prisma.reward.updateMany({
+        where: { id, stock: { gt: 0 } },
+        data: { stock: { decrement: 1 } },
+      });
+      if (updated.count === 0) {
+        return res.status(400).json({ error: 'Recompensa agotada' });
+      }
+    }
+
+    // Create PromoCode for the reward (usable in checkout)
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const promoCode = await prisma.promoCode.upsert({
+      where: { code },
+      create: {
+        code,
+        discount: reward.discountPct,
+        type: 'PERCENT',
+        maxUses: reward.maxUses ?? 1,
+        expiresAt,
+        isActive: true,
+      },
+      update: {},
+    });
 
     const claim = await prisma.rewardClaim.create({
       data: { rewardId: id, userId, code },
@@ -1197,8 +1187,8 @@ router.delete('/follow/:userId', requireUserAuth, async (req: UserAuthRequest, r
     const followerId = req.user!.id;
     const followingId = req.params.userId;
 
-    await prisma.follow.delete({
-      where: { followerId_followingId: { followerId, followingId } },
+    await prisma.follow.deleteMany({
+      where: { followerId, followingId },
     });
 
     res.json({ data: { followerId, followingId } });

@@ -412,6 +412,7 @@ export const adminUsersApi = {
 
 export const achievementsApi = {
   list: () => api.get<{ achievements: Achievement[] }>('/barista/achievements'),
+  adminList: () => api.get<{ data: Achievement[] }>('/admin/achievements'),
   create: (data: {
     name: string;
     slug: string;
@@ -419,7 +420,7 @@ export const achievementsApi = {
     icon?: string;
     rarity?: string;
     xpReward?: number;
-  }) => api.post<{ data: Achievement }>('/barista/admin-achievements', data),
+  }) => api.post<{ data: Achievement }>('/admin/achievements', data),
   update: (
     id: string,
     data: {
@@ -430,8 +431,8 @@ export const achievementsApi = {
       rarity?: string;
       xpReward?: number;
     },
-  ) => api.put<{ data: Achievement }>(`/barista/admin-achievements/${id}`, data),
-  delete: (id: string) => api.delete(`/barista/admin-achievements/${id}`),
+  ) => api.put<{ data: Achievement }>(`/admin/achievements/${id}`, data),
+  delete: (id: string) => api.delete(`/admin/achievements/${id}`),
 };
 
 export const wishlistApi = {

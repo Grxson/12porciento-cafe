@@ -72,7 +72,7 @@ export default function RankBadge({
           )}
         </div>
         {showLabel && (
-          <p className="text-xs font-semibold text-coffee-600 dark:text-coffee-300">{title}</p>
+          <p className="text-xs font-semibold text-coffee-600 dark:text-coffee-400">{title}</p>
         )}
       </div>
     );
@@ -87,7 +87,7 @@ export default function RankBadge({
         {emoji}
       </div>
       {showLabel && (
-        <p className="text-xs font-semibold text-coffee-600 dark:text-coffee-300">{title}</p>
+        <p className="text-xs font-semibold text-coffee-600 dark:text-coffee-400">{title}</p>
       )}
     </div>
   );

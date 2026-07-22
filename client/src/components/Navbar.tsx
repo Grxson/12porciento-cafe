@@ -117,7 +117,7 @@ export default function Navbar() {
                     `text-sm tracking-widest uppercase transition-colors duration-200 relative ${
                       isActive
                         ? 'text-gold-500'
-                        : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                        : 'text-coffee-800 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream'
                     }`
                   }
                 >
@@ -134,7 +134,7 @@ export default function Navbar() {
                 className={`min-h-11 px-2 text-sm tracking-widest uppercase transition-colors duration-200 ${
                   moreOpen
                     ? 'text-gold-500'
-                    : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                    : 'text-coffee-800 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream'
                 }`}
               >
                 Más
@@ -161,7 +161,7 @@ export default function Navbar() {
                               `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
                                 isActive
                                   ? 'text-gold-500'
-                                  : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                                  : 'text-coffee-800 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream'
                               }`
                             }
                           >
@@ -178,7 +178,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <button
               onClick={toggle}
-              className="flex min-h-11 min-w-11 items-center justify-center text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              className="flex min-h-11 min-w-11 items-center justify-center text-coffee-700 dark:text-coffee-300 hover:text-coffee-900 dark:hover:text-cream transition-colors"
               aria-label="Cambiar tema"
             >
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -187,7 +187,7 @@ export default function Navbar() {
             {user && <NotificationBell />}
             <button
               onClick={openDrawer}
-              className="relative flex min-h-11 min-w-11 items-center justify-center text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              className="relative flex min-h-11 min-w-11 items-center justify-center text-coffee-700 dark:text-coffee-300 hover:text-coffee-900 dark:hover:text-cream transition-colors"
               aria-label="Carrito"
             >
               <ShoppingBag className="w-5 h-5" />
@@ -205,7 +205,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setOpen(!open)}
-              className="flex min-h-11 min-w-11 items-center justify-center md:hidden text-coffee-700 dark:text-coffee-200 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+              className="flex min-h-11 min-w-11 items-center justify-center md:hidden text-coffee-700 dark:text-coffee-300 hover:text-coffee-900 dark:hover:text-cream transition-colors"
               aria-label="Menú"
             >
               <AnimatePresence>
@@ -267,7 +267,7 @@ export default function Navbar() {
                         `py-3 text-sm tracking-widest uppercase border-b border-coffee-200/50 dark:border-coffee-800/50 transition-colors relative ${
                           isActive
                             ? 'text-gold-500'
-                            : 'text-coffee-800 dark:text-coffee-200 hover:text-coffee-950 dark:hover:text-cream'
+                            : 'text-coffee-800 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream'
                         }`
                       }
                     >

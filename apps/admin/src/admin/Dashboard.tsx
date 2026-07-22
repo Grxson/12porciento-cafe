@@ -481,7 +481,7 @@ export default function Dashboard() {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-coffee-500 text-xs w-5 text-right shrink-0">{i + 1}</span>
-                    <p className="text-coffee-800 dark:text-coffee-200 text-sm truncate">
+                    <p className="text-coffee-800 dark:text-coffee-300 text-sm truncate">
                       {product.name}
                     </p>
                   </div>
@@ -556,7 +556,7 @@ export default function Dashboard() {
                   key={name}
                   className="flex items-center justify-between py-2 border-b border-coffee-200 dark:border-coffee-800 last:border-0"
                 >
-                  <p className="text-coffee-800 dark:text-coffee-200 text-sm">{name}</p>
+                  <p className="text-coffee-800 dark:text-coffee-300 text-sm">{name}</p>
                   <span
                     className={`text-xs font-medium px-2 py-0.5 ${
                       stock <= 5

@@ -929,7 +929,7 @@ export default function Checkout() {
                           {item.product.weight}g · x{item.quantity}
                         </p>
                       </div>
-                      <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">
+                      <p className="text-coffee-800 dark:text-coffee-300 text-sm shrink-0">
                         ${(Number(item.product.price) * item.quantity).toLocaleString('es-MX')}
                       </p>
                     </div>
@@ -956,7 +956,7 @@ export default function Checkout() {
                           {item.bundle.discountPct > 0 && ` · ${item.bundle.discountPct}% OFF`}
                         </p>
                       </div>
-                      <p className="text-coffee-800 dark:text-coffee-200 text-sm shrink-0">
+                      <p className="text-coffee-800 dark:text-coffee-300 text-sm shrink-0">
                         $
                         {(Number(item.bundle?.finalPrice ?? 0) * item.quantity).toLocaleString(
                           'es-MX',
@@ -1014,7 +1014,7 @@ export default function Checkout() {
                       <button
                         onClick={handleApplyPromo}
                         disabled={promoLoading || !promoInput.trim()}
-                        className="shrink-0 bg-coffee-100 dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 px-3 text-sm min-h-[44px] hover:bg-coffee-200 dark:hover:bg-coffee-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1 whitespace-nowrap"
+                        className="shrink-0 bg-coffee-100 dark:bg-coffee-700 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-300 px-3 text-sm min-h-[44px] hover:bg-coffee-200 dark:hover:bg-coffee-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1 whitespace-nowrap"
                       >
                         {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aplicar'}
                       </button>
@@ -1028,7 +1028,7 @@ export default function Checkout() {
                 {promoDiscount > 0 && (
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-coffee-600 dark:text-coffee-400">Subtotal</span>
-                    <span className="text-coffee-800 dark:text-coffee-200">
+                    <span className="text-coffee-800 dark:text-coffee-300">
                       ${total().toLocaleString('es-MX')}
                     </span>
                   </div>

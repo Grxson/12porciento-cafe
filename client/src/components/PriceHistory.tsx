@@ -33,9 +33,15 @@ export default function PriceHistory({ records, currentPrice }: Props) {
     return `${x},${y}`;
   });
 
-  const trend = currentPrice > records[records.length - 1].price ? 'up' : currentPrice < records[records.length - 1].price ? 'down' : 'flat';
+  const trend =
+    currentPrice > records[records.length - 1].price
+      ? 'up'
+      : currentPrice < records[records.length - 1].price
+        ? 'down'
+        : 'flat';
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
-  const trendColor = trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-coffee-400';
+  const trendColor =
+    trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-coffee-400';
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
@@ -57,18 +63,48 @@ export default function PriceHistory({ records, currentPrice }: Props) {
           <TrendIcon className={`w-4 h-4 ${trendColor}`} />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-coffee-500 dark:text-coffee-400">{records.length} cambios</span>
-          {open ? <ChevronUp className="w-4 h-4 text-coffee-400" /> : <ChevronDown className="w-4 h-4 text-coffee-400" />}
+          <span className="text-xs text-coffee-500 dark:text-coffee-400">
+            {records.length} cambios
+          </span>
+          {open ? (
+            <ChevronUp className="w-4 h-4 text-coffee-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-coffee-400" />
+          )}
         </div>
       </button>
 
       {open && (
         <div className="mt-4">
-          <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full max-w-xs h-auto overflow-visible">
+          <svg
+            viewBox={`0 0 ${chartW} ${chartH}`}
+            className="w-full max-w-xs h-auto overflow-visible"
+          >
             {/* Grid lines */}
-            <line x1="0" y1={padding.top} x2={chartW} y2={padding.top} stroke="currentColor" strokeOpacity="0.1" />
-            <line x1="0" y1={padding.top + innerH / 2} x2={chartW} y2={padding.top + innerH / 2} stroke="currentColor" strokeOpacity="0.08" />
-            <line x1="0" y1={chartH - padding.bottom} x2={chartW} y2={chartH - padding.bottom} stroke="currentColor" strokeOpacity="0.1" />
+            <line
+              x1="0"
+              y1={padding.top}
+              x2={chartW}
+              y2={padding.top}
+              stroke="currentColor"
+              strokeOpacity="0.1"
+            />
+            <line
+              x1="0"
+              y1={padding.top + innerH / 2}
+              x2={chartW}
+              y2={padding.top + innerH / 2}
+              stroke="currentColor"
+              strokeOpacity="0.08"
+            />
+            <line
+              x1="0"
+              y1={chartH - padding.bottom}
+              x2={chartW}
+              y2={chartH - padding.bottom}
+              stroke="currentColor"
+              strokeOpacity="0.1"
+            />
 
             {/* Area fill */}
             <polyline
@@ -97,9 +133,13 @@ export default function PriceHistory({ records, currentPrice }: Props) {
             })}
 
             {/* Min label */}
-            <text x="0" y={chartH - 2} className="fill-coffee-400 text-[8px]">{formatCurrency(minPrice)}</text>
+            <text x="0" y={chartH - 2} className="fill-coffee-400 text-[8px]">
+              {formatCurrency(minPrice)}
+            </text>
             {/* Max label */}
-            <text x="0" y={padding.top - 2} className="fill-coffee-400 text-[8px]">{formatCurrency(maxPrice)}</text>
+            <text x="0" y={padding.top - 2} className="fill-coffee-400 text-[8px]">
+              {formatCurrency(maxPrice)}
+            </text>
             {/* First date */}
             {records.length > 1 && (
               <text x="0" y={chartH - 2} className="fill-coffee-500 text-[7px]" textAnchor="start">
@@ -108,7 +148,12 @@ export default function PriceHistory({ records, currentPrice }: Props) {
             )}
             {/* Last date */}
             {records.length > 1 && (
-              <text x={chartW} y={chartH - 2} className="fill-coffee-500 text-[7px]" textAnchor="end">
+              <text
+                x={chartW}
+                y={chartH - 2}
+                className="fill-coffee-500 text-[7px]"
+                textAnchor="end"
+              >
                 {formatDate(records[records.length - 1].createdAt)}
               </text>
             )}
@@ -116,12 +161,20 @@ export default function PriceHistory({ records, currentPrice }: Props) {
 
           {/* Compact list */}
           <div className="mt-3 space-y-1">
-            {records.slice(-5).reverse().map((r) => (
-              <div key={r.id} className="flex items-center justify-between text-xs text-coffee-600 dark:text-coffee-400">
-                <span>{formatDate(r.createdAt)}</span>
-                <span className="font-medium text-coffee-800 dark:text-coffee-200">${r.price.toFixed(2)}</span>
-              </div>
-            ))}
+            {records
+              .slice(-5)
+              .reverse()
+              .map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between text-xs text-coffee-600 dark:text-coffee-400"
+                >
+                  <span>{formatDate(r.createdAt)}</span>
+                  <span className="font-medium text-coffee-800 dark:text-coffee-300">
+                    ${r.price.toFixed(2)}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
       )}

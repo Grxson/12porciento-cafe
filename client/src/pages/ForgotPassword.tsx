@@ -65,7 +65,7 @@ export default function ForgotPassword() {
               </h1>
               <p className="text-coffee-600 dark:text-coffee-400 text-sm leading-relaxed">
                 Si existe una cuenta con{' '}
-                <strong className="text-coffee-800 dark:text-coffee-200">{email}</strong>, recibirás
+                <strong className="text-coffee-800 dark:text-coffee-300">{email}</strong>, recibirás
                 un enlace para restablecer tu contraseña en unos minutos.
               </p>
               <p className="text-coffee-500 dark:text-coffee-500 text-xs mt-4">

@@ -10,7 +10,8 @@ import TitleSelector from '../components/TitleSelector';
 const rarityConfig: Record<string, { label: string; color: string }> = {
   COMMON: {
     label: 'Común',
-    color: 'text-coffee-600 dark:text-coffee-400 bg-coffee-100 dark:bg-coffee-800/60',
+    color:
+      'text-coffee-600 dark:text-coffee-400 dark:text-coffee-400 bg-coffee-100 dark:bg-coffee-800/60',
   },
   RARE: { label: 'Raro', color: 'text-blue-400 bg-blue-900/30' },
   EPIC: { label: 'Épico', color: 'text-purple-400 bg-purple-900/30' },
@@ -175,7 +176,7 @@ export default function AchievementGallery() {
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Colección</p>
           <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-2">Mis Logros</h1>
           {!loading && (
-            <p className="text-coffee-600 dark:text-coffee-400 text-sm">
+            <p className="text-coffee-600 dark:text-coffee-400 dark:text-coffee-400 text-sm">
               {unlocked} / {achievements.length} desbloqueados
             </p>
           )}
@@ -228,7 +229,7 @@ export default function AchievementGallery() {
                     {!isUnlocked && (
                       <Lock
                         aria-hidden="true"
-                        className="absolute -bottom-1 -right-1 w-4 h-4 text-coffee-600"
+                        className="absolute -bottom-1 -right-1 w-4 h-4 text-coffee-600 dark:text-coffee-400"
                       />
                     )}
                   </div>
@@ -238,7 +239,7 @@ export default function AchievementGallery() {
                   </span>
 
                   <h3
-                    className={`font-serif text-base mt-2 mb-1 ${isUnlocked ? 'text-coffee-900 dark:text-cream' : 'text-coffee-600'}`}
+                    className={`font-serif text-base mt-2 mb-1 ${isUnlocked ? 'text-coffee-900 dark:text-cream' : 'text-coffee-600 dark:text-coffee-400'}`}
                   >
                     {a.name}
                   </h3>
@@ -280,7 +281,9 @@ export default function AchievementGallery() {
                       })}
                     </div>
                   ) : (
-                    <div className="text-xs text-coffee-600">+{a.xpReward} XP al desbloquear</div>
+                    <div className="text-xs text-coffee-600 dark:text-coffee-400">
+                      +{a.xpReward} XP al desbloquear
+                    </div>
                   )}
                 </div>
               );
@@ -295,7 +298,7 @@ export default function AchievementGallery() {
             <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
               Títulos Barista
             </h2>
-            <p className="text-coffee-600 dark:text-coffee-400 text-sm">
+            <p className="text-coffee-600 dark:text-coffee-400 dark:text-coffee-400 text-sm">
               Gana logros para desbloquear títulos
             </p>
           </div>

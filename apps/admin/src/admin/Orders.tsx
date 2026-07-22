@@ -427,7 +427,7 @@ export default function AdminOrders() {
                         <div className="space-y-2">
                           {order.items.map((item) => (
                             <div key={item.id} className="flex justify-between text-sm">
-                              <span className="text-coffee-800 dark:text-coffee-200">
+                              <span className="text-coffee-800 dark:text-coffee-300">
                                 {item.product.name} × {item.quantity}
                               </span>
                               <span className="text-coffee-600 dark:text-coffee-400">
@@ -452,7 +452,7 @@ export default function AdminOrders() {
                         <p className="text-xs text-gold-500 uppercase tracking-widest mb-3">
                           Envío
                         </p>
-                        <p className="text-coffee-800 dark:text-coffee-200 text-sm">
+                        <p className="text-coffee-800 dark:text-coffee-300 text-sm">
                           {order.address}
                         </p>
                         <p className="text-coffee-700 dark:text-coffee-300 text-sm">

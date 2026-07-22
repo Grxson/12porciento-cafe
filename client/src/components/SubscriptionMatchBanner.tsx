@@ -58,7 +58,7 @@ export default function SubscriptionMatchBanner({ userId }: Props) {
     <div className="relative bg-gradient-to-r from-gold-500/10 to-coffee-800/50 border border-gold-500/30 rounded-xl p-4 pr-10 mb-6">
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 text-coffee-400 hover:text-coffee-200 transition-colors"
+        className="absolute top-2 right-2 text-coffee-400 hover:text-coffee-300 transition-colors"
         aria-label="Cerrar"
       >
         <X className="w-4 h-4" />

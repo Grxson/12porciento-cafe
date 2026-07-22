@@ -10,7 +10,8 @@ interface NotesCaptureProps {
 const TEMPLATES = ['Muy caliente', 'Frío', 'Amargo', 'Ácido', 'Perfecto', 'Ajustar dosis'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SpeechRecognition = ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) as any;
+const SpeechRecognition = ((window as any).SpeechRecognition ||
+  (window as any).webkitSpeechRecognition) as any;
 
 function appendNote(existing: string, addition: string): string {
   return existing ? `${existing} · ${addition}` : addition;
@@ -25,7 +26,9 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
   const recognitionRef = useRef<any>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef(value);
-  useEffect(() => { valueRef.current = value; }, [value]);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   const startVoice = () => {
     if (!SpeechRecognition) return;
@@ -48,7 +51,10 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
         onChange(current ? `${current} · ${finalText}` : finalText);
       }
     };
-    recognition.onend = () => { setRecording(false); setInterim(''); };
+    recognition.onend = () => {
+      setRecording(false);
+      setInterim('');
+    };
     recognition.onerror = (event: any) => {
       if (event.error === 'not-allowed') {
         setMicDenied(true);
@@ -83,9 +89,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
 
   return (
     <div className="mb-4">
-      <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">
-        Notas (opcional)
-      </p>
+      <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">Notas (opcional)</p>
 
       {/* R14: Per-step photo capture */}
       {onPhotoCapture && (
@@ -138,8 +142,8 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
       </div>
 
       {/* Voice button — only if SpeechRecognition available */}
-      {SpeechRecognition && (
-        micDenied ? (
+      {SpeechRecognition &&
+        (micDenied ? (
           <p className="text-xs text-red-500 dark:text-red-400 mt-1">
             Permiso de micrófono denegado. Actívalo en la configuración del navegador.
           </p>
@@ -164,8 +168,7 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
               {recording ? 'Detener' : 'Grabar nota'}
             </button>
           </>
-        )
-      )}
+        ))}
 
       {/* Free text */}
       <textarea
@@ -174,11 +177,9 @@ export default function NotesCapture({ value, onChange, onPhotoCapture }: NotesC
         onChange={(e) => onChange(e.target.value)}
         placeholder={recording ? 'Escuchando...' : 'O escribe aquí...'}
         maxLength={500}
-        className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-200 text-xs px-3 py-2 focus:border-gold-500 focus:outline-none resize-none"
+        className="w-full bg-coffee-100 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-800 dark:text-coffee-300 text-xs px-3 py-2 focus:border-gold-500 focus:outline-none resize-none"
       />
-      {interim && (
-        <p className="text-xs text-gold-500 italic mt-1">{interim}…</p>
-      )}
+      {interim && <p className="text-xs text-gold-500 italic mt-1">{interim}…</p>}
       <p className="text-xs text-coffee-600 text-right">{value.length}/500</p>
     </div>
   );

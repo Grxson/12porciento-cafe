@@ -97,7 +97,7 @@ export default function AdminCustomers() {
                       className="flex justify-between items-center text-sm py-2 border-b border-coffee-200 dark:border-coffee-800 last:border-0"
                     >
                       <div>
-                        <p className="text-coffee-800 dark:text-coffee-200">
+                        <p className="text-coffee-800 dark:text-coffee-300">
                           {o.items.map((i) => i.product?.name).join(', ')}
                         </p>
                         <p className="text-coffee-500 text-xs">
@@ -128,7 +128,7 @@ export default function AdminCustomers() {
                       className="py-3 border-b border-coffee-200 dark:border-coffee-800 last:border-0"
                     >
                       <div className="flex justify-between items-start mb-1">
-                        <p className="text-coffee-800 dark:text-coffee-200 text-sm font-medium">
+                        <p className="text-coffee-800 dark:text-coffee-300 text-sm font-medium">
                           {r.product?.name}
                         </p>
                         <p className="text-coffee-500 text-xs">

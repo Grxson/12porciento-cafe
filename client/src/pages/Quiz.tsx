@@ -63,7 +63,13 @@ const questions: Question[] = [
 
 type Answers = Record<string, string>;
 
-function getResult(answers: Answers): { roast: string; process: string; label: string; desc: string; filter: string } {
+function getResult(answers: Answers): {
+  roast: string;
+  process: string;
+  label: string;
+  desc: string;
+  filter: string;
+} {
   const fruity = answers.flavor === 'fruity' || answers.flavor === 'citrus';
   const lightBody = answers.body === 'light';
   const pourover = answers.method === 'pourover';
@@ -99,17 +105,18 @@ function getResult(answers: Answers): { roast: string; process: string; label: s
 
 // Stemming: normalize flavor text for matching
 function stem(word: string): string {
-  return word.toLowerCase()
-    .replace(/[áéíóú]/g, (c) => ({ 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u' })[c] ?? c)
+  return word
+    .toLowerCase()
+    .replace(/[áéíóú]/g, (c) => ({ á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u' })[c] ?? c)
     .replace(/[^a-z0-9]/g, '');
 }
 
 // Maps quiz flavor answer → flavor stems to match against product.flavors
 const flavorStems: Record<string, string[]> = {
   chocolate: ['chocolat', 'caramel', 'cacao', 'cremoso', 'dulce'],
-  fruity:    ['frut', 'floral', 'berry', 'mora', 'fresa', 'frambues', 'tropical'],
-  nutty:     ['nuez', 'almendra', 'especi', 'canela', 'avellana'],
-  citrus:    ['citric', 'limon', 'naranj', 'acidez', 'mandarina'],
+  fruity: ['frut', 'floral', 'berry', 'mora', 'fresa', 'frambues', 'tropical'],
+  nutty: ['nuez', 'almendra', 'especi', 'canela', 'avellana'],
+  citrus: ['citric', 'limon', 'naranj', 'acidez', 'mandarina'],
 };
 
 // Infer body (light/medium/full) from process + roast
@@ -130,9 +137,9 @@ function scoreProduct(product: Product, answers: Answers): number {
 
   // Roast match (25%) — time answer drives roast preference
   const roastPref: Record<string, string[]> = {
-    early:     ['Medio', 'Oscuro'],
-    night:     ['Ligero', 'Medio-Ligero'],
-    mid:       ['Medio', 'Medio-Ligero'],
+    early: ['Medio', 'Oscuro'],
+    night: ['Ligero', 'Medio-Ligero'],
+    mid: ['Medio', 'Medio-Ligero'],
     afternoon: ['Medio-Ligero', 'Ligero'],
   };
   const preferredRoasts = roastPref[timeAnswer] ?? ['Medio', 'Medio-Ligero'];
@@ -142,8 +149,8 @@ function scoreProduct(product: Product, answers: Answers): number {
   const processPref: Record<string, string[]> = {
     espresso: ['Natural', 'Anaeróbico'],
     pourover: ['Lavado', 'Honey'],
-    french:   ['Honey', 'Natural'],
-    any:      ['Lavado', 'Natural', 'Honey', 'Anaeróbico'],
+    french: ['Honey', 'Natural'],
+    any: ['Lavado', 'Natural', 'Honey', 'Anaeróbico'],
   };
   const preferredProcesses = processPref[methodAnswer] ?? ['Lavado', 'Natural'];
   const processScore = preferredProcesses.includes(product.process ?? '') ? 1 : 0.2;
@@ -151,7 +158,7 @@ function scoreProduct(product: Product, answers: Answers): number {
   // Body match (15%) — body answer matched to inferred body
   const userBody = bodyAnswer === 'surprise' ? 'any' : bodyAnswer;
   const productBody = inferBody(product.process, product.roastLevel);
-  const bodyScore = userBody === 'any' ? 0.5 : (productBody === userBody ? 1 : 0.1);
+  const bodyScore = userBody === 'any' ? 0.5 : productBody === userBody ? 1 : 0.1;
 
   // Flavor match (10%) — stemmed keyword hits
   const stems = flavorStems[flavorAnswer] ?? [];
@@ -163,7 +170,9 @@ function scoreProduct(product: Product, answers: Answers): number {
   const scaScore = (product.scaScore ?? 80) / 100;
 
   // Weighted sum (each attribute contributes proportionally)
-  return roastScore * 0.25 + processScore * 0.20 + bodyScore * 0.15 + flavorScore * 0.10 + scaScore * 0.30;
+  return (
+    roastScore * 0.25 + processScore * 0.2 + bodyScore * 0.15 + flavorScore * 0.1 + scaScore * 0.3
+  );
 }
 
 async function fetchRecommendations(answers: Answers): Promise<ScoredProduct[]> {
@@ -172,14 +181,18 @@ async function fetchRecommendations(answers: Answers): Promise<ScoredProduct[]> 
   try {
     const res = await productsApi.list({ category: 'CAFÉ', pageSize: '30' });
     products = res.data.data;
-  } catch { /* fallback below */ }
+  } catch {
+    /* fallback below */
+  }
 
   // Broaden if too few results
   if (products.length < 6) {
     try {
       const res = await productsApi.list({ category: 'CAFÉ', pageSize: '30', page: '2' });
       products = [...products, ...res.data.data];
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // Ultimate fallback: top SCA CAFÉ only
@@ -187,7 +200,9 @@ async function fetchRecommendations(answers: Answers): Promise<ScoredProduct[]> 
     try {
       const res = await productsApi.list({ category: 'CAFÉ', sort: 'sca', pageSize: '20' });
       products = res.data.data;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // Score each product using the probabilistic engine
@@ -239,7 +254,9 @@ export default function Quiz() {
         if (!cancelled) setRecsLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const answer = (value: string) => {
@@ -263,12 +280,17 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 flex flex-col items-center px-4 pt-20 pb-20">
-      <PageMeta title="Encuentra tu Café" description="Descubre qué café de especialidad se adapta mejor a tu paladar." />
+      <PageMeta
+        title="Encuentra tu Café"
+        description="Descubre qué café de especialidad se adapta mejor a tu paladar."
+      />
       <div className={`w-full ${done ? 'max-w-6xl' : 'max-w-lg'}`}>
         <div className="text-center mb-10">
           <Coffee className="w-10 h-10 text-gold-500/60 mx-auto mb-4" />
           <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-2">Coffee Quiz</p>
-          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream">¿Cuál es tu roast perfecto?</h1>
+          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream">
+            ¿Cuál es tu roast perfecto?
+          </h1>
         </div>
 
         <AnimatePresence>
@@ -304,7 +326,9 @@ export default function Quiz() {
                     className="flex flex-col items-center gap-2 p-4 sm:p-5 min-h-[80px] border border-coffee-200 dark:border-coffee-700 hover:border-gold-500 hover:bg-coffee-100 dark:hover:bg-coffee-800 transition-all duration-200 text-center group bg-white dark:bg-coffee-900"
                   >
                     <span className="text-2xl">{opt.emoji}</span>
-                    <span className="text-coffee-800 dark:text-coffee-200 text-sm group-hover:text-coffee-900 dark:group-hover:text-cream transition-colors">{opt.label}</span>
+                    <span className="text-coffee-800 dark:text-coffee-300 text-sm group-hover:text-coffee-900 dark:group-hover:text-cream transition-colors">
+                      {opt.label}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -327,11 +351,17 @@ export default function Quiz() {
               {/* Profile card */}
               <div className="border border-gold-500/30 bg-white dark:bg-coffee-900/60 p-8 mb-6 text-center">
                 <p className="text-gold-500 text-xs tracking-[0.3em] uppercase mb-3">Tu perfil</p>
-                <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">{result!.label}</h2>
+                <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">
+                  {result!.label}
+                </h2>
                 <p className="text-coffee-700 dark:text-coffee-300 mb-4">{result!.desc}</p>
                 <div className="flex justify-center gap-4 text-sm">
-                  <span className="px-3 py-1 bg-coffee-100 dark:bg-coffee-800 text-coffee-800 dark:text-coffee-200">Tueste: {result!.roast}</span>
-                  <span className="px-3 py-1 bg-coffee-100 dark:bg-coffee-800 text-coffee-800 dark:text-coffee-200">Proceso: {result!.process}</span>
+                  <span className="px-3 py-1 bg-coffee-100 dark:bg-coffee-800 text-coffee-800 dark:text-coffee-300">
+                    Tueste: {result!.roast}
+                  </span>
+                  <span className="px-3 py-1 bg-coffee-100 dark:bg-coffee-800 text-coffee-800 dark:text-coffee-300">
+                    Proceso: {result!.process}
+                  </span>
                 </div>
               </div>
 
@@ -352,19 +382,24 @@ export default function Quiz() {
               <div className="mt-2">
                 <div className="mb-6 text-center">
                   <p className="text-gold-500 text-xs tracking-[0.3em] uppercase mb-1">Para ti</p>
-                  <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream">Tus cafés recomendados</h3>
+                  <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream">
+                    Tus cafés recomendados
+                  </h3>
                 </div>
 
                 {recsLoading && (
                   <div className="flex flex-col items-center gap-3 py-12 text-coffee-400">
                     <Loader2 className="w-7 h-7 animate-spin text-gold-500/60" />
-                    <span className="text-sm tracking-wide">Buscando los mejores cafés para ti…</span>
+                    <span className="text-sm tracking-wide">
+                      Buscando los mejores cafés para ti…
+                    </span>
                   </div>
                 )}
 
                 {!recsLoading && recsError && (
                   <div className="border border-coffee-200 dark:border-coffee-700 bg-coffee-100 dark:bg-coffee-900/40 p-6 text-center text-coffee-600 dark:text-coffee-400 text-sm">
-                    No pudimos cargar las recomendaciones. Usa el botón de arriba para explorar la tienda.
+                    No pudimos cargar las recomendaciones. Usa el botón de arriba para explorar la
+                    tienda.
                   </div>
                 )}
 
@@ -383,7 +418,11 @@ export default function Quiz() {
                 {!recsLoading && !recsError && recommendations.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
                     {recommendations.map((item) => (
-                      <QuizProductCard key={item.product.id} product={item.product} matchPct={Math.round(item.score * 100)} />
+                      <QuizProductCard
+                        key={item.product.id}
+                        product={item.product}
+                        matchPct={Math.round(item.score * 100)}
+                      />
                     ))}
                   </div>
                 )}

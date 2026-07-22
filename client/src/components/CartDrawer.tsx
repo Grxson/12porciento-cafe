@@ -241,7 +241,7 @@ export default function CartDrawer() {
             <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                  <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-200 mb-4" />
+                  <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-300 mb-4" />
                   <p className="font-serif text-coffee-700 dark:text-coffee-300 text-lg mb-1">
                     Carrito vacío
                   </p>

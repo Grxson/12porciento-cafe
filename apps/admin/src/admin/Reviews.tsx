@@ -293,7 +293,7 @@ export default function AdminReviews() {
                         </span>
                       )}
                     </div>
-                    <p className="text-coffee-800 dark:text-coffee-200 text-sm leading-relaxed">
+                    <p className="text-coffee-800 dark:text-coffee-300 text-sm leading-relaxed">
                       {r.comment}
                     </p>
 

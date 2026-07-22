@@ -138,7 +138,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             {product.flavors.slice(0, 3).map((f) => (
               <span
                 key={f}
-                className="text-xs text-coffee-600 dark:text-coffee-300 bg-coffee-100 dark:bg-coffee-800 px-2 py-0.5 leading-5"
+                className="text-xs text-coffee-600 dark:text-coffee-400 bg-coffee-100 dark:bg-coffee-800 px-2 py-0.5 leading-5"
               >
                 {f}
               </span>

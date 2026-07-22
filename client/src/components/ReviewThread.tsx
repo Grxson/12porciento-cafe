@@ -85,14 +85,22 @@ export default function ReviewThread({ reviewId }: Props) {
         <div key={reply.id} className="flex items-start gap-2.5">
           <div className="flex-shrink-0 w-7 h-7 rounded-full bg-coffee-200 dark:bg-coffee-700 flex items-center justify-center overflow-hidden">
             {reply.user?.avatarUrl ? (
-              <img src={reply.user.avatarUrl} alt={reply.name} className="w-full h-full object-cover" />
+              <img
+                src={reply.user.avatarUrl}
+                alt={reply.name}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <User className="w-3.5 h-3.5 text-coffee-500 dark:text-coffee-400" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-coffee-800 dark:text-coffee-200">{reply.name}</p>
-            <p className="text-sm text-coffee-700 dark:text-coffee-300 mt-0.5 break-words">{reply.content}</p>
+            <p className="text-xs font-semibold text-coffee-800 dark:text-coffee-300">
+              {reply.name}
+            </p>
+            <p className="text-sm text-coffee-700 dark:text-coffee-300 mt-0.5 break-words">
+              {reply.content}
+            </p>
             <p className="text-xs text-coffee-500 mt-1">
               {new Date(reply.createdAt).toLocaleDateString('es-MX', {
                 day: 'numeric',
@@ -104,9 +112,7 @@ export default function ReviewThread({ reviewId }: Props) {
         </div>
       ))}
 
-      {successMsg && (
-        <p className="text-xs text-green-400">{successMsg}</p>
-      )}
+      {successMsg && <p className="text-xs text-green-400">{successMsg}</p>}
 
       {!showForm ? (
         <button
@@ -114,7 +120,9 @@ export default function ReviewThread({ reviewId }: Props) {
           className="flex items-center gap-1.5 text-xs text-coffee-500 hover:text-gold-400 transition-colors"
         >
           <MessageCircle className="w-3.5 h-3.5" />
-          {replies.length > 0 ? `Ver ${replies.length} respuesta${replies.length !== 1 ? 's' : ''} · Responder` : 'Responder'}
+          {replies.length > 0
+            ? `Ver ${replies.length} respuesta${replies.length !== 1 ? 's' : ''} · Responder`
+            : 'Responder'}
         </button>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-2 pt-1">
@@ -146,7 +154,12 @@ export default function ReviewThread({ reviewId }: Props) {
           {error && <p className="text-xs text-red-400">{error}</p>}
           <button
             type="button"
-            onClick={() => { setShowForm(false); setError(null); setContent(''); setGuestName(''); }}
+            onClick={() => {
+              setShowForm(false);
+              setError(null);
+              setContent('');
+              setGuestName('');
+            }}
             className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
           >
             Cancelar

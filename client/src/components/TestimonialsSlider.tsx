@@ -37,11 +37,20 @@ export default function TestimonialsSlider() {
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState(1);
 
-  const prev = () => { setDir(-1); setIdx((i) => (i - 1 + testimonials.length) % testimonials.length); };
-  const next = () => { setDir(1); setIdx((i) => (i + 1) % testimonials.length); };
+  const prev = () => {
+    setDir(-1);
+    setIdx((i) => (i - 1 + testimonials.length) % testimonials.length);
+  };
+  const next = () => {
+    setDir(1);
+    setIdx((i) => (i + 1) % testimonials.length);
+  };
 
   useEffect(() => {
-    const t = setInterval(() => { setDir(1); setIdx((i) => (i + 1) % testimonials.length); }, 5000);
+    const t = setInterval(() => {
+      setDir(1);
+      setIdx((i) => (i + 1) % testimonials.length);
+    }, 5000);
     return () => clearInterval(t);
   }, []);
 
@@ -69,7 +78,7 @@ export default function TestimonialsSlider() {
                   <Star key={i} className="w-4 h-4 fill-gold-500 text-gold-500" />
                 ))}
               </div>
-              <blockquote className="font-serif italic text-xl text-coffee-200 leading-relaxed mb-6 max-w-xl">
+              <blockquote className="font-serif italic text-xl text-coffee-300 dark:text-coffee-300 leading-relaxed mb-6 max-w-xl">
                 "{t.text}"
               </blockquote>
               <p className="text-cream font-medium text-sm">{t.name}</p>
@@ -81,19 +90,28 @@ export default function TestimonialsSlider() {
         </div>
 
         <div className="flex items-center justify-center gap-4 mt-8">
-          <button onClick={prev} className="p-2 border border-coffee-700 text-coffee-400 hover:text-cream hover:border-coffee-500 transition-colors">
+          <button
+            onClick={prev}
+            className="p-2 border border-coffee-700 text-coffee-400 hover:text-cream hover:border-coffee-500 transition-colors"
+          >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <div className="flex gap-2">
             {testimonials.map((_, i) => (
               <button
                 key={i}
-                onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
+                onClick={() => {
+                  setDir(i > idx ? 1 : -1);
+                  setIdx(i);
+                }}
                 className={`w-2 h-2 rounded-full transition-all ${i === idx ? 'bg-gold-500 scale-125' : 'bg-coffee-700'}`}
               />
             ))}
           </div>
-          <button onClick={next} className="p-2 border border-coffee-700 text-coffee-400 hover:text-cream hover:border-coffee-500 transition-colors">
+          <button
+            onClick={next}
+            className="p-2 border border-coffee-700 text-coffee-400 hover:text-cream hover:border-coffee-500 transition-colors"
+          >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

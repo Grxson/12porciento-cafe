@@ -168,7 +168,7 @@ function BrewCard({ brew }: BrewCardProps) {
       <div className="px-4 pb-2">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-medium text-coffee-900 dark:text-cream">{brew.recipeName}</h3>
-          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-coffee-100 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-300 rounded-full">
+          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-coffee-100 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 rounded-full">
             {brew.method}
           </span>
         </div>
@@ -253,7 +253,7 @@ function BrewCard({ brew }: BrewCardProps) {
           {brew.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium bg-coffee-100 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-300 rounded-full"
+              className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium bg-coffee-100 dark:bg-coffee-800 text-coffee-600 dark:text-coffee-400 rounded-full"
             >
               {tag}
             </span>

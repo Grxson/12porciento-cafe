@@ -265,7 +265,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 onClick={() => setRating(r)}
                 aria-label={`Calificación ${r} de 10`}
                 aria-pressed={rating === r}
-                className={`flex min-h-11 min-w-11 items-center justify-center transition-colors ${r <= rating ? 'text-gold-400' : 'text-coffee-600 hover:text-gold-300'}`}
+                className={`flex min-h-11 min-w-11 items-center justify-center transition-colors ${r <= rating ? 'text-gold-400' : 'text-coffee-600 dark:text-coffee-400 hover:text-gold-300'}`}
               >
                 <Star className="w-5 h-5 fill-current" />
               </button>
@@ -286,7 +286,9 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
             placeholder="Describe tu experiencia..."
             className="field-control min-h-24 resize-none"
           />
-          <p className="text-xs text-coffee-600 mt-1 text-right">{notes.length}/500</p>
+          <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-1 text-right">
+            {notes.length}/500
+          </p>
         </div>
 
         {/* Photo */}

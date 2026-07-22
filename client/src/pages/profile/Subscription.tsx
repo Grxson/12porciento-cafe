@@ -237,7 +237,7 @@ export default function Subscription() {
                   alt={item.product.name}
                   className="w-10 h-10 object-cover shrink-0"
                 />
-                <p className="text-coffee-800 dark:text-coffee-200 text-xs leading-tight self-center truncate min-w-0">
+                <p className="text-coffee-800 dark:text-coffee-300 text-xs leading-tight self-center truncate min-w-0">
                   {item.product.name}
                 </p>
               </div>
@@ -349,7 +349,7 @@ export default function Subscription() {
                 <div className="bg-white dark:bg-coffee-900 border border-gold-500/30 p-5 max-w-md mb-4">
                   <div className="flex items-start gap-3 mb-4">
                     <PauseCircle className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
-                    <p className="text-coffee-800 dark:text-coffee-200 text-sm">
+                    <p className="text-coffee-800 dark:text-coffee-300 text-sm">
                       ¿Pausar tu suscripción? Seguiremos guardando tu selección de cafés.
                     </p>
                   </div>
@@ -487,7 +487,7 @@ export default function Subscription() {
             <div className="bg-white dark:bg-coffee-900 border border-red-500/30 p-5 max-w-md mt-3">
               <div className="flex items-start gap-3 mb-4">
                 <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                <p className="text-coffee-800 dark:text-coffee-200 text-sm">
+                <p className="text-coffee-800 dark:text-coffee-300 text-sm">
                   ¿Confirmas que quieres cancelar? Perderás el siguiente envío si cancelas antes de
                   la fecha de facturación.
                 </p>

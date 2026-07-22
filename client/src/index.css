@@ -378,6 +378,23 @@
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2;
   }
+
+  /* ── Text hierarchy utilities (match admin consistency) ── */
+  .text-primary {
+    @apply text-coffee-900 dark:text-cream;
+  }
+  .text-secondary {
+    @apply text-coffee-700 dark:text-coffee-300;
+  }
+  .text-muted {
+    @apply text-coffee-600 dark:text-coffee-400;
+  }
+  .text-low {
+    @apply text-coffee-500 dark:text-cream/50;
+  }
+  .text-label {
+    @apply text-coffee-700 dark:text-cream/70;
+  }
 }
 
 @keyframes shimmer {

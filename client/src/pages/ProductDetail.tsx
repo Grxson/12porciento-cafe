@@ -604,7 +604,7 @@ export default function ProductDetail() {
                             {product.origin || '—'}
                           </p>
                           {product.region && (
-                            <p className="text-coffee-600 dark:text-coffee-300 text-sm mt-1">
+                            <p className="text-coffee-600 dark:text-coffee-400 text-sm mt-1">
                               {product.region}
                             </p>
                           )}
@@ -753,7 +753,7 @@ export default function ProductDetail() {
                                     Emitida por {record.certification.issuer}
                                   </p>
                                   {record.certificateId && (
-                                    <p className="mt-1 text-xs text-coffee-600 dark:text-coffee-300">
+                                    <p className="mt-1 text-xs text-coffee-600 dark:text-coffee-400">
                                       Certificado: {record.certificateId}
                                     </p>
                                   )}
@@ -790,7 +790,7 @@ export default function ProductDetail() {
                               <button
                                 key={f}
                                 onClick={() => navigate(`/tienda?flavors=${encodeURIComponent(f)}`)}
-                                className="bg-coffee-800 dark:bg-coffee-900 border border-coffee-700 dark:border-coffee-800 text-coffee-200 dark:text-coffee-300 px-3 py-1.5 text-sm hover:border-gold-500 hover:text-gold-400 transition-all cursor-pointer"
+                                className="bg-coffee-800 dark:bg-coffee-900 border border-coffee-700 dark:border-coffee-800 text-coffee-300 dark:text-coffee-300 px-3 py-1.5 text-sm hover:border-gold-500 hover:text-gold-400 transition-all cursor-pointer"
                                 title={`Ver cafés con nota "${f}"`}
                               >
                                 {f}
@@ -956,7 +956,7 @@ export default function ProductDetail() {
                                     {loggedUser.name.charAt(0).toUpperCase()}
                                   </div>
                                   Publicando como{' '}
-                                  <span className="font-medium text-coffee-800 dark:text-coffee-200">
+                                  <span className="font-medium text-coffee-800 dark:text-coffee-300">
                                     {loggedUser.name}
                                   </span>
                                 </div>

@@ -296,7 +296,7 @@ export default function Register() {
               </div>
               <button
                 onClick={handleSkip}
-                className="mt-4 min-h-11 w-full text-center text-xs text-coffee-600 transition-colors hover:text-coffee-400"
+                className="mt-4 min-h-11 w-full text-center text-xs text-coffee-600 dark:text-coffee-400 transition-colors hover:text-coffee-400 dark:hover:text-cream"
               >
                 Omitir por ahora
               </button>

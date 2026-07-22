@@ -174,7 +174,7 @@ export default function MonthlyWrap({ userId, onClose }: MonthlyWrapProps) {
           {/* Empty state */}
           {!loading && !error && monthlyData === null && (
             <div className="bg-coffee-900 border border-coffee-800 rounded-xl p-8 text-center">
-              <Coffee className="w-12 h-12 text-coffee-600 mx-auto mb-3" />
+              <Coffee className="w-12 h-12 text-coffee-400 mx-auto mb-3" />
               <p className="text-coffee-400 text-lg">No registraste brews este mes</p>
               <button
                 onClick={onClose}

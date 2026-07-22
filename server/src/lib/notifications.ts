@@ -37,7 +37,7 @@ export async function createNotification(params: CreateNotificationParams): Prom
       actorName: actorName ?? null,
       title,
       message,
-      data: data ?? undefined,
+      data: (data as object) ?? undefined,
       read: false,
     },
   });

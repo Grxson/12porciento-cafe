@@ -93,7 +93,7 @@ export default function Wishlist() {
     <div>
       <PageMeta title="Lista de Deseos" />
       {isOffline && <StaleDataBadge cachedAt={lastSyncAt ?? undefined} className="mb-4 w-full" />}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {items.map((item, i) => {
           const product = item.product;
           return (

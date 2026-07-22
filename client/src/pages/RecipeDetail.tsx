@@ -130,7 +130,7 @@ export default function RecipeDetail() {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
         <PageMeta title="Receta" />
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 space-y-3">
             <div className="shimmer dark:shimmer-dark h-3 w-32 mx-auto" />
             <div className="shimmer dark:shimmer-dark h-9 w-48 mx-auto" />

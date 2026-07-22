@@ -85,7 +85,7 @@ export default function Profile() {
   return (
     <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
       <PageMeta title={currentItem ? `${currentItem.label} · Mi Perfil` : 'Mi Perfil'} />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <Breadcrumbs
           crumbs={
             currentItem
@@ -98,7 +98,7 @@ export default function Profile() {
           }
         />
         {/* ── Header ── */}
-        <div className="relative mb-10">
+        <div className="relative mb-8">
           {/* Banner con imagen o gradiente */}
           {baristaProfile && baristaProfile.bannerUrl ? (
             <div
@@ -158,9 +158,9 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* ── Breadcrumb / Back ── */}
+        {/* ── Mobile back link ── */}
         {currentItem && (
-          <div className="flex items-center gap-2 mb-6">
+          <div className="flex items-center gap-2 mb-4 lg:hidden">
             <Link
               to="/perfil"
               className="flex items-center gap-1 text-sm text-coffee-500 hover:text-gold-500 transition-colors"
@@ -174,59 +174,96 @@ export default function Profile() {
           </div>
         )}
 
-        {/* ── Navigation Grid (only on root or when sub-page is active, show compact) ── */}
-        {!currentItem || isRoot ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
-            {navGroups.map((group) => (
-              <div key={group.title} className="col-span-2 md:col-span-1">
-                <h3 className="text-xs text-coffee-500 uppercase tracking-[0.2em] mb-3 md:mb-4">
-                  {group.title}
-                </h3>
-                <div className="space-y-2">
-                  {group.items.map(({ to, label, icon: Icon }) => (
-                    <NavLink
-                      key={to}
-                      to={to}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${
-                          isActive
-                            ? 'border-gold-500 bg-gold-500/10 text-gold-500'
-                            : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900 text-coffee-700 dark:text-coffee-300 hover:border-gold-500/50 hover:text-coffee-900 dark:hover:text-cream'
-                        }`
-                      }
-                    >
-                      <Icon className="w-5 h-5 shrink-0" />
-                      <span className="text-sm font-medium">{label}</span>
-                    </NavLink>
-                  ))}
+        {/* ── Sidebar nav + content ── */}
+        <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8 lg:items-start">
+          {/* Persistent sidebar on lg */}
+          <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start">
+            <nav className="space-y-6">
+              {navGroups.map((group) => (
+                <div key={group.title}>
+                  <h3 className="text-xs text-coffee-500 uppercase tracking-[0.2em] mb-3 px-3">
+                    {group.title}
+                  </h3>
+                  <div className="space-y-1">
+                    {group.items.map(({ to, label, icon: Icon }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all ${
+                            isActive
+                              ? 'border-gold-500 bg-gold-500/10 text-gold-500'
+                              : 'border-transparent text-coffee-700 dark:text-coffee-300 hover:bg-coffee-100 dark:hover:bg-coffee-800 hover:text-coffee-900 dark:hover:text-cream'
+                          }`
+                        }
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="text-sm font-medium">{label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
+              ))}
+            </nav>
+          </aside>
 
-        {/* ── Content ── */}
-        {isRoot ? (
-          <div className="text-center py-16">
-            <p className="text-coffee-500 dark:text-coffee-400 text-sm">
-              Selecciona una sección para gestionar tu cuenta
-            </p>
+          {/* Mobile/tablet nav grid (below lg) + Content */}
+          <div>
+            {/* Mobile nav grid */}
+            {!currentItem || isRoot ? (
+              <div className="grid grid-cols-2 gap-4 mb-8 lg:hidden">
+                {navGroups.map((group) => (
+                  <div key={group.title} className="col-span-2 md:col-span-1">
+                    <h3 className="text-xs text-coffee-500 uppercase tracking-[0.2em] mb-3">
+                      {group.title}
+                    </h3>
+                    <div className="space-y-2">
+                      {group.items.map(({ to, label, icon: Icon }) => (
+                        <NavLink
+                          key={to}
+                          to={to}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${
+                              isActive
+                                ? 'border-gold-500 bg-gold-500/10 text-gold-500'
+                                : 'border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900 text-coffee-700 dark:text-coffee-300 hover:border-gold-500/50 hover:text-coffee-900 dark:hover:text-cream'
+                            }`
+                          }
+                        >
+                          <Icon className="w-5 h-5 shrink-0" />
+                          <span className="text-sm font-medium">{label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {/* Content */}
+            {isRoot ? (
+              <div className="text-center py-16 hidden lg:block">
+                <p className="text-coffee-500 dark:text-coffee-400 text-sm">
+                  Selecciona una sección del menú lateral para gestionar tu cuenta
+                </p>
+              </div>
+            ) : (
+              <Routes>
+                <Route path="pedidos" element={<Orders />} />
+                <Route path="pedidos/:id" element={<OrderDetail />} />
+                <Route path="resenas" element={<Reviews />} />
+                <Route path="lista-deseos" element={<Wishlist />} />
+                <Route path="suscripcion" element={<Subscription />} />
+                <Route path="pago" element={<PaymentMethod />} />
+                <Route path="configuracion" element={<ProfileSettings />} />
+                <Route path="gift-cards" element={<GiftCards />} />
+                <Route path="equipo" element={<Equipment />} />
+                <Route path="cafes" element={<CoffeeTracker />} />
+                <Route path="sabor" element={<FlavorProfile />} />
+              </Routes>
+            )}
           </div>
-        ) : (
-          <Routes>
-            <Route path="pedidos" element={<Orders />} />
-            <Route path="pedidos/:id" element={<OrderDetail />} />
-            <Route path="resenas" element={<Reviews />} />
-            <Route path="lista-deseos" element={<Wishlist />} />
-            <Route path="suscripcion" element={<Subscription />} />
-            <Route path="pago" element={<PaymentMethod />} />
-            <Route path="configuracion" element={<ProfileSettings />} />
-            <Route path="gift-cards" element={<GiftCards />} />
-            <Route path="equipo" element={<Equipment />} />
-            <Route path="cafes" element={<CoffeeTracker />} />
-            <Route path="sabor" element={<FlavorProfile />} />
-          </Routes>
-        )}
+        </div>
       </div>
     </div>
   );

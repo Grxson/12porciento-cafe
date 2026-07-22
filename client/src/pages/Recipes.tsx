@@ -242,7 +242,7 @@ export default function Recipes() {
           title="Recetas"
           description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso."
         />
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 space-y-3">
             <div className="shimmer dark:shimmer-dark h-3 w-32 mx-auto" />
             <div className="shimmer dark:shimmer-dark h-9 w-48 mx-auto" />
@@ -461,7 +461,7 @@ export default function Recipes() {
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {recipes.map((recipe: Recipe) => {
             const isLocked = recipe.isPremium && !hasSubscription;
             const isExpanded = expandedId === recipe.id;

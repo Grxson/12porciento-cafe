@@ -119,7 +119,7 @@ export default function ProfileSettings() {
     <div>
       <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">Datos personales</h2>
       {user && !user.emailVerified && <EmailVerificationBanner email={user.email} />}
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         {/* Avatar */}
         <div>
           <label className="block text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-widest mb-3">

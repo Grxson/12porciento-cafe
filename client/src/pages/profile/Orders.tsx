@@ -92,7 +92,7 @@ export default function Orders() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <PageMeta title="Mis Pedidos" />
       {isOffline && <StaleDataBadge cachedAt={lastSyncAt ?? undefined} className="mb-4 w-full" />}
       {orders.map((order: Order, i: number) => (

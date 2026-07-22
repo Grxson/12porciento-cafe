@@ -171,7 +171,7 @@ export default function AchievementGallery() {
         title="Logros"
         description="Todos los logros disponibles en 12% Café. Completa cada desafío barista."
       />
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">Colección</p>
           <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream mb-2">Mis Logros</h1>
@@ -209,7 +209,7 @@ export default function AchievementGallery() {
             <p className="text-coffee-500">No hay logros disponibles aún.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {achievements.map((a) => {
               const rarity = rarityConfig[a.rarity] ?? rarityConfig.COMMON;
               const isUnlocked = a.unlockedAt !== null;

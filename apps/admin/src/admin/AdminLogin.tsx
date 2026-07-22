@@ -10,6 +10,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,8 +19,13 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    const errs: Record<string, string> = {};
+    if (!email.trim()) errs.email = 'Email requerido';
+    if (!password) errs.password = 'Contraseña requerida';
+    setFieldErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    setLoading(true);
     try {
       const res = await authApi.login(email, password);
       localStorage.setItem('admin_token', res.data.token);
@@ -63,11 +69,18 @@ export default function AdminLogin() {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFieldErrors((p) => ({ ...p, email: '' }));
+                }}
+                className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:outline-none transition-colors ${fieldErrors.email ? 'border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
+                aria-invalid={!!fieldErrors.email}
                 placeholder="admin@12porciento.com"
                 autoComplete="username"
               />
+              {fieldErrors.email && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.email}</p>
+              )}
             </div>
             <div>
               <label
@@ -81,11 +94,18 @@ export default function AdminLogin() {
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFieldErrors((p) => ({ ...p, password: '' }));
+                }}
+                className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:outline-none transition-colors ${fieldErrors.password ? 'border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
+                aria-invalid={!!fieldErrors.password}
                 placeholder="••••••••"
                 autoComplete="current-password"
               />
+              {fieldErrors.password && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.password}</p>
+              )}
             </div>
 
             {error && <p className="text-red-400 text-sm">{error}</p>}

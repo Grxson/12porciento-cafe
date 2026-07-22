@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { b2bApi } from '../api';
 import type { B2BProduct } from '../types';
+import FieldError from '../components/FieldError';
+import { validate, required, email, phone, type ValidationErrors } from '../lib/validation';
 
 const HERO_IMG =
   'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1400&q=80';
@@ -72,6 +74,7 @@ export default function B2BCatalog() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
 
   useEffect(() => {
     b2bApi
@@ -87,9 +90,18 @@ export default function B2BCatalog() {
     setError('');
   };
 
+  const inquiryRules = {
+    businessName: [required('Empresa requerida')],
+    contactoNombre: [required('Nombre de contacto requerido')],
+    contactoEmail: [required('Email requerido'), email()],
+    contactoTelefono: [phone()],
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.businessName.trim() || !form.contactoEmail.trim()) return;
+    const errors = validate(inquiryRules, form as unknown as Record<string, string>);
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     setError('');
     try {
@@ -387,10 +399,16 @@ export default function B2BCatalog() {
                     <input
                       required
                       value={form.businessName}
-                      onChange={(e) => setForm((f) => ({ ...f, businessName: e.target.value }))}
-                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, businessName: e.target.value }));
+                        if (fieldErrors.businessName)
+                          setFieldErrors((p) => ({ ...p, businessName: undefined }));
+                      }}
+                      className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.businessName ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
+                      aria-invalid={!!fieldErrors.businessName}
                       placeholder="Nombre de tu empresa"
                     />
+                    <FieldError message={fieldErrors.businessName} />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -399,10 +417,16 @@ export default function B2BCatalog() {
                       </label>
                       <input
                         value={form.contactoNombre}
-                        onChange={(e) => setForm((f) => ({ ...f, contactoNombre: e.target.value }))}
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                        onChange={(e) => {
+                          setForm((f) => ({ ...f, contactoNombre: e.target.value }));
+                          if (fieldErrors.contactoNombre)
+                            setFieldErrors((p) => ({ ...p, contactoNombre: undefined }));
+                        }}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.contactoNombre ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
+                        aria-invalid={!!fieldErrors.contactoNombre}
                         placeholder="Nombre completo"
                       />
+                      <FieldError message={fieldErrors.contactoNombre} />
                     </div>
                     <div>
                       <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">
@@ -412,10 +436,16 @@ export default function B2BCatalog() {
                         required
                         type="email"
                         value={form.contactoEmail}
-                        onChange={(e) => setForm((f) => ({ ...f, contactoEmail: e.target.value }))}
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                        onChange={(e) => {
+                          setForm((f) => ({ ...f, contactoEmail: e.target.value }));
+                          if (fieldErrors.contactoEmail)
+                            setFieldErrors((p) => ({ ...p, contactoEmail: undefined }));
+                        }}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.contactoEmail ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
+                        aria-invalid={!!fieldErrors.contactoEmail}
                         placeholder="correo@empresa.com"
                       />
+                      <FieldError message={fieldErrors.contactoEmail} />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -425,12 +455,16 @@ export default function B2BCatalog() {
                       </label>
                       <input
                         value={form.contactoTelefono}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, contactoTelefono: e.target.value }))
-                        }
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
+                        onChange={(e) => {
+                          setForm((f) => ({ ...f, contactoTelefono: e.target.value }));
+                          if (fieldErrors.contactoTelefono)
+                            setFieldErrors((p) => ({ ...p, contactoTelefono: undefined }));
+                        }}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.contactoTelefono ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
+                        aria-invalid={!!fieldErrors.contactoTelefono}
                         placeholder="55 1234 5678"
                       />
+                      <FieldError message={fieldErrors.contactoTelefono} />
                     </div>
                     <div>
                       <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">

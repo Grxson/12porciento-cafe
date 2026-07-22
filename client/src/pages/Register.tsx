@@ -7,6 +7,17 @@ import { mexicanStates } from '../constants/mexico';
 import { PageMeta } from '../hooks/usePageMeta';
 import PasswordField from '../components/PasswordField';
 import { getApiError } from '../lib/api-error';
+import { useToast } from '../context/ToastContext';
+import FieldError from '../components/FieldError';
+import {
+  validate,
+  required,
+  email,
+  minLength,
+  phone,
+  zipCode,
+  type ValidationErrors,
+} from '../lib/validation';
 
 export default function Register() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -20,6 +31,8 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState<ValidationErrors>({});
+  const addToast = useToast((s) => s.add);
   const register = useUser((s) => s.register);
   const updateProfile = useUser((s) => s.updateProfile);
   const navigate = useNavigate();
@@ -32,16 +45,22 @@ export default function Register() {
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setAddress((a) => ({ ...a, [e.target.name]: e.target.value }));
 
+  const step1Rules = {
+    name: [required('Nombre requerido')],
+    email: [required('Email requerido'), email()],
+    password: [required('Contraseña requerida'), minLength(6, 'Mínimo 6 caracteres')],
+  };
+
   const handleStep1 = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
+    const errors = validate(step1Rules, form);
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setLoading(true);
     setError('');
     try {
       await register(form.name, form.email, form.password);
+      addToast('Cuenta creada. Completa tu dirección.', 'success');
       setStep(2);
     } catch (err: unknown) {
       setError(getApiError(err, 'Error al crear cuenta'));
@@ -50,8 +69,19 @@ export default function Register() {
     }
   };
 
+  const step2Rules = {
+    phone: [phone()],
+    address: [required('Dirección requerida')],
+    city: [required('Ciudad requerida')],
+    zipCode: [required('CP requerido'), zipCode()],
+    state: [required('Estado requerido')],
+  };
+
   const handleStep2 = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errors = validate(step2Rules, address);
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setLoading(true);
     try {
       await updateProfile(address);
@@ -142,23 +172,34 @@ export default function Register() {
                         type={type}
                         required
                         value={form[name as keyof typeof form]}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          handleChange(e);
+                          if (formErrors[name]) setFormErrors((p) => ({ ...p, [name]: undefined }));
+                        }}
                         autoComplete={autoComplete}
-                        className="field-control"
+                        className={`field-control ${formErrors[name] ? 'border-red-500 dark:border-red-400' : ''}`}
+                        aria-invalid={!!formErrors[name]}
                         placeholder={placeholder}
                       />
+                      <FieldError message={formErrors[name]} />
                     </div>
                   ))}
                   <PasswordField
                     value={form.password}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      handleChange(e);
+                      if (formErrors.password)
+                        setFormErrors((p) => ({ ...p, password: undefined }));
+                    }}
                     label="Contraseña"
                     placeholder="Mínimo 6 caracteres"
                     autoComplete="new-password"
                     name="password"
                     showStrength
                     id="register-password"
+                    aria-invalid={!!formErrors.password}
                   />
+                  <FieldError message={formErrors.password} />
                   {error && <p className="text-red-400 text-sm">{error}</p>}
                   <button
                     type="submit"
@@ -209,10 +250,15 @@ export default function Register() {
                       inputMode="tel"
                       autoComplete="tel"
                       value={address.phone}
-                      onChange={handleAddressChange}
-                      className="field-control"
+                      onChange={(e) => {
+                        handleAddressChange(e);
+                        if (formErrors.phone) setFormErrors((p) => ({ ...p, phone: undefined }));
+                      }}
+                      className={`field-control ${formErrors.phone ? 'border-red-500 dark:border-red-400' : ''}`}
+                      aria-invalid={!!formErrors.phone}
                       placeholder="55 1234 5678"
                     />
+                    <FieldError message={formErrors.phone} />
                   </div>
                   <div>
                     <label htmlFor="register-address" className="field-label">
@@ -224,10 +270,16 @@ export default function Register() {
                       autoComplete="street-address"
                       required
                       value={address.address}
-                      onChange={handleAddressChange}
-                      className="field-control"
+                      onChange={(e) => {
+                        handleAddressChange(e);
+                        if (formErrors.address)
+                          setFormErrors((p) => ({ ...p, address: undefined }));
+                      }}
+                      className={`field-control ${formErrors.address ? 'border-red-500 dark:border-red-400' : ''}`}
+                      aria-invalid={!!formErrors.address}
                       placeholder="Calle, número, colonia"
                     />
+                    <FieldError message={formErrors.address} />
                   </div>
                   <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                     <div>
@@ -240,9 +292,14 @@ export default function Register() {
                         autoComplete="address-level2"
                         required
                         value={address.city}
-                        onChange={handleAddressChange}
-                        className="field-control"
+                        onChange={(e) => {
+                          handleAddressChange(e);
+                          if (formErrors.city) setFormErrors((p) => ({ ...p, city: undefined }));
+                        }}
+                        className={`field-control ${formErrors.city ? 'border-red-500 dark:border-red-400' : ''}`}
+                        aria-invalid={!!formErrors.city}
                       />
+                      <FieldError message={formErrors.city} />
                     </div>
                     <div>
                       <label htmlFor="register-zipcode" className="field-label">
@@ -257,10 +314,16 @@ export default function Register() {
                         pattern="[0-9]{5}"
                         required
                         value={address.zipCode}
-                        onChange={handleAddressChange}
-                        className="field-control"
+                        onChange={(e) => {
+                          handleAddressChange(e);
+                          if (formErrors.zipCode)
+                            setFormErrors((p) => ({ ...p, zipCode: undefined }));
+                        }}
+                        className={`field-control ${formErrors.zipCode ? 'border-red-500 dark:border-red-400' : ''}`}
+                        aria-invalid={!!formErrors.zipCode}
                         placeholder="12345"
                       />
+                      <FieldError message={formErrors.zipCode} />
                     </div>
                   </div>
                   <div>
@@ -273,8 +336,12 @@ export default function Register() {
                       autoComplete="address-level1"
                       required
                       value={address.state}
-                      onChange={handleAddressChange}
-                      className="field-control"
+                      onChange={(e) => {
+                        handleAddressChange(e);
+                        if (formErrors.state) setFormErrors((p) => ({ ...p, state: undefined }));
+                      }}
+                      className={`field-control ${formErrors.state ? 'border-red-500 dark:border-red-400' : ''}`}
+                      aria-invalid={!!formErrors.state}
                     >
                       <option value="">Seleccionar</option>
                       {mexicanStates.map((s) => (
@@ -283,6 +350,7 @@ export default function Register() {
                         </option>
                       ))}
                     </select>
+                    <FieldError message={formErrors.state} />
                   </div>
                   <button
                     type="submit"

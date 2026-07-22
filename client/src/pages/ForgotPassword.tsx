@@ -4,19 +4,27 @@ import { PageMeta } from '../hooks/usePageMeta';
 import { usersApi } from '../api';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { getApiError, getErrorStatus } from '../lib/api-error';
+import FieldError from '../components/FieldError';
+import { validate, required, email as emailRule, type ValidationErrors } from '../lib/validation';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
 
+  const forgotRules = { email: [required('Email requerido'), emailRule()] };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const errors = validate(forgotRules, { email });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setLoading(true);
     try {
       await usersApi.forgotPassword(email);
@@ -108,13 +116,18 @@ export default function ForgotPassword() {
                       type="email"
                       required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }));
+                      }}
                       placeholder="tu@email.com"
                       autoComplete="email"
                       inputMode="email"
                       autoFocus
-                      className="field-control pl-10"
+                      className={`field-control pl-10 ${fieldErrors.email ? 'border-red-500 dark:border-red-400' : ''}`}
+                      aria-invalid={!!fieldErrors.email}
                     />
+                    <FieldError message={fieldErrors.email} />
                   </div>
                 </div>
                 {error && (

@@ -41,6 +41,18 @@ const validateShipping = (form: FormData): Partial<Record<keyof FormData, string
   if (!form.customerName.trim() || form.customerName.trim().length < 2) {
     errors.customerName = 'Nombre requerido (mínimo 2 caracteres)';
   }
+  if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    errors.email = 'Email inválido';
+  }
+  if (!form.address.trim()) {
+    errors.address = 'Dirección requerida';
+  }
+  if (!form.city.trim()) {
+    errors.city = 'Ciudad requerida';
+  }
+  if (!form.state) {
+    errors.state = 'Selecciona un estado';
+  }
   if (!/^\d{5}$/.test(form.zipCode)) {
     errors.zipCode = 'CP debe ser 5 dígitos';
   }
@@ -565,10 +577,17 @@ export default function Checkout() {
                         required
                         autoComplete="email"
                         value={form.email}
-                        onChange={handleChange}
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                        onChange={(e) => {
+                          handleChange(e);
+                          if (fieldErrors.email)
+                            setFieldErrors((p) => ({ ...p, email: undefined }));
+                        }}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.email ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                         placeholder="tu@email.com"
                       />
+                      {fieldErrors.email && (
+                        <p className="text-red-400 text-xs mt-1">{fieldErrors.email}</p>
+                      )}
                     </div>
                   </div>
 
@@ -608,10 +627,17 @@ export default function Checkout() {
                       autoComplete="street-address"
                       required
                       value={form.address}
-                      onChange={handleChange}
-                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                      onChange={(e) => {
+                        handleChange(e);
+                        if (fieldErrors.address)
+                          setFieldErrors((p) => ({ ...p, address: undefined }));
+                      }}
+                      className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.address ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                       placeholder="Calle, número, colonia"
                     />
+                    {fieldErrors.address && (
+                      <p className="text-red-400 text-xs mt-1">{fieldErrors.address}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -628,10 +654,16 @@ export default function Checkout() {
                         autoComplete="address-level2"
                         required
                         value={form.city}
-                        onChange={handleChange}
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                        onChange={(e) => {
+                          handleChange(e);
+                          if (fieldErrors.city) setFieldErrors((p) => ({ ...p, city: undefined }));
+                        }}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.city ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                         placeholder="Ciudad"
                       />
+                      {fieldErrors.city && (
+                        <p className="text-red-400 text-xs mt-1">{fieldErrors.city}</p>
+                      )}
                     </div>
                     <div>
                       <label
@@ -646,8 +678,12 @@ export default function Checkout() {
                         autoComplete="address-level1"
                         required
                         value={form.state}
-                        onChange={handleChange}
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:border-gold-500 focus:outline-none"
+                        onChange={(e) => {
+                          handleChange(e);
+                          if (fieldErrors.state)
+                            setFieldErrors((p) => ({ ...p, state: undefined }));
+                        }}
+                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-3 text-base min-h-[48px] focus:outline-none ${fieldErrors.state ? 'border-red-500 focus:border-red-500' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500'}`}
                       >
                         <option value="">Seleccionar</option>
                         {mexicanStates.map((s) => (
@@ -656,6 +692,9 @@ export default function Checkout() {
                           </option>
                         ))}
                       </select>
+                      {fieldErrors.state && (
+                        <p className="text-red-400 text-xs mt-1">{fieldErrors.state}</p>
+                      )}
                     </div>
                     <div>
                       <label

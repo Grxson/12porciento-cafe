@@ -5,23 +5,37 @@ import { useUser } from '../context/UserContext';
 import { PageMeta } from '../hooks/usePageMeta';
 import PasswordField from '../components/PasswordField';
 import { getApiError } from '../lib/api-error';
+import { useToast } from '../context/ToastContext';
+import FieldError from '../components/FieldError';
+import { validate, required, email as emailRule, type ValidationErrors } from '../lib/validation';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState<ValidationErrors>({});
+  const addToast = useToast((s) => s.add);
   const login = useUser((s) => s.login);
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const reduceMotion = useReducedMotion();
 
+  const loginRules = {
+    email: [required('Email requerido'), emailRule()],
+    password: [required('Contraseña requerida')],
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errors = validate(loginRules, { email, password });
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setLoading(true);
     setError('');
     try {
       await login(email, password);
+      addToast('Bienvenido de vuelta ☕', 'success');
       navigate(params.get('redirect') ?? '/', { replace: true });
     } catch (err: unknown) {
       setError(getApiError(err, 'Error al iniciar sesión'));
@@ -60,21 +74,31 @@ export default function Login() {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (formErrors.email) setFormErrors((p) => ({ ...p, email: undefined }));
+                }}
                 autoComplete="email"
-                className="field-control"
+                className={`field-control ${formErrors.email ? 'border-red-500 dark:border-red-400' : ''}`}
+                aria-invalid={!!formErrors.email}
                 placeholder="tu@email.com"
               />
+              <FieldError message={formErrors.email} />
             </div>
             <PasswordField
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (formErrors.password) setFormErrors((p) => ({ ...p, password: undefined }));
+              }}
               label="Contraseña"
               placeholder="••••••••"
               autoComplete="current-password"
               showStrength={false}
               id="login-password"
+              aria-invalid={!!formErrors.password}
             />
+            <FieldError message={formErrors.password} />
             <div className="flex justify-end">
               <Link
                 to="/olvide-contrasena"

@@ -52,7 +52,7 @@ interface UserStats {
 
 export default function BaristaProfile() {
   const { userId } = useParams<{ userId: string }>();
-  const { data: profile, isLoading: loading, error } = useBaristaProfileQuery(userId);
+  const { data: profile, isLoading: loading, error } = useBaristaProfileQuery(userId ?? '');
   const currentUser = useUser((s) => s.user);
   const isOwnProfile = currentUser?.id === userId;
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -70,6 +70,25 @@ export default function BaristaProfile() {
       .catch((err) => console.error('Error fetching stats:', err))
       .finally(() => setStatsLoading(false));
   }, [userId]);
+
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-24 flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <Coffee className="w-12 h-12 text-coffee-700 mx-auto mb-4" />
+          <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
+            Usuario no encontrado
+          </h2>
+          <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-6">
+            No se especificó un usuario válido.
+          </p>
+          <Link to="/" className="btn-primary">
+            Ir al inicio
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

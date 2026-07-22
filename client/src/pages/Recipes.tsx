@@ -246,7 +246,7 @@ export default function Recipes() {
           </p>
         </div>
 
-        <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8 lg:items-start">
+        <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-8 lg:items-start">
           {/* Sidebar filters (desktop) + top filters (mobile) */}
           <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-6">
             <div>
@@ -471,7 +471,7 @@ export default function Recipes() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {recipes.map((recipe: Recipe) => {
                 const isLocked = recipe.isPremium && !hasSubscription;
                 const rating = avgRating(recipe.ratings);
@@ -484,7 +484,7 @@ export default function Recipes() {
                     animate={{ opacity: 1, y: 0 }}
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.2 }}
-                    className={`group relative flex flex-col bg-white dark:bg-coffee-900 border ${
+                    className={`group relative flex flex-col md:flex-row bg-white dark:bg-coffee-900 border ${
                       isLocked
                         ? 'border-gold-500/30'
                         : 'border-coffee-200 dark:border-coffee-800 hover:border-gold-500/50 hover:shadow-xl hover:shadow-coffee-900/5'
@@ -493,7 +493,7 @@ export default function Recipes() {
                     {/* Image */}
                     <Link
                       to={`/recetas/${recipe.slug}`}
-                      className="relative block aspect-[4/3] overflow-hidden bg-coffee-100 dark:bg-coffee-800"
+                      className="relative block aspect-[4/3] md:aspect-auto md:w-[42%] md:min-h-[280px] flex-shrink-0 overflow-hidden bg-coffee-100 dark:bg-coffee-800"
                       onClick={(e) => isLocked && e.preventDefault()}
                     >
                       {recipe.imageUrl ? (
@@ -574,10 +574,38 @@ export default function Recipes() {
                     </Link>
 
                     {/* Content */}
-                    <div className="flex-1 flex flex-col p-5">
+                    <div className="flex-1 flex flex-col p-6 md:p-8">
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        {recipe.isPremium && (
+                          <span className="md:hidden px-2 py-0.5 bg-gold-500 text-coffee-950 text-[10px] font-bold uppercase tracking-wider">
+                            Premium
+                          </span>
+                        )}
+                        <span className="px-2.5 py-1 bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="text-sm">
+                            <MethodIcon method={recipe.method} />
+                          </span>
+                          {recipe.method}
+                        </span>
+                        {recipe.difficulty ? (
+                          <span
+                            className={`px-2 py-0.5 border rounded-sm uppercase tracking-wider text-[10px] font-bold ${
+                              DIFFICULTY_COLORS[recipe.difficulty] ?? ''
+                            }`}
+                          >
+                            {recipe.difficulty}
+                          </span>
+                        ) : null}
+                        {isNew(recipe.createdAt) && (
+                          <span className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+                            🆕 Nueva
+                          </span>
+                        )}
+                      </div>
+
                       <Link
                         to={`/recetas/${recipe.slug}`}
-                        className={`block font-serif text-lg leading-snug mb-2 line-clamp-2 ${
+                        className={`block font-serif text-2xl md:text-3xl leading-tight mb-3 ${
                           isLocked
                             ? 'text-coffee-700 dark:text-coffee-400 pointer-events-none'
                             : 'text-coffee-900 dark:text-cream hover:text-gold-600 dark:hover:text-gold-400 transition-colors'
@@ -587,53 +615,44 @@ export default function Recipes() {
                       </Link>
 
                       {recipe.description && (
-                        <p className="text-sm text-coffee-600 dark:text-coffee-400 line-clamp-2 mb-3">
+                        <p className="text-sm md:text-base text-coffee-600 dark:text-coffee-400 line-clamp-3 mb-5 leading-relaxed">
                           {recipe.description}
                         </p>
                       )}
 
                       {/* Meta row */}
-                      <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 text-xs text-coffee-600 dark:text-coffee-400 mt-auto pt-3 border-t border-coffee-200/60 dark:border-coffee-800/60">
+                      <div className="flex items-center flex-wrap gap-x-5 gap-y-2 text-sm text-coffee-600 dark:text-coffee-400 mt-auto pt-4 border-t border-coffee-200/60 dark:border-coffee-800/60">
                         {recipe.prepTime ? (
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
                             <span className="font-medium">{recipe.prepTime} min</span>
                           </span>
                         ) : null}
                         {rating > 0 ? (
-                          <span className="flex items-center gap-0.5 text-yellow-600 dark:text-yellow-500">
-                            <Star className="w-3.5 h-3.5 fill-current" />
-                            <span className="font-medium text-coffee-700 dark:text-coffee-300">
+                          <span className="flex items-center gap-1 text-yellow-600 dark:text-yellow-500">
+                            <Star className="w-4 h-4 fill-current" />
+                            <span className="font-bold text-coffee-700 dark:text-coffee-300">
                               {rating}
                             </span>
                           </span>
                         ) : null}
-                        {recipe.difficulty ? (
-                          <span
-                            className={`px-1.5 py-0.5 border rounded-sm uppercase tracking-wider text-[10px] font-bold ${
-                              DIFFICULTY_COLORS[recipe.difficulty] ?? ''
-                            }`}
-                          >
-                            {recipe.difficulty}
-                          </span>
-                        ) : null}
                         {hasBrewed(recipe.id) ? (
-                          <span className="ml-auto flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
                             <span>☕</span>
-                            <span className="text-[10px] font-bold uppercase tracking-wider">
-                              Hecha
+                            <span className="text-xs font-bold uppercase tracking-wider">
+                              Ya preparaste
                             </span>
                           </span>
                         ) : null}
                       </div>
 
                       {/* Action buttons row */}
-                      <div className="flex items-center gap-2 mt-3">
+                      <div className="flex items-center gap-2 mt-5">
                         <Link
                           to={`/recetas/${recipe.slug}`}
-                          className="flex-1 min-h-11 inline-flex items-center justify-center gap-2 bg-coffee-900 dark:bg-cream text-cream dark:text-coffee-900 text-xs font-bold uppercase tracking-wider hover:bg-coffee-800 dark:hover:bg-white transition-colors"
+                          className="flex-1 sm:flex-none sm:min-w-[180px] min-h-11 inline-flex items-center justify-center gap-2 bg-coffee-900 dark:bg-cream text-cream dark:text-coffee-900 text-xs font-bold uppercase tracking-wider hover:bg-coffee-800 dark:hover:bg-white transition-colors px-6"
                         >
-                          {isLocked ? 'Vista previa' : 'Ver receta'}
+                          {isLocked ? 'Vista previa' : 'Ver receta completa'}
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
                         {!isLocked && (

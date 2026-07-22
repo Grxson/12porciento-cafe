@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
+import { ShoppingBag, Menu, X, Sun, Moon, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useClientTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -48,6 +48,15 @@ export default function Navbar() {
   const { dark, toggle } = useClientTheme();
   const user = useUser((s) => s.user);
   const hasSubscription = useUser((s) => s.hasSubscription);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/tienda?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
   const menuRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
 
@@ -175,6 +184,20 @@ export default function Navbar() {
             </div>
           </nav>
 
+          <form onSubmit={handleSearch} className="hidden md:flex items-center" role="search">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-coffee-400 pointer-events-none" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="w-44 pl-8 pr-2 py-1.5 text-xs rounded-md border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-950 text-coffee-800 dark:text-coffee-200 placeholder-coffee-400 focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 transition-colors"
+                aria-label="Buscar productos"
+              />
+            </div>
+          </form>
+
           <div className="flex items-center gap-3">
             <button
               onClick={toggle}
@@ -255,6 +278,26 @@ export default function Navbar() {
               className="fixed top-0 right-0 bottom-0 z-50 max-w-[18rem] w-full bg-coffee-100 dark:bg-coffee-900 border-l border-coffee-200 dark:border-coffee-800 flex flex-col pt-[calc(var(--app-header-height)+var(--app-safe-top)+1rem)] pb-[max(2rem,var(--app-safe-bottom))] pr-[var(--app-safe-right)] md:hidden outline-none"
               tabIndex={-1}
             >
+              <form
+                onSubmit={(e) => {
+                  handleSearch(e);
+                  setOpen(false);
+                }}
+                className="px-4 pb-3"
+                role="search"
+              >
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 pointer-events-none" />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar productos..."
+                    className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-950 text-coffee-800 dark:text-coffee-200 placeholder-coffee-400 focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 transition-colors"
+                    aria-label="Buscar productos"
+                  />
+                </div>
+              </form>
               <nav className="flex flex-col px-6 gap-1">
                 {allLinks
                   .filter((link) => !link.gated || user)

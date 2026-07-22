@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface RankBadgeProps {
   level: number;
@@ -36,7 +36,7 @@ function getInitials(name?: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function RankBadge({
+export default memo(function RankBadge({
   level,
   size = 'md',
   showLabel = false,
@@ -91,4 +91,4 @@ export default function RankBadge({
       )}
     </div>
   );
-}
+});

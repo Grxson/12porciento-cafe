@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Star } from 'lucide-react';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   readonly?: boolean;
 }
 
-export default function StarRating({ value, onChange, size = 20, readonly = false }: Props) {
+export default memo(function StarRating({ value, onChange, size = 20, readonly = false }: Props) {
   const [hovered, setHovered] = useState(0);
 
   return (
@@ -28,11 +28,13 @@ export default function StarRating({ value, onChange, size = 20, readonly = fals
           >
             <Star
               size={size}
-              className={filled ? 'text-gold-500 fill-gold-500' : 'text-coffee-700 dark:text-coffee-300'}
+              className={
+                filled ? 'text-gold-500 fill-gold-500' : 'text-coffee-700 dark:text-coffee-300'
+              }
             />
           </button>
         );
       })}
     </div>
   );
-}
+});

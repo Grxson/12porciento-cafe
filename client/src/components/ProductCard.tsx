@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Star, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Star, ArrowRight, Coffee } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useCart } from '../context/CartContext';
 import { resolveImageUrl } from '../utils/imageUrl';
 import type { Product } from '../types';
@@ -11,11 +12,12 @@ interface ProductCardProps {
   index?: number;
 }
 
-export default function ProductCard({ product, index = 0 }: ProductCardProps) {
-  const { addItem, items } = useCart((s) => ({ addItem: s.addItem, items: s.items }));
+export default memo(function ProductCard({ product, index = 0 }: ProductCardProps) {
+  const { addItem, items } = useCart(useShallow((s) => ({ addItem: s.addItem, items: s.items })));
   const [added, setAdded] = useState(false);
   const isCafe = product.category === 'CAFÉ';
   const inCart = items.some((i) => i.itemType === 'product' && i.product.id === product.id);
+  const [imgError, setImgError] = useState(false);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -38,12 +40,19 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         to={`/tienda/${product.slug}`}
         className="relative block aspect-[4/3] shrink-0 overflow-hidden sm:aspect-[3/4]"
       >
-        <img
-          src={resolveImageUrl(product.imageUrl)}
-          alt={product.name}
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        />
+        {imgError ? (
+          <div className="w-full h-full flex items-center justify-center bg-coffee-100 dark:bg-coffee-800">
+            <Coffee className="w-10 h-10 text-coffee-400" />
+          </div>
+        ) : (
+          <img
+            src={resolveImageUrl(product.imageUrl)}
+            alt={product.name}
+            loading="lazy"
+            onError={() => setImgError(true)}
+            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        )}
 
         {/* Gradient overlay — always present, stronger on hover */}
         <div
@@ -161,4 +170,4 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       </div>
     </motion.article>
   );
-}
+});

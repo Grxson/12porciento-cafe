@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Package, ShoppingBag, WifiOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useOrderHistory } from '../../context/OrderHistoryContext';
 import type { Order } from '../../types';
 import { PageMeta } from '../../hooks/usePageMeta';
@@ -28,7 +29,16 @@ function OfflineBanner({ message }: { message: string }) {
 }
 
 export default function Orders() {
-  const { orders, loading, error, isOffline, lastSyncAt, fetchOrders } = useOrderHistory();
+  const { orders, loading, error, isOffline, lastSyncAt, fetchOrders } = useOrderHistory(
+    useShallow((s) => ({
+      orders: s.orders,
+      loading: s.loading,
+      error: s.error,
+      isOffline: s.isOffline,
+      lastSyncAt: s.lastSyncAt,
+      fetchOrders: s.fetchOrders,
+    })),
+  );
   const addItem = useCart((s) => s.addItem);
   const { add: addToast } = useToast();
 

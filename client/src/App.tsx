@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
@@ -47,34 +47,36 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
-import Subscriptions from './pages/Subscriptions';
-import About from './pages/About';
 import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import Recipes from './pages/Recipes';
-import RecipeDetail from './pages/RecipeDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import VerifyEmail from './pages/VerifyEmail';
-import Profile from './pages/Profile';
 import ToastContainer from './components/Toast';
-import NotFound from './pages/NotFound';
 import BottomNav from './components/BottomNav';
 import InstallPrompt from './components/InstallPrompt';
 import OfflineBanner from './components/OfflineBanner';
 import OfflineIndicator from './components/OfflineIndicator';
-import Quiz from './pages/Quiz';
-import B2BCatalog from './pages/B2BCatalog';
-import Gallery from './pages/Gallery';
-import BaristaProfile from './pages/BaristaProfile';
-import Leaderboard from './pages/Leaderboard';
-import Feed from './pages/Feed';
-import AchievementGallery from './pages/AchievementGallery';
-import RewardShop from './pages/RewardShop';
-import Bundles from './pages/Bundles';
-import GiftCardPurchase from './pages/GiftCardPurchase';
+import PageSkeleton from './components/PageSkeleton';
+
+const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+const About = lazy(() => import('./pages/About'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const Recipes = lazy(() => import('./pages/Recipes'));
+const RecipeDetail = lazy(() => import('./pages/RecipeDetail'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const Profile = lazy(() => import('./pages/Profile'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Quiz = lazy(() => import('./pages/Quiz'));
+const B2BCatalog = lazy(() => import('./pages/B2BCatalog'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const BaristaProfile = lazy(() => import('./pages/BaristaProfile'));
+const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+const Feed = lazy(() => import('./pages/Feed'));
+const AchievementGallery = lazy(() => import('./pages/AchievementGallery'));
+const RewardShop = lazy(() => import('./pages/RewardShop'));
+const Bundles = lazy(() => import('./pages/Bundles'));
+const GiftCardPurchase = lazy(() => import('./pages/GiftCardPurchase'));
 
 const UserRoute = ({ children }: { children: React.ReactNode }) => {
   const token = useUser((s) => s.token);
@@ -224,31 +226,112 @@ export default function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/tienda" element={<Shop />} />
                   <Route path="/tienda/:slug" element={<ProductDetail />} />
-                  <Route path="/suscripciones" element={<Subscriptions />} />
-                  <Route path="/nosotros" element={<About />} />
+                  <Route
+                    path="/suscripciones"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Subscriptions />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/nosotros"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <About />
+                      </Suspense>
+                    }
+                  />
                   <Route path="/carrito" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/paquetes" element={<Bundles />} />
-                  <Route path="/recetas" element={<Recipes />} />
-                  <Route path="/recetas/:slug" element={<RecipeDetail />} />
-                  <Route path="/galeria" element={<Gallery />} />
+                  <Route
+                    path="/checkout"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Checkout />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/paquetes"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Bundles />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/recetas"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Recipes />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/recetas/:slug"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <RecipeDetail />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/galeria"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Gallery />
+                      </Suspense>
+                    }
+                  />
                   <Route
                     path="/perfil/*"
                     element={
                       <UserRoute>
-                        <Profile />
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Profile />
+                        </Suspense>
                       </UserRoute>
                     }
                   />
-                  <Route path="/perfil/barista/:userId" element={<BaristaProfile />} />
-                  <Route path="/b2b" element={<B2BCatalog />} />
-                  <Route path="/leaderboard" element={<Leaderboard />} />
-                  <Route path="/feed" element={<Feed />} />
+                  <Route
+                    path="/perfil/barista/:userId"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <BaristaProfile />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/b2b"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <B2BCatalog />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/leaderboard"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Leaderboard />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/feed"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Feed />
+                      </Suspense>
+                    }
+                  />
                   <Route
                     path="/recompensas"
                     element={
                       <UserRoute>
-                        <RewardShop />
+                        <Suspense fallback={<PageSkeleton />}>
+                          <RewardShop />
+                        </Suspense>
                       </UserRoute>
                     }
                   />
@@ -256,7 +339,9 @@ export default function App() {
                     path="/logros"
                     element={
                       <UserRoute>
-                        <AchievementGallery />
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AchievementGallery />
+                        </Suspense>
                       </UserRoute>
                     }
                   />
@@ -264,20 +349,57 @@ export default function App() {
                     path="/gift-card"
                     element={
                       <UserRoute>
-                        <GiftCardPurchase />
+                        <Suspense fallback={<PageSkeleton />}>
+                          <GiftCardPurchase />
+                        </Suspense>
                       </UserRoute>
                     }
                   />
-                  <Route path="*" element={<NotFound />} />
+                  <Route
+                    path="*"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <NotFound />
+                      </Suspense>
+                    }
+                  />
                 </Route>
 
                 {/* Standalone pages (no layout) */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Register />} />
-                <Route path="/olvide-contrasena" element={<ForgotPassword />} />
-                <Route path="/restablecer-contrasena/:token" element={<ResetPassword />} />
-                <Route path="/verificar-email/:token" element={<VerifyEmail />} />
-                <Route path="/quiz" element={<Quiz />} />
+                <Route
+                  path="/olvide-contrasena"
+                  element={
+                    <Suspense fallback={<PageSkeleton />}>
+                      <ForgotPassword />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/restablecer-contrasena/:token"
+                  element={
+                    <Suspense fallback={<PageSkeleton />}>
+                      <ResetPassword />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/verificar-email/:token"
+                  element={
+                    <Suspense fallback={<PageSkeleton />}>
+                      <VerifyEmail />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/quiz"
+                  element={
+                    <Suspense fallback={<PageSkeleton />}>
+                      <Quiz />
+                    </Suspense>
+                  }
+                />
               </Routes>
             </CartProvider>
           </NotificationsProvider>

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Coffee, Thermometer, Droplets, Scale, Wrench, Star, Pencil, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { BaristaEquipment } from '../types';
@@ -25,7 +26,7 @@ interface EquipmentCardProps {
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
 }
 
-export default function EquipmentCard({
+export default memo(function EquipmentCard({
   equipment,
   onEdit,
   onDelete,
@@ -101,4 +102,4 @@ export default function EquipmentCard({
       </div>
     </motion.div>
   );
-}
+});

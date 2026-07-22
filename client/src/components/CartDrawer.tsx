@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { X, ShoppingBag, Plus, Minus, Trash2, Package } from 'lucide-react';
+import { useState } from 'react';
+import { X, ShoppingBag, Plus, Minus, Trash2, Package, Coffee } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useCart } from '../context/CartContext';
 import type { CartItemFull } from '../types';
 
@@ -9,10 +11,16 @@ function getItemKey(item: CartItemFull): string {
   return item.itemType === 'product' ? `prod_${item.product.id}` : `bund_${item.bundleId}`;
 }
 
-function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product' } }) {
-  const { updateQuantity, removeItem } = useCart();
+const ProductDrawerItem = memo(function ProductDrawerItem({
+  item,
+}: {
+  item: CartItemFull & { itemType: 'product' };
+}) {
+  const updateQuantity = useCart((s) => s.updateQuantity);
+  const removeItem = useCart((s) => s.removeItem);
   const { product, quantity } = item;
   const key = getItemKey(item);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <motion.div
@@ -23,7 +31,18 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
       exit={{ opacity: 0, x: 20 }}
       className="flex gap-3 py-4 border-b border-coffee-100 dark:border-coffee-800 last:border-0"
     >
-      <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-cover shrink-0" />
+      {imgError ? (
+        <div className="w-16 h-16 bg-coffee-100 dark:bg-coffee-800 flex items-center justify-center shrink-0">
+          <Coffee className="w-5 h-5 text-coffee-400" />
+        </div>
+      ) : (
+        <img
+          src={product.imageUrl}
+          alt={product.name}
+          onError={() => setImgError(true)}
+          className="w-16 h-16 object-cover shrink-0"
+        />
+      )}
       <div className="flex-1 min-w-0">
         <p className="line-clamp-2 text-sm font-medium leading-tight text-coffee-900 dark:text-cream">
           {product.name}
@@ -77,10 +96,14 @@ function ProductDrawerItem({ item }: { item: CartItemFull & { itemType: 'product
       </div>
     </motion.div>
   );
-}
+});
 
-function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' } }) {
-  const { removeItem } = useCart();
+const BundleDrawerItem = memo(function BundleDrawerItem({
+  item,
+}: {
+  item: CartItemFull & { itemType: 'bundle' };
+}) {
+  const removeItem = useCart((s) => s.removeItem);
   const { bundle } = item;
   const key = getItemKey(item);
 
@@ -128,10 +151,17 @@ function BundleDrawerItem({ item }: { item: CartItemFull & { itemType: 'bundle' 
       </div>
     </motion.div>
   );
-}
+});
 
 export default function CartDrawer() {
-  const { items, drawerOpen, closeDrawer, total } = useCart();
+  const { items, drawerOpen, closeDrawer, total } = useCart(
+    useShallow((s) => ({
+      items: s.items,
+      drawerOpen: s.drawerOpen,
+      closeDrawer: s.closeDrawer,
+      total: s.total,
+    })),
+  );
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);

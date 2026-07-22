@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useReducer } from 'react';
 import { X, Star, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useSubmitBrewLogMutation } from '../hooks/queries/useSubmitBrewLogMutation';
@@ -14,33 +14,62 @@ interface BrewLogFormProps {
   onSuccess?: () => void;
 }
 
+interface FormState {
+  rating: number;
+  notes: string;
+  photoPreview: string | null;
+  photoUrl: string;
+  grindSize: string;
+  waterTemp: number | '';
+  brewTime: number | '';
+  coffeeWeight: number | '';
+  waterVolume: number | '';
+  selectedEquipmentIds: string[];
+  flavorTags: string[];
+}
+
+type FormAction = { type: 'SET_FIELD'; field: keyof FormState; value: any } | { type: 'RESET' };
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
+    case 'RESET':
+      return initialState;
+    default:
+      return state;
+  }
+}
+
+const initialState: FormState = {
+  rating: 3,
+  notes: '',
+  photoPreview: null,
+  photoUrl: '',
+  grindSize: '',
+  waterTemp: '',
+  brewTime: '',
+  coffeeWeight: '',
+  waterVolume: '',
+  selectedEquipmentIds: [],
+  flavorTags: [],
+};
+
 export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormProps) {
   const user = useUser((s) => s.user);
   const { submitBrewLog, error } = useSubmitBrewLogMutation(user?.id);
   const addToast = useToast((s) => s.add);
 
-  const [rating, setRating] = useState(3);
-  const [notes, setNotes] = useState('');
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [formState, dispatch] = useReducer(formReducer, initialState);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showTechnical, setShowTechnical] = useState(false);
   const objectUrlRef = useRef<string | null>(null);
   const formDialogRef = useRef<HTMLFormElement>(null);
   const loginDialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
-
-  // Technical params state
-  const [showTechnical, setShowTechnical] = useState(false);
-  const [grindSize, setGrindSize] = useState('');
-  const [waterTemp, setWaterTemp] = useState<number | ''>('');
-  const [brewTime, setBrewTime] = useState<number | ''>('');
-  const [coffeeWeight, setCoffeeWeight] = useState<number | ''>('');
-  const [waterVolume, setWaterVolume] = useState<number | ''>('');
-  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
-  const [flavorTags, setFlavorTags] = useState<string[]>([]);
 
   const { data: equipmentList } = useQuery({
     queryKey: ['barista-equipment'],
@@ -70,13 +99,23 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
   ];
 
   const toggleEquipment = (id: string) => {
-    setSelectedEquipmentIds((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-    );
+    dispatch({
+      type: 'SET_FIELD',
+      field: 'selectedEquipmentIds',
+      value: formState.selectedEquipmentIds.includes(id)
+        ? formState.selectedEquipmentIds.filter((v) => v !== id)
+        : [...formState.selectedEquipmentIds, id],
+    });
   };
 
   const toggleFlavorTag = (tag: string) => {
-    setFlavorTags((prev) => (prev.includes(tag) ? prev.filter((v) => v !== tag) : [...prev, tag]));
+    dispatch({
+      type: 'SET_FIELD',
+      field: 'flavorTags',
+      value: formState.flavorTags.includes(tag)
+        ? formState.flavorTags.filter((v) => v !== tag)
+        : [...formState.flavorTags, tag],
+    });
   };
 
   useEffect(() => {
@@ -127,14 +166,14 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
     const objectUrl = URL.createObjectURL(file);
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     objectUrlRef.current = objectUrl;
-    setPhotoPreview(objectUrl);
+    dispatch({ type: 'SET_FIELD', field: 'photoPreview', value: objectUrl });
     setUploading(true);
     try {
       const res = await uploadsApi.upload(file);
-      setPhotoUrl(res.data.data.url);
+      dispatch({ type: 'SET_FIELD', field: 'photoUrl', value: res.data.data.url });
     } catch {
       addToast('Error al subir foto', 'error');
-      setPhotoPreview(null);
+      dispatch({ type: 'SET_FIELD', field: 'photoPreview', value: null });
     } finally {
       setUploading(false);
     }
@@ -142,7 +181,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
   const xpPreview = (() => {
     const baseXp: Record<string, number> = { FÁCIL: 10, MEDIA: 20, DIFÍCIL: 30 };
-    return (baseXp[recipe.difficulty ?? 'MEDIA'] ?? 20) + (rating - 1) * 5;
+    return (baseXp[recipe.difficulty ?? 'MEDIA'] ?? 20) + (formState.rating - 1) * 5;
   })();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -152,16 +191,17 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
     try {
       const { newAchievements } = await submitBrewLog({
         recipeId: recipe.id,
-        rating,
-        notes: notes.trim() || undefined,
-        photoUrl: photoUrl || undefined,
-        grindSize: grindSize || undefined,
-        waterTemp: waterTemp || undefined,
-        brewTime: brewTime || undefined,
-        coffeeWeight: coffeeWeight || undefined,
-        waterVolume: waterVolume || undefined,
-        equipmentIds: selectedEquipmentIds.length > 0 ? selectedEquipmentIds : undefined,
-        tags: flavorTags.length > 0 ? flavorTags : undefined,
+        rating: formState.rating,
+        notes: formState.notes.trim() || undefined,
+        photoUrl: formState.photoUrl || undefined,
+        grindSize: formState.grindSize || undefined,
+        waterTemp: formState.waterTemp || undefined,
+        brewTime: formState.brewTime || undefined,
+        coffeeWeight: formState.coffeeWeight || undefined,
+        waterVolume: formState.waterVolume || undefined,
+        equipmentIds:
+          formState.selectedEquipmentIds.length > 0 ? formState.selectedEquipmentIds : undefined,
+        tags: formState.flavorTags.length > 0 ? formState.flavorTags : undefined,
       });
       addToast(`+${xpPreview} XP ganados ☕`, 'success');
       for (const a of newAchievements) {
@@ -262,10 +302,10 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
               <button
                 key={r}
                 type="button"
-                onClick={() => setRating(r)}
+                onClick={() => dispatch({ type: 'SET_FIELD', field: 'rating', value: r })}
                 aria-label={`Calificación ${r} de 10`}
-                aria-pressed={rating === r}
-                className={`flex min-h-11 min-w-11 items-center justify-center transition-colors ${r <= rating ? 'text-gold-400' : 'text-coffee-600 dark:text-coffee-400 hover:text-gold-300'}`}
+                aria-pressed={formState.rating === r}
+                className={`flex min-h-11 min-w-11 items-center justify-center transition-colors ${r <= formState.rating ? 'text-gold-400' : 'text-coffee-600 dark:text-coffee-400 hover:text-gold-300'}`}
               >
                 <Star className="w-5 h-5 fill-current" />
               </button>
@@ -279,15 +319,15 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
             Notas (opcional)
           </label>
           <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={formState.notes}
+            onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'notes', value: e.target.value })}
             maxLength={500}
             rows={3}
             placeholder="Describe tu experiencia..."
             className="field-control min-h-24 resize-none"
           />
           <p className="text-xs text-coffee-600 dark:text-coffee-400 mt-1 text-right">
-            {notes.length}/500
+            {formState.notes.length}/500
           </p>
         </div>
 
@@ -296,9 +336,13 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
           <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-2">
             Foto (opcional)
           </label>
-          {photoPreview ? (
+          {formState.photoPreview ? (
             <div className="relative">
-              <img src={photoPreview} alt="Preview" className="w-full h-28 object-cover rounded" />
+              <img
+                src={formState.photoPreview}
+                alt="Preview"
+                className="w-full h-28 object-cover rounded"
+              />
               <button
                 type="button"
                 onClick={() => {
@@ -306,8 +350,8 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                     URL.revokeObjectURL(objectUrlRef.current);
                     objectUrlRef.current = null;
                   }
-                  setPhotoPreview(null);
-                  setPhotoUrl('');
+                  dispatch({ type: 'SET_FIELD', field: 'photoPreview', value: null });
+                  dispatch({ type: 'SET_FIELD', field: 'photoUrl', value: '' });
                 }}
                 aria-label="Eliminar foto"
                 className="absolute right-1 top-1 flex min-h-11 min-w-11 items-center justify-center rounded bg-red-600/80 text-white"
@@ -352,8 +396,10 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                   Molido
                 </label>
                 <select
-                  value={grindSize}
-                  onChange={(e) => setGrindSize(e.target.value)}
+                  value={formState.grindSize}
+                  onChange={(e) =>
+                    dispatch({ type: 'SET_FIELD', field: 'grindSize', value: e.target.value })
+                  }
                   className="field-control"
                 >
                   <option value="">Seleccionar</option>
@@ -372,8 +418,14 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 </label>
                 <input
                   type="number"
-                  value={waterTemp}
-                  onChange={(e) => setWaterTemp(e.target.value ? Number(e.target.value) : '')}
+                  value={formState.waterTemp}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'SET_FIELD',
+                      field: 'waterTemp',
+                      value: e.target.value ? Number(e.target.value) : '',
+                    })
+                  }
                   min={0}
                   max={110}
                   placeholder="93"
@@ -388,8 +440,14 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 </label>
                 <input
                   type="number"
-                  value={brewTime}
-                  onChange={(e) => setBrewTime(e.target.value ? Number(e.target.value) : '')}
+                  value={formState.brewTime}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'SET_FIELD',
+                      field: 'brewTime',
+                      value: e.target.value ? Number(e.target.value) : '',
+                    })
+                  }
                   min={1}
                   max={3600}
                   placeholder="180"
@@ -404,8 +462,14 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 </label>
                 <input
                   type="number"
-                  value={coffeeWeight}
-                  onChange={(e) => setCoffeeWeight(e.target.value ? Number(e.target.value) : '')}
+                  value={formState.coffeeWeight}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'SET_FIELD',
+                      field: 'coffeeWeight',
+                      value: e.target.value ? Number(e.target.value) : '',
+                    })
+                  }
                   min={1}
                   max={100}
                   placeholder="15"
@@ -420,8 +484,14 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 </label>
                 <input
                   type="number"
-                  value={waterVolume}
-                  onChange={(e) => setWaterVolume(e.target.value ? Number(e.target.value) : '')}
+                  value={formState.waterVolume}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'SET_FIELD',
+                      field: 'waterVolume',
+                      value: e.target.value ? Number(e.target.value) : '',
+                    })
+                  }
                   min={1}
                   max={2000}
                   placeholder="250"
@@ -445,7 +515,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                     >
                       <input
                         type="checkbox"
-                        checked={selectedEquipmentIds.includes(eq.id)}
+                        checked={formState.selectedEquipmentIds.includes(eq.id)}
                         onChange={() => toggleEquipment(eq.id)}
                         className="accent-gold-500"
                       />
@@ -463,8 +533,8 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {FLAVOR_OPTIONS.map((tag) => {
-                    const selected = flavorTags.includes(tag);
-                    const atMax = !selected && flavorTags.length >= 3;
+                    const selected = formState.flavorTags.includes(tag);
+                    const atMax = !selected && formState.flavorTags.length >= 3;
                     return (
                       <button
                         key={tag}

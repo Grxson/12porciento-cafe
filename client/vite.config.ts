@@ -67,6 +67,8 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
           if (id.includes('node_modules/@stripe')) return 'vendor-stripe';
           if (id.includes('node_modules/zustand')) return 'vendor-state';
+          if (id.includes('node_modules/react') || id.includes('node_modules/scheduler'))
+            return 'vendor-react';
           if (id.includes('node_modules')) return 'vendor-core';
         },
       },

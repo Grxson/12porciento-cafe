@@ -11,6 +11,7 @@ import {
   PackageCheck,
 } from 'lucide-react';
 import { usersApi } from '../../api';
+import PageSkeleton from '../../components/PageSkeleton';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { PageMeta } from '../../hooks/usePageMeta';
@@ -135,7 +136,7 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reordering, setReordering] = useState(false);
-  const { addItem } = useCart();
+  const addItem = useCart((s) => s.addItem);
   const addToast = useToast((s) => s.add);
 
   const load = () => {
@@ -175,9 +176,9 @@ export default function OrderDetail() {
   // ── Loading ──
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="max-w-2xl mx-auto space-y-6">
         <PageMeta title="Cargando pedido..." />
-        <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+        <PageSkeleton variant="profile-list" />
       </div>
     );
   }

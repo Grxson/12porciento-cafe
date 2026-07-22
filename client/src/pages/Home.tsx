@@ -104,8 +104,11 @@ export default function Home() {
         <motion.div style={{ y }} className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1920&q=80"
+            srcSet="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=640&q=80 640w, https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1024&q=80 1024w, https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1920&q=80 1920w"
+            sizes="(max-width: 640px) 640px, (max-width: 1024px) 1024px, 1920px"
             alt="12% Café — Café de especialidad mexicano"
             className="w-full h-full object-cover opacity-25"
+            fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-coffee-950/60 via-coffee-950/20 to-coffee-950" />
         </motion.div>
@@ -450,8 +453,23 @@ export default function Home() {
           </div>
 
           {featuredLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="w-6 h-6 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden border border-coffee-200 dark:border-coffee-800"
+                >
+                  <div className="aspect-[4/3] sm:aspect-[3/4] shimmer" />
+                  <div className="p-5 space-y-3">
+                    <div className="shimmer h-3 w-1/3" />
+                    <div className="shimmer h-5 w-3/4" />
+                    <div className="flex gap-1.5">
+                      <div className="shimmer h-5 w-16" />
+                      <div className="shimmer h-5 w-14" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : featuredError ? (
             <div className="text-center py-8">

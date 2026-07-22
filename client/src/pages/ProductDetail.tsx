@@ -103,33 +103,27 @@ export default function ProductDetail() {
       .getBySlug(slug)
       .then((r) => {
         setProduct(r.data);
-        reviewsApi
-          .listByProduct(r.data.id)
-          .then((rr) => setReviews(rr.data.data || []))
-          .catch(console.error);
-        recipesApi
-          .list({ productId: r.data.id })
-          .then((rr) => setProductRecipes(rr.data.data))
-          .catch(console.error);
-        productsApi
-          .priceHistory(r.data.id)
-          .then((ph) => setPriceHistory(ph.data.data))
-          .catch(console.error);
+        const pid = r.data.id;
+        const promises = [
+          reviewsApi.listByProduct(pid).then((rr) => setReviews(rr.data.data || [])),
+          recipesApi.list({ productId: pid }).then((rr) => setProductRecipes(rr.data.data)),
+          productsApi.priceHistory(pid).then((ph) => setPriceHistory(ph.data.data)),
+        ];
+        if (loggedUser) {
+          promises.push(wishlistApi.check(pid).then((r) => setInWishlist(r.data.inWishlist)));
+        }
+        Promise.allSettled(promises).then((results) => {
+          results.forEach((r) => {
+            if (r.status === 'rejected') console.error(r.reason);
+          });
+        });
       })
       .catch((err) => {
         console.error(err);
         console.error('No se pudo cargar el producto.');
       })
       .finally(() => setLoading(false));
-  }, [slug]);
-
-  useEffect(() => {
-    if (!product || !loggedUser) return;
-    wishlistApi
-      .check(product.id)
-      .then((r) => setInWishlist(r.data.inWishlist))
-      .catch(console.error);
-  }, [product?.id, loggedUser?.id]);
+  }, [slug, loggedUser]);
 
   const handleWishlistToggle = async () => {
     if (!product || !loggedUser) return;

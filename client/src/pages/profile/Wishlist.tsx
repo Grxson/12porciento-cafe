@@ -10,6 +10,7 @@ import {
   PackageX,
   WifiOff,
 } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
@@ -27,7 +28,17 @@ function OfflineBanner({ message }: { message: string }) {
 }
 
 export default function Wishlist() {
-  const { items, loading, error, isOffline, lastSyncAt, fetchItems, removeItem } = useWishlist();
+  const { items, loading, error, isOffline, lastSyncAt, fetchItems, removeItem } = useWishlist(
+    useShallow((s) => ({
+      items: s.items,
+      loading: s.loading,
+      error: s.error,
+      isOffline: s.isOffline,
+      lastSyncAt: s.lastSyncAt,
+      fetchItems: s.fetchItems,
+      removeItem: s.removeItem,
+    })),
+  );
   const addItem = useCart((s) => s.addItem);
   const { add: addToast } = useToast();
 

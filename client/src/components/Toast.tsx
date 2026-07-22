@@ -1,6 +1,8 @@
+import { memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import type { Toast } from '../context/ToastContext';
 
 const icons = {
   success: CheckCircle,
@@ -13,33 +15,48 @@ const colors = {
   success: 'border-green-500/40 bg-green-900/20 text-green-300',
   error: 'border-red-500/40 bg-red-900/20 text-red-300',
   info: 'border-gold-500/40 bg-gold-500/15 dark:bg-coffee-900 text-coffee-900 dark:text-cream',
-  warning: 'border-yellow-500/40 bg-yellow-500/15 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300',
+  warning:
+    'border-yellow-500/40 bg-yellow-500/15 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300',
 };
 
+const ToastItem = memo(function ToastItem({
+  toast,
+  onRemove,
+}: {
+  toast: Toast;
+  onRemove: (id: string) => void;
+}) {
+  const Icon = icons[toast.type];
+  return (
+    <motion.div
+      key={toast.id}
+      initial={{ opacity: 0, x: 60, scale: 0.9 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 60, scale: 0.9 }}
+      className={`pointer-events-auto flex items-center gap-3 px-4 py-3 border text-sm max-w-sm shadow-xl ${colors[toast.type]}`}
+    >
+      <Icon className="w-4 h-4 shrink-0" />
+      <span className="flex-1">{toast.message}</span>
+      <button
+        onClick={() => onRemove(toast.id)}
+        className="opacity-60 hover:opacity-100 transition-opacity"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </motion.div>
+  );
+});
+
 export default function ToastContainer() {
-  const { toasts, remove } = useToast();
+  const toasts = useToast((s) => s.toasts);
+  const remove = useToast((s) => s.remove);
 
   return (
     <div className="fixed top-4 right-4 sm:right-6 z-[200] flex flex-col gap-3 pointer-events-none pt-[calc(env(safe-area-inset-top,0px)+0.5rem)]">
       <AnimatePresence>
-        {toasts.map((t) => {
-          const Icon = icons[t.type];
-          return (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, x: 60, scale: 0.9 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 60, scale: 0.9 }}
-              className={`pointer-events-auto flex items-center gap-3 px-4 py-3 border text-sm max-w-sm shadow-xl ${colors[t.type]}`}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span className="flex-1">{t.message}</span>
-              <button onClick={() => remove(t.id)} className="opacity-60 hover:opacity-100 transition-opacity">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
-          );
-        })}
+        {toasts.map((t) => (
+          <ToastItem key={t.id} toast={t} onRemove={remove} />
+        ))}
       </AnimatePresence>
     </div>
   );

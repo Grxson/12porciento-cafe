@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Tag, Package } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useCart } from '../context/CartContext';
 import { resolveImageUrl } from '../utils/imageUrl';
 import type { CartItemFull } from '../types';
@@ -11,7 +12,8 @@ function getItemKey(item: CartItemFull): string {
 }
 
 function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' } }) {
-  const { removeItem, updateQuantity } = useCart();
+  const removeItem = useCart((s) => s.removeItem);
+  const updateQuantity = useCart((s) => s.updateQuantity);
   const { product, quantity } = item;
   const key = getItemKey(item);
 
@@ -42,9 +44,7 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
               {product.name}
             </Link>
             <div className="flex items-center gap-2 mt-1">
-              {product.region && (
-                <span className="text-coffee-500 text-xs">{product.region}</span>
-              )}
+              {product.region && <span className="text-coffee-500 text-xs">{product.region}</span>}
               {product.weight && (
                 <span className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 text-xs border border-coffee-200 dark:border-coffee-700 px-1.5 py-0.5">
                   <Tag className="w-2.5 h-2.5" />
@@ -71,7 +71,9 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
             >
               <Minus className="w-3 h-3" />
             </button>
-            <span className="w-10 text-center text-coffee-900 dark:text-cream text-sm font-medium">{quantity}</span>
+            <span className="w-10 text-center text-coffee-900 dark:text-cream text-sm font-medium">
+              {quantity}
+            </span>
             <button
               onClick={() => updateQuantity(key, quantity + 1)}
               aria-label="Aumentar cantidad"
@@ -82,7 +84,9 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
           </div>
           <p className="font-semibold text-coffee-900 dark:text-cream text-lg">
             ${(Number(product.price) * quantity).toLocaleString('es-MX')}
-            <span className="text-coffee-600 dark:text-coffee-400 text-xs font-normal ml-1">MXN</span>
+            <span className="text-coffee-600 dark:text-coffee-400 text-xs font-normal ml-1">
+              MXN
+            </span>
           </p>
         </div>
       </div>
@@ -91,7 +95,7 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
 }
 
 function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } }) {
-  const { removeItem } = useCart();
+  const removeItem = useCart((s) => s.removeItem);
   const { bundle } = item;
   const key = getItemKey(item);
 
@@ -105,7 +109,11 @@ function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } 
       className="bg-white dark:bg-coffee-800 border border-gold-500/30 hover:border-gold-500/50 transition-colors p-4 flex gap-4"
     >
       {bundle.imageUrl ? (
-        <img src={bundle.imageUrl} alt={bundle.name} className="w-20 h-20 sm:w-24 sm:h-24 object-cover shrink-0" />
+        <img
+          src={bundle.imageUrl}
+          alt={bundle.name}
+          className="w-20 h-20 sm:w-24 sm:h-24 object-cover shrink-0"
+        />
       ) : (
         <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gold-50 dark:bg-gold-500/10 flex items-center justify-center shrink-0">
           <Package className="w-8 h-8 text-gold-500" />
@@ -119,9 +127,7 @@ function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } 
               {bundle.name}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="bg-gold-500/20 text-gold-600 text-xs px-1.5 py-0.5">
-                Paquete
-              </span>
+              <span className="bg-gold-500/20 text-gold-600 text-xs px-1.5 py-0.5">Paquete</span>
               {bundle.discountPct > 0 && (
                 <span className="text-gold-600 text-xs font-semibold">
                   {bundle.discountPct}% OFF
@@ -141,7 +147,8 @@ function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } 
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
           {bundle.items.map((bi) => (
             <span key={bi.id} className="text-coffee-600 dark:text-coffee-400 text-xs">
-              {bi.quantity > 1 ? `${bi.quantity}x ` : ''}{bi.product?.name || 'Producto'}
+              {bi.quantity > 1 ? `${bi.quantity}x ` : ''}
+              {bi.product?.name || 'Producto'}
             </span>
           ))}
         </div>
@@ -150,7 +157,9 @@ function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } 
           <span className="text-coffee-500 text-xs">Cantidad: 1</span>
           <p className="font-semibold text-gold-600 text-lg">
             ${Number(bundle?.finalPrice ?? 0).toLocaleString('es-MX')}
-            <span className="text-coffee-600 dark:text-coffee-400 text-xs font-normal ml-1">MXN</span>
+            <span className="text-coffee-600 dark:text-coffee-400 text-xs font-normal ml-1">
+              MXN
+            </span>
           </p>
         </div>
       </div>
@@ -159,7 +168,9 @@ function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } 
 }
 
 export default function Cart() {
-  const { items, total, count } = useCart();
+  const { items, total, count } = useCart(
+    useShallow((s) => ({ items: s.items, total: s.total, count: s.count })),
+  );
 
   if (count() === 0) {
     return (
@@ -169,12 +180,16 @@ export default function Cart() {
           <ShoppingBag className="w-10 h-10 text-coffee-700 dark:text-coffee-300" />
         </div>
         <div className="text-center">
-          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">Carrito vacío</h2>
+          <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">
+            Carrito vacío
+          </h2>
           <p className="text-coffee-500 max-w-xs leading-relaxed text-sm">
             Aún no has agregado ningún café. Explora nuestra selección de especialidad.
           </p>
         </div>
-        <Link to="/tienda" className="btn-primary">Explorar tienda</Link>
+        <Link to="/tienda" className="btn-primary">
+          Explorar tienda
+        </Link>
       </div>
     );
   }
@@ -188,16 +203,20 @@ export default function Cart() {
           <h1 className="font-serif text-4xl md:text-5xl text-coffee-900 dark:text-cream">
             Carrito
           </h1>
-          <p className="text-coffee-500 text-sm mt-2">{count()} producto{count() !== 1 ? 's' : ''} seleccionado{count() !== 1 ? 's' : ''}</p>
+          <p className="text-coffee-500 text-sm mt-2">
+            {count()} producto{count() !== 1 ? 's' : ''} seleccionado{count() !== 1 ? 's' : ''}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-3">
             <AnimatePresence initial={false}>
               {items.map((item) =>
-                item.itemType === 'product'
-                  ? <ProductCartItem key={getItemKey(item)} item={item} />
-                  : <BundleCartItem key={getItemKey(item)} item={item} />,
+                item.itemType === 'product' ? (
+                  <ProductCartItem key={getItemKey(item)} item={item} />
+                ) : (
+                  <BundleCartItem key={getItemKey(item)} item={item} />
+                ),
               )}
             </AnimatePresence>
           </div>
@@ -227,7 +246,10 @@ export default function Cart() {
                         🎁 {item.bundle?.name ?? 'Paquete'} ×{item.quantity}
                       </span>
                       <span className="text-coffee-900 dark:text-cream shrink-0">
-                        ${(Number(item.bundle?.finalPrice ?? 0) * item.quantity).toLocaleString('es-MX')}
+                        $
+                        {(Number(item.bundle?.finalPrice ?? 0) * item.quantity).toLocaleString(
+                          'es-MX',
+                        )}
                       </span>
                     </div>
                   );
@@ -240,9 +262,14 @@ export default function Cart() {
                   ${total().toLocaleString('es-MX')}
                 </span>
               </div>
-              <p className="text-coffee-600 dark:text-coffee-400 text-xs mb-6">+ envío según destino</p>
+              <p className="text-coffee-600 dark:text-coffee-400 text-xs mb-6">
+                + envío según destino
+              </p>
 
-              <Link to="/checkout" className="btn-primary w-full min-h-[52px] flex items-center justify-center gap-2">
+              <Link
+                to="/checkout"
+                className="btn-primary w-full min-h-[52px] flex items-center justify-center gap-2"
+              >
                 Proceder al pago <ArrowRight className="w-4 h-4" />
               </Link>
 

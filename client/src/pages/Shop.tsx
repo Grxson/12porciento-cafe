@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   SlidersHorizontal,
@@ -89,16 +89,27 @@ export default function Shop() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const [category, setCategory] = useState('TODOS');
-  const [process, setProcess] = useState('Todos');
-  const [roast, setRoast] = useState('Todos');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const category = searchParams.get('categoria') || 'TODOS';
+  const process = searchParams.get('proceso') || 'Todos';
+  const roast = searchParams.get('tueste') || 'Todos';
+  const search = searchParams.get('q') || '';
+  const flavorsParam = searchParams.get('flavors');
+  const selectedFlavors = useMemo(
+    () =>
+      flavorsParam
+        ? flavorsParam
+            .split(',')
+            .map((f) => f.trim())
+            .filter(Boolean)
+        : [],
+    [flavorsParam],
+  );
   const [sort, setSort] = useState('newest');
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState(search);
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
-  const [availableFlavors, setAvailableFlavors] = useState<string[]>([]);
+  const availableFlavors: string[] = [];
   const [flavorSearch, setFlavorSearch] = useState('');
   const [body, setBody] = useState('');
   const [acidity, setAcidity] = useState('');
@@ -106,22 +117,36 @@ export default function Shop() {
   const [certifications, setCertifications] = useState<string[]>([]);
   const [availableCertifications, setAvailableCertifications] = useState<
     Array<{ slug: string; name: string; issuer: string }>
-  >([]);
+  >(() => {
+    const cached = sessionStorage.getItem('shop_certifications');
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {
+        // cached value invalid
+      }
+    }
+    return [];
+  });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const filterSheetRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
+    if (availableCertifications.length > 0) return;
     api
       .get('/products/certifications')
-      .then((response) => setAvailableCertifications(response.data.data ?? []))
+      .then((response) => {
+        const data = response.data.data ?? [];
+        setAvailableCertifications(data);
+        sessionStorage.setItem('shop_certifications', JSON.stringify(data));
+      })
       .catch((err) => console.error('[shop] certifications', err));
-  }, []);
+  }, [availableCertifications]);
 
   const toggleCertification = (slug: string) => {
     setCertifications((current) =>
@@ -130,30 +155,7 @@ export default function Shop() {
     setPage(1);
   };
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const flavorParam = params.get('flavors');
-    if (flavorParam) {
-      setSelectedFlavors(
-        flavorParam
-          .split(',')
-          .map((f) => f.trim())
-          .filter(Boolean),
-      );
-      setCategory('CAFÉ');
-    }
-  }, []); // intentionally runs once on mount to seed from URL
-
-  useEffect(() => {
-    productsApi
-      .list({ category: 'CAFÉ', pageSize: '200' })
-      .then((r) => {
-        const all = r.data.data.flatMap((p) => p.flavors ?? []);
-        const unique = Array.from(new Set(all)).sort();
-        setAvailableFlavors(unique);
-      })
-      .catch(console.error);
-  }, []);
+  // flavors already read from 'flavors' URL param via searchParams above
 
   useEffect(() => {
     setLoading(true);
@@ -199,6 +201,21 @@ export default function Shop() {
     certifications,
     reloadKey,
   ]);
+
+  const setParam = (key: string, value: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (!value || value === 'TODOS' || value === 'Todos') {
+          next.delete(key);
+        } else {
+          next.set(key, value);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   const isCafe = category === 'CAFÉ' || category === 'TODOS';
   const hasFilters =
@@ -258,23 +275,21 @@ export default function Shop() {
   }, [filtersOpen]);
 
   const resetFilters = () => {
-    setProcess('Todos');
-    setRoast('Todos');
-    setCategory('TODOS');
-    setSearch('');
     setSearchInput('');
-    setSelectedFlavors([]);
     setPage(1);
     setBody('');
     setAcidity('');
     setBrewMethod('');
     setCertifications([]);
+    setSearchParams({}, { replace: true });
   };
 
   const toggleFlavor = (flavor: string) => {
-    setSelectedFlavors((prev) =>
-      prev.includes(flavor) ? prev.filter((f) => f !== flavor) : [...prev, flavor],
-    );
+    const current = selectedFlavors;
+    const updated = current.includes(flavor)
+      ? current.filter((f) => f !== flavor)
+      : [...current, flavor];
+    setParam('flavors', updated.join(','));
     setPage(1);
   };
 
@@ -286,15 +301,17 @@ export default function Shop() {
     setSearchInput(e.target.value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setSearch(e.target.value);
+      setParam('q', e.target.value);
       setPage(1);
     }, 350);
   };
 
   const handleCategoryChange = (id: string) => {
-    setCategory(id);
-    setProcess('Todos');
-    setRoast('Todos');
+    const next = new URLSearchParams(searchParams);
+    next.set('categoria', id);
+    next.delete('proceso');
+    next.delete('tueste');
+    setSearchParams(next, { replace: true });
     setPage(1);
     setBody('');
     setAcidity('');
@@ -346,7 +363,7 @@ export default function Shop() {
             <button
               onClick={() => {
                 setSearchInput('');
-                setSearch('');
+                setParam('q', '');
                 setPage(1);
               }}
               className="absolute right-0 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center text-coffee-400 hover:text-coffee-700"
@@ -398,7 +415,7 @@ export default function Shop() {
                     <button
                       key={p}
                       onClick={() => {
-                        setProcess(p);
+                        setParam('proceso', p);
                         setPage(1);
                       }}
                       aria-pressed={process === p}
@@ -516,7 +533,7 @@ export default function Shop() {
                     <button
                       key={r}
                       onClick={() => {
-                        setRoast(r);
+                        setParam('tueste', r);
                         setPage(1);
                       }}
                       aria-pressed={roast === r}
@@ -751,7 +768,7 @@ export default function Shop() {
                             <button
                               key={p}
                               onClick={() => {
-                                setProcess(p);
+                                setParam('proceso', p);
                                 setPage(1);
                               }}
                               aria-pressed={process === p}
@@ -888,7 +905,7 @@ export default function Shop() {
                             <button
                               key={r}
                               onClick={() => {
-                                setRoast(r);
+                                setParam('tueste', r);
                                 setPage(1);
                               }}
                               aria-pressed={roast === r}

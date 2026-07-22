@@ -74,7 +74,7 @@ function MobileFilterGroup({
           )}
         </span>
         <ChevronDown
-          className={`h-4 w-4 text-coffee-500 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 text-coffee-500 dark:text-coffee-400 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
       {open && <div className="mt-4 space-y-4">{children}</div>}
@@ -405,8 +405,7 @@ export default function Shop() {
               className="overflow-hidden hidden md:block"
             >
               <div className="flex flex-wrap gap-x-6 gap-y-3 items-center pb-6 mb-6 border-b border-coffee-200 dark:border-coffee-800">
-                <div className="flex items-center gap-1.5 text-coffee-500">
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 text-coffee-500 dark:text-coffee-400">
                   <span className="text-xs uppercase tracking-widest font-semibold">Filtros</span>
                 </div>
 
@@ -574,7 +573,7 @@ export default function Shop() {
                       )}
                     </div>
                     {flavorSearch && displayedFlavors.length === 0 ? (
-                      <p className="text-xs text-coffee-500 italic">Sin coincidencias</p>
+                      <p className="text-xs text-coffee-500 dark:text-coffee-400 italic">Sin coincidencias</p>
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {displayedFlavors.map((f) => (
@@ -701,13 +700,13 @@ export default function Shop() {
                     >
                       Filtros
                     </h3>
-                    <p className="text-xs text-coffee-500">{activeFilterCount} activos</p>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400">{activeFilterCount} activos</p>
                   </div>
                   <div className="flex items-center gap-1">
                     {hasFilters && (
                       <button
                         onClick={resetFilters}
-                        className="min-h-11 px-3 text-xs font-medium text-coffee-500 hover:text-red-500"
+                        className="min-h-11 px-3 text-xs font-medium text-coffee-500 dark:text-coffee-400 hover:text-red-500"
                       >
                         Limpiar
                       </button>
@@ -947,7 +946,7 @@ export default function Shop() {
                           )}
                         </div>
                         {flavorSearch && displayedFlavors.length === 0 ? (
-                          <p className="text-xs text-coffee-500 italic">Sin coincidencias</p>
+                      <p className="text-xs text-coffee-500 dark:text-coffee-400 italic">Sin coincidencias</p>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {displayedFlavors.map((f) => (
@@ -996,7 +995,7 @@ export default function Shop() {
             <p className="font-serif text-2xl text-coffee-400 mb-2">
               {!navigator.onLine ? 'Sin conexión' : 'Error al cargar'}
             </p>
-            <p className="text-coffee-500 text-sm mb-8">
+            <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-8">
               {!navigator.onLine
                 ? 'Revisa tu conexión a internet e intenta de nuevo.'
                 : 'No se pudieron cargar los productos.'}
@@ -1009,7 +1008,7 @@ export default function Shop() {
           <div className="text-center py-24">
             <SearchX className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
             <p className="font-serif text-2xl text-coffee-400 mb-2">Sin resultados</p>
-            <p className="text-coffee-500 text-sm mb-2">No hay productos con esos filtros.</p>
+            <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-2">No hay productos con esos filtros.</p>
             <p className="text-coffee-400 dark:text-coffee-500 text-xs mb-8">
               Intenta cambiar categoría, proceso o buscar otro término.
             </p>

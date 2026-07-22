@@ -84,7 +84,7 @@ export default function BaristaProfile() {
     return (
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-24 flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
-          <Coffee className="w-12 h-12 text-coffee-700 mx-auto mb-4" />
+          <Coffee className="w-12 h-12 text-coffee-700 dark:text-coffee-400 mx-auto mb-4" />
           <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
             Usuario no encontrado
           </h2>
@@ -144,7 +144,7 @@ export default function BaristaProfile() {
       <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 pt-24 flex items-center justify-center px-4">
         <PageMeta title="Perfil Barista" description="Nivel barista, experiencia y logros." />
         <div className="text-center max-w-sm">
-          <Coffee className="w-12 h-12 text-coffee-700 mx-auto mb-4" />
+          <Coffee className="w-12 h-12 text-coffee-700 dark:text-coffee-400 mx-auto mb-4" />
           {isOwnProfile ? (
             <>
               <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
@@ -316,7 +316,9 @@ export default function BaristaProfile() {
                   className={`border border-coffee-200 bg-white p-4 text-center dark:border-coffee-800 dark:bg-coffee-900 ${label === 'Nivel' ? 'col-span-2 sm:col-span-1' : ''}`}
                 >
                   <div className="flex justify-center mb-2">{icon}</div>
-                  <p className="text-xs text-coffee-500 uppercase mb-1">{label}</p>
+                  <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase mb-1">
+                    {label}
+                  </p>
                   <p className="text-xl font-bold text-coffee-900 dark:text-cream sm:text-2xl">
                     {value}
                   </p>
@@ -330,7 +332,9 @@ export default function BaristaProfile() {
                 <p className="text-sm text-coffee-600 dark:text-coffee-400">
                   Progreso nivel {profile.level + 1}
                 </p>
-                <p className="text-xs text-coffee-500">{xpInCurrentLevel}/100 XP</p>
+                <p className="text-xs text-coffee-500 dark:text-coffee-400">
+                  {xpInCurrentLevel}/100 XP
+                </p>
               </div>
               <div
                 className="h-2 bg-coffee-200 dark:bg-coffee-800 rounded-full overflow-hidden"
@@ -345,7 +349,9 @@ export default function BaristaProfile() {
                   style={{ width: `${xpProgress * 100}%` }}
                 />
               </div>
-              <p className="text-xs text-coffee-500 mt-2">{xpToNext} XP para el siguiente nivel</p>
+              <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-2">
+                {xpToNext} XP para el siguiente nivel
+              </p>
             </div>
 
             {/* G6: Tus Logros (Achievement Showcase) */}

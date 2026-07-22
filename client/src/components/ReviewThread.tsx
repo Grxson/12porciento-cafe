@@ -101,7 +101,7 @@ export default function ReviewThread({ reviewId }: Props) {
             <p className="text-sm text-coffee-700 dark:text-coffee-300 mt-0.5 break-words">
               {reply.content}
             </p>
-            <p className="text-xs text-coffee-500 mt-1">
+            <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-1">
               {new Date(reply.createdAt).toLocaleDateString('es-MX', {
                 day: 'numeric',
                 month: 'short',
@@ -117,7 +117,7 @@ export default function ReviewThread({ reviewId }: Props) {
       {!showForm ? (
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 text-xs text-coffee-500 hover:text-gold-400 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-400 transition-colors"
         >
           <MessageCircle className="w-3.5 h-3.5" />
           {replies.length > 0
@@ -160,7 +160,7 @@ export default function ReviewThread({ reviewId }: Props) {
               setContent('');
               setGuestName('');
             }}
-            className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
+            className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
           >
             Cancelar
           </button>

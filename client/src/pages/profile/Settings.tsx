@@ -156,7 +156,7 @@ export default function ProfileSettings() {
                 <button
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, avatarUrl: '' }))}
-                  className="text-xs text-coffee-500 hover:text-red-400 transition-colors mt-1 block min-h-11"
+                  className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-red-400 transition-colors mt-1 block min-h-11"
                 >
                   Quitar foto
                 </button>
@@ -258,8 +258,8 @@ export default function ProfileSettings() {
             onChange={async (e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              if (file.size > 10 * 1024 * 1024) {
-                add('Imagen muy grande (máx 10 MB)', 'error');
+              if (file.size > 8 * 1024 * 1024) {
+                add('Imagen muy grande (máx 8 MB)', 'error');
                 return;
               }
               try {
@@ -386,7 +386,7 @@ export default function ProfileSettings() {
             {offlineEnabled ? (
               <Wifi className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
             ) : (
-              <WifiOff className="w-5 h-5 text-coffee-400 shrink-0 mt-0.5" />
+              <WifiOff className="w-5 h-5 text-coffee-400 dark:text-coffee-500 shrink-0 mt-0.5" />
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-4">
@@ -443,7 +443,7 @@ export default function ProfileSettings() {
         </h3>
         <div className="p-4 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800">
           {cacheStats.loading ? (
-            <div className="flex items-center gap-2 text-coffee-500 text-sm">
+            <div className="flex items-center gap-2 text-coffee-500 dark:text-coffee-400 text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
               Calculando almacenamiento...
             </div>

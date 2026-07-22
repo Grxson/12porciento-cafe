@@ -121,7 +121,7 @@ export default function Register() {
                     ? 'bg-gold-500 text-coffee-950'
                     : step === n
                       ? 'bg-gold-500 text-coffee-950'
-                      : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-500'
+                      : 'bg-coffee-200 dark:bg-coffee-800 text-coffee-500 dark:text-coffee-400'
                 }`}
               >
                 {step > n ? <Check className="w-3 h-3" /> : n}
@@ -217,7 +217,7 @@ export default function Register() {
                   </button>
                 </form>
               </div>
-              <p className="text-coffee-500 text-sm text-center mt-6">
+              <p className="text-coffee-500 dark:text-coffee-400 text-sm text-center mt-6">
                 ¿Ya tienes cuenta?{' '}
                 <Link to="/login" className="text-gold-500 hover:text-gold-400 transition-colors">
                   Iniciar sesión
@@ -235,7 +235,7 @@ export default function Register() {
                 <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-2">
                   Dirección de envío
                 </h2>
-                <p className="text-coffee-500 text-xs mb-6">
+                <p className="text-coffee-500 dark:text-coffee-400 text-xs mb-6">
                   Para recibir tus pedidos y suscripciones.
                 </p>
                 <form onSubmit={handleStep2} className="space-y-4">

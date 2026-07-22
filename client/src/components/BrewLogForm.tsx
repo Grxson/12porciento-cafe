@@ -294,7 +294,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
         {/* Rating */}
         <div className="mb-5">
-          <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-2">
+          <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-2">
             Calificación
           </label>
           <div className="grid grid-cols-5 gap-2">
@@ -315,7 +315,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
         {/* Notes */}
         <div className="mb-5">
-          <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-2">
+          <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-2">
             Notas (opcional)
           </label>
           <textarea
@@ -333,7 +333,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
         {/* Photo */}
         <div className="mb-5">
-          <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-2">
+          <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-2">
             Foto (opcional)
           </label>
           {formState.photoPreview ? (
@@ -361,7 +361,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
             </div>
           ) : (
             <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded border-2 border-dashed border-coffee-200 p-4 transition-colors hover:border-gold-500 dark:border-coffee-700">
-              <Upload className="w-4 h-4 text-coffee-500" />
+              <Upload className="w-4 h-4 text-coffee-500 dark:text-coffee-400" />
               <span className="text-xs text-coffee-600 dark:text-coffee-400">Subir foto</span>
               <input
                 type="file"
@@ -379,7 +379,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
           <button
             type="button"
             onClick={() => setShowTechnical(!showTechnical)}
-            className="flex min-h-11 w-full items-center gap-2 text-left text-xs uppercase tracking-wider text-coffee-500 transition-colors hover:text-coffee-700 dark:hover:text-coffee-300"
+            className="flex min-h-11 w-full items-center gap-2 text-left text-xs uppercase tracking-wider text-coffee-500 dark:text-coffee-400 transition-colors hover:text-coffee-700 dark:hover:text-coffee-300"
           >
             {showTechnical ? (
               <ChevronDown className="w-3.5 h-3.5" />
@@ -392,7 +392,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
             <div className="space-y-4">
               {/* Grind size */}
               <div>
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1">
                   Molido
                 </label>
                 <select
@@ -413,7 +413,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
               {/* Water temp */}
               <div>
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1">
                   Temp. agua (°C)
                 </label>
                 <input
@@ -435,7 +435,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
               {/* Brew time */}
               <div>
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1">
                   Tiempo (segundos)
                 </label>
                 <input
@@ -457,7 +457,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
               {/* Coffee weight */}
               <div>
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1">
                   Café (gramos)
                 </label>
                 <input
@@ -479,7 +479,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
               {/* Water volume */}
               <div>
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1">
                   Agua (ml)
                 </label>
                 <input
@@ -501,12 +501,14 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
               {/* Equipment */}
               <div>
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1">
                   Equipo
                 </label>
                 <div className="max-h-[300px] overflow-y-auto border border-coffee-200 dark:border-coffee-700 p-2 space-y-1.5">
                   {(!equipmentList || equipmentList.length === 0) && (
-                    <p className="text-xs text-coffee-500 italic">Sin equipo registrado</p>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 italic">
+                      Sin equipo registrado
+                    </p>
                   )}
                   {equipmentList?.map((eq) => (
                     <label
@@ -528,7 +530,7 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
 
               {/* Flavor tags */}
               <div>
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1">
                   Sabores (máx 3)
                 </label>
                 <div className="flex flex-wrap gap-1.5">

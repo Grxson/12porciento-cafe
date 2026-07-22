@@ -33,7 +33,7 @@ const ProductDrawerItem = memo(function ProductDrawerItem({
     >
       {imgError ? (
         <div className="w-16 h-16 bg-coffee-100 dark:bg-coffee-800 flex items-center justify-center shrink-0">
-          <Coffee className="w-5 h-5 text-coffee-400" />
+          <Coffee className="w-5 h-5 text-coffee-400 dark:text-coffee-500" />
         </div>
       ) : (
         <img
@@ -253,7 +253,7 @@ export default function CartDrawer() {
                   Tu carrito
                 </span>
                 {items.length > 0 && (
-                  <span className="text-xs text-coffee-500">
+                  <span className="text-xs text-coffee-500 dark:text-coffee-400">
                     ({items.length} {items.length === 1 ? 'producto' : 'productos'})
                   </span>
                 )}
@@ -262,7 +262,7 @@ export default function CartDrawer() {
                 ref={closeButtonRef}
                 onClick={closeDrawer}
                 aria-label="Cerrar carrito"
-                className="icon-button text-coffee-400 hover:text-coffee-900 dark:hover:text-cream"
+                className="icon-button text-coffee-400 dark:text-coffee-500 hover:text-coffee-900 dark:hover:text-cream"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -304,7 +304,7 @@ export default function CartDrawer() {
                   <span className="text-coffee-700 dark:text-coffee-300 font-medium">Subtotal</span>
                   <span className="font-serif text-coffee-900 dark:text-cream text-lg">
                     ${total().toLocaleString('es-MX')}{' '}
-                    <span className="text-sm text-coffee-500">MXN</span>
+                    <span className="text-sm text-coffee-500 dark:text-coffee-400">MXN</span>
                   </span>
                 </div>
                 <div className="space-y-2">

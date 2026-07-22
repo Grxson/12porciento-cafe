@@ -134,7 +134,7 @@ export default function GiftCards() {
                           &ldquo;{card.message}&rdquo;
                         </p>
                       )}
-                      <div className="flex items-center gap-1.5 col-span-2 text-xs text-coffee-400 mt-1">
+                      <div className="flex items-center gap-1.5 col-span-2 text-xs text-coffee-400 dark:text-coffee-500 mt-1">
                         <Clock className="w-3 h-3" />
                         <span>{new Date(card.createdAt).toLocaleDateString('es-MX')}</span>
                         {card.expiresAt && (

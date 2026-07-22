@@ -139,9 +139,9 @@ export default function SubscriptionBilling({ subscriptionId }: Props) {
                   <div>
                     <p className="text-sm font-medium text-coffee-900 dark:text-cream">
                       ${payment.amount.toFixed(2)}{' '}
-                      <span className="text-xs text-coffee-500 font-normal">MXN</span>
+                      <span className="text-xs text-coffee-500 dark:text-coffee-400 font-normal">MXN</span>
                     </p>
-                    <p className="text-xs text-coffee-500 mt-0.5">
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-0.5">
                       {new Date(payment.billingDate).toLocaleDateString('es-MX', {
                         day: 'numeric',
                         month: 'short',

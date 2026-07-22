@@ -184,7 +184,7 @@ export default function Home() {
           transition={{ delay: 2 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
-          <span className="text-coffee-500 text-xs tracking-widest uppercase">Descubre</span>
+          <span className="text-coffee-500 dark:text-coffee-400 text-xs tracking-widest uppercase">Descubre</span>
           <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
             <ChevronDown className="w-5 h-5 text-gold-500/60" />
           </motion.div>
@@ -490,7 +490,7 @@ export default function Home() {
               </button>
             </div>
           ) : featured.length === 0 ? (
-            <p className="text-center text-coffee-500 py-8">No hay productos disponibles</p>
+            <p className="text-center text-coffee-500 dark:text-coffee-400 py-8">No hay productos disponibles</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featured.map((product, i) => (
@@ -664,7 +664,7 @@ export default function Home() {
                   >
                     {day}
                   </p>
-                  <p className="text-coffee-500 text-xs mt-1">8:00 – 14:00</p>
+                  <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">8:00 – 14:00</p>
                 </div>
               );
             })}

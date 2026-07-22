@@ -411,8 +411,7 @@ export default function Checkout() {
           <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">
             Carrito vacío
           </h2>
-          <p className="text-coffee-500 max-w-xs leading-relaxed text-sm">
-            Agrega productos a tu carrito antes de proceder al pago.
+          <p className="text-coffee-500 dark:text-coffee-400 max-w-xs leading-relaxed text-sm">
           </p>
         </div>
         <Link to="/tienda" className="btn-primary">
@@ -816,7 +815,7 @@ export default function Checkout() {
                                     </span>
                                   )}
                                 </p>
-                                <p className="text-coffee-500 text-xs">
+                                <p className="text-coffee-500 dark:text-coffee-400 text-xs">
                                   Vence {String(m.expMonth).padStart(2, '0')}/{m.expYear}
                                 </p>
                               </div>
@@ -907,7 +906,7 @@ export default function Checkout() {
                                 <p className="text-coffee-900 dark:text-cream text-sm font-medium capitalize">
                                   {savedCard.brand} •••• {savedCard.last4}
                                 </p>
-                                <p className="text-coffee-500 text-xs">
+                                <p className="text-coffee-500 dark:text-coffee-400 text-xs">
                                   Vence {String(savedCard.expMonth).padStart(2, '0')}/
                                   {savedCard.expYear}
                                 </p>

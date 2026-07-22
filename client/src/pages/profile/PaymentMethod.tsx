@@ -80,7 +80,7 @@ function AddCardForm({
       <PaymentElement onReady={() => setReady(true)} options={{ layout: 'tabs' }} />
       {ready && (
         <>
-          <div className="flex items-center gap-2 text-coffee-500 text-xs">
+          <div className="flex items-center gap-2 text-coffee-500 dark:text-coffee-400 text-xs">
             <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
             Datos cifrados · Procesado por Stripe
           </div>
@@ -226,7 +226,7 @@ export default function PaymentMethod() {
     <div className="max-w-lg">
       <PageMeta title="Métodos de Pago" />
       <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-1">Método de pago</h2>
-      <p className="text-coffee-500 text-sm mb-6">
+      <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-6">
         Tu tarjeta guardada se usará en futuros pedidos. Puedes cambiarla o eliminarla en cualquier
         momento.
       </p>
@@ -244,7 +244,7 @@ export default function PaymentMethod() {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div
-                  className={`w-8 h-8 flex items-center justify-center shrink-0 ${BRAND_COLORS[pm.brand] ?? 'text-coffee-400'}`}
+                  className={`w-8 h-8 flex items-center justify-center shrink-0 ${BRAND_COLORS[pm.brand] ?? 'text-coffee-400 dark:text-coffee-500'}`}
                 >
                   <CreditCard className="w-5 h-5" />
                 </div>
@@ -259,7 +259,7 @@ export default function PaymentMethod() {
                       </span>
                     )}
                   </div>
-                  <p className="text-coffee-500 text-xs">
+                  <p className="text-coffee-500 dark:text-coffee-400 text-xs">
                     Vence {pm.expMonth.toString().padStart(2, '0')}/{pm.expYear}
                   </p>
                 </div>

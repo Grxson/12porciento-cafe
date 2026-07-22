@@ -44,7 +44,7 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
               {product.name}
             </Link>
             <div className="flex items-center gap-2 mt-1">
-              {product.region && <span className="text-coffee-500 text-xs">{product.region}</span>}
+              {product.region && <span className="text-coffee-500 dark:text-coffee-400 text-xs">{product.region}</span>}
               {product.weight && (
                 <span className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 text-xs border border-coffee-200 dark:border-coffee-700 px-1.5 py-0.5">
                   <Tag className="w-2.5 h-2.5" />
@@ -67,7 +67,7 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
             <button
               onClick={() => updateQuantity(key, quantity - 1)}
               aria-label="Reducir cantidad"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700 transition-colors cursor-pointer"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700 transition-colors cursor-pointer"
             >
               <Minus className="w-3 h-3" />
             </button>
@@ -77,7 +77,7 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
             <button
               onClick={() => updateQuantity(key, quantity + 1)}
               aria-label="Aumentar cantidad"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-coffee-500 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700 transition-colors cursor-pointer"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream hover:bg-coffee-100 dark:hover:bg-coffee-700 transition-colors cursor-pointer"
             >
               <Plus className="w-3 h-3" />
             </button>
@@ -154,7 +154,7 @@ function BundleCartItem({ item }: { item: CartItemFull & { itemType: 'bundle' } 
         </div>
 
         <div className="flex items-center justify-between mt-4">
-          <span className="text-coffee-500 text-xs">Cantidad: 1</span>
+          <span className="text-coffee-500 dark:text-coffee-400 text-xs">Cantidad: 1</span>
           <p className="font-semibold text-gold-600 text-lg">
             ${Number(bundle?.finalPrice ?? 0).toLocaleString('es-MX')}
             <span className="text-coffee-600 dark:text-coffee-400 text-xs font-normal ml-1">
@@ -183,7 +183,7 @@ export default function Cart() {
           <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">
             Carrito vacío
           </h2>
-          <p className="text-coffee-500 max-w-xs leading-relaxed text-sm">
+          <p className="text-coffee-500 dark:text-coffee-400 max-w-xs leading-relaxed text-sm">
             Aún no has agregado ningún café. Explora nuestra selección de especialidad.
           </p>
         </div>
@@ -203,7 +203,7 @@ export default function Cart() {
           <h1 className="font-serif text-4xl md:text-5xl text-coffee-900 dark:text-cream">
             Carrito
           </h1>
-          <p className="text-coffee-500 text-sm mt-2">
+          <p className="text-coffee-500 dark:text-coffee-400 text-sm mt-2">
             {count()} producto{count() !== 1 ? 's' : ''} seleccionado{count() !== 1 ? 's' : ''}
           </p>
         </div>

@@ -148,7 +148,7 @@ export default function Wishlist() {
                 </button>
                 <button
                   onClick={() => handleRemove(product.id)}
-                  className="p-2 text-coffee-400 hover:text-red-500 transition-colors"
+                  className="p-2 text-coffee-400 dark:text-coffee-500 hover:text-red-500 transition-colors"
                   title="Eliminar de lista de deseos"
                 >
                   <Trash2 className="w-4 h-4" />

@@ -179,7 +179,9 @@ export default function B2BCatalog() {
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-3xl md:text-4xl font-serif text-gold-500 mb-1">{value}</p>
-              <p className="text-xs text-coffee-500 uppercase tracking-widest">{label}</p>
+              <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">
+                {label}
+              </p>
             </div>
           ))}
         </div>
@@ -192,7 +194,7 @@ export default function B2BCatalog() {
             <h2 className="text-2xl md:text-3xl font-serif text-coffee-900 dark:text-cream">
               Catálogo B2B
             </h2>
-            <p className="text-sm text-coffee-500">
+            <p className="text-sm text-coffee-500 dark:text-coffee-400">
               {products.length} productos · {totalTiers} rangos de precio
             </p>
           </div>
@@ -216,7 +218,9 @@ export default function B2BCatalog() {
         ) : products.length === 0 ? (
           <div className="text-center py-16">
             <Package className="w-12 h-12 mx-auto text-coffee-400 mb-4" />
-            <p className="text-coffee-500">Próximamente más productos disponibles</p>
+            <p className="text-coffee-500 dark:text-coffee-400">
+              Próximamente más productos disponibles
+            </p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
@@ -239,7 +243,7 @@ export default function B2BCatalog() {
                     <h3 className="font-semibold text-coffee-900 dark:text-cream truncate">
                       {p.name}
                     </h3>
-                    <p className="text-sm text-coffee-500 truncate">
+                    <p className="text-sm text-coffee-500 dark:text-coffee-400 truncate">
                       {p.origin && `${p.origin}`}
                       {p.weight ? ` · ${p.weight}g` : ''}
                     </p>
@@ -364,7 +368,7 @@ export default function B2BCatalog() {
                     {submitted ? 'Solicitud recibida' : 'Solicitar cotización'}
                   </h2>
                   {!submitted && (
-                    <p className="text-sm text-coffee-500">
+                    <p className="text-sm text-coffee-500 dark:text-coffee-400">
                       Te enviamos precios personalizados en 24h
                     </p>
                   )}

@@ -37,7 +37,7 @@ export default function FollowButton({
       setLoading(true);
       try {
         const res = await baristaApi.getFollowStatus([targetUserId]);
-        const statusMap = res.data ?? {};
+        const statusMap = res.data?.data ?? {};
         if (!cancelled) setIsFollowing(!!statusMap[targetUserId]);
       } catch (err) {
         console.error('follow status check failed:', err);

@@ -58,7 +58,7 @@ export default function NotificationBell() {
             {notifications.length > 0 && (
               <button
                 onClick={() => setOpen(false)}
-                className="text-xs text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
+                className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-coffee-700 dark:hover:text-coffee-300 transition-colors"
               >
                 Cerrar
               </button>

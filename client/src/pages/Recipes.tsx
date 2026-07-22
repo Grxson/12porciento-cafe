@@ -250,7 +250,7 @@ export default function Recipes() {
           {/* Sidebar filters (desktop) + top filters (mobile) */}
           <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-6">
             <div>
-              <h3 className="text-xs text-coffee-500 uppercase tracking-[0.2em] mb-3 px-1">
+              <h3 className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-[0.2em] mb-3 px-1">
                 Búsqueda
               </h3>
               <input
@@ -263,7 +263,7 @@ export default function Recipes() {
             </div>
 
             <div>
-              <h3 className="text-xs text-coffee-500 uppercase tracking-[0.2em] mb-3 px-1">
+              <h3 className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-[0.2em] mb-3 px-1">
                 Dificultad
               </h3>
               <div className="space-y-1.5">
@@ -285,7 +285,7 @@ export default function Recipes() {
 
             {Object.entries(METHOD_CATEGORIES).map(([category, methods]) => (
               <div key={category}>
-                <h3 className="text-xs text-coffee-500 uppercase tracking-[0.2em] mb-3 px-1">
+                <h3 className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-[0.2em] mb-3 px-1">
                   {category}
                 </h3>
                 <div className="space-y-1.5">
@@ -387,7 +387,7 @@ export default function Recipes() {
                     Limpiar filtros
                   </button>
                 )}
-                <span className="text-xs text-coffee-500">
+                <span className="text-xs text-coffee-500 dark:text-coffee-400">
                   {recipes.length} {recipes.length === 1 ? 'receta' : 'recetas'}
                 </span>
               </div>

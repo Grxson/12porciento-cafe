@@ -60,7 +60,7 @@ export default function ResetPassword() {
                 <Link to="/login" className="btn-primary inline-block">
                   Ir a iniciar sesión ahora
                 </Link>
-                <span className="text-coffee-400 text-xs">
+                <span className="text-coffee-400 dark:text-coffee-500 text-xs">
                   Redirigiendo automáticamente en 3 segundos…
                 </span>
               </div>

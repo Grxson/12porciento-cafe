@@ -202,7 +202,7 @@ export default function Subscription() {
         {/* Lock banner when not editable */}
         {!canEdit && (
           <div className="flex items-start gap-2.5 bg-coffee-100 dark:bg-coffee-800/50 border border-coffee-200 dark:border-coffee-700 p-3 mb-5 text-xs text-coffee-600 dark:text-coffee-400">
-            <Lock className="w-3.5 h-3.5 text-coffee-500 shrink-0 mt-0.5" />
+            <Lock className="w-3.5 h-3.5 text-coffee-500 dark:text-coffee-400 shrink-0 mt-0.5" />
             {sub.fulfillmentStatus === 'PREPARANDO'
               ? 'Tu envío está en preparación — podrás cambiar tus cafés cuando llegue.'
               : sub.fulfillmentStatus === 'ENVIADO'

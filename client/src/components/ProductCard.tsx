@@ -162,7 +162,7 @@ export default memo(function ProductCard({ product, index = 0 }: ProductCardProp
           </span>
           <Link
             to={`/tienda/${product.slug}`}
-            className="flex items-center gap-1 text-xs text-coffee-500 hover:text-gold-500 transition-colors duration-200 font-medium"
+            className="flex items-center gap-1 text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 transition-colors duration-200 font-medium"
           >
             Ver más <ArrowRight className="w-3 h-3" />
           </Link>

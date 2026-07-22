@@ -160,7 +160,7 @@ export default function CoffeeTimeline({ product }: { product: TraceableProduct 
   const lineInView = useInView(lineRef, { once: true });
 
   return (
-    <div className="mt-10 pt-8 border-t border-coffee-200">
+    <div className="mt-10 pt-8 border-t border-coffee-200 dark:border-coffee-700">
       <div className="flex items-center gap-3 mb-8">
         <div className="gold-line" />
         <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">Del origen a tu taza</h3>

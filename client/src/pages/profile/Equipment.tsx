@@ -247,7 +247,7 @@ export default function Equipment() {
 
               {/* Name */}
               <div className="mb-4">
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1.5">
                   Nombre <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -261,7 +261,7 @@ export default function Equipment() {
 
               {/* Brand */}
               <div className="mb-4">
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1.5">
                   Marca
                 </label>
                 <input
@@ -274,7 +274,7 @@ export default function Equipment() {
 
               {/* Category */}
               <div className="mb-4">
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1.5">
                   Categoría
                 </label>
                 <select
@@ -292,7 +292,7 @@ export default function Equipment() {
 
               {/* Photo */}
               <div className="mb-4">
-                <label className="block text-xs text-coffee-500 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-wider mb-1.5">
                   Foto
                 </label>
                 {form.photoUrl ? (
@@ -309,7 +309,7 @@ export default function Equipment() {
                   </div>
                 ) : (
                   <label className="flex items-center justify-center gap-2 border-2 border-dashed border-coffee-200 dark:border-coffee-700 p-4 cursor-pointer hover:border-gold-500 transition-colors">
-                    <Upload className="w-4 h-4 text-coffee-500" />
+                    <Upload className="w-4 h-4 text-coffee-500 dark:text-coffee-400" />
                     <span className="text-xs text-coffee-600 dark:text-coffee-400">Subir foto</span>
                     <input
                       type="file"

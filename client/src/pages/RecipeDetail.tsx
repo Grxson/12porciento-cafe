@@ -518,7 +518,7 @@ export default function RecipeDetail() {
                             {r.comment}
                           </p>
                         )}
-                        <p className="text-coffee-500 dark:text-coffee-500 text-xs mt-1">
+                        <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
                           {new Date(r.createdAt).toLocaleDateString('es-MX', {
                             year: 'numeric',
                             month: 'long',

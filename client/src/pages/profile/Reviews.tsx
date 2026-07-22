@@ -84,7 +84,7 @@ export default function Reviews() {
                 {Array.from({ length: 5 }).map((_, j) => (
                   <Star
                     key={j}
-                    className={`w-3.5 h-3.5 ${j < review.rating ? 'fill-gold-500 text-gold-500' : 'text-coffee-700'}`}
+                    className={`w-3.5 h-3.5 ${j < review.rating ? 'fill-gold-500 text-gold-500' : 'text-coffee-700 dark:text-coffee-400'}`}
                   />
                 ))}
               </div>
@@ -98,7 +98,7 @@ export default function Reviews() {
           <p className="text-coffee-700 dark:text-coffee-300 text-sm leading-relaxed">
             "{review.comment}"
           </p>
-          <p className="text-coffee-500 text-xs mt-3">
+          <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-3">
             {new Date(review.createdAt).toLocaleDateString('es-MX', {
               day: 'numeric',
               month: 'long',

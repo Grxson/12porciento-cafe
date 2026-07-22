@@ -186,7 +186,9 @@ export default function AchievementGallery() {
           <AchievementSkeleton />
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-coffee-500 text-sm mb-3">No se pudieron cargar los logros.</p>
+            <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-3">
+              No se pudieron cargar los logros.
+            </p>
             <button
               onClick={() => {
                 setError(false);
@@ -205,8 +207,11 @@ export default function AchievementGallery() {
           </div>
         ) : achievements.length === 0 ? (
           <div className="text-center py-12">
-            <Trophy className="w-12 h-12 text-coffee-700 mx-auto mb-3" aria-hidden="true" />
-            <p className="text-coffee-500">No hay logros disponibles aún.</p>
+            <Trophy
+              className="w-12 h-12 text-coffee-700 dark:text-coffee-400 mx-auto mb-3"
+              aria-hidden="true"
+            />
+            <p className="text-coffee-500 dark:text-coffee-400">No hay logros disponibles aún.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -243,7 +248,9 @@ export default function AchievementGallery() {
                   >
                     {a.name}
                   </h3>
-                  <p className="text-coffee-500 text-xs leading-relaxed">{a.description}</p>
+                  <p className="text-coffee-500 dark:text-coffee-400 text-xs leading-relaxed">
+                    {a.description}
+                  </p>
 
                   {/* Progress bar for locked achievements */}
                   {!isUnlocked && progressData[a.slug] && (

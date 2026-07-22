@@ -119,7 +119,7 @@ export default function RewardShop() {
           <SkeletonGrid />
         ) : rewardsError ? (
           <div className="text-center py-16">
-            <Coffee className="w-12 h-12 text-coffee-500 mx-auto mb-4" />
+            <Coffee className="w-12 h-12 text-coffee-500 dark:text-coffee-400 mx-auto mb-4" />
             <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-4">
               No se pudieron cargar las recompensas.
             </p>
@@ -133,7 +133,7 @@ export default function RewardShop() {
           </div>
         ) : rewards.length === 0 ? (
           <div className="text-center py-16">
-            <Gift className="w-12 h-12 text-coffee-500 mx-auto mb-4" />
+            <Gift className="w-12 h-12 text-coffee-500 dark:text-coffee-400 mx-auto mb-4" />
             <p className="text-coffee-600 dark:text-coffee-400 text-sm">
               No hay recompensas disponibles
             </p>

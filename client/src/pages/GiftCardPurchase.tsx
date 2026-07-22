@@ -105,7 +105,7 @@ export default function GiftCardPurchase() {
                 onChange={(e) => setAmount(Number(e.target.value))}
                 className="w-full accent-gold-500"
               />
-              <div className="flex justify-between text-xs text-coffee-500 mt-1">
+              <div className="flex justify-between text-xs text-coffee-500 dark:text-coffee-400 mt-1">
                 <span>$50</span>
                 <span>$5,000</span>
               </div>
@@ -205,7 +205,7 @@ export default function GiftCardPurchase() {
             </p>
 
             <div className="border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-900/50 p-6 mb-8">
-              <p className="text-xs text-coffee-500 uppercase tracking-widest mb-2">Código</p>
+              <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Código</p>
               <p className="font-mono text-2xl font-bold text-gold-500 mb-4">{giftCode}</p>
 
               <div className="flex gap-3">
@@ -218,14 +218,14 @@ export default function GiftCardPurchase() {
               </div>
 
               {recipientEmail && (
-                <div className="flex items-center justify-center gap-2 mt-4 text-sm text-coffee-500">
+                <div className="flex items-center justify-center gap-2 mt-4 text-sm text-coffee-500 dark:text-coffee-400">
                   <Send className="w-4 h-4" />
                   <span>Enviado a {recipientEmail}</span>
                 </div>
               )}
             </div>
 
-            <p className="text-xs text-coffee-500">
+            <p className="text-xs text-coffee-500 dark:text-coffee-400">
               El destinatario puede usar este código al pagar en nuestra tienda. Válido por 1 año.
             </p>
           </div>

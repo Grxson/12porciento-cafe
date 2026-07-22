@@ -119,7 +119,7 @@ export default function Orders() {
             <div className="text-right shrink-0">
               <p className="text-gold-500 font-semibold">${order.total.toLocaleString('es-MX')}</p>
               <p
-                className={`text-xs mt-0.5 ${statusLabels[order.status]?.color ?? 'text-coffee-400'}`}
+                className={`text-xs mt-0.5 ${statusLabels[order.status]?.color ?? 'text-coffee-400 dark:text-coffee-500'}`}
               >
                 {statusLabels[order.status]?.label ?? order.status}
               </p>

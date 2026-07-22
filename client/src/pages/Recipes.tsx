@@ -233,7 +233,7 @@ export default function Recipes() {
         title="Recetas"
         description="Aprende a preparar café de especialidad en casa con guías paso a paso para V60, AeroPress y espresso."
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <Breadcrumbs crumbs={[{ label: 'Inicio', to: '/' }, { label: 'Recetas' }]} />
         <div className="text-center mb-12">
           <p className="text-xs text-gold-500 uppercase tracking-[0.3em] mb-3">
@@ -246,7 +246,7 @@ export default function Recipes() {
           </p>
         </div>
 
-        <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-8 lg:items-start">
+        <div className="lg:grid lg:grid-cols-[240px_1fr] lg:gap-8 xl:gap-10 lg:items-start">
           {/* Sidebar filters (desktop) + top filters (mobile) */}
           <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-6">
             <div>
@@ -471,7 +471,7 @@ export default function Recipes() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:gap-7">
               {recipes.map((recipe: Recipe) => {
                 const isLocked = recipe.isPremium && !hasSubscription;
                 const rating = avgRating(recipe.ratings);
@@ -493,7 +493,7 @@ export default function Recipes() {
                     {/* Image */}
                     <Link
                       to={`/recetas/${recipe.slug}`}
-                      className="relative block aspect-[4/3] md:aspect-auto md:w-[42%] md:min-h-[280px] flex-shrink-0 overflow-hidden bg-coffee-100 dark:bg-coffee-800"
+                      className="relative block aspect-[4/3] md:aspect-auto md:w-[38%] md:min-h-[280px] lg:min-h-[320px] xl:min-h-[360px] flex-shrink-0 overflow-hidden bg-coffee-100 dark:bg-coffee-800"
                       onClick={(e) => isLocked && e.preventDefault()}
                     >
                       {recipe.imageUrl ? (
@@ -574,8 +574,8 @@ export default function Recipes() {
                     </Link>
 
                     {/* Content */}
-                    <div className="flex-1 flex flex-col p-6 md:p-8">
-                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <div className="flex-1 flex flex-col p-6 md:p-8 lg:p-9 xl:p-10">
+                      <div className="flex items-center gap-2 mb-3 lg:mb-4 flex-wrap">
                         {recipe.isPremium && (
                           <span className="md:hidden px-2 py-0.5 bg-gold-500 text-coffee-950 text-[10px] font-bold uppercase tracking-wider">
                             Premium
@@ -605,7 +605,7 @@ export default function Recipes() {
 
                       <Link
                         to={`/recetas/${recipe.slug}`}
-                        className={`block font-serif text-2xl md:text-3xl leading-tight mb-3 ${
+                        className={`block font-serif text-2xl md:text-3xl lg:text-4xl leading-tight mb-3 lg:mb-4 ${
                           isLocked
                             ? 'text-coffee-700 dark:text-coffee-400 pointer-events-none'
                             : 'text-coffee-900 dark:text-cream hover:text-gold-600 dark:hover:text-gold-400 transition-colors'
@@ -615,13 +615,13 @@ export default function Recipes() {
                       </Link>
 
                       {recipe.description && (
-                        <p className="text-sm md:text-base text-coffee-600 dark:text-coffee-400 line-clamp-3 mb-5 leading-relaxed">
+                        <p className="text-sm md:text-base lg:text-lg text-coffee-600 dark:text-coffee-400 line-clamp-3 mb-5 lg:mb-6 leading-relaxed max-w-2xl">
                           {recipe.description}
                         </p>
                       )}
 
                       {/* Meta row */}
-                      <div className="flex items-center flex-wrap gap-x-5 gap-y-2 text-sm text-coffee-600 dark:text-coffee-400 mt-auto pt-4 border-t border-coffee-200/60 dark:border-coffee-800/60">
+                      <div className="flex items-center flex-wrap gap-x-5 lg:gap-x-8 gap-y-2 text-sm lg:text-base text-coffee-600 dark:text-coffee-400 mt-auto pt-4 lg:pt-5 border-t border-coffee-200/60 dark:border-coffee-800/60">
                         {recipe.prepTime ? (
                           <span className="flex items-center gap-1.5">
                             <Clock className="w-4 h-4" />
@@ -647,10 +647,10 @@ export default function Recipes() {
                       </div>
 
                       {/* Action buttons row */}
-                      <div className="flex items-center gap-2 mt-5">
+                      <div className="flex items-center gap-2 lg:gap-3 mt-5 lg:mt-6">
                         <Link
                           to={`/recetas/${recipe.slug}`}
-                          className="flex-1 sm:flex-none sm:min-w-[180px] min-h-11 inline-flex items-center justify-center gap-2 bg-coffee-900 dark:bg-cream text-cream dark:text-coffee-900 text-xs font-bold uppercase tracking-wider hover:bg-coffee-800 dark:hover:bg-white transition-colors px-6"
+                          className="flex-1 sm:flex-none sm:min-w-[180px] lg:min-w-[220px] min-h-11 lg:min-h-12 inline-flex items-center justify-center gap-2 bg-coffee-900 dark:bg-cream text-cream dark:text-coffee-900 text-xs lg:text-sm font-bold uppercase tracking-wider hover:bg-coffee-800 dark:hover:bg-white transition-colors px-6 lg:px-8"
                         >
                           {isLocked ? 'Vista previa' : 'Ver receta completa'}
                           <ChevronRight className="w-3.5 h-3.5" />
@@ -661,7 +661,7 @@ export default function Recipes() {
                               e.stopPropagation();
                               downloadRecipePDF(recipe);
                             }}
-                            className="min-h-11 min-w-11 inline-flex items-center justify-center bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 hover:bg-gold-500 hover:text-coffee-950 transition-colors"
+                            className="min-h-11 min-w-11 lg:min-h-12 lg:min-w-12 inline-flex items-center justify-center bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 hover:bg-gold-500 hover:text-coffee-950 transition-colors"
                             title="Descargar PDF"
                             aria-label="Descargar PDF"
                           >
@@ -674,7 +674,7 @@ export default function Recipes() {
                               e.stopPropagation();
                               setLiveRecipeId(recipe.id);
                             }}
-                            className="min-h-11 min-w-11 inline-flex items-center justify-center bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 hover:bg-gold-500 hover:text-coffee-950 transition-colors"
+                            className="min-h-11 min-w-11 lg:min-h-12 lg:min-w-12 inline-flex items-center justify-center bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 hover:bg-gold-500 hover:text-coffee-950 transition-colors"
                             title="Modo en vivo"
                             aria-label="Modo en vivo"
                           >

@@ -217,7 +217,7 @@ export default function B2BCatalog() {
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-16">
-            <Package className="w-12 h-12 mx-auto text-coffee-400 mb-4" />
+            <Package className="w-12 h-12 mx-auto text-coffee-400 dark:text-coffee-500 mb-4" />
             <p className="text-coffee-500 dark:text-coffee-400">
               Próximamente más productos disponibles
             </p>
@@ -258,7 +258,7 @@ export default function B2BCatalog() {
                       </p>
                     )}
                   </div>
-                  <div className="shrink-0 mr-4 text-coffee-400">
+                  <div className="shrink-0 mr-4 text-coffee-400 dark:text-coffee-500">
                     <span className="text-xs">{expanded === p.id ? '−' : '+'}</span>
                   </div>
                 </button>

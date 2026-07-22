@@ -352,7 +352,7 @@ export default function Shop() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         {/* Search */}
         <div className="relative mb-6 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 dark:text-coffee-500 pointer-events-none" />
           <input
             value={searchInput}
             onChange={handleSearchChange}
@@ -366,7 +366,7 @@ export default function Shop() {
                 setParam('q', '');
                 setPage(1);
               }}
-              className="absolute right-0 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center text-coffee-400 hover:text-coffee-700"
+              className="absolute right-0 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center text-coffee-400 dark:text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300"
               aria-label="Limpiar búsqueda"
             >
               <X className="w-3.5 h-3.5" />
@@ -556,7 +556,7 @@ export default function Shop() {
                       Notas de Cata
                     </span>
                     <div className="relative mb-2 max-w-xs">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-coffee-400 pointer-events-none" />
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-coffee-400 dark:text-coffee-500 pointer-events-none" />
                       <input
                         value={flavorSearch}
                         onChange={(e) => setFlavorSearch(e.target.value)}
@@ -566,7 +566,7 @@ export default function Shop() {
                       {flavorSearch && (
                         <button
                           onClick={() => setFlavorSearch('')}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-700"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-coffee-400 dark:text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -598,7 +598,7 @@ export default function Shop() {
                 {hasFilters && (
                   <button
                     onClick={resetFilters}
-                    className="flex items-center gap-1 text-xs text-coffee-400 hover:text-red-500 transition-colors cursor-pointer ml-auto"
+                    className="flex items-center gap-1 text-xs text-coffee-400 dark:text-coffee-500 hover:text-red-500 transition-colors cursor-pointer ml-auto"
                   >
                     <X className="w-3 h-3" /> Limpiar filtros
                   </button>
@@ -621,7 +621,7 @@ export default function Shop() {
               <option value="price_asc">Precio: menor a mayor</option>
               <option value="price_desc">Precio: mayor a menor</option>
             </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-coffee-400 pointer-events-none" />
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-coffee-400 dark:text-coffee-500 pointer-events-none" />
           </div>
         </div>
 
@@ -660,7 +660,7 @@ export default function Shop() {
               <option value="price_asc">Precio: menor a mayor</option>
               <option value="price_desc">Precio: mayor a menor</option>
             </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-coffee-400 pointer-events-none" />
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-coffee-400 dark:text-coffee-500 pointer-events-none" />
           </div>
         </div>
 
@@ -725,7 +725,7 @@ export default function Shop() {
                   <MobileFilterGroup title="Catálogo" active={category !== 'TODOS'} defaultOpen>
                     {/* Category */}
                     <div className="space-y-2">
-                      <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                      <span className="text-xs text-coffee-400 dark:text-coffee-500 uppercase tracking-widest block">
                         Categoría
                       </span>
                       <div className="flex flex-wrap gap-1.5">
@@ -762,7 +762,7 @@ export default function Shop() {
                     {/* Process — only relevant for café */}
                     {isCafe && (
                       <div className="space-y-2">
-                        <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                        <span className="text-xs text-coffee-400 dark:text-coffee-500 uppercase tracking-widest block">
                           Proceso
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -790,7 +790,7 @@ export default function Shop() {
                     {/* Body — only relevant for café */}
                     {category === 'CAFÉ' && (
                       <div className="space-y-2">
-                        <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                        <span className="text-xs text-coffee-400 dark:text-coffee-500 uppercase tracking-widest block">
                           Cuerpo
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -817,7 +817,7 @@ export default function Shop() {
                     {/* Acidity — only relevant for café */}
                     {category === 'CAFÉ' && (
                       <div className="space-y-2">
-                        <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                        <span className="text-xs text-coffee-400 dark:text-coffee-500 uppercase tracking-widest block">
                           Acidez
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -844,7 +844,7 @@ export default function Shop() {
                     {/* Brew method — only relevant for café */}
                     {category === 'CAFÉ' && (
                       <div className="space-y-2">
-                        <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                        <span className="text-xs text-coffee-400 dark:text-coffee-500 uppercase tracking-widest block">
                           Método
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -873,7 +873,7 @@ export default function Shop() {
 
                     {category === 'CAFÉ' && availableCertifications.length > 0 && (
                       <div className="space-y-2">
-                        <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                        <span className="text-xs text-coffee-400 dark:text-coffee-500 uppercase tracking-widest block">
                           Certificación
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -899,7 +899,7 @@ export default function Shop() {
                     {/* Roast — only relevant for café */}
                     {isCafe && (
                       <div className="space-y-2">
-                        <span className="text-xs text-coffee-400 uppercase tracking-widest block">
+                        <span className="text-xs text-coffee-400 dark:text-coffee-500 uppercase tracking-widest block">
                           Tueste
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -929,7 +929,7 @@ export default function Shop() {
                     <MobileFilterGroup title="Notas de cata" active={selectedFlavors.length > 0}>
                       <div className="space-y-2">
                         <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 pointer-events-none" />
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 dark:text-coffee-500 pointer-events-none" />
                           <input
                             value={flavorSearch}
                             onChange={(e) => setFlavorSearch(e.target.value)}
@@ -939,7 +939,7 @@ export default function Shop() {
                           {flavorSearch && (
                             <button
                               onClick={() => setFlavorSearch('')}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-coffee-400 hover:text-coffee-700"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-coffee-400 dark:text-coffee-500 hover:text-coffee-700 dark:hover:text-coffee-300"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -992,7 +992,7 @@ export default function Shop() {
         ) : error ? (
           <div className="text-center py-24">
             <WifiOff className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
-            <p className="font-serif text-2xl text-coffee-400 mb-2">
+            <p className="font-serif text-2xl text-coffee-400 dark:text-coffee-300 mb-2">
               {!navigator.onLine ? 'Sin conexión' : 'Error al cargar'}
             </p>
             <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-8">
@@ -1007,7 +1007,7 @@ export default function Shop() {
         ) : products.length === 0 ? (
           <div className="text-center py-24">
             <SearchX className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
-            <p className="font-serif text-2xl text-coffee-400 mb-2">Sin resultados</p>
+            <p className="font-serif text-2xl text-coffee-400 dark:text-coffee-300 mb-2">Sin resultados</p>
             <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-2">No hay productos con esos filtros.</p>
             <p className="text-coffee-400 dark:text-coffee-500 text-xs mb-8">
               Intenta cambiar categoría, proceso o buscar otro término.

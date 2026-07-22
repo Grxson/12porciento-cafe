@@ -39,7 +39,10 @@ export type EventName =
   | 'new_reply'
   | 'subscription_created'
   | 'subscription_cancelled'
-  | 'low_stock';
+  | 'low_stock'
+  | 'FOLLOW'
+  | 'LIKE_BREW'
+  | 'ACHIEVEMENT_UNLOCK';
 
 export interface SocketEvent {
   event: EventName;
@@ -93,9 +96,7 @@ export async function emitEvent(event: SocketEvent): Promise<void> {
   }
 
   // Push notification dispatch (non-blocking, fire-and-forget)
-  dispatchPushNotifications(event).catch((err) =>
-    console.error('[PUSH] dispatch error:', err),
-  );
+  dispatchPushNotifications(event).catch((err) => console.error('[PUSH] dispatch error:', err));
 }
 
 async function dispatchPushNotifications(event: SocketEvent): Promise<void> {
@@ -108,12 +109,20 @@ async function dispatchPushNotifications(event: SocketEvent): Promise<void> {
   // For admin events, load preference map to filter by event type
   let prefMap: Map<string, boolean> | null = null;
   if (!event.targetUserId) {
-    const adminIds = [...new Set(subs.filter((s: { userId: string | null }) => s.userId).map((s: { userId: string | null }) => s.userId!))];
+    const adminIds = [
+      ...new Set(
+        subs
+          .filter((s: { userId: string | null }) => s.userId)
+          .map((s: { userId: string | null }) => s.userId!),
+      ),
+    ];
     if (adminIds.length > 0) {
       const prefs = await prisma.adminNotificationPreference.findMany({
         where: { adminId: { in: adminIds }, eventType: event.event },
       });
-      prefMap = new Map(prefs.map((p: { adminId: string; enabled: boolean }) => [p.adminId, p.enabled]));
+      prefMap = new Map(
+        prefs.map((p: { adminId: string; enabled: boolean }) => [p.adminId, p.enabled]),
+      );
     }
   }
 

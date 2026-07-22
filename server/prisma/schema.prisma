@@ -385,6 +385,8 @@ model User {
   brewLogLikes                  BrewLogLike[]
   followers                     Follow[]           @relation("Following")
   following                     Follow[]           @relation("FollowedBy")
+  notifications                Notification[]
+  notificationPreferences      UserNotificationPreference[]
 }
 
 model BaristaProfile {
@@ -860,4 +862,38 @@ model RewardClaim {
   @@unique([rewardId, userId])
   @@index([userId])
   @@index([code])
+}
+
+// Notification — user-to-user activity notifications (follow, like, achievement)
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // recipient
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // FOLLOW | LIKE_BREW | ACHIEVEMENT_UNLOCK
+  actorId   String?  // who triggered it (optional for system notifications)
+  actorName String? // cached name of the actor for quick display
+  title     String
+  message   String
+  data      Json?   // extra payload: { brewId, achievementSlug, etc. }
+  read      Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model UserNotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // FOLLOW | LIKE_BREW | ACHIEVEMENT_UNLOCK
+  enabled   Boolean  @default(true)
+  pushEnabled Boolean @default(true) // web-push specifically
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("user_notification_preferences")
 }

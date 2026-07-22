@@ -20,15 +20,17 @@ function loadPersistedState(): State {
     if (!raw) return { notifications: [], unreadCount: 0 };
     const parsed = JSON.parse(raw);
     // Rehydrate timestamp strings into Date objects
-    const notifications: Notification[] = (parsed.notifications ?? []).map((n: Record<string, unknown>) => ({
-      id: String(n.id),
-      event: String(n.event),
-      title: String(n.title),
-      message: String(n.message),
-      data: n.data as Record<string, unknown> | undefined,
-      timestamp: new Date(n.timestamp as string | number | Date),
-      read: Boolean(n.read),
-    }));
+    const notifications: Notification[] = (parsed.notifications ?? []).map(
+      (n: Record<string, unknown>) => ({
+        id: String(n.id),
+        event: String(n.event),
+        title: String(n.title),
+        message: String(n.message),
+        data: n.data as Record<string, unknown> | undefined,
+        timestamp: new Date(n.timestamp as string | number | Date),
+        read: Boolean(n.read),
+      }),
+    );
     const unread = notifications.filter((n) => !n.read).length;
     return { notifications, unreadCount: unread };
   } catch {
@@ -39,7 +41,9 @@ function loadPersistedState(): State {
 function persistState(state: State): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch { /* storage full or unavailable */ }
+  } catch {
+    /* storage full or unavailable */
+  }
 }
 
 interface State {
@@ -48,9 +52,7 @@ interface State {
 }
 
 type Action =
-  | { type: 'ADD'; notification: Notification }
-  | { type: 'MARK_ALL_READ' }
-  | { type: 'CLEAR' };
+  { type: 'ADD'; notification: Notification } | { type: 'MARK_ALL_READ' } | { type: 'CLEAR' };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -94,6 +96,9 @@ const SOCKET_EVENTS = [
   'subscription_created',
   'subscription_cancelled',
   'low_stock',
+  'FOLLOW',
+  'LIKE_BREW',
+  'ACHIEVEMENT_UNLOCK',
 ] as const;
 
 const EVENT_TOAST_TYPE: Record<string, 'success' | 'error' | 'info' | 'warning'> = {
@@ -105,6 +110,9 @@ const EVENT_TOAST_TYPE: Record<string, 'success' | 'error' | 'info' | 'warning'>
   new_reply: 'info',
   subscription_created: 'success',
   subscription_cancelled: 'warning',
+  FOLLOW: 'info',
+  LIKE_BREW: 'success',
+  ACHIEVEMENT_UNLOCK: 'success',
 };
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
@@ -130,7 +138,12 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     const socket = getSocket();
 
-    const handleEvent = (payload: { event: string; title: string; message: string; data?: Record<string, unknown> }) => {
+    const handleEvent = (payload: {
+      event: string;
+      title: string;
+      message: string;
+      data?: Record<string, unknown>;
+    }) => {
       const toastType = EVENT_TOAST_TYPE[payload.event] ?? 'info';
       addToast(payload.title, toastType);
       dispatch({

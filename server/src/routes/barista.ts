@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
+import { notifyFollow, notifyLikeBrew, notifyAchievementUnlock } from '../lib/notifications';
 
 const router = Router();
 
@@ -171,6 +172,11 @@ async function checkAndUnlockAchievements(
       icon: achievement.icon,
       xpReward: achievement.xpReward,
     });
+
+    // Send achievement notification (non-blocking)
+    notifyAchievementUnlock(userId, achievement.name, achievement.icon).catch((err) =>
+      console.error('[notifyAchievementUnlock]', err),
+    );
   }
 
   if (bonusXp > 0) {
@@ -654,7 +660,9 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
 
     const flavorRadarUser = computeRadar(brews);
     // Community radar: aggregate in DB instead of fetching all brew logs
-    const communityRaw = await prisma.$queryRaw<Array<{ tag: string; total_rating: number; tag_count: bigint }>>`
+    const communityRaw = await prisma.$queryRaw<
+      Array<{ tag: string; total_rating: number; tag_count: bigint }>
+    >`
       SELECT
         tag,
         SUM(b.rating)::float AS total_rating,
@@ -1015,8 +1023,6 @@ router.get('/titles', requireUserAuth, async (req: UserAuthRequest, res: Respons
   }
 });
 
-
-
 // GET /barista/rewards — list active rewards with user claim status
 router.get('/rewards', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
@@ -1173,6 +1179,17 @@ router.post('/follow/:userId', requireUserAuth, async (req: UserAuthRequest, res
     }
 
     await prisma.follow.create({ data: { followerId, followingId } });
+
+    // Send follow notification (non-blocking)
+    const follower = await prisma.user.findUnique({
+      where: { id: followerId },
+      select: { name: true },
+    });
+    if (follower) {
+      notifyFollow(followingId, followerId, follower.name).catch((err) =>
+        console.error('[notifyFollow]', err),
+      );
+    }
 
     res.status(201).json({ data: { followerId, followingId } });
   } catch (err) {
@@ -1389,6 +1406,18 @@ router.post('/brews/:brewId/like', requireUserAuth, async (req: UserAuthRequest,
     }
 
     const like = await prisma.brewLogLike.create({ data: { userId, brewLogId: brewId } });
+
+    // Send like notification (non-blocking)
+    const liker = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+    if (liker && brew.userId !== userId) {
+      const recipe = await prisma.recipe.findUnique({
+        where: { id: brew.recipeId },
+        select: { title: true },
+      });
+      notifyLikeBrew(brew.userId, userId, liker.name, brewId, recipe?.title || 'tu brew').catch(
+        (err) => console.error('[notifyLikeBrew]', err),
+      );
+    }
 
     res.status(201).json({ data: like });
   } catch (err) {

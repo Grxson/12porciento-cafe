@@ -156,7 +156,7 @@ export default function ProfileSettings() {
                 <button
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, avatarUrl: '' }))}
-                  className="text-xs text-coffee-500 hover:text-red-400 transition-colors mt-1 block"
+                  className="text-xs text-coffee-500 hover:text-red-400 transition-colors mt-1 block min-h-11"
                 >
                   Quitar foto
                 </button>
@@ -294,6 +294,8 @@ export default function ProfileSettings() {
             value={form.phone}
             onChange={handleChange}
             type="tel"
+            inputMode="tel"
+            autoComplete="tel"
             className="w-full bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-3 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
             placeholder="55 1234 5678"
           />

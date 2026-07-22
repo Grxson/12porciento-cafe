@@ -65,7 +65,11 @@ export default function InstallPrompt() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 80, opacity: 0 }}
         className="fixed left-3 right-3 z-[60] bg-white dark:bg-coffee-900 border border-gold-500/40 shadow-2xl p-4 flex items-center gap-3"
-        style={{ bottom: 'calc(var(--app-bottom-nav-height) + var(--app-safe-bottom))' }}
+        style={{
+          bottom: 'calc(var(--app-bottom-nav-height) + var(--app-safe-bottom))',
+          paddingLeft: 'max(0.75rem, var(--app-safe-left))',
+          paddingRight: 'max(0.75rem, var(--app-safe-right))',
+        }}
       >
         <div className="w-10 h-10 bg-gold-500 flex items-center justify-center shrink-0">
           <span className="font-serif font-bold text-coffee-950 text-sm">12%</span>

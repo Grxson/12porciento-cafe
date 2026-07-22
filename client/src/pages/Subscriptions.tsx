@@ -613,7 +613,7 @@ export default function Subscriptions() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <button
                 onClick={() => goToStep(1)}
-                className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
+                className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 min-h-11 transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" /> Cambiar plan
               </button>

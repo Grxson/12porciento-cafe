@@ -12,9 +12,9 @@ interface FollowButtonProps {
 }
 
 const sizeStyles = {
-  sm: { button: 'px-3 py-1 text-xs gap-1', icon: 'w-3.5 h-3.5' },
-  md: { button: 'px-4 py-1.5 text-sm gap-1.5', icon: 'w-4 h-4' },
-  lg: { button: 'px-5 py-2 text-base gap-2', icon: 'w-5 h-5' },
+  sm: { button: 'px-3 py-2.5 text-xs gap-1 min-h-11', icon: 'w-3.5 h-3.5' },
+  md: { button: 'px-4 py-1.5 text-sm gap-1.5 min-h-11', icon: 'w-4 h-4' },
+  lg: { button: 'px-5 py-2 text-base gap-2 min-h-11', icon: 'w-5 h-5' },
 };
 
 export default function FollowButton({

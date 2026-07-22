@@ -180,7 +180,7 @@ export default function Equipment() {
         <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">Mi Equipo</h2>
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 bg-gold-500 hover:bg-gold-400 text-coffee-950 px-3 py-2 text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-gold-500 hover:bg-gold-400 text-coffee-950 px-3 py-2 min-h-11 text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           Añadir equipo

@@ -68,6 +68,7 @@ export default function OfflineBanner() {
           ? 'bg-green-900/20 dark:bg-green-900/20 border-green-500/30 text-green-700 dark:text-green-300'
           : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400/40 dark:border-yellow-500/30 text-yellow-800 dark:text-yellow-300'
       }`}
+      style={{ right: 'max(0.75rem, var(--app-safe-right))' }}
     >
       <span className="flex flex-col gap-0.5">
         {syncing ? (

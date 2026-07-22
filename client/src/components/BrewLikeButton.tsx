@@ -13,8 +13,8 @@ interface BrewLikeButtonProps {
 }
 
 const sizeStyles = {
-  sm: { text: 'text-xs', gap: 'gap-1', icon: 'w-3.5 h-3.5' },
-  md: { text: 'text-sm', gap: 'gap-1.5', icon: 'w-4 h-4' },
+  sm: { text: 'text-xs', gap: 'gap-1', icon: 'w-3.5 h-3.5', pad: 'min-h-11 min-w-11 p-2' },
+  md: { text: 'text-sm', gap: 'gap-1.5', icon: 'w-4 h-4', pad: 'min-h-11 min-w-11 p-2' },
 };
 
 export default function BrewLikeButton({
@@ -80,7 +80,7 @@ export default function BrewLikeButton({
       disabled={loading}
       whileTap={{ scale: 0.9 }}
       transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-      className={`inline-flex items-center ${sz.gap} ${sz.text} font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-coffee-900 rounded-md px-1 py-0.5 ${
+      className={`inline-flex items-center ${sz.gap} ${sz.text} ${sz.pad} font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-coffee-900 rounded-md ${
         liked
           ? 'text-red-500 dark:text-red-400'
           : 'text-gray-400 dark:text-gray-500 hover:text-red-400 dark:hover:text-red-400'

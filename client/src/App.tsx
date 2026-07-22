@@ -1,14 +1,29 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation, useNavigationType } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
 import { NotificationsProvider } from './context/NotificationsContext';
+import { ThemeSync, useClientTheme } from './context/ThemeContext';
+import { useToast } from './context/ToastContext';
 import ErrorBoundary from './components/ErrorBoundary';
-import { useUpdateNotification } from './hooks/useUpdateNotification';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Shop from './pages/Shop';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ToastContainer from './components/Toast';
+import BottomNav from './components/BottomNav';
+import InstallPrompt from './components/InstallPrompt';
+import OfflineBanner from './components/OfflineBanner';
+import OfflineIndicator from './components/OfflineIndicator';
+import PageSkeleton from './components/PageSkeleton';
 import UpdateNotificationModal from './components/UpdateNotificationModal';
 import MonthlyWrapTrigger from './components/MonthlyWrapTrigger';
-import { useToast } from './context/ToastContext';
+import { useUpdateNotification } from './hooks/useUpdateNotification';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpToLine } from 'lucide-react';
 
@@ -40,22 +55,6 @@ function ScrollToTop() {
 
   return null;
 }
-import { Helmet } from 'react-helmet-async';
-import { ThemeSync, useClientTheme } from './context/ThemeContext';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Shop from './pages/Shop';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ToastContainer from './components/Toast';
-import BottomNav from './components/BottomNav';
-import InstallPrompt from './components/InstallPrompt';
-import OfflineBanner from './components/OfflineBanner';
-import OfflineIndicator from './components/OfflineIndicator';
-import PageSkeleton from './components/PageSkeleton';
 
 const Subscriptions = lazy(() => import('./pages/Subscriptions'));
 const About = lazy(() => import('./pages/About'));

@@ -152,7 +152,7 @@ export default function CoffeeTracker() {
               <YAxis
                 type="category"
                 dataKey="name"
-                width={160}
+                width={88}
                 tick={{ fill: chartColors.text, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}

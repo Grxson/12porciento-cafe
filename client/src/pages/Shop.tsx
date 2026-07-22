@@ -375,7 +375,10 @@ export default function Shop() {
         </div>
 
         {/* Category tabs */}
-        <div className="flex gap-1 mb-8 border-b border-coffee-200 dark:border-coffee-800 overflow-x-auto pb-px">
+        <div
+          className="flex gap-1 mb-8 border-b border-coffee-200 dark:border-coffee-800 overflow-x-auto pb-px"
+          style={{ paddingLeft: 'var(--app-safe-left)', paddingRight: 'var(--app-safe-right)' }}
+        >
           {categories.map((cat) => (
             <button
               key={cat.id}

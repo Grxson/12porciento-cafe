@@ -1025,7 +1025,8 @@ export default function Checkout() {
                             setPromoDiscount(0);
                             setPromoInput('');
                           }}
-                          className="text-coffee-600 dark:text-coffee-400 hover:text-red-500 transition-colors"
+                          aria-label="Quitar código promocional"
+                          className="text-coffee-600 dark:text-coffee-400 hover:text-red-500 transition-colors min-h-11 min-w-11 p-2"
                         >
                           <Check className="w-3 h-3 rotate-45" />
                         </button>

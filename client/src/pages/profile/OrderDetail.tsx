@@ -191,7 +191,7 @@ export default function OrderDetail() {
         <p className="text-red-400 mb-4">{error}</p>
         <button
           onClick={load}
-          className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 transition-colors"
+          className="text-sm text-gold-500 hover:text-gold-400 border border-gold-500/30 px-4 py-2 min-h-11 transition-colors"
         >
           Reintentar
         </button>

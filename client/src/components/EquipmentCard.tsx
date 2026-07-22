@@ -86,14 +86,14 @@ export default memo(function EquipmentCard({
         <div className="flex items-center gap-1 mt-3 pt-2 border-t border-coffee-100 dark:border-coffee-800">
           <button
             onClick={() => onEdit(equipment)}
-            className="flex items-center gap-1 text-[11px] text-coffee-500 hover:text-gold-500 transition-colors px-2 py-1"
+            className="flex items-center gap-1 text-[11px] text-coffee-500 hover:text-gold-500 transition-colors px-2 py-1 min-h-11"
           >
             <Pencil className="w-3 h-3" />
             Editar
           </button>
           <button
             onClick={() => onDelete(equipment.id)}
-            className="flex items-center gap-1 text-[11px] text-coffee-500 hover:text-red-500 transition-colors px-2 py-1"
+            className="flex items-center gap-1 text-[11px] text-coffee-500 hover:text-red-500 transition-colors px-2 py-1 min-h-11"
           >
             <Trash2 className="w-3 h-3" />
             Eliminar

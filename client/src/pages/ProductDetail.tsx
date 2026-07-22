@@ -523,6 +523,7 @@ export default function ProductDetail() {
               role="tablist"
               aria-label="Información del producto"
               className="flex snap-x snap-mandatory gap-0 overflow-x-auto border-b border-coffee-200 [scrollbar-width:none] dark:border-coffee-800 [&::-webkit-scrollbar]:hidden"
+              style={{ paddingLeft: 'var(--app-safe-left)', paddingRight: 'var(--app-safe-right)' }}
             >
               {tabs.map(({ id, label, icon: Icon, count }) => (
                 <button

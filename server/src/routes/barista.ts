@@ -667,7 +667,7 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
         tag,
         SUM(b.rating)::float AS total_rating,
         COUNT(*)::bigint AS tag_count
-      FROM brew_log, unnest(brew_log.tags) AS tag
+      FROM "BrewLog", unnest("BrewLog".tags) AS tag
       GROUP BY tag
     `;
     const communityTagSums: Record<string, { total: number; count: number }> = {};

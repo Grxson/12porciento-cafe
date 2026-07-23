@@ -540,7 +540,9 @@ export default function Subscriptions() {
                           <span className="font-serif text-3xl text-coffee-900 dark:text-cream">
                             ${plan.price}
                           </span>
-                          <span className="text-coffee-500 dark:text-coffee-300 text-xs">/ mes</span>
+                          <span className="text-coffee-500 dark:text-coffee-300 text-xs">
+                            / mes
+                          </span>
                         </div>
                       ) : (
                         <p className="font-serif text-lg text-gold-500 mb-4">A precio de lote</p>
@@ -848,7 +850,9 @@ export default function Subscriptions() {
                     {selectedPlan.price && (
                       <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
                         ${selectedPlan.price}{' '}
-                        <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">/ mes</span>
+                        <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">
+                          / mes
+                        </span>
                       </p>
                     )}
                   </div>
@@ -1096,7 +1100,9 @@ export default function Subscriptions() {
                 {selectedPlan.price && (
                   <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
                     ${selectedPlan.price}{' '}
-                    <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">/ mes</span>
+                    <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">
+                      / mes
+                    </span>
                   </p>
                 )}
               </div>

@@ -35,7 +35,11 @@ const FULFILLMENT_LABELS: Record<string, { label: string; color: string }> = {
   },
   PREPARANDO: { label: 'Preparando', color: 'text-blue-400 bg-blue-900/20 border-blue-500/30' },
   ENVIADO: { label: 'En camino', color: 'text-green-400 bg-green-900/20 border-green-500/30' },
-  ENTREGADO: { label: 'Entregado', color: 'text-coffee-600 bg-coffee-100 border-coffee-300 dark:text-coffee-300 dark:bg-coffee-800/40 dark:border-coffee-700' },
+  ENTREGADO: {
+    label: 'Entregado',
+    color:
+      'text-coffee-600 bg-coffee-100 border-coffee-300 dark:text-coffee-300 dark:bg-coffee-800/40 dark:border-coffee-700',
+  },
 };
 
 export default function Subscription() {

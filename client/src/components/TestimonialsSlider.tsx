@@ -60,7 +60,9 @@ export default function TestimonialsSlider() {
     <section className="bg-coffee-100 dark:bg-coffee-900/60 py-20 px-4">
       <div className="max-w-3xl mx-auto text-center">
         <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-4">Lo que dicen</p>
-        <h2 className="font-serif text-4xl text-coffee-800 dark:text-cream mb-12">Nuestros Clientes</h2>
+        <h2 className="font-serif text-4xl text-coffee-800 dark:text-cream mb-12">
+          Nuestros Clientes
+        </h2>
 
         <div className="relative min-h-[200px]">
           <AnimatePresence custom={dir}>

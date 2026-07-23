@@ -135,7 +135,9 @@ export default function CoffeeTracker() {
       <PageMeta title="Mis Cafés" />
       {topCoffeesChartData.length > 0 && (
         <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-6">
-          <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase mb-3">Cafés más brewados</p>
+          <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase mb-3">
+            Cafés más brewados
+          </p>
           <ResponsiveContainer width="100%" height={Math.max(160, topCoffeesChartData.length * 32)}>
             <BarChart
               data={topCoffeesChartData}

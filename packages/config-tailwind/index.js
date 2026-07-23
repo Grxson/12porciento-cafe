@@ -13,9 +13,9 @@ export default {
           500: '#8b4513',
           400: '#a05a2c',
           300: '#c4844a',
-          200: '#ddd5c8',  // warm beige (was #d4a574 — demasiado marrón para modo claro)
-          100: '#f0ece4',  // warm light gray (was #e8d5b7 — tan)
-          50:  '#fafaf8',  // warm white (was #f5f0e8 — crema)
+          200: '#d4a574',  // warm beige (was #ddd5c8)
+          100: '#e8d5b7',  // tan (was #f0ece4)
+          50:  '#f5f0e8',  // cream (was #fafaf8)
         },
         gold: {
           600: '#a07840',

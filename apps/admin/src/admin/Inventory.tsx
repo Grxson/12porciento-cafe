@@ -321,7 +321,7 @@ export default function Inventory() {
                       <path
                         d={describeArc(umbralPct)}
                         fill="none"
-                        stroke="#f0ece4"
+                        stroke="#e8d5b7"
                         strokeWidth={4}
                         strokeLinecap="round"
                       />

@@ -484,7 +484,7 @@ export default function Subscriptions() {
                           ? `Plan ${plans.find((p) => p.id === currentPlan)?.name ?? currentPlan} — suscripción activa`
                           : 'Ya tienes una suscripción activa'}
                       </p>
-                      <p className="text-coffee-400 dark:text-coffee-400 text-xs">
+                      <p className="text-coffee-400 text-xs">
                         Selecciona un plan diferente para hacer el cambio o mejora al siguiente
                         nivel.
                       </p>

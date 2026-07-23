@@ -57,12 +57,10 @@ export default function TestimonialsSlider() {
   const t = testimonials[idx];
 
   return (
-    <section className="bg-coffee-100 dark:bg-coffee-900/60 py-20 px-4">
+    <section className="bg-coffee-900/60 py-20 px-4">
       <div className="max-w-3xl mx-auto text-center">
         <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-4">Lo que dicen</p>
-        <h2 className="font-serif text-4xl text-coffee-800 dark:text-cream mb-12">
-          Nuestros Clientes
-        </h2>
+        <h2 className="font-serif text-4xl text-cream mb-12">Nuestros Clientes</h2>
 
         <div className="relative min-h-[200px]">
           <AnimatePresence custom={dir}>
@@ -80,11 +78,11 @@ export default function TestimonialsSlider() {
                   <Star key={i} className="w-4 h-4 fill-gold-500 text-gold-500" />
                 ))}
               </div>
-              <blockquote className="font-serif italic text-xl text-coffee-600 dark:text-coffee-300 leading-relaxed mb-6 max-w-xl">
+              <blockquote className="font-serif italic text-xl text-coffee-300 leading-relaxed mb-6 max-w-xl">
                 "{t.text}"
               </blockquote>
-              <p className="text-coffee-800 dark:text-cream font-medium text-sm">{t.name}</p>
-              <p className="text-coffee-500 dark:text-coffee-400 text-xs tracking-widest uppercase mt-1">
+              <p className="text-cream font-medium text-sm">{t.name}</p>
+              <p className="text-coffee-500 text-xs tracking-widest uppercase mt-1">
                 {t.city} · {t.plan}
               </p>
             </motion.div>

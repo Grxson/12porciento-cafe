@@ -8,38 +8,18 @@
   --app-page-inline: clamp(1rem, 4vw, 2rem);
   color-scheme: light;
 
-  /* ── Semantic theme tokens (light mode) ── */
-  --bg-page: #fafaf8; /* warm white */
-  --bg-card: #ffffff; /* pure white */
-  --bg-surface: #f0ece4; /* warm light gray */
-  --bg-input: #ffffff; /* inputs */
-  --text-primary: #1a0f0a; /* near-black */
-  --text-secondary: #5c2e1a;
-  --text-muted: #a05a2c;
-  --line: #ddd5c8; /* borders */
-  --line-heavy: #c4844a; /* strong borders */
-
   /* ── Chart tokens ── */
   --chart-bg: #ffffff;
-  --chart-grid: #e0d4c4;
-  --chart-text: #6b4e3a;
+  --chart-grid: #e8d5c4;
+  --chart-text: #8b5a2b;
   --chart-gold: #c9a96e;
   --chart-tooltip-bg: #ffffff;
-  --chart-tooltip-border: #ddd5c8;
+  --chart-tooltip-border: #e8d5c4;
   --chart-tooltip-text: #4a3728;
 }
 
 .dark {
   color-scheme: dark;
-  --bg-page: #0d0806; /* near-black */
-  --bg-card: #1a0f0a; /* very dark brown */
-  --bg-surface: #2c1810; /* dark brown */
-  --bg-input: #2c1810;
-  --text-primary: #f5f0e8; /* cream */
-  --text-secondary: #c4844a;
-  --text-muted: #8b4513;
-  --line: #3d2015;
-  --line-heavy: #5c2e1a;
 
   --chart-bg: #0d0806;
   --chart-grid: #2c1810;

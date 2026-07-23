@@ -672,15 +672,17 @@ export default function AdminLotes() {
         onConfirm={handleApprove}
         onCancel={() => setConfirmApprove(null)}
       />
-      <ConfirmDialog
-        open={!!confirmDelete}
-        title="Eliminar Lote"
-        message={`¿Eliminar definitivamente el lote ${confirmDelete?.batchNumber}?`}
-        confirmText="Eliminar"
-        isDangerous
-        onConfirm={handleDelete}
-        onCancel={() => setConfirmDelete(null)}
-      />
+      {!confirmApprove && (
+        <ConfirmDialog
+          open={!!confirmDelete}
+          title="Eliminar Lote"
+          message={`¿Eliminar definitivamente el lote ${confirmDelete?.batchNumber}?`}
+          confirmText="Eliminar"
+          isDangerous
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
     </div>
   );
 }

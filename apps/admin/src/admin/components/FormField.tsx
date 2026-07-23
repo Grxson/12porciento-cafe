@@ -51,7 +51,7 @@ export default function FormField({
         <input
           type={type}
           value={value}
-          onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)}
+          onChange={(e) => onChange(type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)}
           placeholder={placeholder}
           className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
         />

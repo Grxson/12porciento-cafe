@@ -478,9 +478,9 @@ export default function AdminBundles() {
                         className="flex items-center gap-2 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 px-3 py-2"
                       >
                         <span className="flex-1 text-xs text-coffee-700 dark:text-coffee-300 truncate">
-                          {product?.name}
+                          {product?.name ?? 'Producto no disponible'}
                           <span className="text-coffee-500 dark:text-coffee-400 ml-2">
-                            ${product?.price}
+                            ${product?.price ?? '?'}
                           </span>
                         </span>
                         <input

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { productVersionsApi } from '../../api';
 import SearchableCaficultorSelect from '../../components/SearchableCaficultorSelect';
+import { useModuleToast } from '../context/ModuleContext';
 import type { ProductVersion } from '../../types';
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function ProductVersionsSection({ productId }: Props) {
+  const { addToast } = useModuleToast();
   const [open, setOpen] = useState(false);
   const [versions, setVersions] = useState<ProductVersion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,7 @@ export default function ProductVersionsSection({ productId }: Props) {
       const r = await productVersionsApi.list(productId);
       setVersions(r.data.data || []);
     } catch {
-      console.error('Error creating version');
+      addToast('Error al crear versión', 'error');
     } finally {
       setSaving(false);
     }

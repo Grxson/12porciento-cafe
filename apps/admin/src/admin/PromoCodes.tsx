@@ -8,10 +8,8 @@ import AdminErrorState from './components/AdminErrorState';
 import { PageMeta } from '../hooks/usePageMeta';
 import { usePromoCodesQuery } from './hooks/usePromoCodesQuery';
 
-const NOW = Date.now();
-
 const daysUntil = (date: string) => {
-  const diff = new Date(date).getTime() - NOW;
+  const diff = new Date(date).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 

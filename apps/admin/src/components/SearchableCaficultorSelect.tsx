@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
 import { caficultoresApi } from '../api';
@@ -46,11 +46,11 @@ export default function SearchableCaficultorSelect({
     ? `${selected.nombre} — ${selected.region}`
     : (initialLabel ?? placeholder ?? 'Seleccionar caficultor');
 
-  const filtered = items.filter(
+  const filtered = useMemo(() => items.filter(
     (c) =>
       c.nombre.toLowerCase().includes(search.toLowerCase()) ||
       c.region.toLowerCase().includes(search.toLowerCase()),
-  );
+  ), [items, search]);
 
   return (
     <div ref={containerRef} className="relative">

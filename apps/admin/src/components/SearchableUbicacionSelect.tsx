@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
+import { ubicacionesApi } from '../api';
 import type { Ubicacion } from '../types';
 
 interface Props {
@@ -8,15 +9,6 @@ interface Props {
   onChange: (id: string) => void;
   onSelectLabel?: (label: string) => void;
   initialLabel?: string;
-}
-
-async function fetchUbicaciones(search?: string): Promise<Ubicacion[]> {
-  const params = new URLSearchParams({ pageSize: '100', isActive: 'true' });
-  if (search) params.set('search', search);
-  const res = await fetch(`/api/ubicaciones?${params}`, { credentials: 'include' });
-  if (!res.ok) throw new Error('Error al cargar ubicaciones');
-  const json = await res.json();
-  return json.data;
 }
 
 export default function SearchableUbicacionSelect({
@@ -32,8 +24,9 @@ export default function SearchableUbicacionSelect({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchUbicaciones()
-      .then(setItems)
+    ubicacionesApi
+      .list({ pageSize: '100', isActive: 'true' })
+      .then((r) => setItems(r.data.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -53,12 +46,12 @@ export default function SearchableUbicacionSelect({
     ? `${selected.nombre}${selected.estado ? `, ${selected.estado}` : ''} — ${selected.pais}`
     : (initialLabel ?? 'Seleccionar origen');
 
-  const filtered = items.filter(
+  const filtered = useMemo(() => items.filter(
     (u) =>
       u.nombre.toLowerCase().includes(search.toLowerCase()) ||
       u.pais.toLowerCase().includes(search.toLowerCase()) ||
       (u.estado && u.estado.toLowerCase().includes(search.toLowerCase())),
-  );
+  ), [items, search]);
 
   return (
     <div ref={containerRef} className="relative">

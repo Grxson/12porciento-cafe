@@ -109,7 +109,7 @@ export default function Dashboard() {
   const ordersByDayData = useMemo(() => {
     if (!stats?.ordersByDay) return [];
     return stats.ordersByDay.slice(-14).map((d) => ({
-      dia: new Date(d.date + 'T12:00:00').toLocaleDateString('es-MX', {
+      dia: new Date(d.date + 'T12:00:00Z').toLocaleDateString('es-MX', {
         weekday: 'short',
         day: 'numeric',
       }),
@@ -515,10 +515,9 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-2">
               {topBaristas.map((b, i) => (
-                <Link
+                <div
                   key={b.userId}
-                  to={`/perfil/barista/${b.userId}`}
-                  className="flex items-center justify-between py-2.5 border-b border-coffee-200 dark:border-coffee-800 last:border-0 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30 -mx-2 px-2 transition-colors"
+                  className="flex items-center justify-between py-2.5 border-b border-coffee-200 dark:border-coffee-800 last:border-0 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30 -mx-2 px-2 transition-colors cursor-default"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-coffee-500 text-xs w-5 text-right">{i + 1}</span>
@@ -533,7 +532,7 @@ export default function Dashboard() {
                     <span className="text-gold-500 text-xs font-semibold">Nv. {b.level}</span>
                     <p className="text-coffee-500 dark:text-coffee-400 text-xs">{b.totalXp} XP</p>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

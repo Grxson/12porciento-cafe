@@ -10,13 +10,15 @@ export interface ChartColors {
 }
 
 export function useChartColors(): ChartColors {
+  const isDarkInit =
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   const [colors, setColors] = useState<ChartColors>({
-    grid: '#2c1810',
-    text: '#a05a2c',
+    grid: isDarkInit ? '#2c1810' : '#e8d5c4',
+    text: isDarkInit ? '#a05a2c' : '#8b5a2b',
     gold: '#c9a96e',
-    tooltipBg: '#1a0f0a',
-    tooltipBorder: '#2c1810',
-    tooltipText: '#e8d5b7',
+    tooltipBg: isDarkInit ? '#1a0f0a' : '#ffffff',
+    tooltipBorder: isDarkInit ? '#2c1810' : '#e8d5c4',
+    tooltipText: isDarkInit ? '#e8d5b7' : '#4a3728',
   });
   useEffect(() => {
     const root = document.documentElement;

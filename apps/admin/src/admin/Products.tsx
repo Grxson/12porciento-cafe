@@ -127,7 +127,7 @@ export default function AdminProducts() {
   const openEdit = (p: Product) => {
     const certStr = p.certifications
       ? typeof p.certifications === 'string'
-        ? JSON.parse(p.certifications).join(', ')
+        ? (() => { try { return JSON.parse(p.certifications).join(', '); } catch { return p.certifications; } })()
         : (p.certifications as string[]).join(', ')
       : '';
     const whitelisted = Object.fromEntries(

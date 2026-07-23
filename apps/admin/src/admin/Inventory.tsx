@@ -117,7 +117,6 @@ export default function Inventory() {
     patchProductStock,
   } = useInventoryOverviewQuery();
   const overviewError = overviewErrorFlag ? 'Error al cargar inventario' : '';
-  const error = '';
 
   const {
     movements,
@@ -377,14 +376,9 @@ export default function Inventory() {
       {/* ── Overview tab ── */}
       {tab === 'overview' &&
         (overviewError ? (
-          <>
-            <AdminErrorState error={overviewError} onRetry={loadOverview} />
-            <AdminSkeleton rows={4} />
-          </>
+          <AdminErrorState error={overviewError} onRetry={loadOverview} />
         ) : loading ? (
           <AdminSkeleton rows={4} />
-        ) : error ? (
-          <AdminErrorState error={error} onRetry={loadOverview} />
         ) : (
           <>
             <div className="flex items-center justify-between gap-4 mb-4">

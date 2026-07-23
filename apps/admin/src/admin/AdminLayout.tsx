@@ -200,12 +200,6 @@ function AdminLayoutInner() {
 
     return () => {
       cancelled = true;
-      // Unsubscribe on cleanup (e.g. logout / route away)
-      if (registration) {
-        registration.pushManager.getSubscription().then((sub) => {
-          if (sub) sub.unsubscribe().catch(() => {});
-        });
-      }
     };
   }, []);
 

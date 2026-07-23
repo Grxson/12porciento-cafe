@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
 import { productsApi } from '../api';
@@ -26,7 +26,7 @@ export default function SearchableProductSelect({
 
   useEffect(() => {
     productsApi
-      .list()
+      .adminList()
       .then((r) => {
         setProducts(r.data.data.filter((p: Product) => p.isActive));
       })
@@ -47,13 +47,13 @@ export default function SearchableProductSelect({
   const selected = products.find((p) => p.id === value);
   const label = selected?.name ?? initialLabel ?? 'Seleccionar café';
 
-  const filtered = products.filter((p) => {
+  const filtered = useMemo(() => products.filter((p) => {
     if (excludeIds?.includes(p.id)) return false;
     return (
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.origin?.toLowerCase().includes(search.toLowerCase())
     );
-  });
+  }), [products, search, excludeIds]);
 
   return (
     <div ref={containerRef} className="relative">

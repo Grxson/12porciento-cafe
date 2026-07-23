@@ -665,7 +665,7 @@ router.get('/:userId/stats', async (req: Request, res: Response) => {
     >`
       SELECT
         tag,
-        SUM(b.rating)::float AS total_rating,
+        SUM(rating)::float AS total_rating,
         COUNT(*)::bigint AS tag_count
       FROM "BrewLog", unnest("BrewLog".tags) AS tag
       GROUP BY tag

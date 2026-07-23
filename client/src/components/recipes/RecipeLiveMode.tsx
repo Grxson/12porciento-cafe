@@ -12,6 +12,7 @@ import RatingSlider from './RatingSlider';
 import NotesCapture from './NotesCapture';
 import GestureHints from './GestureHints';
 import { playTimerBeep } from '../../utils/audio';
+import confetti from 'canvas-confetti';
 
 interface RecipeLiveModeProps {
   recipe: Recipe;
@@ -31,6 +32,98 @@ function getRelativeTime(dateString: string): string {
   if (diffMins < 60) return `hace ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}`;
   if (diffHours < 24) return `hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
   return `hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
+}
+
+/** Step progress dots indicator */
+function StepDots({ total, current }: { total: number; current: number }) {
+  return (
+    <div className="flex items-center justify-center gap-0">
+      {Array.from({ length: total }).map((_, i) => (
+        <div key={i} className="flex items-center">
+          <div
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+              i < current
+                ? 'bg-gold-500'
+                : i === current
+                  ? 'bg-gold-500 ring-2 ring-gold-500/40 scale-125'
+                  : 'bg-coffee-700'
+            }`}
+          />
+          {i < total - 1 && (
+            <div
+              className={`w-4 sm:w-6 h-0.5 transition-colors duration-300 ${
+                i < current ? 'bg-gold-500/50' : 'bg-coffee-800'
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Circular SVG countdown timer */
+function CircularTimer({
+  remaining,
+  total,
+  onCancel,
+}: {
+  remaining: number;
+  total: number;
+  onCancel: () => void;
+}) {
+  const radius = 72;
+  const circumference = 2 * Math.PI * radius;
+  const progress = remaining / total;
+  const dashOffset = circumference * (1 - progress);
+  const isLow = remaining <= 5;
+  const size = 184;
+
+  return (
+    <div className="relative inline-flex items-center justify-center select-none">
+      <svg width={size} height={size} className="transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
+        {/* Track */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#2c1810"
+          strokeWidth="6"
+        />
+        {/* Progress arc */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#c9a96e"
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          className="transition-all duration-1000 ease-linear"
+        />
+      </svg>
+      {/* Center content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span
+          className={`text-5xl font-mono font-bold transition-colors ${
+            isLow ? 'text-red-400 animate-pulse' : 'text-gold-400'
+          }`}
+        >
+          {remaining}
+        </span>
+        <span className="text-xs text-coffee-500 mt-1">segundos</span>
+        <button
+          onClick={onCancel}
+          className="mt-3 text-xs px-3 py-1 bg-red-600/30 text-red-400 hover:bg-red-600/40 transition-colors rounded"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps) {
@@ -139,8 +232,9 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       setTimerActive((t) => {
         if (t && t <= 1) {
           playTimerBeep();
+          navigator.vibrate?.(200);
           // R8: Start auto-advance countdown
-          setAutoAdvanceCountdown(3);
+          setAutoAdvanceCountdown(4);
           return null;
         }
         return t ? t - 1 : null;
@@ -232,6 +326,12 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
         photoUrl: photoUrl || undefined,
         photoBlob: photoBlob || undefined,
         clientBrewId: crypto.randomUUID(),
+      });
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.5 },
+        colors: ['#c9a96e', '#8b4513', '#d4a76a', '#f5f0e8'],
       });
       const baseXp: Record<string, number> = { FÁCIL: 10, MEDIA: 20, DIFÍCIL: 30 };
       const xp = (baseXp[recipe.difficulty ?? 'MEDIA'] ?? 20) + (avgRating - 1) * 5;
@@ -400,12 +500,11 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
             exit={{ opacity: 0, y: -20 }}
             className="max-w-2xl w-full mx-auto"
           >
-            <div className="flex justify-center mb-6">
-              <div className="px-4 py-2 bg-gold-500/10 border border-gold-500/30 rounded-full">
-                <p className="text-gold-400 text-sm font-semibold">
-                  {currentStepIndex + 1} / {recipe.steps.length}
-                </p>
-              </div>
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <StepDots total={recipe.steps.length} current={currentStepIndex} />
+              <span className="text-xs text-coffee-500">
+                {step.title} — {currentStepIndex + 1} de {recipe.steps.length}
+              </span>
             </div>
 
             <h3 className="text-3xl md:text-4xl font-serif text-cream mb-4 text-center">
@@ -451,17 +550,11 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
 
             {timerActive !== null && (
               <div className="flex justify-center mb-6">
-                <div className="inline-block px-8 py-6 bg-gold-500/10 border border-gold-500/30 rounded text-center">
-                  <p className="text-xs text-gold-400 uppercase mb-3">Temporizador</p>
-                  <p className="text-6xl font-mono font-bold text-gold-400 mb-4">{timerActive}</p>
-                  <button
-                    onClick={() => setTimerActive(null)}
-                    aria-label="Cancelar temporizador"
-                    className="text-xs px-4 py-1 bg-red-600/30 text-red-400 hover:bg-red-600/40 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                </div>
+                <CircularTimer
+                  remaining={timerActive}
+                  total={step.duration!}
+                  onCancel={() => setTimerActive(null)}
+                />
               </div>
             )}
 

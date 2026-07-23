@@ -17,11 +17,11 @@ CREATE TABLE "notifications" (
 CREATE INDEX "notifications_userId_read_idx" ON "notifications"("userId", "read");
 CREATE INDEX "notifications_userId_createdAt_idx" ON "notifications"("userId", "createdAt");
 
--- Add FK to User
+-- Add FK to User (table is "User" in Prisma)
 ALTER TABLE "notifications"
     ADD CONSTRAINT "notifications_userId_fkey"
     FOREIGN KEY ("userId")
-    REFERENCES "users"
+    REFERENCES "User"
     ON DELETE CASCADE
     ON UPDATE CASCADE;
 
@@ -41,10 +41,10 @@ CREATE TABLE "user_notification_preferences" (
 CREATE UNIQUE INDEX "user_notification_preferences_userId_type_idx" ON "user_notification_preferences"("userId", "type");
 CREATE INDEX "user_notification_preferences_userId_idx" ON "user_notification_preferences"("userId");
 
--- Add FK to User
+-- Add FK to User (table is "User" in Prisma)
 ALTER TABLE "user_notification_preferences"
     ADD CONSTRAINT "user_notification_preferences_userId_fkey"
     FOREIGN KEY ("userId")
-    REFERENCES "users"
+    REFERENCES "User"
     ON DELETE CASCADE
     ON UPDATE CASCADE;

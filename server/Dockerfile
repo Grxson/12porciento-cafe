@@ -18,7 +18,6 @@ RUN pnpm --filter=cafe-12-server exec prisma generate && \
     ls server/dist/src/
 
 ENV NODE_ENV=production
-ENV DATABASE_URL=${DATABASE_URL:-}
 
 EXPOSE 3001
 

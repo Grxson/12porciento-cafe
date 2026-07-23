@@ -46,10 +46,10 @@ export default function BaristaProfile() {
   const { dark } = useClientTheme();
 
   const chartColors = {
-    text: dark ? '#e8d5b7' : '#4a3728',
-    grid: dark ? '#3d2015' : '#e8d5c4',
+    text: dark ? '#f0ece4' : '#4a3728',
+    grid: dark ? '#3d2015' : '#ddd5c8',
     bg: dark ? '#1a0f0a' : '#ffffff',
-    border: dark ? '#2c1810' : '#e8d5c4',
+    border: dark ? '#2c1810' : '#ddd5c8',
     accent: '#c9a96e',
   };
 

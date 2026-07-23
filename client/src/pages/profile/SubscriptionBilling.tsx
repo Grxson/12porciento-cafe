@@ -40,7 +40,7 @@ const STATUS_CLASSES: Record<string, string> = {
   SUCCEEDED: 'text-green-400 bg-green-900/20 border-green-500/30',
   FAILED: 'text-red-400 bg-red-900/20 border-red-500/30',
   PENDING: 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30',
-  REFUNDED: 'text-coffee-300 bg-coffee-800/40 border-coffee-700',
+  REFUNDED: 'text-coffee-600 bg-coffee-100 border-coffee-300 dark:text-coffee-300 dark:bg-coffee-800/40 dark:border-coffee-700',
 };
 
 const FREQUENCY_LABELS: Record<string, string> = {

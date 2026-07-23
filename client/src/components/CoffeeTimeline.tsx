@@ -190,7 +190,7 @@ export default function CoffeeTimeline({ product }: { product: TraceableProduct 
                 <node.icon className="w-4 h-4 text-gold-500" />
               </div>
               {i < nodes.length - 1 && (
-                <div className="w-px flex-1 bg-coffee-200 mt-1 min-h-[16px]" />
+                <div className="w-px flex-1 bg-coffee-200 dark:bg-coffee-700 mt-1 min-h-[16px]" />
               )}
             </div>
             <div className="pt-1 min-w-0 flex-1">

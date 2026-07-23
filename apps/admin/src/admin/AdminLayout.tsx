@@ -354,14 +354,14 @@ function AdminLayoutInner() {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="text-coffee-500 text-sm hidden sm:inline">12%</span>
-            <span className="text-coffee-500 text-sm hidden sm:inline">/</span>
+            <span className="text-coffee-500 dark:text-coffee-300 text-sm hidden sm:inline">12%</span>
+            <span className="text-coffee-500 dark:text-coffee-300 text-sm hidden sm:inline">/</span>
             <h1 className="text-coffee-900 dark:text-cream text-sm font-medium truncate">
               {currentTitle}
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-coffee-500 text-xs hidden md:block">
+            <span className="text-coffee-500 dark:text-coffee-300 text-xs hidden md:block">
               {new Date().toLocaleDateString('es-MX', {
                 weekday: 'short',
                 day: 'numeric',

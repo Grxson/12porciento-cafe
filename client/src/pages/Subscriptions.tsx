@@ -397,7 +397,7 @@ export default function Subscriptions() {
             <p className="text-coffee-600 dark:text-coffee-400 text-sm leading-relaxed max-w-lg mx-auto">
               Selecciona tus cafés favoritos. Tostamos a pedido, enviamos frescos cada mes.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6 text-coffee-500 text-xs">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6 text-coffee-500 dark:text-coffee-300 text-xs">
               <div className="flex items-center gap-2">
                 <Truck className="w-3.5 h-3.5 text-gold-500" />
                 Envío incluido
@@ -422,7 +422,7 @@ export default function Subscriptions() {
             <span className="font-semibold uppercase tracking-wider text-gold-600">
               Paso {step} de 4
             </span>
-            <span className="text-coffee-500">{stepLabels[step - 1]}</span>
+            <span className="text-coffee-500 dark:text-coffee-300">{stepLabels[step - 1]}</span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-coffee-200 dark:bg-coffee-800">
             <div
@@ -484,7 +484,7 @@ export default function Subscriptions() {
                           ? `Plan ${plans.find((p) => p.id === currentPlan)?.name ?? currentPlan} — suscripción activa`
                           : 'Ya tienes una suscripción activa'}
                       </p>
-                      <p className="text-coffee-400 text-xs">
+                      <p className="text-coffee-400 dark:text-coffee-400 text-xs">
                         Selecciona un plan diferente para hacer el cambio o mejora al siguiente
                         nivel.
                       </p>
@@ -532,7 +532,7 @@ export default function Subscriptions() {
                       <h3 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">
                         {plan.name}
                       </h3>
-                      <p className="text-coffee-500 text-xs tracking-widest uppercase mb-4">
+                      <p className="text-coffee-500 dark:text-coffee-300 text-xs tracking-widest uppercase mb-4">
                         {plan.subtitle}
                       </p>
                       {plan.price ? (
@@ -540,7 +540,7 @@ export default function Subscriptions() {
                           <span className="font-serif text-3xl text-coffee-900 dark:text-cream">
                             ${plan.price}
                           </span>
-                          <span className="text-coffee-500 text-xs">/ mes</span>
+                          <span className="text-coffee-500 dark:text-coffee-300 text-xs">/ mes</span>
                         </div>
                       ) : (
                         <p className="font-serif text-lg text-gold-500 mb-4">A precio de lote</p>
@@ -613,7 +613,7 @@ export default function Subscriptions() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <button
                 onClick={() => goToStep(1)}
-                className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 min-h-11 transition-colors"
+                className="flex items-center gap-1 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 min-h-11 transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" /> Cambiar plan
               </button>
@@ -631,7 +631,7 @@ export default function Subscriptions() {
                       {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}{' '}
                       seleccionados
                     </p>
-                    <p className="text-coffee-500 text-xs">Grano entero</p>
+                    <p className="text-coffee-500 dark:text-coffee-300 text-xs">Grano entero</p>
                   </div>
                   <button
                     type="button"
@@ -681,13 +681,13 @@ export default function Subscriptions() {
                 <>
                   <button
                     onClick={() => goToStep(1)}
-                    className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
+                    className="flex items-center gap-1 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Cambiar plan
                   </button>
                   <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">
+                      <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
                         Tu plan
                       </span>
                       <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
@@ -829,13 +829,13 @@ export default function Subscriptions() {
                 <>
                   <button
                     onClick={() => goToStep(2)}
-                    className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
+                    className="flex items-center gap-1 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Cambiar cafés
                   </button>
                   <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-coffee-500 uppercase tracking-widest">
+                      <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
                         Tu suscripción
                       </span>
                       <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
@@ -848,7 +848,7 @@ export default function Subscriptions() {
                     {selectedPlan.price && (
                       <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
                         ${selectedPlan.price}{' '}
-                        <span className="text-coffee-500 text-sm font-sans">/ mes</span>
+                        <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">/ mes</span>
                       </p>
                     )}
                   </div>
@@ -1078,13 +1078,13 @@ export default function Subscriptions() {
             <div className="max-w-xl mx-auto px-4 sm:px-6 py-12">
               <button
                 onClick={() => goToStep(3)}
-                className="flex items-center gap-1 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
+                className="flex items-center gap-1 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" /> Cambiar datos
               </button>
               <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-coffee-500 uppercase tracking-widest">
+                  <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
                     Tu suscripción
                   </span>
                   <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
@@ -1096,7 +1096,7 @@ export default function Subscriptions() {
                 {selectedPlan.price && (
                   <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
                     ${selectedPlan.price}{' '}
-                    <span className="text-coffee-500 text-sm font-sans">/ mes</span>
+                    <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">/ mes</span>
                   </p>
                 )}
               </div>
@@ -1174,7 +1174,7 @@ export default function Subscriptions() {
             >
               <button
                 onClick={() => setShowB2BConfirm(false)}
-                className="icon-button absolute right-2 top-2 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream"
+                className="icon-button absolute right-2 top-2 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream"
                 aria-label="Cerrar confirmación"
               >
                 <X className="h-5 w-5" />

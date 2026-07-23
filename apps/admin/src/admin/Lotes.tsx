@@ -204,7 +204,7 @@ export default function AdminLotes() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-coffee-800 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 transition-colors text-sm"
+          className="flex items-center gap-2 bg-coffee-800 dark:bg-coffee-600 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 dark:hover:bg-coffee-500 transition-colors text-sm"
         >
           <Plus className="w-4 h-4" /> Registrar Lote
         </button>
@@ -442,7 +442,7 @@ export default function AdminLotes() {
                       <button
                         onClick={() => handleSaveQc(lote)}
                         disabled={saving}
-                        className="text-sm bg-coffee-800 text-cream px-3 py-1.5 rounded-lg hover:bg-coffee-900 disabled:opacity-50 transition-colors"
+                        className="text-sm bg-coffee-800 dark:bg-coffee-600 text-cream px-3 py-1.5 rounded-lg hover:bg-coffee-900 dark:hover:bg-coffee-500 disabled:opacity-50 transition-colors"
                       >
                         Guardar evaluación
                       </button>
@@ -617,7 +617,7 @@ export default function AdminLotes() {
               <button
                 onClick={handleCreate}
                 disabled={saving}
-                className="px-4 py-2 text-sm bg-coffee-800 text-cream rounded-lg hover:bg-coffee-900 disabled:opacity-50"
+                className="px-4 py-2 text-sm bg-coffee-800 dark:bg-coffee-600 text-cream rounded-lg hover:bg-coffee-900 dark:hover:bg-coffee-500 disabled:opacity-50"
               >
                 {saving ? 'Guardando...' : 'Registrar'}
               </button>

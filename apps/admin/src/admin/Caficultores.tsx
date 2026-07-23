@@ -151,7 +151,7 @@ export default function AdminCaficultores() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-coffee-800 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 transition-colors text-sm"
+          className="flex items-center gap-2 bg-coffee-800 dark:bg-coffee-600 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 dark:hover:bg-coffee-500 transition-colors text-sm"
         >
           <Plus className="w-4 h-4" /> Agregar Caficultor
         </button>

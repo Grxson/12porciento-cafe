@@ -62,7 +62,7 @@ export default memo(function RankBadge({
     return (
       <div className="flex flex-col items-center gap-2">
         <div
-          className={`${frameSizes[size]} ${getFrameClasses(level)} rounded-full overflow-hidden flex items-center justify-center bg-coffee-800`}
+          className={`${frameSizes[size]} ${getFrameClasses(level)} rounded-full overflow-hidden flex items-center justify-center bg-coffee-200 dark:bg-coffee-800`}
           title={title}
         >
           {avatarUrl ? (

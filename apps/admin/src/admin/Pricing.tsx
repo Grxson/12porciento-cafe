@@ -251,7 +251,7 @@ export default function AdminPricing() {
                       <button
                         onClick={() => handleSave(p)}
                         disabled={saving === p.id}
-                        className="text-sm bg-coffee-800 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 disabled:opacity-50 transition-colors"
+                        className="text-sm bg-coffee-800 dark:bg-coffee-600 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 dark:hover:bg-coffee-500 disabled:opacity-50 transition-colors"
                       >
                         {saving === p.id ? 'Guardando...' : 'Guardar configuración'}
                       </button>

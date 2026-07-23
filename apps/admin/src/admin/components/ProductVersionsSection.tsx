@@ -152,7 +152,7 @@ export default function ProductVersionsSection({ productId }: Props) {
                 type="button"
                 onClick={handleCreate}
                 disabled={saving || !newVersion.cosecha.trim()}
-                className="text-xs bg-coffee-800 text-cream px-3 py-1.5 rounded hover:bg-coffee-900 disabled:opacity-50"
+                className="text-xs bg-coffee-800 dark:bg-coffee-600 text-cream px-3 py-1.5 rounded hover:bg-coffee-900 dark:hover:bg-coffee-500 disabled:opacity-50"
               >
                 {saving ? 'Guardando...' : 'Crear versión'}
               </button>

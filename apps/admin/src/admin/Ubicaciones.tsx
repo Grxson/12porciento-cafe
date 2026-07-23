@@ -118,7 +118,7 @@ export default function AdminUbicaciones() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-coffee-800 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 transition-colors text-sm"
+          className="flex items-center gap-2 bg-coffee-800 dark:bg-coffee-600 text-cream px-4 py-2 rounded-lg hover:bg-coffee-900 dark:hover:bg-coffee-500 transition-colors text-sm"
         >
           <Plus className="w-4 h-4" /> Agregar
         </button>
@@ -139,16 +139,16 @@ export default function AdminUbicaciones() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3">
                     Nombre
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3">
                     Pais
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3">
                     Tipo
                   </th>
-                  <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3">
+                  <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3">
                     Lotes
                   </th>
                   <th className="px-4 py-3"></th>
@@ -258,7 +258,7 @@ export default function AdminUbicaciones() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 text-sm bg-coffee-800 text-cream rounded-lg hover:bg-coffee-900 disabled:opacity-50"
+                className="px-4 py-2 text-sm bg-coffee-800 dark:bg-coffee-600 text-cream rounded-lg hover:bg-coffee-900 dark:hover:bg-coffee-500 disabled:opacity-50"
               >
                 {saving ? 'Guardando...' : editing ? 'Guardar cambios' : 'Crear'}
               </button>

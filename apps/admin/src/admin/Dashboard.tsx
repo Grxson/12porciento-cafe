@@ -130,7 +130,7 @@ export default function Dashboard() {
 
   const categoryPieData = useMemo(() => {
     if (!financial?.revenueByCategory) return [];
-    const palette = ['#c9a96e', '#8b5a2b', '#d4a76a', '#6b3a1f', '#e8d5b7', '#a05a2c', '#4a3728'];
+    const palette = ['#c9a96e', '#8b5a2b', '#d4a76a', '#6b3a1f', '#f0ece4', '#a05a2c', '#4a3728'];
     return financial.revenueByCategory.map((cat, i) => ({
       name: cat.category,
       value: cat.revenue,

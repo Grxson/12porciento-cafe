@@ -192,7 +192,7 @@ export default function B2BInquiries() {
                       (h) => (
                         <th
                           key={h}
-                          className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3"
+                          className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3"
                         >
                           {h}
                         </th>

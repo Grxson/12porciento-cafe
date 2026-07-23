@@ -26,7 +26,7 @@ export default function FlavorRadarChart({ userData, communityData }: FlavorRada
   const { dark } = useClientTheme();
   const colors = {
     grid: dark ? '#3d2015' : '#8B7355',
-    text: dark ? '#e8d5b7' : '#4a3728',
+    text: dark ? '#f0ece4' : '#4a3728',
     accent: '#c9a96e',
     community: '#a05a2c',
   };
@@ -65,7 +65,7 @@ export default function FlavorRadarChart({ userData, communityData }: FlavorRada
             <Tooltip
               contentStyle={{
                 background: dark ? '#1a0f0a' : '#ffffff',
-                border: `1px solid ${dark ? '#2c1810' : '#e8d5c4'}`,
+                border: `1px solid ${dark ? '#2c1810' : '#ddd5c8'}`,
                 borderRadius: 0,
                 color: colors.text,
               }}

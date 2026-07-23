@@ -583,34 +583,34 @@ export default function AdminSubscribers() {
               <table className="w-full min-w-[700px] text-sm">
                 <thead>
                   <tr className="border-b border-coffee-200 dark:border-coffee-800">
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Nombre
                     </th>
-                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Email
                     </th>
-                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="hidden sm:table-cell text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Plan
                     </th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Molienda
                     </th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Frecuencia
                     </th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Próximo cobro
                     </th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Estado
                     </th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Entrega
                     </th>
-                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="hidden lg:table-cell text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Cafés
                     </th>
-                    <th className="text-left text-xs text-coffee-500 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
+                    <th className="text-left text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest px-4 py-3 bg-coffee-100 dark:bg-coffee-900">
                       Acciones
                     </th>
                   </tr>

@@ -16,7 +16,7 @@ export function useChartColors(): ChartColors {
     gold: '#c9a96e',
     tooltipBg: '#1a0f0a',
     tooltipBorder: '#2c1810',
-    tooltipText: '#e8d5b7',
+    tooltipText: '#f0ece4',
   });
   useEffect(() => {
     const root = document.documentElement;
@@ -24,7 +24,7 @@ export function useChartColors(): ChartColors {
     const update = () => {
       const isDark = root.classList.contains('dark');
       setColors({
-        grid: isDark ? '#2c1810' : computed.getPropertyValue('--chart-grid').trim() || '#e8d5c4',
+        grid: isDark ? '#2c1810' : computed.getPropertyValue('--chart-grid').trim() || '#ddd5c8',
         text: isDark ? '#a05a2c' : computed.getPropertyValue('--chart-text').trim() || '#8b5a2b',
         gold: '#c9a96e',
         tooltipBg: isDark
@@ -32,9 +32,9 @@ export function useChartColors(): ChartColors {
           : computed.getPropertyValue('--chart-tooltip-bg').trim() || '#ffffff',
         tooltipBorder: isDark
           ? '#2c1810'
-          : computed.getPropertyValue('--chart-tooltip-border').trim() || '#e8d5c4',
+          : computed.getPropertyValue('--chart-tooltip-border').trim() || '#ddd5c8',
         tooltipText: isDark
-          ? '#e8d5b7'
+          ? '#f0ece4'
           : computed.getPropertyValue('--chart-tooltip-text').trim() || '#4a3728',
       });
     };

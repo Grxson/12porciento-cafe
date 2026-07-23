@@ -23,7 +23,7 @@ export default function OfflineIndicator() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="fixed top-3 right-3 z-[200] flex items-center gap-2 bg-coffee-900 text-cream text-xs font-medium px-3 py-2 rounded-full shadow-lg border border-coffee-700"
+          className="fixed top-3 right-3 z-[200] flex items-center gap-2 bg-red-600 text-cream text-xs font-medium px-3 py-2 rounded-full shadow-lg border border-red-500"
         >
           <WifiOff size={14} />
           Sin conexión

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Lock, Trophy } from 'lucide-react';
+import ReiconIcon from '../components/ReiconIcon';
 import { baristaApi } from '../api';
 import type { AchievementWithUnlock } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -231,13 +232,13 @@ export default function AchievementGallery() {
                     <div className="absolute -top-px left-4 right-4 h-0.5 bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
                   )}
                   <div className="relative w-12 h-12 flex items-center justify-center mb-3">
-                    <span
-                      className={`text-3xl select-none transition-all duration-300 ${
+                    <ReiconIcon
+                      icon={a.icon}
+                      size={32}
+                      className={`select-none transition-all duration-300 ${
                         isUnlocked ? 'scale-100' : 'grayscale opacity-40 scale-90'
                       }`}
-                    >
-                      {a.icon || '🏆'}
-                    </span>
+                    />
                     {!isUnlocked && (
                       <Lock
                         aria-hidden="true"
@@ -249,13 +250,17 @@ export default function AchievementGallery() {
                     )}
                   </div>
 
-                  <span className={`text-[10px] uppercase tracking-widest px-2 py-0.5 ${rarity.color}`}>
+                  <span
+                    className={`text-[10px] uppercase tracking-widest px-2 py-0.5 ${rarity.color}`}
+                  >
                     {rarity.label}
                   </span>
 
                   <h3
                     className={`font-serif text-sm mt-2 mb-1 leading-tight ${
-                      isUnlocked ? 'text-coffee-900 dark:text-cream' : 'text-coffee-600 dark:text-coffee-400'
+                      isUnlocked
+                        ? 'text-coffee-900 dark:text-cream'
+                        : 'text-coffee-600 dark:text-coffee-400'
                     }`}
                   >
                     {a.name}

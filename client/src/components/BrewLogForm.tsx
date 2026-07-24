@@ -7,6 +7,7 @@ import { useToast } from '../context/ToastContext';
 import { uploadsApi, baristaApi } from '../api';
 import { useQuery } from '@tanstack/react-query';
 import type { Recipe, BaristaEquipment } from '../types';
+import { iconToEmoji } from '../utils/iconToEmoji';
 
 interface BrewLogFormProps {
   recipe: Recipe;
@@ -206,7 +207,8 @@ export default function BrewLogForm({ recipe, onClose, onSuccess }: BrewLogFormP
       addToast(`+${xpPreview} XP ganados ☕`, 'success');
       for (const a of newAchievements) {
         setTimeout(
-          () => addToast(`🏆 Logro: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success'),
+          () =>
+            addToast(`🏆 Logro: ${iconToEmoji(a.icon)} ${a.name} (+${a.xpReward} XP)`, 'success'),
           400,
         );
       }

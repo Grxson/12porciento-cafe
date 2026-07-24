@@ -5,6 +5,7 @@ import { PageMeta } from '../hooks/usePageMeta';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
+import AdminReiconIcon from '../components/AdminReiconIcon';
 import AdminModal from './components/AdminModal';
 import FormField from './components/FormField';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -234,7 +235,9 @@ export default function Achievements() {
                   key={a.id}
                   className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30"
                 >
-                  <td className="px-4 py-3 text-xl">{a.icon || '🏆'}</td>
+                  <td className="px-4 py-3 text-xl">
+                    <AdminReiconIcon icon={a.icon} size={24} />
+                  </td>
                   <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">
                     {a.name}
                   </td>

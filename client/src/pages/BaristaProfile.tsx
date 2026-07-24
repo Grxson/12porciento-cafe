@@ -19,6 +19,7 @@ import {
 import { useBaristaProfileQuery } from '../hooks/queries/useBaristaProfileQuery';
 import { useBaristaStatsQuery } from '../hooks/queries/useBaristaStatsQuery';
 import PushPermissionBanner from '../components/PushPermissionBanner';
+import ReiconIcon from '../components/ReiconIcon';
 import { useUser } from '../context/UserContext';
 import { useShare } from '../hooks/useShare';
 import FollowButton from '../components/FollowButton';
@@ -333,7 +334,11 @@ export default function BaristaProfile() {
                       className="bg-white dark:bg-coffee-900 border border-gold-500/30 p-3 text-center hover:border-gold-500 transition-colors"
                       title={unlock.achievement.description}
                     >
-                      <p className="text-3xl mb-1">{unlock.achievement.icon || '🏆'}</p>
+                      <ReiconIcon
+                        icon={unlock.achievement.icon}
+                        size={28}
+                        className="mb-1 block mx-auto"
+                      />
                       <p className="text-xs text-coffee-900 dark:text-cream font-semibold leading-tight">
                         {unlock.achievement.name}
                       </p>

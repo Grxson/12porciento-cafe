@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Gift, Zap, Percent, Package } from 'lucide-react';
+import ReiconIcon from './ReiconIcon';
 
 interface RewardCardProps {
   reward: {
@@ -44,7 +45,7 @@ export default function RewardCard({ reward, userXp, isClaimed, onClaim }: Rewar
       )}
 
       {/* Icon */}
-      <div className="text-3xl">{reward.icon || '🎁'}</div>
+      <ReiconIcon icon={reward.icon} size={36} className="block mx-auto" />
 
       {/* Name */}
       <h3 className="font-serif text-lg text-coffee-900 dark:text-cream leading-tight">

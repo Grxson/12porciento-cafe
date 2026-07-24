@@ -12,6 +12,7 @@ import RatingSlider from './RatingSlider';
 import NotesCapture from './NotesCapture';
 import GestureHints from './GestureHints';
 import { playTimerBeep } from '../../utils/audio';
+import { iconToEmoji } from '../../utils/iconToEmoji';
 import confetti from 'canvas-confetti';
 
 interface RecipeLiveModeProps {
@@ -81,7 +82,12 @@ function CircularTimer({
 
   return (
     <div className="relative inline-flex items-center justify-center select-none">
-      <svg width={size} height={size} className="transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
+      <svg
+        width={size}
+        height={size}
+        className="transform -rotate-90"
+        viewBox={`0 0 ${size} ${size}`}
+      >
         {/* Track */}
         <circle
           cx={size / 2}
@@ -338,7 +344,8 @@ export default function RecipeLiveMode({ recipe, onClose }: RecipeLiveModeProps)
       addToast(`+${xp} XP ganados ☕`, 'success');
       for (const a of newAchievements) {
         setTimeout(
-          () => addToast(`🏆 Logro: ${a.icon} ${a.name} (+${a.xpReward} XP)`, 'success'),
+          () =>
+            addToast(`🏆 Logro: ${iconToEmoji(a.icon)} ${a.name} (+${a.xpReward} XP)`, 'success'),
           400,
         );
       }

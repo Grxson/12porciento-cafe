@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Lock, Trophy } from 'lucide-react';
 import { baristaApi } from '../api';
+import ReiconIcon from './ReiconIcon';
 
 interface TitleItem {
   id: string;
@@ -114,9 +115,11 @@ export default function TitleSelector({ onSelect }: TitleSelectorProps) {
           }`}
         >
           <div className="flex items-start justify-between mb-2">
-            <span className={`text-2xl select-none ${t.isUnlocked ? '' : 'grayscale opacity-40'}`}>
-              {t.icon || '🏅'}
-            </span>
+            <ReiconIcon
+              icon={t.icon}
+              size={22}
+              className={`select-none ${t.isUnlocked ? '' : 'grayscale opacity-40'}`}
+            />
             {t.isActive && (
               <span className="text-[10px] uppercase tracking-wider bg-gold-500 text-cream px-1.5 py-0.5 font-medium">
                 ACTIVO

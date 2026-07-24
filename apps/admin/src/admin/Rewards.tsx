@@ -3,6 +3,7 @@ import { Gift, Edit3, Plus, Search, Power } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
+import AdminReiconIcon from '../components/AdminReiconIcon';
 import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
 import FormField from './components/FormField';
@@ -226,7 +227,9 @@ export default function Rewards() {
                   key={r.id}
                   className="border-b border-coffee-200 dark:border-coffee-800 hover:bg-coffee-200/50 dark:hover:bg-coffee-800/30"
                 >
-                  <td className="px-4 py-3 text-xl">{r.icon || '🎁'}</td>
+                  <td className="px-4 py-3 text-xl">
+                    <AdminReiconIcon icon={r.icon} size={24} />
+                  </td>
                   <td className="px-4 py-3 text-coffee-900 dark:text-cream font-medium">
                     {r.name}
                   </td>

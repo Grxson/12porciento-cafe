@@ -19,6 +19,7 @@ import subscriptionPaymentsRouter, {
   webhookRouter as subWebhookRouter,
 } from './routes/subscription-payments';
 import adminUsersRouter from './routes/admin-users';
+import adminFixIconsRouter from './routes/admin-fix-icons';
 import recipesRouter from './routes/recipes';
 import uploadsRouter from './routes/uploads';
 import baristaRouter from './routes/barista';
@@ -70,9 +71,9 @@ const PORT = process.env.PORT || 3001;
 
 app.set('trust proxy', 1);
 
-const ALLOWED_ORIGINS = (
-  process.env.CLIENT_URL || 'http://localhost:5173'
-).split(',').map(s => s.trim());
+const ALLOWED_ORIGINS = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((s) => s.trim());
 
 app.use(
   cors({
@@ -114,6 +115,7 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api/promo-codes', adminLimiter, promoCodesRouter);
 app.use('/api/subscription-payments', subscriptionPaymentsRouter);
 app.use('/api/admin-users', adminLimiter, adminUsersRouter);
+app.use('/api/admin', adminLimiter, adminFixIconsRouter);
 app.use('/api/recipes', recipesRouter);
 app.use('/api/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));
 app.use('/api/uploads', uploadsRouter);

@@ -12,7 +12,9 @@
     "db:reset": "npx prisma migrate reset --force && npx ts-node prisma/seed.ts",
     "db:bootstrap:validate": "tsx prisma/bootstrap-production.ts --validate-only",
     "db:bootstrap:dry": "tsx prisma/bootstrap-production.ts --dry-run",
-    "db:bootstrap": "tsx prisma/bootstrap-production.ts"
+    "db:bootstrap": "tsx prisma/bootstrap-production.ts",
+    "db:fix-icons": "tsx prisma/fix-icons.ts",
+    "db:fix-icons:apply": "tsx prisma/fix-icons.ts --apply"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",

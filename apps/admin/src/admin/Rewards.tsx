@@ -4,6 +4,7 @@ import { PageMeta } from '../hooks/usePageMeta';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminReiconIcon from '../components/AdminReiconIcon';
+import { toEmoji } from '../utils/toEmoji';
 import AdminErrorState from './components/AdminErrorState';
 import AdminModal from './components/AdminModal';
 import FormField from './components/FormField';
@@ -111,7 +112,7 @@ export default function Rewards() {
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
-        icon: form.icon.trim() || '🎁',
+        icon: toEmoji(form.icon) || '🎁',
         xpCost: form.xpCost,
         discountPct: form.discountPct,
         maxUses: form.maxUses,

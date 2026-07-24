@@ -6,6 +6,7 @@ import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import AdminReiconIcon from '../components/AdminReiconIcon';
+import { toEmoji } from '../utils/toEmoji';
 import AdminModal from './components/AdminModal';
 import FormField from './components/FormField';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -84,7 +85,7 @@ export default function Achievements() {
       name: a.name,
       slug: a.slug,
       description: a.description ?? '',
-      icon: a.icon ?? '🏆',
+      icon: toEmoji(a.icon ?? '🏆'),
       rarity: a.rarity,
       xpReward: a.xpReward,
     });
@@ -121,7 +122,7 @@ export default function Achievements() {
         name: form.name.trim(),
         slug: form.slug.trim(),
         description: form.description.trim() || undefined,
-        icon: form.icon.trim() || undefined,
+        icon: toEmoji(form.icon) || undefined,
         rarity: form.rarity,
         xpReward: form.xpReward,
       };

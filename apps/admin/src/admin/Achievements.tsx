@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { Award, Edit3, Plus, Search, Trash2, Download } from 'lucide-react';
 import { exportToCsv } from './utils/csvExport';
 import { PageMeta } from '../hooks/usePageMeta';
@@ -6,6 +6,7 @@ import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
 import AdminErrorState from './components/AdminErrorState';
 import AdminReiconIcon from '../components/AdminReiconIcon';
+import IconPickerModal from '../components/IconPickerModal';
 import { toEmoji } from '../utils/toEmoji';
 import AdminModal from './components/AdminModal';
 import FormField from './components/FormField';
@@ -70,6 +71,10 @@ export default function Achievements() {
   const [search, setSearch] = useState('');
   const [deleting, setDeleting] = useState(false);
   const slugEdited = useRef(false);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const handleIconSelect = useCallback((name: string) => {
+    setForm((prev) => ({ ...prev, icon: name }));
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -319,11 +324,27 @@ export default function Achievements() {
             type="textarea"
             rows={3}
           />
-          <FormField
-            label="Icono (emoji)"
-            value={form.icon}
-            onChange={(v) => setForm((prev) => ({ ...prev, icon: String(v) }))}
-          />
+          {/* Icon picker */}
+          <div>
+            <label className="block text-xs text-coffee-600 dark:text-coffee-400 mb-1">Icono</label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIconPickerOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm hover:border-gold-500 transition-colors"
+              >
+                <AdminReiconIcon icon={form.icon} size={20} />
+                <span className="text-xs text-coffee-500">{form.icon || '🏆'}</span>
+              </button>
+              <input
+                type="text"
+                value={form.icon}
+                onChange={(v) => setForm((prev) => ({ ...prev, icon: String(v) }))}
+                placeholder="o escribe emoji"
+                className="flex-1 bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream text-sm px-3 py-2 focus:outline-none focus:border-gold-500"
+              />
+            </div>
+          </div>
           <FormField
             label="Rareza"
             value={form.rarity}
@@ -345,6 +366,13 @@ export default function Achievements() {
           {error && <p className="text-red-400 text-sm">{error}</p>}
         </form>
       </AdminModal>
+
+      <IconPickerModal
+        isOpen={iconPickerOpen}
+        onClose={() => setIconPickerOpen(false)}
+        onSelect={handleIconSelect}
+        currentIcon={form.icon}
+      />
 
       <ConfirmDialog
         open={!!confirmDelete}

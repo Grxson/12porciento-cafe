@@ -776,7 +776,7 @@ export default function ProductDetail() {
 
                       {/* Tasting notes */}
                       {product.flavors.length > 0 && (
-                        <div className="mt-6 bg-coffee-900 dark:bg-coffee-950 p-6">
+                        <div className="mt-6 bg-coffee-50 dark:bg-coffee-950 border border-coffee-200 dark:border-coffee-800 p-6">
                           <p className="text-xs text-gold-500 uppercase tracking-widest mb-4">
                             Notas de Catación
                           </p>
@@ -785,14 +785,14 @@ export default function ProductDetail() {
                               <button
                                 key={f}
                                 onClick={() => navigate(`/tienda?flavors=${encodeURIComponent(f)}`)}
-                                className="bg-coffee-800 dark:bg-coffee-900 border border-coffee-700 dark:border-coffee-800 text-coffee-300 dark:text-coffee-300 px-3 py-1.5 text-sm hover:border-gold-500 hover:text-gold-400 transition-all cursor-pointer"
+                                className="bg-coffee-100 dark:bg-coffee-800 border border-coffee-300 dark:border-coffee-700 text-coffee-800 dark:text-coffee-300 px-3 py-1.5 text-sm hover:border-gold-500 hover:text-gold-400 transition-all cursor-pointer"
                                 title={`Ver cafés con nota "${f}"`}
                               >
                                 {f}
                               </button>
                             ))}
                           </div>
-                          <p className="text-coffee-400 dark:text-coffee-500 text-xs mt-4">
+                          <p className="text-coffee-600 dark:text-coffee-500 text-xs mt-4">
                             Notas detectadas bajo protocolo de cata SCA. Las notas pueden variar
                             según método de preparación.
                           </p>

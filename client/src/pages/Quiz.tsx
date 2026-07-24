@@ -325,14 +325,14 @@ export default function Quiz() {
           </h1>
         </div>
 
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {!done ? (
             <motion.div
               key={step}
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -40 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">

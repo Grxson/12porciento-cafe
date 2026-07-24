@@ -333,7 +333,7 @@ export default function BaristaProfile() {
                       className="bg-white dark:bg-coffee-900 border border-gold-500/30 p-3 text-center hover:border-gold-500 transition-colors"
                       title={unlock.achievement.description}
                     >
-                      <p className="text-3xl mb-1">{unlock.achievement.icon}</p>
+                      <p className="text-3xl mb-1">{unlock.achievement.icon || '🏆'}</p>
                       <p className="text-xs text-coffee-900 dark:text-cream font-semibold leading-tight">
                         {unlock.achievement.name}
                       </p>

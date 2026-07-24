@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Package, CheckCircle, XCircle, Plus, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
-import { lotesApi } from '../api';
+import api, { lotesApi } from '../api';
 import { Lote, LoteFormData } from '../types';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -699,11 +699,9 @@ function SupplierAutocomplete({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    lotesApi
-      .list({ pageSize: 1 })
-      .then(() => fetch('/api/lotes/suppliers', { credentials: 'include' }))
-      .then((r) => r.json())
-      .then((d) => setSuppliers(d.data || []))
+    api
+      .get('/lotes/suppliers')
+      .then((r) => setSuppliers(r.data.data || []))
       .catch(() => {});
   }, []);
 

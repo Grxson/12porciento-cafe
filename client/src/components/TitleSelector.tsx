@@ -115,7 +115,7 @@ export default function TitleSelector({ onSelect }: TitleSelectorProps) {
         >
           <div className="flex items-start justify-between mb-2">
             <span className={`text-2xl select-none ${t.isUnlocked ? '' : 'grayscale opacity-40'}`}>
-              {t.icon}
+              {t.icon || '🏅'}
             </span>
             {t.isActive && (
               <span className="text-[10px] uppercase tracking-wider bg-gold-500 text-cream px-1.5 py-0.5 font-medium">

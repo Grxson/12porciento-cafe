@@ -274,78 +274,57 @@ export default function Inventory() {
         </div>
       )}
 
-      {/* Stock Levels Gauge Grid */}
+      {/* Stock Levels Chart */}
       {products.length > 0 && (
         <CollapsibleChart id="inventory-stock-levels" title="Niveles de stock por producto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {products
-              .filter((p) => p.isActive)
-              .sort((a, b) => b.stock - a.stock)
-              .slice(0, 12)
-              .map((p) => {
-                const maxRef = Math.max(p.stock, p.lowStockThreshold, 1);
-                const stockPct = Math.min(100, (p.stock / maxRef) * 100);
-                const umbralPct = Math.min(100, (p.lowStockThreshold / maxRef) * 100);
-                const isLow = p.stock <= p.lowStockThreshold;
-                const stockColor = isLow ? '#ef4444' : '#c9a96e';
-                // Arc path for a semicircle gauge (180° sweep)
-                const describeArc = (pct: number) => {
-                  if (pct <= 0) return '';
-                  const clamped = Math.min(pct, 100);
-                  const angle = (clamped / 100) * 180;
-                  const rad = (angle - 90) * (Math.PI / 180);
-                  const rad2 = -90 * (Math.PI / 180);
-                  const x1 = 0.5 + 0.5 * Math.cos(rad2);
-                  const y1 = 0.5 + 0.5 * Math.sin(rad2);
-                  const x2 = 0.5 + 0.5 * Math.cos(rad);
-                  const y2 = 0.5 + 0.5 * Math.sin(rad);
-                  const large = clamped > 50 ? 1 : 0;
-                  return `M ${x1} ${y1} A 0.5 0.5 0 ${large} 1 ${x2} ${y2}`;
-                };
-
-                return (
-                  <div
-                    key={p.id}
-                    className="flex flex-col items-center p-3 bg-coffee-50 dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800"
-                  >
-                    <p className="text-xs text-coffee-700 dark:text-coffee-300 text-center mb-1 truncate w-full leading-tight">
-                      {p.name.length > 16 ? p.name.slice(0, 15) + '…' : p.name}
-                    </p>
-                    <svg
-                      viewBox="-0.05 -0.05 1.1 0.6"
-                      className="w-full"
-                      style={{ overflow: 'visible' }}
-                    >
-                      {/* Track (umbral reference) */}
-                      <path
-                        d={describeArc(umbralPct)}
-                        fill="none"
-                        stroke="#e8d5b7"
-                        strokeWidth={4}
-                        strokeLinecap="round"
-                      />
-                      {/* Stock arc */}
-                      <path
-                        d={describeArc(stockPct)}
-                        fill="none"
-                        stroke={stockColor}
-                        strokeWidth={6}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="text-center -mt-1">
-                      <span
-                        className={`text-sm font-bold ${isLow ? 'text-red-500' : 'text-coffee-900 dark:text-cream'}`}
-                      >
-                        {p.stock}
-                      </span>
-                      <span className="text-xs text-coffee-400"> / {p.lowStockThreshold}</span>
-                    </div>
-                    <p className="text-[10px] text-coffee-400">uds · umbral</p>
-                  </div>
-                );
-              })}
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={products
+                  .filter((p) => p.isActive)
+                  .sort((a, b) => a.stock - b.stock)
+                  .slice(0, 15)
+                  .map((p) => ({
+                    name: p.name.length > 14 ? p.name.slice(0, 13) + '…' : p.name,
+                    stock: p.stock,
+                    umbral: p.lowStockThreshold,
+                    isLow: p.stock <= p.lowStockThreshold,
+                  }))}
+                layout="vertical"
+                margin={{ top: 4, right: 20, left: 80, bottom: 4 }}
+                barCategoryGap={6}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#3d2015" strokeOpacity={0.15} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: '#8B7355' }} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: '#8B7355' }}
+                  width={80}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: '#1a0f0a',
+                    border: '1px solid #3d2015',
+                    borderRadius: 0,
+                    fontSize: 12,
+                    color: '#e8d5b7',
+                  }}
+                />
+                <Bar dataKey="stock" name="Stock actual" fill="#c9a96e" radius={[0, 2, 2, 0]} />
+                <Bar
+                  dataKey="umbral"
+                  name="Umbral mínimo"
+                  fill="#ef4444"
+                  fillOpacity={0.25}
+                  radius={[0, 2, 2, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
+          <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-2 text-center">
+            Barras doradas = stock actual · Barras rojas translúcidas = umbral mínimo
+          </p>
         </CollapsibleChart>
       )}
 

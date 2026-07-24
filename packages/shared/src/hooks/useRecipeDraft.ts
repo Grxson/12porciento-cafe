@@ -1,8 +1,9 @@
 import type { RecipeDraft } from '../types';
 
 const DB_NAME = 'cafe12_pwa';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'recipe_drafts';
+const QUEUE_STORE = 'brew_queue';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -11,6 +12,9 @@ function openDB(): Promise<IDBDatabase> {
       const db = (e.target as IDBOpenDBRequest).result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(QUEUE_STORE)) {
+        db.createObjectStore(QUEUE_STORE, { keyPath: 'id' });
       }
     };
     req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);

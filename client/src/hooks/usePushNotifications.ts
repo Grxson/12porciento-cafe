@@ -118,6 +118,10 @@ export function usePushNotifications() {
   }, []);
 
   const requestPermission = useCallback(async () => {
+    if (Notification.permission === 'denied') {
+      addToast('Permiso de notificaciones denegado previamente. Cámbialo desde la configuración del navegador.', 'error');
+      return;
+    }
     try {
       const result = await Notification.requestPermission();
       setState((s) => ({ ...s, permission: result }));
@@ -127,6 +131,7 @@ export function usePushNotifications() {
       }
     } catch (err) {
       console.error('[PUSH] requestPermission error:', err);
+      addToast('Error al solicitar permiso de notificaciones', 'error');
     }
   }, []);
 

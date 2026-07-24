@@ -11,8 +11,9 @@ export interface QueuedBrew {
 }
 
 const DB_NAME = 'cafe12_pwa';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'brew_queue';
+const DRAFT_STORE = 'recipe_drafts';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -21,6 +22,9 @@ function openDB(): Promise<IDBDatabase> {
       const db = (e.target as IDBOpenDBRequest).result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(DRAFT_STORE)) {
+        db.createObjectStore(DRAFT_STORE, { keyPath: 'id' });
       }
     };
     req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);

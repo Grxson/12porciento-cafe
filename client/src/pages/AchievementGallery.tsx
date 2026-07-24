@@ -221,15 +221,22 @@ export default function AchievementGallery() {
               return (
                 <div
                   key={a.id}
-                  className={`bg-white dark:bg-coffee-900 border p-5 transition-colors ${
-                    isUnlocked ? 'border-gold-500/30' : 'border-coffee-200 dark:border-coffee-800'
+                  className={`relative bg-white dark:bg-coffee-900 border p-5 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
+                    isUnlocked
+                      ? 'border-gold-500/30 hover:border-gold-500/50'
+                      : 'border-coffee-200 dark:border-coffee-800 hover:border-coffee-300 dark:hover:border-coffee-600'
                   }`}
                 >
+                  {isUnlocked && (
+                    <div className="absolute -top-px left-4 right-4 h-0.5 bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
+                  )}
                   <div className="relative w-12 h-12 flex items-center justify-center mb-3">
                     <span
-                      className={`text-3xl select-none ${isUnlocked ? '' : 'grayscale opacity-40'}`}
+                      className={`text-3xl select-none transition-all duration-300 ${
+                        isUnlocked ? 'scale-100' : 'grayscale opacity-40 scale-90'
+                      }`}
                     >
-                      {a.icon}
+                      {a.icon || '🏆'}
                     </span>
                     {!isUnlocked && (
                       <Lock
@@ -237,14 +244,19 @@ export default function AchievementGallery() {
                         className="absolute -bottom-1 -right-1 w-4 h-4 text-coffee-600 dark:text-coffee-400"
                       />
                     )}
+                    {isUnlocked && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-gold-500 rounded-full" />
+                    )}
                   </div>
 
-                  <span className={`text-xs uppercase tracking-widest px-2 py-0.5 ${rarity.color}`}>
+                  <span className={`text-[10px] uppercase tracking-widest px-2 py-0.5 ${rarity.color}`}>
                     {rarity.label}
                   </span>
 
                   <h3
-                    className={`font-serif text-base mt-2 mb-1 ${isUnlocked ? 'text-coffee-900 dark:text-cream' : 'text-coffee-600 dark:text-coffee-400'}`}
+                    className={`font-serif text-sm mt-2 mb-1 leading-tight ${
+                      isUnlocked ? 'text-coffee-900 dark:text-cream' : 'text-coffee-600 dark:text-coffee-400'
+                    }`}
                   >
                     {a.name}
                   </h3>
@@ -254,15 +266,15 @@ export default function AchievementGallery() {
 
                   {/* Progress bar for locked achievements */}
                   {!isUnlocked && progressData[a.slug] && (
-                    <div className="mt-2 mb-2">
+                    <div className="mt-3 mb-2">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="text-coffee-400 dark:text-coffee-500 text-xs font-medium">
-                          {progressData[a.slug].current} de {progressData[a.slug].target}
+                        <p className="text-coffee-400 dark:text-coffee-500 text-[10px] font-medium">
+                          {progressData[a.slug].current} / {progressData[a.slug].target}
                         </p>
                       </div>
-                      <div className="w-full h-1.5 bg-coffee-200 dark:bg-coffee-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-coffee-200 dark:bg-coffee-800 overflow-hidden">
                         <div
-                          className="h-full bg-gold-400 transition-all duration-300"
+                          className="h-full bg-gold-400 transition-all duration-500"
                           style={{
                             width: `${(progressData[a.slug].current / progressData[a.slug].target) * 100}%`,
                           }}
@@ -272,26 +284,30 @@ export default function AchievementGallery() {
                   )}
 
                   {!isUnlocked && unlockHints[a.slug] && (
-                    <p className="text-coffee-400 dark:text-coffee-500 text-xs italic mt-1 mb-3">
+                    <p className="text-coffee-400 dark:text-coffee-500 text-[10px] italic mt-1 mb-2 leading-tight">
                       {unlockHints[a.slug]}
                     </p>
                   )}
-                  {isUnlocked && <div className="mb-3" />}
+                  {isUnlocked && <div className="mb-2" />}
 
-                  {isUnlocked ? (
-                    <div className="text-xs text-gold-500">
-                      +{a.xpReward} XP ·{' '}
-                      {new Date(a.unlockedAt!).toLocaleDateString('es-MX', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-coffee-600 dark:text-coffee-400">
-                      +{a.xpReward} XP al desbloquear
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 text-[10px] font-medium mt-auto">
+                    {isUnlocked ? (
+                      <>
+                        <span className="text-gold-500">✦ {a.xpReward} XP</span>
+                        <span className="text-coffee-400 dark:text-coffee-500">·</span>
+                        <span className="text-coffee-400 dark:text-coffee-500">
+                          {new Date(a.unlockedAt!).toLocaleDateString('es-MX', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-coffee-500 dark:text-coffee-400">
+                        +{a.xpReward} XP al desbloquear
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}

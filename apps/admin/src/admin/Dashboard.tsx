@@ -388,7 +388,13 @@ export default function Dashboard() {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={ordersByDayData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+              <AreaChart data={ordersByDayData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="ordersGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={chartColors.gold} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={chartColors.gold} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
                 <XAxis
                   dataKey="dia"
@@ -415,10 +421,18 @@ export default function Dashboard() {
                     letterSpacing: '0.1em',
                   }}
                   itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
-                  formatter={(v, name) => [v, name === 'pedidos' ? 'Pedidos' : 'Ingresos']}
+                  formatter={(v) => [`${v} pedidos`, 'Pedidos']}
                 />
-                <Bar dataKey="pedidos" fill={chartColors.gold} radius={[2, 2, 0, 0]} />
-              </BarChart>
+                <Area
+                  type="monotone"
+                  dataKey="pedidos"
+                  stroke={chartColors.gold}
+                  strokeWidth={2}
+                  fill="url(#ordersGrad)"
+                  dot={false}
+                  activeDot={{ r: 4, fill: chartColors.gold, strokeWidth: 0 }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           )}
         </CollapsibleChart>

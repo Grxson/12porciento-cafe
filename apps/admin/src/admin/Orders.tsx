@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Search, X, Download, ShoppingBag } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { adminApi } from '../api';
 import Pagination from './components/Pagination';
 import { exportToCsv } from './utils/csvExport';
@@ -50,6 +50,16 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; bg: stri
     color: 'text-red-600 dark:text-red-400',
     bg: 'bg-red-100 dark:bg-red-900/20',
   },
+};
+
+const statusHex: Record<string, string> = {
+  PENDING: '#eab308',
+  PROCESSING: '#3b82f6',
+  CONFIRMED: '#2563eb',
+  PREPARING: '#a855f7',
+  SHIPPED: '#9333ea',
+  DELIVERED: '#22c55e',
+  CANCELLED: '#ef4444',
 };
 
 const allStatuses = Object.keys(statusConfig) as OrderStatus[];
@@ -213,26 +223,29 @@ export default function AdminOrders() {
 
       {orderSummary && Object.keys(orderSummary).length > 0 && (
         <CollapsibleChart id="orders-pipeline" title="Pipeline de estados">
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart
-              data={Object.entries(orderSummary).map(([st, count]) => ({
-                name: statusConfig[st as OrderStatus]?.label ?? st,
-                count,
-              }))}
-              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
-              <XAxis
-                dataKey="name"
-                tick={{ fill: chartColors.text, fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fill: chartColors.text, fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie
+                data={Object.entries(orderSummary)
+                  .filter(([, count]) => count > 0)
+                  .map(([st, count]) => ({
+                    name: statusConfig[st as OrderStatus]?.label ?? st,
+                    value: count,
+                    status: st,
+                  }))}
+                cx="50%"
+                cy="50%"
+                innerRadius={55}
+                outerRadius={90}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {Object.entries(orderSummary)
+                  .filter(([, count]) => count > 0)
+                  .map(([st]) => (
+                    <Cell key={st} fill={statusHex[st] ?? '#8884d8'} />
+                  ))}
+              </Pie>
               <Tooltip
                 contentStyle={{
                   background: chartColors.tooltipBg,
@@ -241,10 +254,15 @@ export default function AdminOrders() {
                 }}
                 labelStyle={{ color: chartColors.gold, fontSize: 11 }}
                 itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
-                formatter={(v) => [`${v} pedidos`, '']}
+                formatter={(v) => [`${v} pedidos`, 'Pedidos']}
               />
-              <Bar dataKey="count" fill="#c9a96e" radius={[2, 2, 0, 0]} />
-            </BarChart>
+              <Legend
+                wrapperStyle={{ fontSize: 11, color: chartColors.text }}
+                formatter={(value) => (
+                  <span style={{ color: chartColors.tooltipText, fontSize: 11 }}>{value}</span>
+                )}
+              />
+            </PieChart>
           </ResponsiveContainer>
         </CollapsibleChart>
       )}

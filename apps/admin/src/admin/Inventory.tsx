@@ -16,6 +16,7 @@ import {
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -288,30 +289,59 @@ export default function Inventory() {
                     name: p.name.length > 14 ? p.name.slice(0, 13) + '…' : p.name,
                     stock: p.stock,
                     umbral: p.lowStockThreshold,
-                    isLow: p.stock <= p.lowStockThreshold,
+                    status: p.status,
                   }))}
                 layout="vertical"
                 margin={{ top: 4, right: 20, left: 80, bottom: 4 }}
                 barCategoryGap={6}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#3d2015" strokeOpacity={0.15} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#8B7355' }} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={chartColors.grid}
+                  strokeOpacity={0.15}
+                />
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 11, fill: chartColors.text }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <YAxis
                   type="category"
                   dataKey="name"
-                  tick={{ fontSize: 11, fill: '#8B7355' }}
+                  tick={{ fontSize: 11, fill: chartColors.text }}
                   width={80}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: '#1a0f0a',
-                    border: '1px solid #3d2015',
+                    background: chartColors.tooltipBg,
+                    border: `1px solid ${chartColors.tooltipBorder}`,
                     borderRadius: 0,
                     fontSize: 12,
-                    color: '#e8d5b7',
+                    color: chartColors.tooltipText,
                   }}
+                  labelStyle={{ color: chartColors.gold, fontSize: 11 }}
+                  itemStyle={{ color: chartColors.tooltipText, fontSize: 12 }}
+                  formatter={(v, name) => [v, name === 'stock' ? 'Stock actual' : 'Umbral mínimo']}
                 />
-                <Bar dataKey="stock" name="Stock actual" fill="#c9a96e" radius={[0, 2, 2, 0]} />
+                <Bar dataKey="stock" name="Stock actual" radius={[0, 2, 2, 0]}>
+                  {products
+                    .filter((p) => p.isActive)
+                    .sort((a, b) => a.stock - b.stock)
+                    .slice(0, 15)
+                    .map((p, i) => (
+                      <Cell
+                        key={i}
+                        fill={
+                          p.status === 'OUT'
+                            ? '#ef4444'
+                            : p.status === 'LOW'
+                              ? '#eab308'
+                              : chartColors.gold
+                        }
+                      />
+                    ))}
+                </Bar>
                 <Bar
                   dataKey="umbral"
                   name="Umbral mínimo"
@@ -323,7 +353,8 @@ export default function Inventory() {
             </ResponsiveContainer>
           </div>
           <p className="text-xs text-coffee-500 dark:text-coffee-400 mt-2 text-center">
-            Barras doradas = stock actual · Barras rojas translúcidas = umbral mínimo
+            Barras doradas = stock OK · Barras amarillas = stock bajo · Barras rojas = agotado ·
+            Barras rojas translúcidas = umbral mínimo
           </p>
         </CollapsibleChart>
       )}

@@ -20,6 +20,7 @@ import { useUser } from '../context/UserContext';
 import type { Recipe, RecipeRating } from '../types';
 import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
 import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
+import MediaFrame from '../components/ui/MediaFrame';
 import AttemptsList from '../components/recipes/AttemptsList';
 import { downloadRecipePDF } from '../utils/recipePdf';
 import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
@@ -347,10 +348,11 @@ export default function RecipeDetail() {
                         </p>
                       )}
                       {step.imageUrl && (
-                        <img
+                        <MediaFrame
                           src={step.imageUrl}
                           alt={step.title}
-                          className="rounded-lg w-full max-h-96 object-cover mb-3"
+                          ratio="recipe"
+                          className="mb-3 !aspect-auto max-h-96 rounded-lg"
                         />
                       )}
                       {step.videoUrl && <StepVideoPlayer url={step.videoUrl} />}
@@ -369,10 +371,11 @@ export default function RecipeDetail() {
                   to={`/tienda/${recipe.product.slug}`}
                   className="flex items-center gap-4 hover:opacity-80 transition-opacity"
                 >
-                  <img
+                  <MediaFrame
                     src={recipe.product.imageUrl}
                     alt={recipe.product.name}
-                    className="w-16 h-16 object-cover rounded"
+                    ratio="avatar"
+                    className="h-16 w-16 shrink-0 rounded"
                   />
                   <div>
                     <p className="text-gold-600 dark:text-gold-400 font-medium">

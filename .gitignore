@@ -9,3 +9,10 @@ dist/
 .specify
 .agents
 .claude
+/graphify-out
+/docs
+.tokensave
+.superpowers
+.serena
+.codex
+/specs

@@ -416,7 +416,7 @@ export default function Subscriptions() {
       </div>
 
       {/* Step indicator */}
-      <div className="mx-auto max-w-xl px-4 pb-4 pt-6 sm:pt-10">
+      <div className="mx-auto max-w-7xl px-4 pb-4 pt-6 sm:px-6 sm:pt-10 lg:px-8">
         <div className="sm:hidden" aria-current="step">
           <div className="mb-2 flex items-center justify-between text-xs">
             <span className="font-semibold uppercase tracking-wider text-gold-600">
@@ -726,7 +726,7 @@ export default function Subscriptions() {
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="max-w-xl mx-auto px-4 sm:px-6 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               {selectedPlan.id === 'EMPRESARIAL' ? (
                 <>
                   <button
@@ -735,145 +735,157 @@ export default function Subscriptions() {
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Cambiar plan
                   </button>
-                  <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
-                        Tu plan
-                      </span>
-                      <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
+                  <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
+                    <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8 lg:order-2 lg:sticky lg:top-24">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
+                          Tu plan
+                        </span>
+                        <span className="text-gold-400 text-sm font-medium">
+                          {selectedPlan.name}
+                        </span>
+                      </div>
+                      <p className="text-coffee-600 dark:text-coffee-400 text-xs leading-relaxed">
+                        {selectedPlan.subtitle} • 15% descuento por volumen
+                      </p>
                     </div>
-                    <p className="text-coffee-600 dark:text-coffee-400 text-xs leading-relaxed">
-                      {selectedPlan.subtitle} • 15% descuento por volumen
-                    </p>
+
+                    {/* B2B Consultation Form */}
+                    <form onSubmit={handleB2BSubmit} className="space-y-5 lg:order-1">
+                      <div className="gold-line mb-5" />
+                      <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
+                        Solicitud de asesoría
+                      </h3>
+
+                      <div className="grid gap-5 lg:grid-cols-2">
+                        {[
+                          {
+                            name: 'empresa',
+                            label: 'Empresa *',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Nombre de tu empresa',
+                            id: 'b2b-empresa',
+                          },
+                          {
+                            name: 'rfc',
+                            label: 'RFC *',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'RFC de tu empresa',
+                            id: 'b2b-rfc',
+                          },
+                          {
+                            name: 'contactoNombre',
+                            label: 'Nombre del contacto *',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Tu nombre completo',
+                            id: 'b2b-contacto-nombre',
+                          },
+                          {
+                            name: 'contactoEmail',
+                            label: 'Email corporativo *',
+                            type: 'email',
+                            required: true,
+                            placeholder: 'contacto@empresa.com',
+                            id: 'b2b-contacto-email',
+                          },
+                          {
+                            name: 'contactoTelefono',
+                            label: 'Teléfono *',
+                            type: 'tel',
+                            required: true,
+                            placeholder: '55 1234 5678',
+                            id: 'b2b-contacto-telefono',
+                          },
+                        ].map(({ name, label, type, required, placeholder, id }) => (
+                          <div key={name}>
+                            <label
+                              htmlFor={id}
+                              className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2"
+                            >
+                              {label}
+                            </label>
+                            <input
+                              id={id}
+                              type={type}
+                              required={required}
+                              placeholder={placeholder}
+                              value={b2bForm[name as keyof B2BFormData]}
+                              onChange={(e) =>
+                                setB2BForm((f) => ({ ...f, [name]: e.target.value }))
+                              }
+                              className="input-dark !text-base min-h-[48px]"
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid gap-5 lg:grid-cols-2">
+                        <div>
+                          <label
+                            htmlFor="b2b-volumen"
+                            className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2"
+                          >
+                            Volumen estimado *
+                          </label>
+                          <select
+                            id="b2b-volumen"
+                            required
+                            value={b2bForm.volumenEstimado}
+                            onChange={(e) =>
+                              setB2BForm((f) => ({
+                                ...f,
+                                volumenEstimado: e.target.value as B2BFormData['volumenEstimado'],
+                              }))
+                            }
+                            className="input-dark !text-base min-h-[48px]"
+                          >
+                            <option value="10-25">10-25 lotes/mes</option>
+                            <option value="26-50">26-50 lotes/mes</option>
+                            <option value="50+">50+ lotes/mes</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="b2b-giro"
+                            className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2"
+                          >
+                            Giro del negocio
+                          </label>
+                          <input
+                            id="b2b-giro"
+                            type="text"
+                            placeholder="Ej: Oficina, Café, Restaurante, etc."
+                            value={b2bForm.giroNegocio || ''}
+                            onChange={(e) =>
+                              setB2BForm((f) => ({ ...f, giroNegocio: e.target.value }))
+                            }
+                            className="input-dark !text-base min-h-[48px]"
+                          />
+                        </div>
+                      </div>
+
+                      {error && (
+                        <div className="text-red-400 text-sm">
+                          <span>{error}</span>
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? 'Enviando…' : 'Enviar solicitud'}
+                      </button>
+                      <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
+                        Te contactaremos en 24h para diseñar tu plan personalizado.
+                      </p>
+                    </form>
                   </div>
-
-                  {/* B2B Consultation Form */}
-                  <form onSubmit={handleB2BSubmit} className="space-y-5">
-                    <div className="gold-line mb-5" />
-                    <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
-                      Solicitud de asesoría
-                    </h3>
-
-                    {[
-                      {
-                        name: 'empresa',
-                        label: 'Empresa *',
-                        type: 'text',
-                        required: true,
-                        placeholder: 'Nombre de tu empresa',
-                        id: 'b2b-empresa',
-                      },
-                      {
-                        name: 'rfc',
-                        label: 'RFC *',
-                        type: 'text',
-                        required: true,
-                        placeholder: 'RFC de tu empresa',
-                        id: 'b2b-rfc',
-                      },
-                      {
-                        name: 'contactoNombre',
-                        label: 'Nombre del contacto *',
-                        type: 'text',
-                        required: true,
-                        placeholder: 'Tu nombre completo',
-                        id: 'b2b-contacto-nombre',
-                      },
-                      {
-                        name: 'contactoEmail',
-                        label: 'Email corporativo *',
-                        type: 'email',
-                        required: true,
-                        placeholder: 'contacto@empresa.com',
-                        id: 'b2b-contacto-email',
-                      },
-                      {
-                        name: 'contactoTelefono',
-                        label: 'Teléfono *',
-                        type: 'tel',
-                        required: true,
-                        placeholder: '55 1234 5678',
-                        id: 'b2b-contacto-telefono',
-                      },
-                    ].map(({ name, label, type, required, placeholder, id }) => (
-                      <div key={name}>
-                        <label
-                          htmlFor={id}
-                          className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2"
-                        >
-                          {label}
-                        </label>
-                        <input
-                          id={id}
-                          type={type}
-                          required={required}
-                          placeholder={placeholder}
-                          value={b2bForm[name as keyof B2BFormData]}
-                          onChange={(e) => setB2BForm((f) => ({ ...f, [name]: e.target.value }))}
-                          className="input-dark !text-base min-h-[48px]"
-                        />
-                      </div>
-                    ))}
-
-                    <div>
-                      <label
-                        htmlFor="b2b-volumen"
-                        className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2"
-                      >
-                        Volumen estimado *
-                      </label>
-                      <select
-                        id="b2b-volumen"
-                        required
-                        value={b2bForm.volumenEstimado}
-                        onChange={(e) =>
-                          setB2BForm((f) => ({
-                            ...f,
-                            volumenEstimado: e.target.value as B2BFormData['volumenEstimado'],
-                          }))
-                        }
-                        className="input-dark !text-base min-h-[48px]"
-                      >
-                        <option value="10-25">10-25 lotes/mes</option>
-                        <option value="26-50">26-50 lotes/mes</option>
-                        <option value="50+">50+ lotes/mes</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="b2b-giro"
-                        className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2"
-                      >
-                        Giro del negocio
-                      </label>
-                      <input
-                        id="b2b-giro"
-                        type="text"
-                        placeholder="Ej: Oficina, Café, Restaurante, etc."
-                        value={b2bForm.giroNegocio || ''}
-                        onChange={(e) => setB2BForm((f) => ({ ...f, giroNegocio: e.target.value }))}
-                        className="input-dark !text-base min-h-[48px]"
-                      />
-                    </div>
-
-                    {error && (
-                      <div className="text-red-400 text-sm">
-                        <span>{error}</span>
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Enviando…' : 'Enviar solicitud'}
-                    </button>
-                    <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
-                      Te contactaremos en 24h para diseñar tu plan personalizado.
-                    </p>
-                  </form>
                 </>
               ) : (
                 <>
@@ -883,235 +895,244 @@ export default function Subscriptions() {
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Cambiar cafés
                   </button>
-                  <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
-                        Tu suscripción
-                      </span>
-                      <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-3">
-                      <Coffee className="w-3.5 h-3.5 text-gold-500" />
-                      {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}{' '}
-                      seleccionados · Grano entero
-                    </div>
-                    {selectedPlan.price && (
-                      <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
-                        ${selectedPlan.price}{' '}
-                        <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">
-                          / mes
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                  {/* Address validation banner */}
-                  {user && !hasAddress && (
-                    <div className="flex items-start gap-3 bg-yellow-900/20 border border-yellow-500/30 p-4 mb-6">
-                      <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-yellow-300 text-sm font-medium mb-1">
-                          Dirección de envío requerida
-                        </p>
-                        <p className="text-yellow-400/70 text-xs leading-relaxed mb-2">
-                          Necesitas agregar tu dirección de envío completa antes de activar tu
-                          suscripción.
-                        </p>
-                        <Link
-                          to="/perfil/datos"
-                          className="inline-flex items-center gap-1 text-xs text-gold-400 hover:text-gold-300 underline transition-colors"
-                        >
-                          <MapPin className="w-3 h-3" /> Ir a mis datos
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                  {!user && (
-                    <div className="flex items-start gap-3 bg-coffee-100 dark:bg-coffee-800/60 border border-coffee-200 dark:border-coffee-700 p-4 mb-6">
-                      <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-                      <p className="text-coffee-700 dark:text-coffee-300 text-xs leading-relaxed">
-                        Para recibir tus envíos necesitamos tu dirección.{' '}
-                        <Link
-                          to="/registro"
-                          className="text-gold-400 hover:text-gold-300 underline"
-                        >
-                          Crea tu cuenta
-                        </Link>{' '}
-                        y agrégala en tu perfil antes de confirmar.
-                      </p>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="gold-line mb-5" />
-                    <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
-                      Tus datos
-                    </h3>
-                    {[
-                      {
-                        name: 'name',
-                        label: 'Nombre completo *',
-                        type: 'text',
-                        required: true,
-                        placeholder: 'Tu nombre',
-                      },
-                      {
-                        name: 'email',
-                        label: 'Email *',
-                        type: 'email',
-                        required: true,
-                        placeholder: 'tu@email.com',
-                      },
-                      {
-                        name: 'phone',
-                        label: 'Teléfono',
-                        type: 'tel',
-                        required: false,
-                        placeholder: '55 1234 5678',
-                      },
-                    ].map(({ name, label, type, required, placeholder }) => (
-                      <div key={name}>
-                        <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
-                          {label}
-                        </label>
-                        <input
-                          name={name}
-                          type={type}
-                          autoComplete={
-                            name === 'name' ? 'name' : name === 'email' ? 'email' : 'tel'
-                          }
-                          inputMode={name === 'phone' ? 'tel' : undefined}
-                          required={required}
-                          placeholder={placeholder}
-                          value={form[name as keyof FormData]}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
-                          }
-                          className="input-dark !text-base min-h-[48px]"
-                        />
-                      </div>
-                    ))}
-                    <div className="border-t border-coffee-200 dark:border-coffee-800 pt-5 mt-2">
-                      <p className="text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-4">
-                        Dirección de envío
-                      </p>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
-                            Dirección *
-                          </label>
-                          <input
-                            name="address"
-                            autoComplete="street-address"
-                            required
-                            value={form.address}
-                            onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                            placeholder="Calle, número, colonia"
-                            className="input-dark !text-base min-h-[48px] w-full"
-                          />
+                  <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
+                    <aside className="lg:order-2 lg:sticky lg:top-24">
+                      <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
+                            Tu suscripción
+                          </span>
+                          <span className="text-gold-400 text-sm font-medium">
+                            {selectedPlan.name}
+                          </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
-                              Ciudad *
-                            </label>
-                            <input
-                              name="city"
-                              autoComplete="address-level2"
-                              required
-                              value={form.city}
-                              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                              placeholder="Ciudad"
-                              className="input-dark !text-base min-h-[48px] w-full"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
-                              Estado *
-                            </label>
-                            <select
-                              name="state"
-                              autoComplete="address-level1"
-                              required
-                              value={form.state}
-                              onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
-                              className="input-dark !text-base min-h-[48px] w-full"
-                            >
-                              <option value="">Seleccionar</option>
-                              {mexicanStates.map((s) => (
-                                <option key={s} value={s}>
-                                  {s}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
-                              CP *
-                            </label>
-                            <input
-                              name="zipCode"
-                              inputMode="numeric"
-                              autoComplete="postal-code"
-                              maxLength={5}
-                              pattern="[0-9]{5}"
-                              required
-                              value={form.zipCode}
-                              onChange={(e) => setForm((f) => ({ ...f, zipCode: e.target.value }))}
-                              placeholder="12345"
-                              className="input-dark !text-base min-h-[48px] w-full"
-                            />
-                          </div>
+                        <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-3">
+                          <Coffee className="w-3.5 h-3.5 text-gold-500" />
+                          {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}{' '}
+                          seleccionados · Grano entero
                         </div>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-3">
-                        Frecuencia de envío
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { value: 'monthly', label: 'Mensual' },
-                          { value: 'bimonthly', label: 'Bimestral' },
-                        ].map(({ value, label }) => (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => setForm((f) => ({ ...f, frequency: value }))}
-                            className={`py-3 text-xs font-medium tracking-widest uppercase border transition-all ${
-                              form.frequency === value
-                                ? 'border-gold-500 text-gold-400 bg-gold-500/10'
-                                : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 dark:hover:border-coffee-600 hover:text-coffee-900 dark:hover:text-cream'
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {error && (
-                      <div className="flex items-start gap-2 text-red-400 text-sm">
-                        <span>{error}</span>
-                        {error.includes('dirección') && (
-                          <Link
-                            to="/perfil/datos"
-                            className="text-gold-400 hover:text-gold-300 underline text-xs shrink-0 self-center"
-                          >
-                            Ir ahora
-                          </Link>
+                        {selectedPlan.price && (
+                          <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
+                            ${selectedPlan.price}{' '}
+                            <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">
+                              / mes
+                            </span>
+                          </p>
                         )}
                       </div>
-                    )}
-                    <button
-                      type="submit"
-                      disabled={loading || (!!user && !hasAddress)}
-                      className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Procesando…' : 'Confirmar suscripción'}
-                    </button>
-                    <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
-                      El pago se procesará con el método que elijas a continuación.
-                    </p>
-                  </form>
+                      {/* Address validation banner */}
+                      {user && !hasAddress && (
+                        <div className="flex items-start gap-3 bg-yellow-900/20 border border-yellow-500/30 p-4 mb-6">
+                          <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-yellow-300 text-sm font-medium mb-1">
+                              Dirección de envío requerida
+                            </p>
+                            <p className="text-yellow-400/70 text-xs leading-relaxed mb-2">
+                              Necesitas agregar tu dirección de envío completa antes de activar tu
+                              suscripción.
+                            </p>
+                            <Link
+                              to="/perfil/datos"
+                              className="inline-flex items-center gap-1 text-xs text-gold-400 hover:text-gold-300 underline transition-colors"
+                            >
+                              <MapPin className="w-3 h-3" /> Ir a mis datos
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                      {!user && (
+                        <div className="flex items-start gap-3 bg-coffee-100 dark:bg-coffee-800/60 border border-coffee-200 dark:border-coffee-700 p-4 mb-6">
+                          <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
+                          <p className="text-coffee-700 dark:text-coffee-300 text-xs leading-relaxed">
+                            Para recibir tus envíos necesitamos tu dirección.{' '}
+                            <Link
+                              to="/registro"
+                              className="text-gold-400 hover:text-gold-300 underline"
+                            >
+                              Crea tu cuenta
+                            </Link>{' '}
+                            y agrégala en tu perfil antes de confirmar.
+                          </p>
+                        </div>
+                      )}
+                    </aside>
+                    <form onSubmit={handleSubmit} className="space-y-5 lg:order-1">
+                      <div className="gold-line mb-5" />
+                      <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
+                        Tus datos
+                      </h3>
+                      <div className="grid gap-5 lg:grid-cols-2">
+                        {[
+                          {
+                            name: 'name',
+                            label: 'Nombre completo *',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Tu nombre',
+                          },
+                          {
+                            name: 'email',
+                            label: 'Email *',
+                            type: 'email',
+                            required: true,
+                            placeholder: 'tu@email.com',
+                          },
+                          {
+                            name: 'phone',
+                            label: 'Teléfono',
+                            type: 'tel',
+                            required: false,
+                            placeholder: '55 1234 5678',
+                          },
+                        ].map(({ name, label, type, required, placeholder }) => (
+                          <div key={name}>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
+                              {label}
+                            </label>
+                            <input
+                              name={name}
+                              type={type}
+                              autoComplete={
+                                name === 'name' ? 'name' : name === 'email' ? 'email' : 'tel'
+                              }
+                              inputMode={name === 'phone' ? 'tel' : undefined}
+                              required={required}
+                              placeholder={placeholder}
+                              value={form[name as keyof FormData]}
+                              onChange={(e) =>
+                                setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+                              }
+                              className="input-dark !text-base min-h-[48px]"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-t border-coffee-200 dark:border-coffee-800 pt-5 mt-2">
+                        <p className="text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-4">
+                          Dirección de envío
+                        </p>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
+                              Dirección *
+                            </label>
+                            <input
+                              name="address"
+                              autoComplete="street-address"
+                              required
+                              value={form.address}
+                              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                              placeholder="Calle, número, colonia"
+                              className="input-dark !text-base min-h-[48px] w-full"
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
+                                Ciudad *
+                              </label>
+                              <input
+                                name="city"
+                                autoComplete="address-level2"
+                                required
+                                value={form.city}
+                                onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                                placeholder="Ciudad"
+                                className="input-dark !text-base min-h-[48px] w-full"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
+                                Estado *
+                              </label>
+                              <select
+                                name="state"
+                                autoComplete="address-level1"
+                                required
+                                value={form.state}
+                                onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
+                                className="input-dark !text-base min-h-[48px] w-full"
+                              >
+                                <option value="">Seleccionar</option>
+                                {mexicanStates.map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-2">
+                                CP *
+                              </label>
+                              <input
+                                name="zipCode"
+                                inputMode="numeric"
+                                autoComplete="postal-code"
+                                maxLength={5}
+                                pattern="[0-9]{5}"
+                                required
+                                value={form.zipCode}
+                                onChange={(e) =>
+                                  setForm((f) => ({ ...f, zipCode: e.target.value }))
+                                }
+                                placeholder="12345"
+                                className="input-dark !text-base min-h-[48px] w-full"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-coffee-600 dark:text-coffee-500 uppercase tracking-widest mb-3">
+                          Frecuencia de envío
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { value: 'monthly', label: 'Mensual' },
+                            { value: 'bimonthly', label: 'Bimestral' },
+                          ].map(({ value, label }) => (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => setForm((f) => ({ ...f, frequency: value }))}
+                              className={`py-3 text-xs font-medium tracking-widest uppercase border transition-all ${
+                                form.frequency === value
+                                  ? 'border-gold-500 text-gold-400 bg-gold-500/10'
+                                  : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 dark:hover:border-coffee-600 hover:text-coffee-900 dark:hover:text-cream'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {error && (
+                        <div className="flex items-start gap-2 text-red-400 text-sm">
+                          <span>{error}</span>
+                          {error.includes('dirección') && (
+                            <Link
+                              to="/perfil/datos"
+                              className="text-gold-400 hover:text-gold-300 underline text-xs shrink-0 self-center"
+                            >
+                              Ir ahora
+                            </Link>
+                          )}
+                        </div>
+                      )}
+                      <button
+                        type="submit"
+                        disabled={loading || (!!user && !hasAddress)}
+                        className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? 'Procesando…' : 'Confirmar suscripción'}
+                      </button>
+                      <p className="text-coffee-500 dark:text-coffee-600 text-xs text-center">
+                        El pago se procesará con el método que elijas a continuación.
+                      </p>
+                    </form>
+                  </div>
                 </>
               )}
             </div>
@@ -1127,82 +1148,88 @@ export default function Subscriptions() {
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="max-w-xl mx-auto px-4 sm:px-6 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <button
                 onClick={() => goToStep(3)}
                 className="flex items-center gap-1 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" /> Cambiar datos
               </button>
-              <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
-                    Tu suscripción
-                  </span>
-                  <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
+              <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px]">
+                <aside className="lg:order-2 lg:sticky lg:top-24">
+                  <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-5 mb-8">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs text-coffee-500 dark:text-coffee-300 uppercase tracking-widest">
+                        Tu suscripción
+                      </span>
+                      <span className="text-gold-400 text-sm font-medium">{selectedPlan.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-1">
+                      <Coffee className="w-3.5 h-3.5 text-gold-500" />
+                      {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}
+                    </div>
+                    {selectedPlan.price && (
+                      <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
+                        ${selectedPlan.price}{' '}
+                        <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">
+                          / mes
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                </aside>
+                <div className="lg:order-1">
+                  <div className="gold-line mb-5" />
+                  <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
+                    Método de pago
+                  </h3>
+                  <Elements
+                    stripe={loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '')}
+                    options={{ clientSecret: setupClientSecret }}
+                  >
+                    <SubscriptionCardForm
+                      clientSecret={setupClientSecret}
+                      onSuccess={async (pmId) => {
+                        setPaymentMethodId(pmId);
+                        // Submit subscription now with payment method
+                        if (!selectedPlan) return;
+                        setLoading(true);
+                        setError('');
+                        setPaymentError('');
+                        try {
+                          setIsUpgrade(false);
+                          await subscriptionsApi.create({
+                            ...form,
+                            plan: selectedPlan.id,
+                            grindPreference: 'GRANO',
+                            items: selectedCoffees,
+                            paymentMethodId: pmId,
+                            ...(user ? { userId: user.id } : {}),
+                          });
+                          useUser.getState().setHasSubscription(true);
+                          setSuccess(true);
+                        } catch (err: unknown) {
+                          setError(getApiError(err, 'Error al procesar suscripción.'));
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      onError={(msg) => setPaymentError(msg)}
+                      loading={loading}
+                    />
+                  </Elements>
+                  {paymentError && (
+                    <div className="flex items-start gap-2 text-red-400 text-sm mt-4">
+                      <span>{paymentError}</span>
+                    </div>
+                  )}
+                  {error && (
+                    <div className="flex items-start gap-2 text-red-400 text-sm mt-2">
+                      <span>{error}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-coffee-600 dark:text-coffee-400 mb-1">
-                  <Coffee className="w-3.5 h-3.5 text-gold-500" />
-                  {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}
-                </div>
-                {selectedPlan.price && (
-                  <p className="font-serif text-2xl text-coffee-900 dark:text-cream">
-                    ${selectedPlan.price}{' '}
-                    <span className="text-coffee-500 dark:text-coffee-300 text-sm font-sans">
-                      / mes
-                    </span>
-                  </p>
-                )}
               </div>
-              <div className="gold-line mb-5" />
-              <h3 className="font-serif text-2xl text-coffee-900 dark:text-cream mb-6">
-                Método de pago
-              </h3>
-              <Elements
-                stripe={loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '')}
-                options={{ clientSecret: setupClientSecret }}
-              >
-                <SubscriptionCardForm
-                  clientSecret={setupClientSecret}
-                  onSuccess={async (pmId) => {
-                    setPaymentMethodId(pmId);
-                    // Submit subscription now with payment method
-                    if (!selectedPlan) return;
-                    setLoading(true);
-                    setError('');
-                    setPaymentError('');
-                    try {
-                      setIsUpgrade(false);
-                      await subscriptionsApi.create({
-                        ...form,
-                        plan: selectedPlan.id,
-                        grindPreference: 'GRANO',
-                        items: selectedCoffees,
-                        paymentMethodId: pmId,
-                        ...(user ? { userId: user.id } : {}),
-                      });
-                      useUser.getState().setHasSubscription(true);
-                      setSuccess(true);
-                    } catch (err: unknown) {
-                      setError(getApiError(err, 'Error al procesar suscripción.'));
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                  onError={(msg) => setPaymentError(msg)}
-                  loading={loading}
-                />
-              </Elements>
-              {paymentError && (
-                <div className="flex items-start gap-2 text-red-400 text-sm mt-4">
-                  <span>{paymentError}</span>
-                </div>
-              )}
-              {error && (
-                <div className="flex items-start gap-2 text-red-400 text-sm mt-2">
-                  <span>{error}</span>
-                </div>
-              )}
             </div>
           </motion.div>
         )}

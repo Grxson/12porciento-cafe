@@ -31,7 +31,7 @@ export default function MediaFrame({
 
   return (
     <div
-      className={`relative w-full overflow-hidden bg-coffee-100 dark:bg-coffee-800 ${ratioClasses[ratio]} ${className}`}
+      className={`relative max-w-full overflow-hidden bg-coffee-100 dark:bg-coffee-800 ${ratioClasses[ratio]} ${className}`}
     >
       <img
         {...imageProps}

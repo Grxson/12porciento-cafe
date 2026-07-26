@@ -32,4 +32,13 @@ describe('MediaFrame', () => {
     expect(screen.getByText('Image unavailable')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Bag of washed coffee' })).toBeInTheDocument();
   });
+
+  it('preserves compact dimensions supplied by drawer and avatar layouts', () => {
+    const { container } = render(
+      <MediaFrame src="/coffee.jpg" alt="Compact coffee image" className="!h-16 !w-16" />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('!h-16', '!w-16');
+    expect(container.firstElementChild).not.toHaveClass('w-full');
+  });
 });

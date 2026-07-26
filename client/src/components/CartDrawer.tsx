@@ -29,18 +29,18 @@ const ProductDrawerItem = memo(function ProductDrawerItem({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex gap-3 py-4 border-b border-coffee-100 dark:border-coffee-800 last:border-0"
+      className="flex min-w-0 gap-3 overflow-hidden border-b border-coffee-100 py-4 dark:border-coffee-800 last:border-0"
     >
       <MediaFrame
         src={resolveImageUrl(product.imageUrl)}
         alt={product.name}
         ratio="avatar"
-        className="h-16 w-16 shrink-0"
+        className="!h-16 !w-16 shrink-0"
         fallback={
           <Coffee className="h-5 w-5 text-coffee-400 dark:text-coffee-500" aria-hidden="true" />
         }
       />
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1 overflow-hidden">
         <p className="line-clamp-2 text-sm font-medium leading-tight text-coffee-900 dark:text-cream">
           {product.name}
         </p>
@@ -79,7 +79,7 @@ const ProductDrawerItem = memo(function ProductDrawerItem({
           </button>
         </div>
       </div>
-      <div className="flex flex-col items-end justify-between shrink-0">
+      <div className="flex shrink-0 flex-col items-end justify-between">
         <button
           onClick={() => removeItem(key)}
           aria-label="Eliminar producto"
@@ -111,16 +111,16 @@ const BundleDrawerItem = memo(function BundleDrawerItem({
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex gap-3 py-4 border-b border-gold-200 dark:border-gold-500/20 last:border-0"
+      className="flex min-w-0 gap-3 overflow-hidden border-b border-gold-200 py-4 dark:border-gold-500/20 last:border-0"
     >
       <MediaFrame
         src={bundle.imageUrl}
         alt={bundle.name}
         ratio="avatar"
-        className="h-16 w-16 shrink-0"
+        className="!h-16 !w-16 shrink-0"
         fallback={<Package className="h-6 w-6 text-gold-500" aria-hidden="true" />}
       />
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1 overflow-hidden">
         <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight">
           {bundle.name}
         </p>
@@ -134,7 +134,7 @@ const BundleDrawerItem = memo(function BundleDrawerItem({
           {bundle.items.map((bi) => bi.product?.name || 'Producto').join(', ')}
         </p>
       </div>
-      <div className="flex flex-col items-end justify-between shrink-0">
+      <div className="flex shrink-0 flex-col items-end justify-between">
         <button
           onClick={() => removeItem(key)}
           aria-label="Eliminar producto"
@@ -237,7 +237,7 @@ export default function CartDrawer() {
             transition={
               reduceMotion ? { duration: 0 } : { type: 'spring', damping: 28, stiffness: 300 }
             }
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm sm:max-w-md flex-col bg-white shadow-2xl dark:bg-coffee-900"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[min(100vw,28rem)] flex-col overflow-x-hidden bg-white shadow-2xl dark:bg-coffee-900 sm:max-w-md"
             style={{ paddingTop: 'var(--app-safe-top)', paddingRight: 'var(--app-safe-right)' }}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-coffee-200 dark:border-coffee-700">
@@ -265,7 +265,7 @@ export default function CartDrawer() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+            <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 py-4">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
                   <ShoppingBag className="w-12 h-12 text-coffee-300 dark:text-coffee-300 mb-4" />

@@ -77,6 +77,7 @@ const AchievementGallery = lazy(() => import('./pages/AchievementGallery'));
 const RewardShop = lazy(() => import('./pages/RewardShop'));
 const Bundles = lazy(() => import('./pages/Bundles'));
 const GiftCardPurchase = lazy(() => import('./pages/GiftCardPurchase'));
+const Changelog = lazy(() => import('./pages/Changelog'));
 
 const UserRoute = ({ children }: { children: React.ReactNode }) => {
   const token = useUser((s) => s.token);
@@ -181,7 +182,8 @@ function PublicLayout() {
 }
 
 function PWAUpdateManager() {
-  const { showNotification, handleDismiss, handleUpdate } = useUpdateNotification();
+  const { showNotification, handleDismiss, handleUpdate, isUpdating, updateError } =
+    useUpdateNotification();
   const addToast = useToast((s) => s.add);
 
   useEffect(() => {
@@ -197,6 +199,8 @@ function PWAUpdateManager() {
       open={showNotification}
       onUpdate={handleUpdate}
       onDismiss={handleDismiss}
+      isUpdating={isUpdating}
+      updateError={updateError}
     />
   );
 }
@@ -227,6 +231,14 @@ export default function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/tienda" element={<Shop />} />
                   <Route path="/tienda/:slug" element={<ProductDetail />} />
+                  <Route
+                    path="/changelog"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Changelog />
+                      </Suspense>
+                    }
+                  />
                   <Route
                     path="/suscripciones"
                     element={

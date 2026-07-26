@@ -1,30 +1,26 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CURRENT_VERSION, LATEST_CHANGES } from '../data/changelog';
 
 interface UpdateNotificationModalProps {
   open: boolean;
-  onUpdate: () => void;
+  onUpdate: () => Promise<void>;
   onDismiss: () => void;
+  isUpdating: boolean;
+  updateError: string;
 }
-
-const VERSION = '1.0.0';
-
-const CHANGELOG = [
-  'Nuevo sistema de gamificación barista con niveles, XP y logros.',
-  'Catálogo de paquetes con descuento y suscripciones mensuales.',
-  'Perfil barista con equipo, cafés preparados y perfil de sabor.',
-  'Modo receta en vivo con temporizador paso a paso.',
-  'PWA instalable: acceso rápido sin abrir el navegador.',
-];
 
 export default function UpdateNotificationModal({
   open,
   onUpdate,
   onDismiss,
+  isUpdating,
+  updateError,
 }: UpdateNotificationModalProps) {
   const [expanded, setExpanded] = useState(false);
-  const visibleChangelog = expanded ? CHANGELOG : CHANGELOG.slice(0, 3);
+  const visibleChangelog = expanded ? LATEST_CHANGES : LATEST_CHANGES.slice(0, 3);
 
   return (
     <AnimatePresence>
@@ -52,7 +48,7 @@ export default function UpdateNotificationModal({
                   Actualización disponible
                 </h3>
                 <p className="text-[10px] uppercase tracking-[0.25em] text-gold-500 mt-0.5">
-                  Versión {VERSION}
+                  Versión {CURRENT_VERSION}
                 </p>
               </div>
             </div>
@@ -79,20 +75,29 @@ export default function UpdateNotificationModal({
                 {expanded ? 'Ver menos' : 'Ver más'}
                 {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
-              <a
-                href="/changelog"
+              <Link
+                to="/changelog"
                 className="text-xs text-coffee-500 dark:text-coffee-400 hover:text-gold-500 transition-colors flex items-center gap-1"
               >
                 Historial completo
                 <ExternalLink size={11} />
-              </a>
+              </Link>
             </div>
+            {updateError && <p className="mb-4 text-sm text-red-500">{updateError}</p>}
             <div className="flex gap-3">
-              <button onClick={onDismiss} className="flex-1 btn-outline text-sm py-3 min-h-[44px]">
+              <button
+                onClick={onDismiss}
+                disabled={isUpdating}
+                className="flex-1 btn-outline text-sm py-3 min-h-[44px] disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 Ahora no
               </button>
-              <button onClick={onUpdate} className="flex-1 btn-primary text-sm py-3 min-h-[44px]">
-                Actualizar
+              <button
+                onClick={onUpdate}
+                disabled={isUpdating}
+                className="flex-1 btn-primary text-sm py-3 min-h-[44px] disabled:cursor-wait disabled:opacity-70"
+              >
+                {isUpdating ? 'Actualizando…' : 'Actualizar'}
               </button>
             </div>
           </motion.div>

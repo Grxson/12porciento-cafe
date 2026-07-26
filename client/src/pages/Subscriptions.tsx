@@ -620,7 +620,7 @@ export default function Subscriptions() {
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
               <button
                 onClick={() => goToStep(1)}
                 className="flex items-center gap-1 text-coffee-500 dark:text-coffee-400 hover:text-coffee-900 dark:hover:text-cream text-xs mb-8 min-h-11 transition-colors"
@@ -633,40 +633,80 @@ export default function Subscriptions() {
                   Plan {selectedPlan.name}
                 </h2>
               </div>
-              {/* Sticky continue bar when enough coffees selected */}
-              {selectedCoffees.length >= PLAN_SLOTS[selectedPlan.id].min && (
-                <div className="sticky top-20 z-10 bg-coffee-50 dark:bg-coffee-950 border border-gold-500/30 px-5 py-3 mb-6 flex items-center justify-between shadow-sm">
-                  <div>
-                    <p className="text-coffee-900 dark:text-cream text-sm font-medium">
-                      {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}{' '}
-                      seleccionados
-                    </p>
-                    <p className="text-coffee-500 dark:text-coffee-300 text-xs">Grano entero</p>
+              <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10">
+                <div className="min-w-0">
+                  {/* Sticky continue bar when enough coffees selected */}
+                  {selectedCoffees.length >= PLAN_SLOTS[selectedPlan.id].min && (
+                    <div className="sticky top-20 z-10 bg-coffee-50 dark:bg-coffee-950 border border-gold-500/30 px-5 py-3 mb-6 flex items-center justify-between shadow-sm lg:hidden">
+                      <div>
+                        <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+                          {selectedCoffees.length} café{selectedCoffees.length !== 1 ? 's' : ''}{' '}
+                          seleccionados
+                        </p>
+                        <p className="text-coffee-500 dark:text-coffee-300 text-xs">Grano entero</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCoffeeNext}
+                        disabled={loading}
+                        className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? 'Cambiando plan…' : 'Continuar'}{' '}
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  <CoffeePicker
+                    plan={selectedPlan.id}
+                    selected={selectedCoffees}
+                    onChange={setSelectedCoffees}
+                  />
+                  <div className="mt-10 flex justify-end lg:hidden">
+                    <button
+                      type="button"
+                      disabled={selectedCoffees.length < PLAN_SLOTS[selectedPlan.id].min || loading}
+                      onClick={handleCoffeeNext}
+                      className="btn-primary flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Cambiando plan…' : 'Continuar'}{' '}
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCoffeeNext}
-                    disabled={loading}
-                    className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? 'Cambiando plan…' : 'Continuar'} <ChevronRight className="w-4 h-4" />
-                  </button>
                 </div>
-              )}
-              <CoffeePicker
-                plan={selectedPlan.id}
-                selected={selectedCoffees}
-                onChange={setSelectedCoffees}
-              />
-              <div className="mt-10 flex justify-end">
-                <button
-                  type="button"
-                  disabled={selectedCoffees.length < PLAN_SLOTS[selectedPlan.id].min || loading}
-                  onClick={handleCoffeeNext}
-                  className="btn-primary flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Cambiando plan…' : 'Continuar'} <ChevronRight className="w-4 h-4" />
-                </button>
+                <aside className="hidden lg:block lg:sticky lg:top-24">
+                  <div className="border border-coffee-200 bg-white p-6 dark:border-coffee-800 dark:bg-coffee-900">
+                    <p className="text-xs uppercase tracking-[0.2em] text-coffee-500 dark:text-coffee-400">
+                      Tu suscripción
+                    </p>
+                    <h3 className="mt-2 font-serif text-2xl text-coffee-900 dark:text-cream">
+                      {selectedPlan.name}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-coffee-600 dark:text-coffee-300">
+                      {selectedPlan.subtitle}
+                    </p>
+                    <div className="my-5 h-px bg-coffee-200 dark:bg-coffee-800" />
+                    <div className="flex items-end justify-between gap-4">
+                      <span className="text-sm text-coffee-600 dark:text-coffee-300">
+                        Cafés elegidos
+                      </span>
+                      <span className="font-serif text-2xl text-gold-500">
+                        {selectedCoffees.length}/{PLAN_SLOTS[selectedPlan.id].max}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-coffee-500 dark:text-coffee-400">
+                      Mínimo {PLAN_SLOTS[selectedPlan.id].min} café
+                      {PLAN_SLOTS[selectedPlan.id].min !== 1 ? 's' : ''}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={selectedCoffees.length < PLAN_SLOTS[selectedPlan.id].min || loading}
+                      onClick={handleCoffeeNext}
+                      className="btn-primary mt-6 flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {loading ? 'Procesando…' : 'Continuar'} <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </aside>
               </div>
               {error && (
                 <div className="flex items-start gap-2 text-red-400 text-sm mt-6">

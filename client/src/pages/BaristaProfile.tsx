@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, Zap, Coffee, Star, Share2 } from 'lucide-react';
+import { Trophy, Zap, Coffee, Star, Share2, BarChart3, Scale, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import {
   BarChart,
@@ -45,6 +45,22 @@ export default function BaristaProfile() {
   const { data: stats, isLoading: statsLoading } = useBaristaStatsQuery(userId);
   const { share } = useShare();
   const { dark } = useClientTheme();
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  const sectionNav = [
+    { key: 'stats', label: 'Estadísticas', icon: BarChart3 },
+    { key: 'comparator', label: 'Comparador de Brews', icon: Scale },
+    { key: 'records', label: 'Records Personales', icon: Trophy },
+    { key: 'equipment', label: 'Equipamiento', icon: Wrench },
+  ];
+
+  const navigateToSection = (sectionKey: string) => {
+    setActiveSection(sectionKey);
+    document.getElementById(`barista-section-${sectionKey}`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   const chartColors = {
     text: dark ? '#e8d5b7' : '#4a3728',
@@ -153,7 +169,7 @@ export default function BaristaProfile() {
         title={`Perfil de ${currentUser?.name || 'Barista'}`}
         description="Nivel barista, experiencia y logros."
       />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ── Banner ── */}
         <div className="relative -mx-4 sm:-mx-0 sm:rounded-xl overflow-hidden">
           {profile.bannerUrl ? (
@@ -174,70 +190,96 @@ export default function BaristaProfile() {
         </div>
 
         {/* ── Layout lg: sidebar + contenido ── */}
-        <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8 lg:items-start">
+        <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12 lg:items-start">
           {/* ── Sidebar ── */}
-          <div className="flex items-end gap-4 md:gap-5 -mt-10 md:-mt-14 relative z-10 mb-6 lg:mb-0 lg:mt-0">
-            <div className="shrink-0">
-              <RankBadge
-                level={profile.level}
-                size="lg"
-                frameType={profile.bannerUrl ? 'avatar' : 'badge'}
-                avatarUrl={profile.user?.avatarUrl}
-                name={profile.user?.name}
-                showLabel={false}
-              />
-            </div>
-            <div className="flex-1 min-w-0 pb-1">
-              {profile.user && (
-                <p className="line-clamp-2 break-words font-serif text-xl leading-tight text-coffee-900 dark:text-cream md:text-2xl">
-                  {profile.user.name}
-                </p>
-              )}
-              <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-coffee-600 dark:text-coffee-400">
-                <span className="text-gold-500 font-semibold">Nivel {profile.level}</span>
-                <span className="text-coffee-400 dark:text-coffee-600">·</span>
-                <span>{profile.totalBrews} brews</span>
-                {profile.totalXp > 0 && (
-                  <>
-                    <span className="text-coffee-400 dark:text-coffee-600">·</span>
-                    <span className="text-gold-500">{profile.totalXp} XP</span>
-                  </>
+          <div className="relative z-10 mb-6 -mt-10 md:-mt-14 lg:sticky lg:top-24 lg:mb-0 lg:mt-0">
+            <div className="flex items-end gap-4 md:gap-5">
+              <div className="shrink-0">
+                <RankBadge
+                  level={profile.level}
+                  size="lg"
+                  frameType={profile.bannerUrl ? 'avatar' : 'badge'}
+                  avatarUrl={profile.user?.avatarUrl}
+                  name={profile.user?.name}
+                  showLabel={false}
+                />
+              </div>
+              <div className="flex-1 min-w-0 pb-1">
+                {profile.user && (
+                  <p className="line-clamp-2 break-words font-serif text-xl leading-tight text-coffee-900 dark:text-cream md:text-2xl">
+                    {profile.user.name}
+                  </p>
                 )}
-                {profile.rankTitle && (
-                  <>
-                    <span className="text-coffee-400 dark:text-coffee-600">·</span>
-                    <span>{profile.rankTitle}</span>
-                  </>
+                <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-coffee-600 dark:text-coffee-400">
+                  <span className="text-gold-500 font-semibold">Nivel {profile.level}</span>
+                  <span className="text-coffee-400 dark:text-coffee-600">·</span>
+                  <span>{profile.totalBrews} brews</span>
+                  {profile.totalXp > 0 && (
+                    <>
+                      <span className="text-coffee-400 dark:text-coffee-600">·</span>
+                      <span className="text-gold-500">{profile.totalXp} XP</span>
+                    </>
+                  )}
+                  {profile.rankTitle && (
+                    <>
+                      <span className="text-coffee-400 dark:text-coffee-600">·</span>
+                      <span>{profile.rankTitle}</span>
+                    </>
+                  )}
+                </div>
+                {profile.bio && (
+                  <p className="text-sm text-coffee-600 dark:text-coffee-400 italic mt-1 leading-relaxed line-clamp-2">
+                    {profile.bio}
+                  </p>
+                )}
+                {!isOwnProfile && profile.user && (
+                  <div className="flex items-center gap-2 mt-3">
+                    <FollowButton
+                      targetUserId={profile.user.id}
+                      targetUserName={profile.user.name}
+                      size="sm"
+                    />
+                    <button
+                      onClick={() =>
+                        share({
+                          title: `Perfil de ${profile.user!.name}`,
+                          text: `Mira el perfil barista de ${profile.user!.name} en 12% Café`,
+                        })
+                      }
+                      className="inline-flex min-h-11 items-center gap-1 rounded-full border border-coffee-300 px-4 text-xs text-coffee-600 transition-colors hover:bg-coffee-100 dark:border-coffee-600 dark:text-coffee-400 dark:hover:bg-coffee-800"
+                      aria-label="Compartir perfil"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      <span>Compartir</span>
+                    </button>
+                  </div>
                 )}
               </div>
-              {profile.bio && (
-                <p className="text-sm text-coffee-600 dark:text-coffee-400 italic mt-1 leading-relaxed line-clamp-2">
-                  {profile.bio}
-                </p>
-              )}
-              {!isOwnProfile && profile.user && (
-                <div className="flex items-center gap-2 mt-3">
-                  <FollowButton
-                    targetUserId={profile.user.id}
-                    targetUserName={profile.user.name}
-                    size="sm"
-                  />
-                  <button
-                    onClick={() =>
-                      share({
-                        title: `Perfil de ${profile.user!.name}`,
-                        text: `Mira el perfil barista de ${profile.user!.name} en 12% Café`,
-                      })
-                    }
-                    className="inline-flex min-h-11 items-center gap-1 rounded-full border border-coffee-300 px-4 text-xs text-coffee-600 transition-colors hover:bg-coffee-100 dark:border-coffee-600 dark:text-coffee-400 dark:hover:bg-coffee-800"
-                    aria-label="Compartir perfil"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>Compartir</span>
-                  </button>
-                </div>
-              )}
             </div>
+            <nav
+              aria-label="Secciones del perfil barista"
+              className="mt-5 flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible"
+            >
+              {sectionNav.map(({ key, label, icon: Icon }) => {
+                const isActive = activeSection === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => navigateToSection(key)}
+                    className={`flex min-h-11 shrink-0 items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors lg:w-full ${
+                      isActive
+                        ? 'border-gold-500 bg-gold-500/10 text-gold-600 dark:text-gold-400'
+                        : 'border-transparent text-coffee-700 hover:border-coffee-200 hover:bg-coffee-100 dark:text-coffee-300 dark:hover:border-coffee-700 dark:hover:bg-coffee-900'
+                    }`}
+                    aria-current={isActive ? 'location' : undefined}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
           {/* ── Main content ── */}
@@ -426,6 +468,8 @@ export default function BaristaProfile() {
               sectionKey="stats"
               defaultOpen={false}
               badge={statsLoading ? undefined : stats ? '1' : undefined}
+              open={activeSection === 'stats'}
+              onOpenChange={(open) => setActiveSection(open ? 'stats' : null)}
             >
               {statsLoading ? (
                 <div className="space-y-4">
@@ -797,6 +841,8 @@ export default function BaristaProfile() {
               title="⚖️ Comparador de Brews"
               sectionKey="comparator"
               defaultOpen={false}
+              open={activeSection === 'comparator'}
+              onOpenChange={(open) => setActiveSection(open ? 'comparator' : null)}
             >
               {profile.brewLogs.length > 0 && <BrewComparator brews={profile.brewLogs} />}
             </CollapsibleSection>
@@ -806,12 +852,20 @@ export default function BaristaProfile() {
               title="🏆 Records Personales"
               sectionKey="records"
               defaultOpen={false}
+              open={activeSection === 'records'}
+              onOpenChange={(open) => setActiveSection(open ? 'records' : null)}
             >
               {userId && <BaristaRecords userId={userId} />}
             </CollapsibleSection>
 
             {/* Equipamiento */}
-            <CollapsibleSection title="☕ Equipamiento" sectionKey="equipment" defaultOpen={false}>
+            <CollapsibleSection
+              title="☕ Equipamiento"
+              sectionKey="equipment"
+              defaultOpen={false}
+              open={activeSection === 'equipment'}
+              onOpenChange={(open) => setActiveSection(open ? 'equipment' : null)}
+            >
               {userId && <EquipmentRecs userId={userId} />}
             </CollapsibleSection>
 

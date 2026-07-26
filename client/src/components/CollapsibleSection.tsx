@@ -7,23 +7,39 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   badge?: string | number;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function CollapsibleSection({
   title,
+  sectionKey,
   children,
   defaultOpen = false,
   badge,
+  open: controlledOpen,
+  onOpenChange,
 }: CollapsibleSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? internalOpen;
+
+  const toggleOpen = () => {
+    const nextOpen = !open;
+    if (controlledOpen === undefined) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
 
   return (
-    <div className="border border-coffee-200 dark:border-coffee-800 rounded-xl overflow-hidden mb-4">
+    <div
+      id={`barista-section-${sectionKey}`}
+      className="border border-coffee-200 dark:border-coffee-800 rounded-xl overflow-hidden mb-4 scroll-mt-24"
+    >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggleOpen}
         className="w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-coffee-900 hover:bg-coffee-50 dark:hover:bg-coffee-800 transition-colors min-h-[48px]"
         aria-expanded={open}
+        aria-controls={`barista-section-content-${sectionKey}`}
       >
         <div className="flex items-center gap-2">
           <span className="font-serif text-lg text-coffee-900 dark:text-cream">{title}</span>
@@ -40,6 +56,7 @@ export default function CollapsibleSection({
         />
       </button>
       <div
+        id={`barista-section-content-${sectionKey}`}
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
           open ? 'max-h-[9999px] opacity-100' : 'max-h-0 opacity-0'
         }`}

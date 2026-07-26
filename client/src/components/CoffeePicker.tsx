@@ -90,7 +90,7 @@ export default function CoffeePicker({ plan, selected, onChange }: Props) {
         </p>
       )}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="aspect-[3/4] shimmer" />
           ))}
@@ -104,7 +104,7 @@ export default function CoffeePicker({ plan, selected, onChange }: Props) {
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-full mb-6 px-4 py-2.5 border border-coffee-300 dark:border-coffee-700 bg-white dark:bg-coffee-800 text-coffee-900 dark:text-cream placeholder:text-coffee-400 dark:placeholder:text-coffee-500 focus:outline-none focus:border-gold-500 transition-colors"
           />
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {products
               .filter(
                 (p) =>

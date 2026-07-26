@@ -29,7 +29,7 @@ const roasts = ['Todos', 'Ligero', 'Medio-Ligero', 'Medio', 'Oscuro'];
 
 function ShopSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="overflow-hidden border border-coffee-200 dark:border-coffee-800">
           <div className="aspect-[4/3] sm:aspect-[3/4] shimmer" />
@@ -239,14 +239,57 @@ export default function Shop() {
   ].filter(Boolean).length;
 
   const activeFilterChips = [
-    category !== 'TODOS' && { key: 'cat', label: `Cat: ${categories.find((c) => c.id === category)?.label ?? category}`, remove: () => handleCategoryChange('TODOS') },
-    process !== 'Todos' && { key: 'proc', label: `Proc: ${process}`, remove: () => { setParam('proceso', 'Todos'); setPage(1); } },
-    roast !== 'Todos' && { key: 'roast', label: `Tueste: ${roast}`, remove: () => { setParam('tueste', 'Todos'); setPage(1); } },
+    category !== 'TODOS' && {
+      key: 'cat',
+      label: `Cat: ${categories.find((c) => c.id === category)?.label ?? category}`,
+      remove: () => handleCategoryChange('TODOS'),
+    },
+    process !== 'Todos' && {
+      key: 'proc',
+      label: `Proc: ${process}`,
+      remove: () => {
+        setParam('proceso', 'Todos');
+        setPage(1);
+      },
+    },
+    roast !== 'Todos' && {
+      key: 'roast',
+      label: `Tueste: ${roast}`,
+      remove: () => {
+        setParam('tueste', 'Todos');
+        setPage(1);
+      },
+    },
     ...selectedFlavors.map((f) => ({ key: `flav-${f}`, label: f, remove: () => toggleFlavor(f) })),
-    body && { key: 'body', label: `Cuerpo: ${body}`, remove: () => { setBody(''); setPage(1); } },
-    acidity && { key: 'acid', label: `Acidez: ${acidity}`, remove: () => { setAcidity(''); setPage(1); } },
-    brewMethod && { key: 'method', label: `Método: ${brewMethod}`, remove: () => { setBrewMethod(''); setPage(1); } },
-    ...certifications.map((c) => ({ key: `cert-${c}`, label: c, remove: () => toggleCertification(c) })),
+    body && {
+      key: 'body',
+      label: `Cuerpo: ${body}`,
+      remove: () => {
+        setBody('');
+        setPage(1);
+      },
+    },
+    acidity && {
+      key: 'acid',
+      label: `Acidez: ${acidity}`,
+      remove: () => {
+        setAcidity('');
+        setPage(1);
+      },
+    },
+    brewMethod && {
+      key: 'method',
+      label: `Método: ${brewMethod}`,
+      remove: () => {
+        setBrewMethod('');
+        setPage(1);
+      },
+    },
+    ...certifications.map((c) => ({
+      key: `cert-${c}`,
+      label: c,
+      remove: () => toggleCertification(c),
+    })),
   ].filter(Boolean) as Array<{ key: string; label: string; remove: () => void }>;
 
   useEffect(() => {
@@ -342,8 +385,8 @@ export default function Shop() {
         description="Explora nuestra selección de cafés de especialidad: origen único, blends y suscripciones."
       />
       {/* Page header */}
-      <div className="page-header">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-header !py-10 md:!py-12">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-8 2xl:px-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -360,9 +403,9 @@ export default function Shop() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+      <div className="mx-auto mt-8 max-w-[1600px] px-4 sm:px-8 2xl:px-10">
         {/* Search */}
-        <div className="relative mb-6 max-w-sm">
+        <div className="relative mb-6 max-w-lg">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400 dark:text-coffee-500 pointer-events-none" />
           <input
             value={searchInput}
@@ -460,7 +503,9 @@ export default function Shop() {
                     >
                       Filtros
                     </h3>
-                    <p className="text-xs text-coffee-500 dark:text-coffee-400">{activeFilterCount} activos</p>
+                    <p className="text-xs text-coffee-500 dark:text-coffee-400">
+                      {activeFilterCount} activos
+                    </p>
                   </div>
                   <div className="flex items-center gap-1">
                     {hasFilters && (
@@ -706,7 +751,9 @@ export default function Shop() {
                           )}
                         </div>
                         {flavorSearch && displayedFlavors.length === 0 ? (
-                      <p className="text-xs text-coffee-500 dark:text-coffee-400 italic">Sin coincidencias</p>
+                          <p className="text-xs text-coffee-500 dark:text-coffee-400 italic">
+                            Sin coincidencias
+                          </p>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {displayedFlavors.map((f) => (
@@ -747,9 +794,9 @@ export default function Shop() {
         </AnimatePresence>
 
         {/* Amazon-style: sidebar (desktop) + main area */}
-        <div className="flex gap-8">
+        <div className="flex gap-6 xl:gap-8">
           {/* ── Sidebar (desktop only) ── */}
-          <aside className="hidden lg:block w-64 shrink-0">
+          <aside className="hidden w-56 shrink-0 lg:block xl:w-60">
             <div className="sticky top-24 space-y-6">
               {/* Sort */}
               <div>
@@ -801,7 +848,10 @@ export default function Shop() {
                       {processes.map((p) => (
                         <button
                           key={p}
-                          onClick={() => { setParam('proceso', p); setPage(1); }}
+                          onClick={() => {
+                            setParam('proceso', p);
+                            setPage(1);
+                          }}
                           className={`block w-full text-left px-3 py-1.5 text-sm transition-colors ${
                             process === p
                               ? 'text-gold-600 font-medium'
@@ -822,7 +872,10 @@ export default function Shop() {
                       {roasts.map((r) => (
                         <button
                           key={r}
-                          onClick={() => { setParam('tueste', r); setPage(1); }}
+                          onClick={() => {
+                            setParam('tueste', r);
+                            setPage(1);
+                          }}
                           className={`block w-full text-left px-3 py-1.5 text-sm transition-colors ${
                             roast === r
                               ? 'text-gold-600 font-medium'
@@ -843,7 +896,10 @@ export default function Shop() {
                       {['', 'Ligero', 'Medio', 'Completo'].map((v) => (
                         <button
                           key={v || 'all-body'}
-                          onClick={() => { setBody(v); setPage(1); }}
+                          onClick={() => {
+                            setBody(v);
+                            setPage(1);
+                          }}
                           className={`block w-full text-left px-3 py-1.5 text-sm transition-colors ${
                             body === v
                               ? 'text-gold-600 font-medium'
@@ -864,7 +920,10 @@ export default function Shop() {
                       {['', 'Baja', 'Media', 'Alta'].map((v) => (
                         <button
                           key={v || 'all-acidity'}
-                          onClick={() => { setAcidity(v); setPage(1); }}
+                          onClick={() => {
+                            setAcidity(v);
+                            setPage(1);
+                          }}
                           className={`block w-full text-left px-3 py-1.5 text-sm transition-colors ${
                             acidity === v
                               ? 'text-gold-600 font-medium'
@@ -885,7 +944,10 @@ export default function Shop() {
                       {['', 'V60', 'AeroPress', 'Espresso', 'Chemex', 'French Press'].map((v) => (
                         <button
                           key={v || 'all-method'}
-                          onClick={() => { setBrewMethod(v); setPage(1); }}
+                          onClick={() => {
+                            setBrewMethod(v);
+                            setPage(1);
+                          }}
                           className={`block w-full text-left px-3 py-1.5 text-sm transition-colors ${
                             brewMethod === v
                               ? 'text-gold-600 font-medium'
@@ -936,7 +998,7 @@ export default function Shop() {
           </aside>
 
           {/* ── Main content ── */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             {/* Active filter chips (mobile only) */}
             <div className="flex flex-wrap gap-2 mb-6 lg:hidden">
               {activeFilterChips.map((chip) => (
@@ -945,7 +1007,10 @@ export default function Shop() {
                   className="inline-flex items-center gap-1 text-xs bg-coffee-100 dark:bg-coffee-800 text-coffee-700 dark:text-coffee-300 px-2 py-1 border border-coffee-200 dark:border-coffee-700"
                 >
                   {chip.label}
-                  <button onClick={chip.remove} className="text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors">
+                  <button
+                    onClick={chip.remove}
+                    className="text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -959,93 +1024,100 @@ export default function Shop() {
               </p>
             )}
 
-        {/* Grid */}
-        {loading ? (
-          <ShopSkeleton />
-        ) : error ? (
-          <div className="text-center py-24">
-            <WifiOff className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
-            <p className="font-serif text-2xl text-coffee-400 dark:text-coffee-300 mb-2">
-              {!navigator.onLine ? 'Sin conexión' : 'Error al cargar'}
-            </p>
-            <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-8">
-              {!navigator.onLine
-                ? 'Revisa tu conexión a internet e intenta de nuevo.'
-                : 'No se pudieron cargar los productos.'}
-            </p>
-            <button onClick={() => setReloadKey((k) => k + 1)} className="btn-outline">
-              Reintentar
-            </button>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-24">
-            <SearchX className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
-            <p className="font-serif text-2xl text-coffee-400 dark:text-coffee-300 mb-2">Sin resultados</p>
-            <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-2">No hay productos con esos filtros.</p>
-            <p className="text-coffee-400 dark:text-coffee-500 text-xs mb-8">
-              Intenta cambiar categoría, proceso o buscar otro término.
-            </p>
-            <button onClick={resetFilters} className="btn-outline">
-              Ver todos
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
-            ))}
-          </div>
-        )}
+            {/* Grid */}
+            {loading ? (
+              <ShopSkeleton />
+            ) : error ? (
+              <div className="text-center py-24">
+                <WifiOff className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
+                <p className="font-serif text-2xl text-coffee-400 dark:text-coffee-300 mb-2">
+                  {!navigator.onLine ? 'Sin conexión' : 'Error al cargar'}
+                </p>
+                <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-8">
+                  {!navigator.onLine
+                    ? 'Revisa tu conexión a internet e intenta de nuevo.'
+                    : 'No se pudieron cargar los productos.'}
+                </p>
+                <button onClick={() => setReloadKey((k) => k + 1)} className="btn-outline">
+                  Reintentar
+                </button>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-24">
+                <SearchX className="w-16 h-16 text-coffee-300 dark:text-coffee-600 mx-auto mb-4" />
+                <p className="font-serif text-2xl text-coffee-400 dark:text-coffee-300 mb-2">
+                  Sin resultados
+                </p>
+                <p className="text-coffee-500 dark:text-coffee-400 text-sm mb-2">
+                  No hay productos con esos filtros.
+                </p>
+                <p className="text-coffee-400 dark:text-coffee-500 text-xs mb-8">
+                  Intenta cambiar categoría, proceso o buscar otro término.
+                </p>
+                <button onClick={resetFilters} className="btn-outline">
+                  Ver todos
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-6">
+                {products.map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))}
+              </div>
+            )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-12">
-            <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              className="flex min-h-11 min-w-11 items-center justify-center border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Página anterior"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-12">
+                <button
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={page === 1}
+                  className="flex min-h-11 min-w-11 items-center justify-center border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-              .reduce<(number | '…')[]>((acc, p, i, arr) => {
-                if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push('…');
-                acc.push(p);
-                return acc;
-              }, [])
-              .map((p, i) =>
-                p === '…' ? (
-                  <span key={`e${i}`} className="px-2 text-coffee-500 dark:text-coffee-400 text-sm">
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p as number)}
-                    className={`min-h-11 min-w-11 text-sm border transition-colors ${
-                      page === p
-                        ? 'border-gold-500 bg-gold-500/10 text-gold-600 font-semibold'
-                        : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ),
-              )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .reduce<(number | '…')[]>((acc, p, i, arr) => {
+                    if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push('…');
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((p, i) =>
+                    p === '…' ? (
+                      <span
+                        key={`e${i}`}
+                        className="px-2 text-coffee-500 dark:text-coffee-400 text-sm"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p as number)}
+                        className={`min-h-11 min-w-11 text-sm border transition-colors ${
+                          page === p
+                            ? 'border-gold-500 bg-gold-500/10 text-gold-600 font-semibold'
+                            : 'border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ),
+                  )}
 
-            <button
-              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-              disabled={page === totalPages}
-              className="flex min-h-11 min-w-11 items-center justify-center border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Página siguiente"
-            >
-              <ChevronRightIcon className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+                <button
+                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="flex min-h-11 min-w-11 items-center justify-center border border-coffee-300 dark:border-coffee-700 text-coffee-600 dark:text-coffee-400 hover:border-coffee-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Página siguiente"
+                >
+                  <ChevronRightIcon className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

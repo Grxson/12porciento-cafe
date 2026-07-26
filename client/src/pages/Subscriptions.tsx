@@ -506,12 +506,20 @@ export default function Subscriptions() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: i * 0.08 }}
                     onClick={() => handleSelectPlan(plan)}
+                    role="button"
+                    tabIndex={currentPlan === plan.id ? -1 : 0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleSelectPlan(plan);
+                      }
+                    }}
                     className={`relative flex flex-col border transition-all duration-300 group
                       ${
                         currentPlan === plan.id
                           ? 'opacity-70 cursor-default border-coffee-300 dark:border-coffee-600 bg-coffee-50 dark:bg-coffee-900/40'
                           : plan.featured
-                            ? 'cursor-pointer border-gold-500 bg-white dark:bg-coffee-900 shadow-[0_0_40px rgba(201,169,110,0.1)]'
+                            ? 'cursor-pointer border-gold-500 bg-white dark:bg-coffee-900 shadow-[0_0_40px rgba(201,169,110,0.1)] ring-1 ring-gold-500/30'
                             : 'cursor-pointer border-coffee-200 dark:border-coffee-800 bg-white dark:bg-coffee-900/60 hover:border-coffee-300 dark:hover:border-coffee-700'
                       }`}
                   >

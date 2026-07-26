@@ -22,6 +22,7 @@ import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
 import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
 import { PageMeta } from '../hooks/usePageMeta';
 import Breadcrumbs from '../components/Breadcrumbs';
+import MediaFrame from '../components/ui/MediaFrame';
 
 function avgRating(ratings: { rating: number }[] | undefined): number {
   if (!ratings || ratings.length === 0) return 0;
@@ -496,20 +497,13 @@ export default function Recipes() {
                       className="relative block aspect-[4/3] md:aspect-auto md:w-[38%] md:min-h-[280px] lg:min-h-[320px] xl:min-h-[360px] flex-shrink-0 overflow-hidden bg-coffee-100 dark:bg-coffee-800"
                       onClick={(e) => isLocked && e.preventDefault()}
                     >
-                      {recipe.imageUrl ? (
-                        <img
-                          src={recipe.imageUrl}
-                          alt={recipe.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-coffee-100 to-coffee-200 dark:from-coffee-800 dark:to-coffee-900">
-                          <span className="text-5xl text-gold-500/40">
-                            <MethodIcon method={recipe.method} />
-                          </span>
-                        </div>
-                      )}
+                      <MediaFrame
+                        src={recipe.imageUrl}
+                        alt={recipe.title}
+                        ratio="recipe"
+                        className="h-full !aspect-auto transition-transform duration-500 group-hover:scale-105"
+                        fallback={<MethodIcon method={recipe.method} />}
+                      />
 
                       {/* Gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-coffee-950/60 via-transparent to-transparent" />

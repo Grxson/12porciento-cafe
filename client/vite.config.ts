@@ -13,13 +13,16 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'icons/*.png', 'icons/*.svg', 'fonts/*.woff2'],
       manifest: {
         name: '12% Café de Especialidad',
-        short_name: '12%C',
+        short_name: '12% Café',
         description: 'Café de especialidad mexicano. Origen único, trazabilidad total.',
         theme_color: '#0d0806',
         background_color: '#0d0806',
         display: 'standalone',
         orientation: 'portrait-primary',
         scope: '/',
+        lang: 'es-MX',
+        dir: 'ltr',
+        display_override: ['window-controls-overlay', 'standalone'],
         start_url: '/tienda',
         categories: ['shopping', 'food & drink'],
         icons: [

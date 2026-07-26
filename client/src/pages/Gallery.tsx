@@ -7,6 +7,7 @@ import { PageMeta } from '../hooks/usePageMeta';
 import Breadcrumbs from '../components/Breadcrumbs';
 import PageSkeleton from '../components/PageSkeleton';
 import GalleryLightbox from '../components/GalleryLightbox';
+import MediaFrame from '../components/ui/MediaFrame';
 
 interface GalleryImage {
   id: string;
@@ -117,11 +118,11 @@ export default function Gallery() {
                   className="relative block aspect-[4/3] min-h-11 w-full cursor-pointer overflow-hidden"
                   aria-label={`Ver imagen: ${img.alt || img.productName}`}
                 >
-                  <img
+                  <MediaFrame
                     src={img.url}
                     alt={img.alt || img.productName}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                    loading="lazy"
+                    ratio="recipe"
+                    className="h-full !aspect-auto transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                   <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 opacity-60 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100">
                     <span className="text-white text-sm font-medium">{img.productName}</span>

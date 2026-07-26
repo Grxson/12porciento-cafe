@@ -11,6 +11,7 @@ import {
   CreditCard,
   Package,
   ShoppingBag,
+  Coffee,
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { ordersApi, paymentsApi, promoCodesApi, usersApi, abandonedCartApi } from '../api';
@@ -25,6 +26,7 @@ import type { PaymentMethod } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
 import PushPermissionBanner from '../components/PushPermissionBanner';
 import { getApiError, getErrorStatus } from '../lib/api-error';
+import MediaFrame from '../components/ui/MediaFrame';
 
 interface FormData {
   customerName: string;
@@ -411,8 +413,7 @@ export default function Checkout() {
           <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream mb-2">
             Carrito vacío
           </h2>
-          <p className="text-coffee-500 dark:text-coffee-400 max-w-xs leading-relaxed text-sm">
-          </p>
+          <p className="text-coffee-500 dark:text-coffee-400 max-w-xs leading-relaxed text-sm"></p>
         </div>
         <Link to="/tienda" className="btn-primary">
           Ir a la tienda
@@ -456,6 +457,30 @@ export default function Checkout() {
   }
 
   if (success) {
+    return (
+      <div className="min-h-dvh bg-coffee-50 px-4 py-16 dark:bg-coffee-950 sm:px-6">
+        <PageMeta title="Pedido confirmado" description="Tu pedido de café fue confirmado." />
+        <div className="mx-auto max-w-xl border border-coffee-200 bg-white p-8 text-center shadow-sm dark:border-coffee-800 dark:bg-coffee-900 sm:p-12">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gold-500/15 text-gold-600 dark:text-gold-400">
+            <Check aria-hidden="true" className="h-8 w-8" />
+          </div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-gold-600 dark:text-gold-400">
+            12% Café
+          </p>
+          <h1 className="font-serif text-4xl text-coffee-900 dark:text-cream">Pedido confirmado</h1>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-coffee-600 dark:text-coffee-400">
+            Gracias por elegir café de especialidad. Te enviaremos la confirmación y el seguimiento
+            a tu correo.
+          </p>
+          <Link to="/tienda" className="btn-primary mt-8">
+            Seguir comprando
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!success) {
     return (
       <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
         <PageMeta
@@ -951,10 +976,14 @@ export default function Checkout() {
                   {items.map((item) =>
                     item.itemType === 'product' ? (
                       <div key={`prod_${item.product.id}`} className="flex gap-3">
-                        <img
+                        <MediaFrame
                           src={item.product.imageUrl}
                           alt={item.product.name}
-                          className="w-12 h-12 object-cover shrink-0"
+                          ratio="avatar"
+                          className="h-12 w-12 shrink-0"
+                          fallback={
+                            <Coffee className="h-5 w-5 text-coffee-400" aria-hidden="true" />
+                          }
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-coffee-900 dark:text-cream text-sm leading-tight truncate">
@@ -971,10 +1000,14 @@ export default function Checkout() {
                     ) : (
                       <div key={`bund_${item.bundleId}`} className="flex gap-3">
                         {item.bundle.imageUrl ? (
-                          <img
+                          <MediaFrame
                             src={item.bundle.imageUrl}
                             alt={item.bundle.name}
-                            className="w-12 h-12 object-cover shrink-0"
+                            ratio="avatar"
+                            className="h-12 w-12 shrink-0"
+                            fallback={
+                              <Package className="h-5 w-5 text-gold-500" aria-hidden="true" />
+                            }
                           />
                         ) : (
                           <div className="w-12 h-12 bg-gold-50 dark:bg-gold-500/10 flex items-center justify-center shrink-0">

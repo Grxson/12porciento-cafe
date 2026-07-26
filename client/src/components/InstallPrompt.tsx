@@ -40,10 +40,12 @@ export default function InstallPrompt() {
       /* storage may be unavailable (private mode) — fall through */
     }
 
-    if (!wasDismissed() && visits >= MIN_VISITS) {
+    // A browser that has already granted the install opportunity should see the
+    // CTA immediately; the visit threshold only applies to passive discovery.
+    if (!wasDismissed() && (visits >= MIN_VISITS || canInstall || isIOS)) {
       setEligible(true);
     }
-  }, []);
+  }, [canInstall, isIOS]);
 
   const showAndroid = canInstall && !isStandalone;
   const showIOS = isIOS && !isStandalone;

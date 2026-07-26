@@ -1,4 +1,5 @@
 import React from 'react';
+import { Award } from 'lucide-react';
 
 // Dynamic import fallback — try reicon, fallback to emoji text
 declare let require: (module: string) => unknown;
@@ -163,7 +164,7 @@ interface ReiconIconProps {
 
 export default function ReiconIcon({ icon, size = 24, className }: ReiconIconProps) {
   if (!icon) {
-    return <span className={className}>🏆</span>;
+    return <Award size={size} className={className} aria-hidden="true" />;
   }
 
   const trimmed = icon.trim();
@@ -189,10 +190,6 @@ export default function ReiconIcon({ icon, size = 24, className }: ReiconIconPro
     return <IconComponent size={size} className={className} />;
   }
 
-  // Fallback: render as text (it might be an emoji the regex didn't catch)
-  return (
-    <span className={className} style={{ fontSize: size }}>
-      {trimmed}
-    </span>
-  );
+  // Unknown identifiers must never leak into the UI as raw database text.
+  return <Award size={size} className={className} aria-label="Logro" />;
 }

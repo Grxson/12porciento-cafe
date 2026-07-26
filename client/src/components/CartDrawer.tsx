@@ -1,11 +1,12 @@
 import { memo, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { useState } from 'react';
 import { X, ShoppingBag, Plus, Minus, Trash2, Package, Coffee } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCart } from '../context/CartContext';
 import type { CartItemFull } from '../types';
+import MediaFrame from './ui/MediaFrame';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 function getItemKey(item: CartItemFull): string {
   return item.itemType === 'product' ? `prod_${item.product.id}` : `bund_${item.bundleId}`;
@@ -20,7 +21,6 @@ const ProductDrawerItem = memo(function ProductDrawerItem({
   const removeItem = useCart((s) => s.removeItem);
   const { product, quantity } = item;
   const key = getItemKey(item);
-  const [imgError, setImgError] = useState(false);
 
   return (
     <motion.div
@@ -31,18 +31,15 @@ const ProductDrawerItem = memo(function ProductDrawerItem({
       exit={{ opacity: 0, x: 20 }}
       className="flex gap-3 py-4 border-b border-coffee-100 dark:border-coffee-800 last:border-0"
     >
-      {imgError ? (
-        <div className="w-16 h-16 bg-coffee-100 dark:bg-coffee-800 flex items-center justify-center shrink-0">
-          <Coffee className="w-5 h-5 text-coffee-400 dark:text-coffee-500" />
-        </div>
-      ) : (
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          onError={() => setImgError(true)}
-          className="w-16 h-16 object-cover shrink-0"
-        />
-      )}
+      <MediaFrame
+        src={resolveImageUrl(product.imageUrl)}
+        alt={product.name}
+        ratio="avatar"
+        className="h-16 w-16 shrink-0"
+        fallback={
+          <Coffee className="h-5 w-5 text-coffee-400 dark:text-coffee-500" aria-hidden="true" />
+        }
+      />
       <div className="flex-1 min-w-0">
         <p className="line-clamp-2 text-sm font-medium leading-tight text-coffee-900 dark:text-cream">
           {product.name}
@@ -116,13 +113,13 @@ const BundleDrawerItem = memo(function BundleDrawerItem({
       exit={{ opacity: 0, x: 20 }}
       className="flex gap-3 py-4 border-b border-gold-200 dark:border-gold-500/20 last:border-0"
     >
-      {bundle.imageUrl ? (
-        <img src={bundle.imageUrl} alt={bundle.name} className="w-16 h-16 object-cover shrink-0" />
-      ) : (
-        <div className="w-16 h-16 bg-gold-50 dark:bg-gold-500/10 flex items-center justify-center shrink-0">
-          <Package className="w-6 h-6 text-gold-500" />
-        </div>
-      )}
+      <MediaFrame
+        src={bundle.imageUrl}
+        alt={bundle.name}
+        ratio="avatar"
+        className="h-16 w-16 shrink-0"
+        fallback={<Package className="h-6 w-6 text-gold-500" aria-hidden="true" />}
+      />
       <div className="flex-1 min-w-0">
         <p className="text-coffee-900 dark:text-cream text-sm font-medium leading-tight">
           {bundle.name}

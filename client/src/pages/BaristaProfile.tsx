@@ -162,7 +162,13 @@ export default function BaristaProfile() {
               style={{ backgroundImage: `url(${profile.bannerUrl})` }}
             />
           ) : (
-            <div className="aspect-[3/1] md:aspect-[4/1] lg:aspect-[5/1] bg-gradient-to-r from-coffee-900 via-coffee-800 to-gold-900/30" />
+            <div className="relative aspect-[3/1] overflow-hidden bg-coffee-950 bg-noise md:aspect-[4/1] lg:aspect-[5/1]">
+              <div className="absolute -right-8 -top-16 h-56 w-56 rounded-full border border-gold-500/20" />
+              <div className="absolute right-12 top-10 h-32 w-32 rounded-full border border-gold-500/10" />
+              <div className="absolute bottom-5 left-6 text-xs font-semibold uppercase tracking-[0.28em] text-gold-500/80">
+                Tu ritual, tu historia
+              </div>
+            </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-coffee-950/60 via-transparent to-coffee-950/20 pointer-events-none" />
         </div>

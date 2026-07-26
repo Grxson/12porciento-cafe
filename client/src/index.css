@@ -16,10 +16,26 @@
   --chart-tooltip-bg: #ffffff;
   --chart-tooltip-border: #e8d5c4;
   --chart-tooltip-text: #4a3728;
+
+  --surface-page: #fbf7f1;
+  --surface-card: #ffffff;
+  --surface-muted: #f1e9df;
+  --border-subtle: #e5d5c5;
+  --text-muted: #755f50;
+  --action-primary: #c9a96e;
+  --action-primary-strong: #ad8845;
 }
 
 .dark {
   color-scheme: dark;
+
+  --surface-page: #0d0806;
+  --surface-card: #1a0f0a;
+  --surface-muted: #2c1810;
+  --border-subtle: #4a2b1d;
+  --text-muted: #c5a996;
+  --action-primary: #d2b47a;
+  --action-primary-strong: #e0c48a;
 
   --chart-bg: #0d0806;
   --chart-grid: #2c1810;
@@ -141,6 +157,43 @@
     padding-right: max(var(--app-safe-right), 1rem);
     padding-bottom: calc(var(--app-safe-bottom) + 2rem);
     padding-left: max(var(--app-safe-left), 1rem);
+  }
+
+  .content-width {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .content-width-prose {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .surface-panel {
+    @apply rounded-3xl border border-coffee-200 bg-white shadow-elevation-sm dark:border-coffee-800 dark:bg-coffee-900;
+  }
+
+  .surface-panel-soft {
+    @apply rounded-3xl border border-coffee-200 bg-coffee-100 dark:border-coffee-800 dark:bg-coffee-900/70;
+  }
+
+  .state-frame {
+    @apply flex min-h-48 items-center justify-center rounded-3xl border border-dashed border-coffee-300 bg-white/85 p-6 text-center dark:border-coffee-700 dark:bg-coffee-900/85;
+  }
+
+  .state-frame-error {
+    @apply border-red-500/30 bg-red-50 text-red-950 dark:border-red-500/30 dark:bg-red-950/20 dark:text-red-200;
+  }
+
+  .sticky-action-bar {
+    @apply fixed inset-x-0 bottom-0 z-40 border-t border-coffee-200 bg-white/95 backdrop-blur dark:border-coffee-800 dark:bg-coffee-950/95;
+    padding-bottom: var(--app-safe-bottom);
+  }
+
+  .safe-area-pad {
+    padding-bottom: var(--app-safe-bottom);
+  }
+
+  .action-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-coffee-950;
   }
 
   .field-label {
@@ -366,6 +419,20 @@
     @apply max-w-3xl;
   }
 
+  .surface-card {
+    @apply border border-coffee-200 bg-white dark:border-coffee-700 dark:bg-coffee-900;
+  }
+
+  .sticky-action-bar {
+    padding-bottom: calc(var(--app-safe-bottom) + 0.75rem);
+  }
+
+  .content-safe-width {
+    width: min(100%, 80rem);
+    margin-inline: auto;
+    padding-inline: var(--app-page-inline);
+  }
+
   /* Responsive text sizes */
   .text-responsive {
     @apply text-base sm:text-lg md:text-xl lg:text-2xl;
@@ -442,5 +509,15 @@
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 414px) {
+  .section-title {
+    font-size: clamp(2rem, 10vw, 2.5rem);
+  }
+
+  .page-header {
+    padding-block: 3rem;
   }
 }

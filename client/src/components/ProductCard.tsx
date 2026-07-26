@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useCart } from '../context/CartContext';
 import { resolveImageUrl } from '../utils/imageUrl';
 import type { Product } from '../types';
+import MediaFrame from './ui/MediaFrame';
 
 interface ProductCardProps {
   product: Product;
@@ -17,7 +18,6 @@ export default memo(function ProductCard({ product, index = 0 }: ProductCardProp
   const [added, setAdded] = useState(false);
   const isCafe = product.category === 'CAFÉ';
   const inCart = items.some((i) => i.itemType === 'product' && i.product.id === product.id);
-  const [imgError, setImgError] = useState(false);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -40,19 +40,13 @@ export default memo(function ProductCard({ product, index = 0 }: ProductCardProp
         to={`/tienda/${product.slug}`}
         className="relative block aspect-[4/3] shrink-0 overflow-hidden sm:aspect-[3/4]"
       >
-        {imgError ? (
-          <div className="w-full h-full flex items-center justify-center bg-coffee-100 dark:bg-coffee-800">
-            <Coffee className="w-10 h-10 text-coffee-400" />
-          </div>
-        ) : (
-          <img
-            src={resolveImageUrl(product.imageUrl)}
-            alt={product.name}
-            loading="lazy"
-            onError={() => setImgError(true)}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-        )}
+        <MediaFrame
+          src={resolveImageUrl(product.imageUrl)}
+          alt={product.name}
+          ratio="product"
+          fallback={<Coffee className="h-10 w-10 text-coffee-400" aria-hidden="true" />}
+          className="transition-transform duration-700 ease-out group-hover:scale-105"
+        />
 
         {/* Gradient overlay — always present, stronger on hover */}
         <div

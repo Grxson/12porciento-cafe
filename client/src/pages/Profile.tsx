@@ -111,7 +111,7 @@ export default function Profile() {
             <div className="h-28 md:h-48 -mx-4 sm:-mx-6 lg:-mx-8 mb-0 bg-gradient-to-r from-coffee-900 via-coffee-800 to-gold-900/30" />
           )}
 
-          <div className="relative z-10 -mt-12 grid grid-cols-[4.5rem_minmax(0,1fr)] items-end gap-x-3 gap-y-3 px-2 sm:-mt-20 sm:flex sm:gap-5 sm:px-0">
+          <div className="relative z-10 mt-4 grid grid-cols-[4.5rem_minmax(0,1fr)] items-end gap-x-3 gap-y-3 px-2 sm:-mt-20 sm:flex sm:gap-5 sm:px-0">
             {/* Avatar */}
             <div className="h-[4.5rem] w-[4.5rem] md:w-28 md:h-28 rounded-full overflow-hidden bg-coffee-200 dark:bg-coffee-800 border-4 border-coffee-50 dark:border-coffee-950 shrink-0 shadow-lg">
               {user?.avatarUrl ? (

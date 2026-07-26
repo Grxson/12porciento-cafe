@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import type { Bundle } from '../types';
 import { PageMeta } from '../hooks/usePageMeta';
 import Breadcrumbs from '../components/Breadcrumbs';
+import MediaFrame from '../components/ui/MediaFrame';
 
 function BundleSkeleton() {
   return (
@@ -113,17 +114,12 @@ export default function Bundles() {
                 key={bundle.id}
                 className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 overflow-hidden flex flex-col"
               >
-                {bundle.imageUrl ? (
-                  <img
-                    src={bundle.imageUrl}
-                    alt={bundle.name}
-                    className="w-full aspect-[4/3] object-cover"
-                  />
-                ) : (
-                  <div className="w-full aspect-[4/3] bg-coffee-100 dark:bg-coffee-800 flex items-center justify-center">
-                    <Package className="w-12 h-12 text-coffee-400" />
-                  </div>
-                )}
+                <MediaFrame
+                  src={bundle.imageUrl}
+                  alt={bundle.name}
+                  ratio="recipe"
+                  fallback={<Package className="h-12 w-12 text-coffee-400" aria-hidden="true" />}
+                />
 
                 <div className="p-5 flex flex-col flex-1">
                   <div className="flex items-start justify-between gap-2 mb-2">

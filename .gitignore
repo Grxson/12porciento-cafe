@@ -16,3 +16,4 @@ dist/
 .serena
 .codex
 /specs
+.worktrees

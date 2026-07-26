@@ -512,6 +512,17 @@
   }
 }
 
+/* Installed PWAs use the header and bottom navigation as their app chrome.
+   Keep the long-form footer for the browser experience, but remove it from
+   standalone mode so the app remains task-focused and thumb-friendly. */
+@media (display-mode: standalone),
+  (display-mode: fullscreen),
+  (display-mode: window-controls-overlay) {
+  .pwa-footer {
+    display: none;
+  }
+}
+
 @media (max-width: 414px) {
   .section-title {
     font-size: clamp(2rem, 10vw, 2.5rem);

@@ -26,6 +26,7 @@ import MonthlyWrapTrigger from './components/MonthlyWrapTrigger';
 import { useUpdateNotification } from './hooks/useUpdateNotification';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpToLine } from 'lucide-react';
+import { useIsStandalonePWA } from './hooks/useIsStandalonePWA';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -115,6 +116,7 @@ function ScrollToTopFab() {
 
 function PublicLayout() {
   const location = useLocation();
+  const isStandalonePWA = useIsStandalonePWA();
   const showBottomNav = location.pathname !== '/checkout';
 
   const FOOTER_ROUTES = [
@@ -126,9 +128,9 @@ function PublicLayout() {
     '/recetas',
     '/galeria',
   ];
-  const showFooter = FOOTER_ROUTES.some(
-    (p) => location.pathname === p || location.pathname.startsWith(p + '/'),
-  );
+  const showFooter =
+    !isStandalonePWA &&
+    FOOTER_ROUTES.some((p) => location.pathname === p || location.pathname.startsWith(p + '/'));
 
   return (
     <div className="app-shell flex flex-col">

@@ -164,4 +164,4 @@ httpServer.listen(PORT, () => {
 });
 
 startBillingScheduler();
-initMail();
+void initMail();

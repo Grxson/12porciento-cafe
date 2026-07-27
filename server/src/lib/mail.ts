@@ -1,38 +1,66 @@
 import nodemailer from 'nodemailer';
 import dns from 'dns';
-
-// Railway lacks IPv6 routing, force IPv4 for SMTP connections
-dns.setDefaultResultOrder('ipv4first');
+import net from 'net';
 
 let smtpTransport: nodemailer.Transporter | null = null;
+let smtpInitPromise: Promise<boolean> | null = null;
 
 function getSender(): string {
   return process.env.SMTP_FROM || 'noreply@12porciento.cafe';
 }
 
-export function initMail(): boolean {
+async function resolveSmtpEndpoint(hostname: string): Promise<{
+  host: string;
+  tls?: { servername: string };
+}> {
+  if (net.isIP(hostname)) return { host: hostname };
+
+  const addresses = await dns.promises.resolve4(hostname);
+  if (!addresses.length) {
+    throw new Error(`No IPv4 address found for ${hostname}`);
+  }
+
+  return {
+    host: addresses[0],
+    tls: { servername: hostname },
+  };
+}
+
+export async function initMail(): Promise<boolean> {
   if (smtpTransport) return true;
+  if (smtpInitPromise) return smtpInitPromise;
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) return false;
+
+  smtpInitPromise = (async () => {
+    try {
+      const endpoint = await resolveSmtpEndpoint(process.env.SMTP_HOST!);
+      smtpTransport = nodemailer.createTransport({
+        host: endpoint.host,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
+        tls: endpoint.tls,
+        auth: process.env.SMTP_USER
+          ? {
+              user: process.env.SMTP_USER,
+              pass: process.env.SMTP_PASS,
+            }
+          : undefined,
+      });
+      console.log('[mail] Using SMTP provider');
+      return true;
+    } catch (err) {
+      console.error('[mail] Failed to init SMTP transport:', err);
+      return false;
+    }
+  })();
+
   try {
-    smtpTransport = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-      auth: process.env.SMTP_USER
-        ? {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          }
-        : undefined,
-    });
-    console.log('[mail] Using SMTP provider');
-    return true;
-  } catch (err) {
-    console.error('[mail] Failed to init SMTP transport:', err);
-    return false;
+    return await smtpInitPromise;
+  } finally {
+    smtpInitPromise = null;
   }
 }
 
@@ -42,7 +70,7 @@ export async function sendMail(options: {
   html: string;
   text?: string;
 }): Promise<boolean> {
-  if (!smtpTransport && !initMail()) {
+  if (!smtpTransport && !(await initMail())) {
     console.error('[mail] No mail provider available — cannot send email');
     return false;
   }

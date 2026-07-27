@@ -162,9 +162,7 @@ async function createInquiry(req: Request, res: Response) {
         error: 'Completa los datos de la empresa, una frecuencia válida y al menos un producto.',
       });
     }
-    if (rfc && !isValidRfc(rfc)) {
-      return res.status(400).json({ error: 'El RFC no tiene un formato válido.' });
-    }
+    const cleanedRfc = rfc && isValidRfc(rfc) ? rfc : '';
 
     const existing = await prisma.b2BInquiry.findUnique({ where: { requestId } });
     if (existing) return res.status(200).json({ data: inquiryResponse(existing) });
@@ -222,7 +220,7 @@ async function createInquiry(req: Request, res: Response) {
               folio: await nextB2BFolio(tx),
               requestId,
               empresa: businessName,
-              rfc: rfc || null,
+              rfc: cleanedRfc || null,
               contactoNombre: contactName,
               contactoEmail: contactEmail,
               contactoTelefono: contactPhone,

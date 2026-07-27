@@ -16,6 +16,9 @@ export type AdminEntity =
   | 'PricingConfig'
   | 'ProductVersion'
   | 'B2BPriceTier'
+  | 'B2BInquiry'
+  | 'B2BQuote'
+  | 'B2BCompany'
   | 'Ubicacion'
   | 'TipoCata';
 

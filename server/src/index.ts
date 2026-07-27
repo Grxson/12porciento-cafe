@@ -66,6 +66,14 @@ const adminLimiter = rateLimit({
   message: { error: 'Demasiadas solicitudes. Intenta en 15 minutos.' },
 });
 
+const b2bInquiryLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Alcanzaste el límite de solicitudes. Intenta de nuevo en 15 minutos.' },
+});
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -135,6 +143,8 @@ app.use('/api/ubicaciones', adminLimiter, ubicacionesRouter);
 app.use('/api/tipos-cata', adminLimiter, tiposCataRouter);
 app.use('/api/pricing', adminLimiter, pricingRouter);
 app.use('/api/product-versions', adminLimiter, productVersionsRouter);
+app.use('/api/b2b/inquiries', b2bInquiryLimiter);
+app.use('/api/b2b/inquiry', b2bInquiryLimiter);
 app.use('/api/b2b', b2bRouter);
 app.use('/api', sitemapRouter);
 

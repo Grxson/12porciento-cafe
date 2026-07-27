@@ -48,6 +48,8 @@ model Product {
   tastingNotes          String?
   pairingSuggestions    String?
   isMemberExclusive     Boolean                @default(false)
+  isB2BEnabled          Boolean                @default(false)
+  b2bPriority           Int                    @default(0)
   caficultorId          String?
   caficultor            Caficultor?            @relation(fields: [caficultorId], references: [id])
   createdAt             DateTime               @default(now())
@@ -65,6 +67,8 @@ model Product {
   versions              ProductVersion[]
   productCertifications ProductCertification[]
   b2bPriceTiers         B2BPriceTier[]
+  b2bInquiryItems       B2BInquiryItem[]
+  b2bQuoteItems         B2BQuoteItem[]
   brewLogs              BrewLog[]              @relation("beanBrews")
 
   @@index([caficultorId])
@@ -112,10 +116,18 @@ model Order {
   businessName      String?
   rfc               String?
   paymentTerms      String?
+  b2bCompanyId      String?
+  b2bCompany        B2BCompany? @relation(fields: [b2bCompanyId], references: [id], onDelete: SetNull)
+  sourceQuoteId     String?     @unique
+  sourceQuote       B2BQuote?   @relation(fields: [sourceQuoteId], references: [id], onDelete: SetNull)
+  b2bInquiry        B2BInquiry? @relation("B2BInquiryOrder")
   user              User?       @relation(fields: [userId], references: [id])
   items             OrderItem[]
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
+
+  @@index([b2bCompanyId])
+  @@index([orderType])
 }
 
 model OrderItem {
@@ -324,12 +336,15 @@ model PromoCode {
 }
 
 model AdminUser {
-  id        String     @id @default(cuid())
-  name      String
-  email     String     @unique
-  password  String
-  createdAt DateTime   @default(now())
-  adminLogs AdminLog[]
+  id                   String        @id @default(cuid())
+  name                 String
+  email                String        @unique
+  password             String
+  createdAt            DateTime      @default(now())
+  adminLogs            AdminLog[]
+  assignedB2BInquiries B2BInquiry[]  @relation("B2BAssignee")
+  b2bActivities        B2BActivity[]
+  b2bQuotes            B2BQuote[]
 }
 
 model AdminLog {
@@ -350,9 +365,9 @@ model AdminLog {
 }
 
 model User {
-  id                            String             @id @default(cuid())
+  id                            String                       @id @default(cuid())
   name                          String
-  email                         String             @unique
+  email                         String                       @unique
   password                      String
   phone                         String?
   address                       String?
@@ -360,33 +375,33 @@ model User {
   state                         String?
   zipCode                       String?
   avatarUrl                     String?
-  emailVerified                 Boolean            @default(false)
+  emailVerified                 Boolean                      @default(false)
   emailVerificationToken        String?
   emailVerificationTokenExpires DateTime?
   resetToken                    String?
   resetTokenExpires             DateTime?
-  stripeCustomerId              String?            @unique
+  stripeCustomerId              String?                      @unique
   stripeDefaultPaymentMethodId  String?
-  createdAt                     DateTime           @default(now())
-  updatedAt                     DateTime           @updatedAt
+  createdAt                     DateTime                     @default(now())
+  updatedAt                     DateTime                     @updatedAt
   orders                        Order[]
   reviews                       Review[]
   subscriptions                 Subscription[]
-  reviewReplies                 ReviewReply[]      @relation("reviewReplies")
+  reviewReplies                 ReviewReply[]                @relation("reviewReplies")
   baristaProfile                BaristaProfile?
   pushSubscriptions             PushSubscription[]
   wishlistItems                 WishlistItem[]
   recipeRatings                 RecipeRating[]
   recipeFavorites               RecipeFavorite[]
-  sentGiftCards                 GiftCard[]         @relation("sentGiftCards")
-  receivedGiftCards             GiftCard[]         @relation("receivedGiftCards")
+  sentGiftCards                 GiftCard[]                   @relation("sentGiftCards")
+  receivedGiftCards             GiftCard[]                   @relation("receivedGiftCards")
   baristaEquipment              BaristaEquipment[]
   rewardClaims                  RewardClaim[]
   brewLogLikes                  BrewLogLike[]
-  followers                     Follow[]           @relation("Following")
-  following                     Follow[]           @relation("FollowedBy")
-  notifications                Notification[]
-  notificationPreferences      UserNotificationPreference[]
+  followers                     Follow[]                     @relation("Following")
+  following                     Follow[]                     @relation("FollowedBy")
+  notifications                 Notification[]
+  notificationPreferences       UserNotificationPreference[]
 }
 
 model BaristaProfile {
@@ -626,21 +641,137 @@ model AbandonedCart {
 }
 
 model B2BInquiry {
-  id               String  @id @default(cuid())
-  empresa          String
-  rfc              String
-  contactoNombre   String
-  contactoEmail    String
-  contactoTelefono String
-  volumenEstimado  String
-  giroNegocio      String?
-  status           String  @default("NEW") // NEW | CONTACTED | RESOLVED
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String           @id @default(cuid())
+  folio             String           @unique
+  requestId         String?          @unique
+  empresa           String
+  rfc               String
+  contactoNombre    String
+  contactoEmail     String
+  contactoTelefono  String
+  volumenEstimado   String
+  giroNegocio       String?
+  businessType      String?
+  frequency         String?
+  estimatedSubtotal Float            @default(0)
+  currency          String           @default("MXN")
+  status            String           @default("NEW") // NEW | REVIEWING | QUOTED | NEGOTIATING | WON | LOST
+  assignedAdminId   String?
+  assignedAdmin     AdminUser?       @relation("B2BAssignee", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  nextAction        String?
+  nextFollowUpAt    DateTime?
+  lostReason        String?
+  companyId         String?
+  company           B2BCompany?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  orderId           String?          @unique
+  order             Order?           @relation("B2BInquiryOrder", fields: [orderId], references: [id], onDelete: SetNull)
+  items             B2BInquiryItem[]
+  activities        B2BActivity[]
+  quotes            B2BQuote[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@index([contactoEmail])
   @@index([status])
+  @@index([assignedAdminId])
+  @@index([companyId])
+  @@index([createdAt])
+}
+
+model B2BInquiryItem {
+  id          String     @id @default(cuid())
+  inquiryId   String
+  inquiry     B2BInquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product    @relation(fields: [productId], references: [id])
+  productName String
+  sku         String?
+  quantity    Int
+  frequency   String
+  tierId      String?
+  unitPrice   Float
+  subtotal    Float
+  createdAt   DateTime   @default(now())
+
+  @@index([inquiryId])
+  @@index([productId])
+}
+
+model B2BActivity {
+  id        String     @id @default(cuid())
+  inquiryId String
+  inquiry   B2BInquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  adminId   String?
+  admin     AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  type      String
+  message   String
+  metadata  Json?
+  createdAt DateTime   @default(now())
+
+  @@index([inquiryId, createdAt])
+  @@index([adminId])
+}
+
+model B2BQuote {
+  id           String         @id @default(cuid())
+  inquiryId    String
+  inquiry      B2BInquiry     @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  version      Int
+  status       String         @default("DRAFT") // DRAFT | SENT | ACCEPTED | EXPIRED | SUPERSEDED
+  subtotal     Float
+  taxAmount    Float          @default(0)
+  total        Float
+  currency     String         @default("MXN")
+  validUntil   DateTime
+  paymentTerms String?
+  notes        String?
+  createdById  String?
+  createdBy    AdminUser?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  sentAt       DateTime?
+  acceptedAt   DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  items        B2BQuoteItem[]
+  sourceOrder  Order?
+
+  @@unique([inquiryId, version])
+  @@index([inquiryId, status])
+  @@index([createdById])
+}
+
+model B2BQuoteItem {
+  id          String   @id @default(cuid())
+  quoteId     String
+  quote       B2BQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  productName String
+  sku         String?
+  quantity    Int
+  unitPrice   Float
+  subtotal    Float
+  createdAt   DateTime @default(now())
+
+  @@index([quoteId])
+  @@index([productId])
+}
+
+model B2BCompany {
+  id           String       @id @default(cuid())
+  businessName String
+  tradeName    String?
+  rfc          String       @unique
+  contactName  String
+  contactEmail String
+  contactPhone String
+  paymentTerms String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  inquiries    B2BInquiry[]
+  orders       Order[]
+
+  @@index([businessName])
+  @@index([contactEmail])
 }
 
 model TipoCata {
@@ -867,15 +998,15 @@ model RewardClaim {
 // Notification — user-to-user activity notifications (follow, like, achievement)
 model Notification {
   id        String   @id @default(cuid())
-  userId    String   // recipient
+  userId    String // recipient
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // FOLLOW | LIKE_BREW | ACHIEVEMENT_UNLOCK
-  actorId   String?  // who triggered it (optional for system notifications)
+  type      String // FOLLOW | LIKE_BREW | ACHIEVEMENT_UNLOCK
+  actorId   String? // who triggered it (optional for system notifications)
   actorName String? // cached name of the actor for quick display
   title     String
   message   String
-  data      Json?   // extra payload: { brewId, achievementSlug, etc. }
-  read      Boolean @default(false)
+  data      Json? // extra payload: { brewId, achievementSlug, etc. }
+  read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@index([userId, read])
@@ -884,14 +1015,14 @@ model Notification {
 }
 
 model UserNotificationPreference {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // FOLLOW | LIKE_BREW | ACHIEVEMENT_UNLOCK
-  enabled   Boolean  @default(true)
-  pushEnabled Boolean @default(true) // web-push specifically
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String // FOLLOW | LIKE_BREW | ACHIEVEMENT_UNLOCK
+  enabled     Boolean  @default(true)
+  pushEnabled Boolean  @default(true) // web-push specifically
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([userId, type])
   @@index([userId])

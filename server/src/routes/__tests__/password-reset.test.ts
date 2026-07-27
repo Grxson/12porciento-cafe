@@ -32,12 +32,8 @@ vi.mock('stripe', () => {
   return { default: MockStripe };
 });
 
-vi.mock('nodemailer', () => ({
-  default: {
-    createTransport: vi.fn().mockReturnValue({
-      sendMail: mockSendMail,
-    }),
-  },
+vi.mock('../../lib/mail', () => ({
+  sendMail: mockSendMail,
 }));
 
 vi.mock('bcryptjs', () => ({
@@ -72,7 +68,11 @@ describe('POST /api/users/forgot-password', () => {
   it('returns 200 if email exists', async () => {
     const mockUser = { id: '1', email: 'test@example.com', name: 'Test' };
     mockUserFindUnique.mockResolvedValue(mockUser);
-    mockUserUpdate.mockResolvedValue({ ...mockUser, resetToken: 'token123', resetTokenExpires: new Date() });
+    mockUserUpdate.mockResolvedValue({
+      ...mockUser,
+      resetToken: 'token123',
+      resetTokenExpires: new Date(),
+    });
     mockSendMail.mockResolvedValue({});
 
     const res = await request(app)
@@ -101,18 +101,14 @@ describe('POST /api/users/forgot-password', () => {
   });
 
   it('returns 400 if email not provided', async () => {
-    const res = await request(app)
-      .post('/api/users/forgot-password')
-      .send({});
+    const res = await request(app).post('/api/users/forgot-password').send({});
 
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Email requerido');
   });
 
   it('returns 400 if email is not a string', async () => {
-    const res = await request(app)
-      .post('/api/users/forgot-password')
-      .send({ email: 123 });
+    const res = await request(app).post('/api/users/forgot-password').send({ email: 123 });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toBe('Email requerido');
@@ -125,9 +121,18 @@ describe('POST /api/users/reset-password', () => {
   });
 
   it('returns 200 with valid token and password', async () => {
-    const mockUser = { id: '1', resetToken: 'valid_token', resetTokenExpires: new Date(Date.now() + 3600000) };
+    const mockUser = {
+      id: '1',
+      resetToken: 'valid_token',
+      resetTokenExpires: new Date(Date.now() + 3600000),
+    };
     mockUserFindFirst.mockResolvedValue(mockUser);
-    mockUserUpdate.mockResolvedValue({ ...mockUser, password: 'hashed_password', resetToken: null, resetTokenExpires: null });
+    mockUserUpdate.mockResolvedValue({
+      ...mockUser,
+      password: 'hashed_password',
+      resetToken: null,
+      resetTokenExpires: null,
+    });
 
     const res = await request(app)
       .post('/api/users/reset-password')
@@ -136,7 +141,10 @@ describe('POST /api/users/reset-password', () => {
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(mockUserFindFirst).toHaveBeenCalledWith({
-      where: { resetToken: 'valid_token', resetTokenExpires: { gt: expect.any(Date) } },
+      where: {
+        resetToken: '3e49aaecae61e09adb17753324eced3c3afada5b3b1220e2bf8bff83e1521f59',
+        resetTokenExpires: { gt: expect.any(Date) },
+      },
     });
   });
 
@@ -181,9 +189,7 @@ describe('POST /api/users/reset-password', () => {
   });
 
   it('returns 400 if password is missing', async () => {
-    const res = await request(app)
-      .post('/api/users/reset-password')
-      .send({ token: 'some_token' });
+    const res = await request(app).post('/api/users/reset-password').send({ token: 'some_token' });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toContain('6');

@@ -2,7 +2,15 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // vi.hoisted runs before vi.mock factories, allowing shared mock refs
-const { mockRetrieve, mockOrderFindUnique, mockOrderCreate, mockPromoCodeFindUnique, mockTransaction, mockEmitEvent, mockSendOrderConfirmation } = vi.hoisted(() => ({
+const {
+  mockRetrieve,
+  mockOrderFindUnique,
+  mockOrderCreate,
+  mockPromoCodeFindUnique,
+  mockTransaction,
+  mockEmitEvent,
+  mockSendOrderConfirmation,
+} = vi.hoisted(() => ({
   mockRetrieve: vi.fn(),
   mockOrderFindUnique: vi.fn(),
   mockOrderCreate: vi.fn(),
@@ -71,7 +79,7 @@ describe('POST /orders — idempotency', () => {
     // findUnique returns an existing order on the idempotency check
     mockOrderFindUnique.mockResolvedValue(existingOrder);
 
-      const res = await request(app)
+    const res = await request(app)
       .post('/orders')
       .send({
         paymentIntentId: 'pi_123',
@@ -105,18 +113,21 @@ describe('POST /orders — idempotency', () => {
     };
 
     // $transaction creates the order via the callback
-    mockTransaction.mockImplementation(async (fn: (tx: Record<string, unknown>) => Promise<unknown>) =>
-      fn({
-        order: {
-          create: vi.fn().mockResolvedValue(newOrder),
-        },
-        product: {
-          findUnique: vi.fn().mockResolvedValue({ stock: 100, price: 100, name: 'Coffee', isActive: true }),
-          update: vi.fn(),
-        },
-        orderItem: { update: vi.fn() },
-        stockMovement: { create: vi.fn() },
-      }),
+    mockTransaction.mockImplementation(
+      async (fn: (tx: Record<string, unknown>) => Promise<unknown>) =>
+        fn({
+          order: {
+            create: vi.fn().mockResolvedValue(newOrder),
+          },
+          product: {
+            findUnique: vi
+              .fn()
+              .mockResolvedValue({ stock: 100, price: 100, name: 'Coffee', isActive: true }),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+          },
+          orderItem: { update: vi.fn() },
+          stockMovement: { create: vi.fn() },
+        }),
     );
 
     const res = await request(app)

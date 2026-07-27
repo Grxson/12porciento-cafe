@@ -66,8 +66,9 @@ const navGroups = [
       { to: '/gift-cards', label: 'Gift Cards', icon: CreditCard },
       { to: '/descuentos', label: 'Descuentos', icon: Tag },
       { to: '/pricing', label: 'Precios', icon: DollarSign },
-      { to: '/b2b', label: 'Clientes B2B', icon: Briefcase },
-      { to: '/consultas-b2b', label: 'Leads B2B', icon: MessageCircle },
+      { to: '/b2b', label: 'Pipeline B2B', icon: MessageCircle },
+      { to: '/b2b/empresas', label: 'Empresas B2B', icon: Briefcase },
+      { to: '/b2b/operacion', label: 'Pedidos y precios B2B', icon: DollarSign },
       { to: '/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
     ],
   },
@@ -107,11 +108,13 @@ const pageTitles: Record<string, string> = {
   '/logros': 'Logros',
   '/recompensas': 'Recompensas',
   '/pagos-suscripciones': 'Pagos Suscripciones',
-  '/consultas-b2b': 'Leads B2B',
+  '/consultas-b2b': 'Pipeline B2B',
   '/notificaciones': 'Notificaciones',
   '/carritos-abandonados': 'Carritos Abandonados',
   '/auditoria': 'Auditoría',
-  '/b2b': 'Clientes B2B',
+  '/b2b': 'Pipeline B2B',
+  '/b2b/empresas': 'Empresas B2B',
+  '/b2b/operacion': 'Pedidos y precios B2B',
   '/lotes': 'Gestión de Lotes',
   '/caficultores': 'Caficultores',
   '/ubicaciones': 'Ubicaciones',
@@ -290,6 +293,7 @@ function AdminLayoutInner() {
                         <li key={to}>
                           <NavLink
                             to={to}
+                            end={to === '/b2b'}
                             onClick={() => setSidebarOpen(false)}
                             className={({ isActive }) =>
                               `flex items-center gap-3 px-3 py-3 min-h-[44px] text-sm transition-all duration-150 border-l-2 pl-[10px] ${

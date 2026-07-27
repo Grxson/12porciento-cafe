@@ -1,515 +1,297 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Building2,
-  Package,
-  Mail,
-  Phone,
-  User,
-  FileText,
-  CheckCircle,
-  TrendingUp,
-  Truck,
-  X,
-  Coffee,
-  MessageSquare,
-} from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Building2, Coffee, Search, SlidersHorizontal, Truck } from 'lucide-react';
 import { b2bApi } from '../api';
-import type { B2BProduct } from '../types';
-import FieldError from '../components/FieldError';
-import { validate, required, email, phone, type ValidationErrors } from '../lib/validation';
+import type { B2BFrequency, B2BProduct } from '../types';
+import B2BInquiryForm from '../components/b2b/B2BInquiryForm';
+import B2BProductCard from '../components/b2b/B2BProductCard';
+import B2BQuoteSummary from '../components/b2b/B2BQuoteSummary';
+import { useB2BQuoteDraft } from '../hooks/useB2BQuoteDraft';
 
-const HERO_IMG =
-  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1400&q=80';
-
-const benefits = [
-  {
-    icon: Coffee,
-    title: '100% Mexicano',
-    desc: 'Selección directa de fincas en Veracruz, Chiapas y Oaxaca. Sin intermediarios.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Precios B2B',
-    desc: 'Precios preferenciales por volumen. Hasta 30% de descuento vs retail.',
-  },
-  {
-    icon: MessageSquare,
-    title: 'Asesoría experta',
-    desc: 'Te ayudamos a elegir el café ideal para tu negocio. Catas guiadas incluidas.',
-  },
-  {
-    icon: Truck,
-    title: 'Envío a todo México',
-    desc: 'Logística propia. Entrega garantizada en 48-72 hrs a cualquier estado.',
-  },
+const businessTypes = [
+  { value: 'CAFETERIA', label: 'Cafetería' },
+  { value: 'RESTAURANTE', label: 'Restaurante' },
+  { value: 'OFICINAS', label: 'Oficinas' },
+  { value: 'HOTELERIA', label: 'Hotelería' },
+  { value: 'REVENTA', label: 'Reventa' },
+  { value: 'OTRO', label: 'Otro' },
 ];
 
-interface FormData {
-  businessName: string;
-  contactoNombre: string;
-  contactoEmail: string;
-  contactoTelefono: string;
-  rfc: string;
-  volumenEstimado: string;
-  giroNegocio: string;
-}
-
-const initialForm: FormData = {
-  businessName: '',
-  contactoNombre: '',
-  contactoEmail: '',
-  contactoTelefono: '',
-  rfc: '',
-  volumenEstimado: '',
-  giroNegocio: '',
-};
+const frequencies: Array<{ value: B2BFrequency; label: string }> = [
+  { value: 'one-time', label: 'Compra única' },
+  { value: 'weekly', label: 'Cada semana' },
+  { value: 'biweekly', label: 'Cada 2 semanas' },
+  { value: 'monthly', label: 'Cada mes' },
+];
 
 export default function B2BCatalog() {
   const [products, setProducts] = useState<B2BProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState<FormData>(initialForm);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
+  const [loadError, setLoadError] = useState('');
+  const [search, setSearch] = useState('');
+  const [region, setRegion] = useState('TODAS');
+  const [formOpen, setFormOpen] = useState(false);
+  const { draft, upsertItem, removeItem, setBusinessType, setFrequency, reset } =
+    useB2BQuoteDraft();
 
   useEffect(() => {
     b2bApi
       .catalog()
-      .then((res) => setProducts(res.data.data))
-      .catch(() => {})
+      .then((response) => setProducts(response.data.data))
+      .catch(() => setLoadError('No pudimos cargar el catálogo empresarial. Intenta de nuevo.'))
       .finally(() => setLoading(false));
   }, []);
 
-  const openForm = () => {
-    setShowModal(true);
-    setSubmitted(false);
-    setError('');
-  };
-
-  const inquiryRules = {
-    businessName: [required('Empresa requerida')],
-    contactoNombre: [required('Nombre de contacto requerido')],
-    contactoEmail: [required('Email requerido'), email()],
-    contactoTelefono: [phone()],
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const errors = validate(inquiryRules, form as unknown as Record<string, string>);
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    setSubmitting(true);
-    setError('');
+  useEffect(() => {
+    if (draft.businessType) return;
     try {
-      await b2bApi.inquiry({ ...form, volumenEstimado: form.volumenEstimado.trim() });
-      setSubmitted(true);
+      const value = window.localStorage.getItem('12pct:b2b-contact:v1');
+      if (!value) return;
+      const parsed = JSON.parse(value) as { businessType?: string };
+      if (parsed.businessType) setBusinessType(parsed.businessType);
     } catch {
-      setError('Error al enviar. Intenta de nuevo.');
-    } finally {
-      setSubmitting(false);
+      window.localStorage.removeItem('12pct:b2b-contact:v1');
     }
-  };
+  }, [draft.businessType, setBusinessType]);
 
-  // Total unique price tiers count for catalog label
-  const totalTiers = products.reduce((acc, p) => acc + p.b2bPriceTiers.length, 0);
+  const regions = useMemo(
+    () => [
+      'TODAS',
+      ...new Set(
+        products
+          .map((product) => product.region || product.origin)
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ],
+    [products],
+  );
+
+  const visibleProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return products.filter((product) => {
+      const matchesRegion =
+        region === 'TODAS' || product.region === region || product.origin === region;
+      const matchesSearch =
+        !query ||
+        [product.name, product.origin, product.region, product.description]
+          .filter(Boolean)
+          .some((value) => value!.toLowerCase().includes(query));
+      return matchesRegion && matchesSearch;
+    });
+  }, [products, region, search]);
+
+  const openForm = () => {
+    if (!draft.businessType) {
+      document
+        .getElementById('tipo-negocio')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setFormOpen(true);
+  };
 
   return (
-    <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950">
-      {/* ── Hero ── */}
-      <section className="relative min-h-[60vh] md:min-h-[50vh] flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${HERO_IMG})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-coffee-950/90 via-coffee-950/70 to-coffee-950/60" />
-        <div className="relative z-10 text-center max-w-3xl mx-auto px-4 py-20">
-          <Building2 className="w-14 h-14 mx-auto text-gold-500 mb-6" />
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-cream mb-4 leading-tight">
-            Café de especialidad
-            <br />
-            <span className="text-gold-400">para tu empresa</span>
-          </h1>
-          <p className="text-cream/80 text-lg md:text-xl max-w-2xl mx-auto mb-8">
-            Ofrecemos café mexicano de origen único con precios preferenciales por volumen, asesoría
-            personalizada y envío a todo México.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={openForm} className="btn-primary text-lg px-8 py-3">
-              Solicitar cotización
-            </button>
-            <a
-              href="#catalogo"
-              className="inline-flex items-center justify-center gap-2 border border-cream/30 text-cream hover:bg-cream/10 px-8 py-3 transition-colors"
-            >
-              Ver catálogo
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Benefits ── */}
-      <section className="max-w-6xl mx-auto px-4 -mt-16 relative z-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {benefits.map(({ icon: Icon, title, desc }) => (
-            <div
-              key={title}
-              className="bg-white dark:bg-coffee-900 border border-coffee-100 dark:border-coffee-800 p-5 text-center hover:border-gold-500/30 transition-colors"
-            >
-              <Icon className="w-8 h-8 text-gold-500 mx-auto mb-3" />
-              <h3 className="font-semibold text-coffee-900 dark:text-cream text-sm mb-1">
-                {title}
-              </h3>
-              <p className="text-xs text-coffee-600 dark:text-coffee-400 leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Stats bar ── */}
-      <section className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <div className="grid grid-cols-3 gap-8">
-          {[
-            { label: 'Fincas aliadas', value: '15+' },
-            { label: 'Empresas atendidas', value: '120+' },
-            { label: 'Estados cobertura', value: '28' },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <p className="text-3xl md:text-4xl font-serif text-gold-500 mb-1">{value}</p>
-              <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest">
-                {label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Catalog ── */}
-      <section id="catalogo" className="max-w-6xl mx-auto px-4 pb-16">
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen overflow-x-clip bg-[#F4EFE5] pb-28 text-[#27170F] dark:bg-coffee-950 dark:text-cream md:pb-0">
+      <section className="relative overflow-hidden bg-[#27170F] text-[#F4EFE5]">
+        <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_20%_0%,#d0a45d_0,transparent_26%),radial-gradient(circle_at_90%_90%,#7d4d1f_0,transparent_34%)]" />
+        <div className="absolute inset-y-0 right-[12%] hidden w-px bg-white/10 lg:block" />
+        <div className="relative mx-auto grid max-w-[1500px] gap-10 px-5 py-14 sm:px-8 md:py-20 lg:grid-cols-[1.25fr_.75fr] lg:px-12">
           <div>
-            <h2 className="text-2xl md:text-3xl font-serif text-coffee-900 dark:text-cream">
-              Catálogo B2B
-            </h2>
-            <p className="text-sm text-coffee-500 dark:text-coffee-400">
-              {products.length} productos · {totalTiers} rangos de precio
+            <p className="flex items-center gap-3 text-[10px] uppercase tracking-[0.34em] text-[#D0A45D]">
+              <span className="h-px w-10 bg-[#D0A45D]" />
+              Café para empresas
+            </p>
+            <h1 className="mt-7 max-w-4xl font-serif text-5xl leading-[0.96] sm:text-6xl lg:text-7xl">
+              Construye una selección que funcione para tu operación.
+            </h1>
+            <p className="mt-7 max-w-2xl text-base leading-7 text-[#d6c8bb] sm:text-lg">
+              Explora orígenes mexicanos, compara precios por volumen y recibe una propuesta
+              comercial revisada por nuestro equipo.
             </p>
           </div>
-          <button
-            onClick={openForm}
-            className="hidden md:flex items-center gap-2 text-sm text-gold-500 border border-gold-500/30 hover:border-gold-500 px-4 py-2 transition-colors"
-          >
-            <MessageSquare className="w-4 h-4" /> Cotizar
-          </button>
+
+          <div className="self-end border-l border-[#D0A45D]/40 pl-6 lg:pl-8">
+            <p className="font-serif text-2xl">Del catálogo a tu mesa, sin adivinanzas.</p>
+            <div className="mt-6 grid gap-4 text-sm text-[#d6c8bb] sm:grid-cols-3 lg:grid-cols-1">
+              {[
+                [Coffee, 'Precios visibles', 'Escalones claros por cantidad.'],
+                [Building2, 'Revisión humana', 'Condiciones adaptadas a tu negocio.'],
+                [Truck, 'Logística acordada', 'Frecuencia y entrega antes de confirmar.'],
+              ].map(([Icon, title, text]) => {
+                const FeatureIcon = Icon as typeof Coffee;
+                return (
+                  <div key={String(title)} className="flex gap-3">
+                    <FeatureIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#D0A45D]" />
+                    <div>
+                      <p className="font-medium text-[#F4EFE5]">{String(title)}</p>
+                      <p className="mt-0.5 text-xs leading-5">{String(text)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
-
-        {loading ? (
-          <div className="grid md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-40 bg-coffee-100 dark:bg-coffee-800 rounded-xl animate-pulse"
-              />
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-16">
-            <Package className="w-12 h-12 mx-auto text-coffee-400 dark:text-coffee-500 mb-4" />
-            <p className="text-coffee-500 dark:text-coffee-400">
-              Próximamente más productos disponibles
-            </p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {products.map((p) => (
-              <div
-                key={p.id}
-                className="bg-white dark:bg-coffee-900 border border-coffee-100 dark:border-coffee-700 overflow-hidden hover:border-gold-500/30 transition-colors"
-              >
-                <button
-                  onClick={() => setExpanded(expanded === p.id ? null : p.id)}
-                  className="w-full text-left flex items-center gap-4 hover:bg-coffee-50 dark:hover:bg-coffee-800 transition-colors"
-                >
-                  {/* Product image */}
-                  <div className="w-24 h-24 shrink-0 bg-coffee-100 dark:bg-coffee-800 overflow-hidden">
-                    {p.imageUrl && (
-                      <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 pr-4">
-                    <h3 className="font-semibold text-coffee-900 dark:text-cream truncate">
-                      {p.name}
-                    </h3>
-                    <p className="text-sm text-coffee-500 dark:text-coffee-400 truncate">
-                      {p.origin && `${p.origin}`}
-                      {p.weight ? ` · ${p.weight}g` : ''}
-                    </p>
-                    {/* Show lowest price as badge */}
-                    {p.b2bPriceTiers.length > 0 && (
-                      <p className="text-xs text-gold-500 mt-1.5">
-                        Desde{' '}
-                        <span className="font-semibold">
-                          ${Math.min(...p.b2bPriceTiers.map((t) => t.pricePerUnit)).toFixed(2)}
-                        </span>{' '}
-                        MXN / ud
-                      </p>
-                    )}
-                  </div>
-                  <div className="shrink-0 mr-4 text-coffee-400 dark:text-coffee-500">
-                    <span className="text-xs">{expanded === p.id ? '−' : '+'}</span>
-                  </div>
-                </button>
-
-                <AnimatePresence>
-                  {expanded === p.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="border-t border-coffee-100 dark:border-coffee-700 p-4 bg-coffee-50/50 dark:bg-coffee-950/50 space-y-3">
-                        <p className="text-sm text-coffee-600 dark:text-cream/70">
-                          {p.description}
-                        </p>
-                        {p.b2bPriceTiers.length > 0 && (
-                          <>
-                            <table className="hidden md:table w-full text-sm">
-                              <thead>
-                                <tr className="text-xs text-coffee-500 dark:text-cream/50 text-left">
-                                  <th className="pb-1.5 font-medium">Cantidad</th>
-                                  <th className="pb-1.5 font-medium">Precio por unidad</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-coffee-100 dark:divide-coffee-700">
-                                {p.b2bPriceTiers.map((tier) => (
-                                  <tr key={tier.id}>
-                                    <td className="py-1.5 text-coffee-900 dark:text-cream">
-                                      {tier.minQty}
-                                      {tier.maxQty ? `–${tier.maxQty}` : '+'} uds
-                                    </td>
-                                    <td className="py-1.5 text-coffee-900 dark:text-cream font-medium">
-                                      ${tier.pricePerUnit.toFixed(2)} MXN
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                            <div className="md:hidden space-y-2">
-                              {p.b2bPriceTiers.map((tier) => (
-                                <div
-                                  key={tier.id}
-                                  className="flex items-center justify-between gap-2 bg-white dark:bg-coffee-900 border border-coffee-100 dark:border-coffee-700 px-3 py-2.5"
-                                >
-                                  <span className="text-sm text-coffee-600 dark:text-cream/70 truncate">
-                                    {tier.minQty}
-                                    {tier.maxQty ? `–${tier.maxQty}` : '+'} uds
-                                  </span>
-                                  <span className="text-sm font-medium text-coffee-900 dark:text-cream shrink-0">
-                                    ${tier.pricePerUnit.toFixed(2)} MXN
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </>
-                        )}
-                        <button
-                          onClick={openForm}
-                          className="w-full text-sm text-gold-500 border border-gold-500/30 hover:border-gold-500 py-2 transition-colors mt-2"
-                        >
-                          Cotizar este producto
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
-        )}
       </section>
 
-      {/* ── Sticky mobile CTA (positioned above BottomNav) ── */}
-      <div
-        className="fixed left-0 right-0 p-4 bg-coffee-50 dark:bg-coffee-950 border-t border-coffee-200 dark:border-coffee-800 md:hidden z-40 md:hidden"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 56px)' }}
-      >
-        <button onClick={openForm} className="btn-primary w-full text-base py-3">
-          <MessageSquare className="w-4 h-4 inline-block mr-2" />
-          Solicitar cotización
-        </button>
-      </div>
-
-      {/* ── Inquiry Modal ── */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-coffee-950/80 backdrop-blur-sm p-4"
-            onClick={() => setShowModal(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-coffee-900 w-full max-w-lg max-h-[90vh] overflow-y-auto border border-coffee-200 dark:border-coffee-700"
-            >
-              <div className="flex items-center justify-between p-5 border-b border-coffee-100 dark:border-coffee-800">
-                <div>
-                  <h2 className="font-serif text-xl text-coffee-900 dark:text-cream">
-                    {submitted ? 'Solicitud recibida' : 'Solicitar cotización'}
-                  </h2>
-                  {!submitted && (
-                    <p className="text-sm text-coffee-500 dark:text-coffee-400">
-                      Te enviamos precios personalizados en 24h
-                    </p>
-                  )}
-                </div>
+      <main className="mx-auto max-w-[1500px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+        <section
+          id="tipo-negocio"
+          className="grid gap-6 border-b border-[#d6c6b2] pb-9 dark:border-coffee-700 lg:grid-cols-[1fr_auto]"
+        >
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.26em] text-[#7D4D1F] dark:text-gold-400">
+              01 · Contexto
+            </p>
+            <h2 className="mt-2 font-serif text-3xl">¿Dónde se servirá el café?</h2>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {businessTypes.map((type) => (
                 <button
-                  onClick={() => setShowModal(false)}
-                  className="text-coffee-500 hover:text-coffee-900 dark:hover:text-cream transition-colors"
+                  key={type.value}
+                  type="button"
+                  onClick={() => setBusinessType(type.value)}
+                  className={`action-focus border px-4 py-2.5 text-xs uppercase tracking-[0.14em] transition-colors ${
+                    draft.businessType === type.value
+                      ? 'border-[#27170F] bg-[#27170F] text-[#F4EFE5] dark:border-gold-500 dark:bg-gold-500 dark:text-coffee-950'
+                      : 'border-[#cdbca6] bg-[#fffdf8] text-[#725F50] hover:border-[#7D4D1F] dark:border-coffee-700 dark:bg-coffee-900 dark:text-coffee-300'
+                  }`}
                 >
-                  <X className="w-5 h-5" />
+                  {type.label}
                 </button>
+              ))}
+            </div>
+          </div>
+          <label className="self-end">
+            <span className="mb-2 block text-[10px] uppercase tracking-[0.22em] text-[#7D4D1F] dark:text-gold-400">
+              Frecuencia estimada
+            </span>
+            <select
+              value={draft.frequency}
+              onChange={(event) => setFrequency(event.target.value as B2BFrequency)}
+              className="action-focus min-w-56 border border-[#cdbca6] bg-[#fffdf8] px-4 py-3 text-sm dark:border-coffee-700 dark:bg-coffee-900"
+            >
+              {frequencies.map((frequency) => (
+                <option key={frequency.value} value={frequency.value}>
+                  {frequency.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
+
+        <section className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="min-w-0">
+            <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.26em] text-[#7D4D1F] dark:text-gold-400">
+                  02 · Selección
+                </p>
+                <h2 className="mt-2 font-serif text-3xl">Cafés disponibles</h2>
+                <p className="mt-1 text-sm text-[#725F50] dark:text-coffee-300">
+                  {visibleProducts.length} opciones para comparar
+                </p>
               </div>
-
-              {submitted ? (
-                <div className="p-8 text-center space-y-4">
-                  <CheckCircle className="w-16 h-16 mx-auto text-green-500" />
-                  <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">
-                    ¡Cotización solicitada!
-                  </h3>
-                  <p className="text-coffee-600 dark:text-coffee-400 text-sm">
-                    Te contactaremos en 24-48 horas con una cotización personalizada.
-                  </p>
-                  <button onClick={() => setShowModal(false)} className="btn-primary mt-4">
-                    Cerrar
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="p-5 space-y-4">
-                  <div>
-                    <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">
-                      <Building2 className="w-3.5 h-3.5 text-gold-500" /> Empresa *
-                    </label>
-                    <input
-                      required
-                      value={form.businessName}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, businessName: e.target.value }));
-                        if (fieldErrors.businessName)
-                          setFieldErrors((p) => ({ ...p, businessName: undefined }));
-                      }}
-                      className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.businessName ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
-                      aria-invalid={!!fieldErrors.businessName}
-                      placeholder="Nombre de tu empresa"
-                    />
-                    <FieldError message={fieldErrors.businessName} />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">
-                        <User className="w-3.5 h-3.5 text-gold-500" /> Contacto
-                      </label>
-                      <input
-                        value={form.contactoNombre}
-                        onChange={(e) => {
-                          setForm((f) => ({ ...f, contactoNombre: e.target.value }));
-                          if (fieldErrors.contactoNombre)
-                            setFieldErrors((p) => ({ ...p, contactoNombre: undefined }));
-                        }}
-                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.contactoNombre ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
-                        aria-invalid={!!fieldErrors.contactoNombre}
-                        placeholder="Nombre completo"
-                      />
-                      <FieldError message={fieldErrors.contactoNombre} />
-                    </div>
-                    <div>
-                      <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">
-                        <Mail className="w-3.5 h-3.5 text-gold-500" /> Email *
-                      </label>
-                      <input
-                        required
-                        type="email"
-                        value={form.contactoEmail}
-                        onChange={(e) => {
-                          setForm((f) => ({ ...f, contactoEmail: e.target.value }));
-                          if (fieldErrors.contactoEmail)
-                            setFieldErrors((p) => ({ ...p, contactoEmail: undefined }));
-                        }}
-                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.contactoEmail ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
-                        aria-invalid={!!fieldErrors.contactoEmail}
-                        placeholder="correo@empresa.com"
-                      />
-                      <FieldError message={fieldErrors.contactoEmail} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">
-                        <Phone className="w-3.5 h-3.5 text-gold-500" /> Teléfono
-                      </label>
-                      <input
-                        value={form.contactoTelefono}
-                        onChange={(e) => {
-                          setForm((f) => ({ ...f, contactoTelefono: e.target.value }));
-                          if (fieldErrors.contactoTelefono)
-                            setFieldErrors((p) => ({ ...p, contactoTelefono: undefined }));
-                        }}
-                        className={`w-full bg-white dark:bg-coffee-800 border text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:outline-none transition-colors ${fieldErrors.contactoTelefono ? 'border-red-500 dark:border-red-400' : 'border-coffee-200 dark:border-coffee-700 focus:border-gold-500/60'}`}
-                        aria-invalid={!!fieldErrors.contactoTelefono}
-                        placeholder="55 1234 5678"
-                      />
-                      <FieldError message={fieldErrors.contactoTelefono} />
-                    </div>
-                    <div>
-                      <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">
-                        <FileText className="w-3.5 h-3.5 text-gold-500" /> RFC
-                      </label>
-                      <input
-                        value={form.rfc}
-                        onChange={(e) => setForm((f) => ({ ...f, rfc: e.target.value }))}
-                        className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none transition-colors"
-                        placeholder="RFC"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-coffee-700 dark:text-coffee-300 flex items-center gap-1.5 mb-1.5">
-                      <Package className="w-3.5 h-3.5 text-gold-500" /> Volumen estimado
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={form.volumenEstimado}
-                      onChange={(e) => setForm((f) => ({ ...f, volumenEstimado: e.target.value }))}
-                      placeholder="Cuéntanos sobre tus necesidades de volumen, frecuencia, tipo de café que buscas..."
-                      className="w-full bg-white dark:bg-coffee-800 border border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream px-4 py-2.5 text-sm focus:border-gold-500/60 focus:outline-none transition-colors resize-none"
-                    />
-                  </div>
-
-                  {error && <p className="text-red-400 text-sm">{error}</p>}
-
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="btn-primary w-full text-base py-3 disabled:opacity-50"
+              <div className="flex min-w-0 gap-2">
+                <label className="relative min-w-0 flex-1 sm:w-64">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7D4D1F]" />
+                  <input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Buscar origen o café"
+                    className="action-focus w-full border border-[#cdbca6] bg-[#fffdf8] py-3 pl-10 pr-3 text-sm dark:border-coffee-700 dark:bg-coffee-900"
+                  />
+                </label>
+                <label className="relative">
+                  <SlidersHorizontal className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7D4D1F]" />
+                  <select
+                    aria-label="Filtrar por región"
+                    value={region}
+                    onChange={(event) => setRegion(event.target.value)}
+                    className="action-focus h-full max-w-40 border border-[#cdbca6] bg-[#fffdf8] pl-10 pr-3 text-sm dark:border-coffee-700 dark:bg-coffee-900"
                   >
-                    {submitting ? 'Enviando...' : 'Enviar solicitud'}
-                  </button>
-                </form>
+                    {regions.map((value) => (
+                      <option key={value} value={value}>
+                        {value === 'TODAS' ? 'Todas' : value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((item) => (
+                  <div
+                    key={item}
+                    className="aspect-[4/5] animate-pulse border border-[#dfd1bf] bg-[#e8ddce] dark:border-coffee-700 dark:bg-coffee-900"
+                  />
+                ))}
+              </div>
+            ) : loadError ? (
+              <div className="mt-7 border border-red-800/30 bg-red-50 p-6 text-sm text-red-800 dark:bg-red-950/20 dark:text-red-200">
+                {loadError}
+              </div>
+            ) : visibleProducts.length ? (
+              <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {visibleProducts.map((product) => (
+                  <B2BProductCard
+                    key={product.id}
+                    product={product}
+                    item={draft.items.find((item) => item.productId === product.id)}
+                    frequency={draft.frequency}
+                    onChange={upsertItem}
+                    onRemove={() => removeItem(product.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-7 border border-dashed border-[#cdbca6] py-16 text-center">
+                <Coffee className="mx-auto h-8 w-8 text-[#7D4D1F]" />
+                <p className="mt-3 text-sm text-[#725F50]">No hay cafés para ese filtro.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="hidden lg:block">
+            <div className="sticky top-[calc(var(--app-header-height)+var(--app-safe-top)+1.5rem)]">
+              <B2BQuoteSummary
+                items={draft.items}
+                products={products}
+                onRemove={removeItem}
+                onContinue={openForm}
+              />
+              {!draft.businessType && draft.items.length > 0 && (
+                <p className="mt-3 text-center text-xs text-[#7D4D1F] dark:text-gold-400">
+                  Elige tu tipo de negocio para continuar.
+                </p>
               )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {draft.items.length > 0 && (
+        <div
+          className="fixed inset-x-0 z-50 border-t border-[#D0A45D]/50 bg-[#27170F] lg:hidden"
+          style={{ bottom: 'calc(var(--app-bottom-nav-height) + var(--app-safe-bottom))' }}
+        >
+          <B2BQuoteSummary
+            compact
+            items={draft.items}
+            products={products}
+            onRemove={removeItem}
+            onContinue={openForm}
+          />
+        </div>
+      )}
+
+      <B2BInquiryForm
+        open={formOpen}
+        draft={draft}
+        products={products}
+        onClose={() => setFormOpen(false)}
+        onCompleted={reset}
+      />
     </div>
   );
 }

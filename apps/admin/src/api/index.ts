@@ -122,19 +122,6 @@ export const subscriptionsApi = {
     id: string,
     data: { plan?: string; frequency?: string; grindPreference?: string; items?: string[] },
   ) => api.put(`/subscriptions/${id}/admin`, data),
-  b2bInquiry: (data: {
-    empresa: string;
-    rfc: string;
-    contactoNombre: string;
-    contactoEmail?: string;
-    contactoTelefono?: string;
-    volumenEstimado?: string;
-    giroNegocio?: string;
-  }) => api.post('/subscriptions/b2b-inquiry', data),
-  b2bList: (params?: Record<string, string>) => api.get('/subscriptions/b2b-inquiries', { params }),
-  b2bGet: (id: string) => api.get(`/subscriptions/b2b-inquiries/${id}`),
-  b2bUpdateStatus: (id: string, status: string) =>
-    api.put(`/subscriptions/b2b-inquiries/${id}/status`, { status }),
   summary: () =>
     api.get<{ statusCounts: Record<string, number>; planCounts: Record<string, number> }>(
       '/subscriptions/summary',
@@ -579,14 +566,49 @@ export const productVersionsApi = {
 
 export const b2bApi = {
   catalog: () => api.get('/b2b/catalog'),
+  adminCatalog: () => api.get('/b2b/catalog/admin'),
+  metrics: () => api.get('/b2b/metrics'),
+  inquiries: (params?: Record<string, unknown>) => api.get('/b2b/inquiries', { params }),
+  inquiryDetail: (id: string) => api.get(`/b2b/inquiries/${id}`),
+  updateInquiryStatus: (
+    id: string,
+    data: {
+      status: import('../types').B2BInquiryStatus;
+      lostReason?: string;
+      nextAction?: string;
+      nextFollowUpAt?: string;
+    },
+  ) => api.patch(`/b2b/inquiries/${id}/status`, data),
+  addActivity: (id: string, message: string) =>
+    api.post(`/b2b/inquiries/${id}/activities`, { message }),
+  createQuote: (
+    inquiryId: string,
+    data: {
+      items: import('../types').B2BQuoteItem[];
+      validUntil: string;
+      taxAmount?: number;
+      paymentTerms?: string;
+      notes?: string;
+    },
+  ) => api.post(`/b2b/inquiries/${inquiryId}/quotes`, data),
+  sendQuote: (quoteId: string) => api.post(`/b2b/quotes/${quoteId}/send`),
+  acceptQuote: (quoteId: string) => api.post(`/b2b/quotes/${quoteId}/accept`),
+  convertInquiry: (
+    inquiryId: string,
+    data?: { address?: string; city?: string; state?: string; zipCode?: string },
+  ) => api.post(`/b2b/inquiries/${inquiryId}/convert`, data),
+  companies: (params?: Record<string, unknown>) => api.get('/b2b/companies', { params }),
   getTiers: (productId: string) => api.get(`/b2b/tiers/${productId}`),
   createTier: (
     productId: string,
     data: { minQty: number; maxQty?: number; pricePerUnit: number },
   ) => api.post(`/b2b/tiers/${productId}`, data),
+  updateTier: (
+    tierId: string,
+    data: { minQty: number; maxQty?: number | null; pricePerUnit: number },
+  ) => api.put(`/b2b/tiers/item/${tierId}`, data),
   deleteTier: (tierId: string) => api.delete(`/b2b/tiers/item/${tierId}`),
   orders: (params?: Record<string, unknown>) => api.get('/b2b/orders', { params }),
-  inquiry: (data: Record<string, string>) => api.post('/b2b/inquiry', data),
 };
 
 export const ubicacionesApi = {

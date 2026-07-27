@@ -27,7 +27,9 @@ const AdminRewards = lazy(() => import('./admin/Rewards'));
 const SubscriptionPayments = lazy(() => import('./admin/SubscriptionPayments'));
 const AdminNotificationSettings = lazy(() => import('./admin/AdminNotificationSettings'));
 const AdminB2BOrders = lazy(() => import('./admin/B2BOrders'));
-const B2BInquiries = lazy(() => import('./admin/B2BInquiries'));
+const B2BPipeline = lazy(() => import('./admin/B2BPipeline'));
+const B2BInquiryDetail = lazy(() => import('./admin/B2BInquiryDetail'));
+const B2BCompanies = lazy(() => import('./admin/B2BCompanies'));
 const AbandonedCarts = lazy(() => import('./admin/AbandonedCarts'));
 const Logistics = lazy(() => import('./admin/Logistics'));
 const AdminLog = lazy(() => import('./admin/AdminLog'));
@@ -85,8 +87,11 @@ export default function App() {
               <Route path="recompensas" element={<AdminRewards />} />
               <Route path="pagos-suscripciones" element={<SubscriptionPayments />} />
               <Route path="notificaciones" element={<AdminNotificationSettings />} />
-              <Route path="b2b" element={<AdminB2BOrders />} />
-              <Route path="consultas-b2b" element={<B2BInquiries />} />
+              <Route path="b2b" element={<B2BPipeline />} />
+              <Route path="b2b/solicitudes/:id" element={<B2BInquiryDetail />} />
+              <Route path="b2b/empresas" element={<B2BCompanies />} />
+              <Route path="b2b/operacion" element={<AdminB2BOrders />} />
+              <Route path="consultas-b2b" element={<Navigate to="/b2b" replace />} />
               <Route path="carritos-abandonados" element={<AbandonedCarts />} />
               <Route path="logistica" element={<Logistics />} />
               <Route path="auditoria" element={<AdminLog />} />

@@ -80,6 +80,33 @@ router.get('/catalog', async (_req: Request, res: Response) => {
   }
 });
 
+router.get('/catalog/admin', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        imageUrl: true,
+        description: true,
+        origin: true,
+        region: true,
+        weight: true,
+        sku: true,
+        isB2BEnabled: true,
+        b2bPriority: true,
+        b2bPriceTiers: { orderBy: { minQty: 'asc' } },
+      },
+      orderBy: [{ isB2BEnabled: 'desc' }, { b2bPriority: 'desc' }, { name: 'asc' }],
+    });
+    res.json({ data: products });
+  } catch (error) {
+    console.error('[b2b] GET /catalog/admin', error);
+    res.status(500).json({ error: 'Error al obtener el catálogo B2B administrativo.' });
+  }
+});
+
 async function createInquiry(req: Request, res: Response) {
   try {
     const requestId = cleanString(req.body.requestId, 100);

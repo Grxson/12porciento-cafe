@@ -571,7 +571,138 @@ export interface B2BProduct {
   imageUrl: string;
   description: string;
   origin: string | null;
+  region: string | null;
   weight: number | null;
   sku: string | null;
+  isB2BEnabled: boolean;
+  b2bPriority: number;
   b2bPriceTiers: B2BPriceTier[];
+}
+
+export type B2BFrequency = 'one-time' | 'weekly' | 'biweekly' | 'monthly';
+export type B2BInquiryStatus = 'NEW' | 'REVIEWING' | 'QUOTED' | 'NEGOTIATING' | 'WON' | 'LOST';
+export type B2BQuoteStatus = 'DRAFT' | 'SENT' | 'ACCEPTED' | 'EXPIRED' | 'SUPERSEDED';
+
+export interface B2BQuoteDraftItem {
+  productId: string;
+  quantity: number;
+  frequency: B2BFrequency;
+}
+
+export interface B2BQuoteDraft {
+  version: 1;
+  requestId: string;
+  items: B2BQuoteDraftItem[];
+  businessType: string;
+  frequency: B2BFrequency;
+  updatedAt: string;
+}
+
+export interface B2BInquiryRequest {
+  requestId: string;
+  businessName: string;
+  rfc: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  businessType: string;
+  frequency: B2BFrequency;
+  items: B2BQuoteDraftItem[];
+}
+
+export interface B2BInquiryReceipt {
+  inquiryId: string;
+  folio: string;
+  estimatedSubtotal: number;
+  currency: string;
+  message: string;
+}
+
+export interface B2BInquiryItem {
+  id: string;
+  productId: string;
+  productName: string;
+  sku: string | null;
+  quantity: number;
+  frequency: B2BFrequency;
+  tierId: string | null;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface B2BActivity {
+  id: string;
+  type: string;
+  message: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  admin?: { id: string; name: string } | null;
+}
+
+export interface B2BQuoteItem {
+  id?: string;
+  productId: string;
+  productName: string;
+  sku: string | null;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface B2BQuote {
+  id: string;
+  inquiryId: string;
+  version: number;
+  status: B2BQuoteStatus;
+  subtotal: number;
+  taxAmount: number;
+  total: number;
+  currency: string;
+  validUntil: string;
+  paymentTerms: string | null;
+  notes: string | null;
+  sentAt: string | null;
+  acceptedAt: string | null;
+  createdAt: string;
+  items: B2BQuoteItem[];
+}
+
+export interface B2BInquiry {
+  id: string;
+  folio: string;
+  empresa: string;
+  rfc: string;
+  contactoNombre: string;
+  contactoEmail: string;
+  contactoTelefono: string;
+  volumenEstimado: string;
+  giroNegocio: string | null;
+  businessType: string | null;
+  frequency: B2BFrequency | null;
+  estimatedSubtotal: number;
+  currency: string;
+  status: B2BInquiryStatus;
+  nextAction: string | null;
+  nextFollowUpAt: string | null;
+  lostReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignedAdmin?: { id: string; name: string; email?: string } | null;
+  items: B2BInquiryItem[];
+  activities?: B2BActivity[];
+  quotes?: B2BQuote[];
+}
+
+export interface B2BCompany {
+  id: string;
+  businessName: string;
+  tradeName: string | null;
+  rfc: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  paymentTerms: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { inquiries: number; orders: number };
 }

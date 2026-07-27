@@ -310,25 +310,18 @@ export default function Subscriptions() {
   const handleB2BSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlan || selectedPlan.id !== 'EMPRESARIAL') return;
-
-    setLoading(true);
-    setError('');
-    try {
-      await subscriptionsApi.b2bInquiry({
-        empresa: b2bForm.empresa,
+    window.localStorage.setItem(
+      '12pct:b2b-contact:v1',
+      JSON.stringify({
+        businessName: b2bForm.empresa,
         rfc: b2bForm.rfc,
-        contactoNombre: b2bForm.contactoNombre,
-        contactoEmail: b2bForm.contactoEmail,
-        contactoTelefono: b2bForm.contactoTelefono,
-        volumenEstimado: b2bForm.volumenEstimado,
-        giroNegocio: b2bForm.giroNegocio || undefined,
-      });
-      setShowB2BConfirm(true);
-    } catch (err: unknown) {
-      addToast(getApiError(err, 'Error al procesar consulta. Intenta de nuevo.'), 'error');
-    } finally {
-      setLoading(false);
-    }
+        contactName: b2bForm.contactoNombre,
+        contactEmail: b2bForm.contactoEmail,
+        contactPhone: b2bForm.contactoTelefono,
+        businessType: b2bForm.giroNegocio || 'OTRO',
+      }),
+    );
+    window.location.assign('/b2b');
   };
 
   const stepLabels = ['Elige tu plan', 'Tus cafés', 'Tus datos', 'Método de pago'];

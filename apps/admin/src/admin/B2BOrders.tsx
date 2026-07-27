@@ -37,7 +37,7 @@ export default function AdminB2BOrders() {
     setTiersLoading(true);
     setTiersError(null);
     try {
-      const res = await b2bApi.catalog();
+      const res = await b2bApi.adminCatalog();
       setProducts(res.data.data);
     } catch {
       setTiersError('Error al cargar catálogo B2B');

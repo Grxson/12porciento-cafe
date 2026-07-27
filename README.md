@@ -24,15 +24,16 @@ pnpm dev      # client → localhost:5173 · server → localhost:3001
 
 Copy `.env.example` → `.env` and fill in:
 
-| Variable | Required | Description |
-|---|---|---|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `JWT_SECRET` | ✅ | Secret for auth tokens (change for production) |
-| `STRIPE_SECRET_KEY` | ✅ | Stripe secret key (sk_test_...) |
-| `STRIPE_WEBHOOK_SECRET` | ✅ | Stripe webhook signing secret (whsec_...) |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | ✅ | Stripe publishable key (pk_test_...) |
-| `VITE_VAPID_PUBLIC_KEY` | 🔔 | VAPID public key for push notifications |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | 📧 | SMTP credentials for transactional emails |
+| Variable                                | Required | Description                                                  |
+| --------------------------------------- | -------- | ------------------------------------------------------------ |
+| `DATABASE_URL`                          | ✅       | PostgreSQL connection string                                 |
+| `JWT_SECRET`                            | ✅       | Secret for auth tokens (change for production)               |
+| `STRIPE_SECRET_KEY`                     | ✅       | Stripe secret key (sk_test_...)                              |
+| `STRIPE_WEBHOOK_SECRET`                 | ✅       | Stripe webhook signing secret (whsec_...)                    |
+| `VITE_STRIPE_PUBLISHABLE_KEY`           | ✅       | Stripe publishable key (pk_test_...)                         |
+| `VITE_VAPID_PUBLIC_KEY`                 | 🔔       | VAPID public key for push notifications                      |
+| `RESEND_API_KEY` / `RESEND_FROM`        | 📧       | Preferred HTTPS provider for transactional emails on Railway |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | Optional | SMTP fallback; Railway requires Pro or higher                |
 
 ---
 
@@ -62,17 +63,17 @@ Copy `.env.example` → `.env` and fill in:
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `pnpm dev` | Start client + server concurrently |
-| `pnpm build` | Build client + server for production |
-| `pnpm typecheck` | Run TypeScript type checking |
-| `pnpm test` | Run all tests (client + server) |
-| `pnpm lint` | ESLint check (flat config) |
-| `pnpm format` | Prettier check |
-| `pnpm format:fix` | Auto-format all source files |
-| `pnpm clean` | Remove `dist/` and `node_modules` |
-| `pnpm docker:up` | Start PostgreSQL via Docker Compose |
+| Command           | Description                          |
+| ----------------- | ------------------------------------ |
+| `pnpm dev`        | Start client + server concurrently   |
+| `pnpm build`      | Build client + server for production |
+| `pnpm typecheck`  | Run TypeScript type checking         |
+| `pnpm test`       | Run all tests (client + server)      |
+| `pnpm lint`       | ESLint check (flat config)           |
+| `pnpm format`     | Prettier check                       |
+| `pnpm format:fix` | Auto-format all source files         |
+| `pnpm clean`      | Remove `dist/` and `node_modules`    |
+| `pnpm docker:up`  | Start PostgreSQL via Docker Compose  |
 
 ### Database
 
@@ -88,6 +89,7 @@ pnpm db:reset    # drop + recreate + seed
 ## Key Features
 
 ### Public
+
 - **Shop** — product catalog with filters (category, process, roast)
 - **Subscriptions** — recurring coffee plans (starter, connoisseur, business)
 - **Recipes** — brew guides (V60, AeroPress, espresso) with step-by-step live mode
@@ -96,6 +98,7 @@ pnpm db:reset    # drop + recreate + seed
 - **PWA** — installable, offline-capable, push notifications
 
 ### Admin (`/admin/`)
+
 - CRUD: Products, Orders, Subscriptions, Recipes, Promo Codes, Reviews, Users
 - Inventory management with stock movements
 - Logistics panel with tracking
@@ -147,15 +150,15 @@ pnpm --filter server start   # runs built server on :3001
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
+| Layer    | Technology                                                   |
+| -------- | ------------------------------------------------------------ |
 | Frontend | React 19, TypeScript, Tailwind CSS, Shadcn/ui, Framer Motion |
-| Backend | Node.js 22+, Express, TypeScript |
-| Database | PostgreSQL 17 (Prisma ORM) |
-| Payments | Stripe (Payment Intents, Saved Cards) |
-| PWA | Vite PWA Plugin, Workbox, Push API |
-| CI | GitHub Actions (lint → typecheck → test) |
-| Linting | ESLint 10 (flat config), Prettier, TypeScript strict |
+| Backend  | Node.js 22+, Express, TypeScript                             |
+| Database | PostgreSQL 17 (Prisma ORM)                                   |
+| Payments | Stripe (Payment Intents, Saved Cards)                        |
+| PWA      | Vite PWA Plugin, Workbox, Push API                           |
+| CI       | GitHub Actions (lint → typecheck → test)                     |
+| Linting  | ESLint 10 (flat config), Prettier, TypeScript strict         |
 
 ---
 

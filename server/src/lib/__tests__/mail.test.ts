@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mailMocks = vi.hoisted(() => ({
   createTransport: vi.fn(() => ({ sendMail: vi.fn() })),
+  resendSend: vi.fn(),
+  Resend: vi.fn(),
   resolve4: vi.fn(),
   setDefaultResultOrder: vi.fn(),
 }));
@@ -21,10 +23,20 @@ vi.mock('dns', () => ({
   },
 }));
 
+vi.mock('resend', () => ({
+  Resend: mailMocks.Resend,
+}));
+
 describe('SMTP initialization', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    mailMocks.Resend.mockImplementation(() => ({
+      emails: {
+        send: mailMocks.resendSend,
+      },
+    }));
+    delete process.env.RESEND_API_KEY;
     process.env.SMTP_HOST = 'smtp.example.com';
     process.env.SMTP_PORT = '587';
     process.env.SMTP_USER = 'mailer@example.com';
@@ -45,6 +57,31 @@ describe('SMTP initialization', () => {
         tls: {
           servername: 'smtp.example.com',
         },
+      }),
+    );
+  });
+
+  it('prefers the Resend HTTPS API when its key is configured', async () => {
+    process.env.RESEND_API_KEY = 're_test';
+    process.env.SMTP_FROM = 'noreply@example.com';
+    mailMocks.resendSend.mockResolvedValue({
+      data: { id: 'email_123' },
+      error: null,
+    });
+
+    const { initMail, sendMail } = await import('../mail');
+
+    expect(await initMail()).toBe(true);
+    expect(
+      await sendMail({ to: 'buyer@example.com', subject: 'Cotización', html: '<p>Lista</p>' }),
+    ).toBe(true);
+    expect(mailMocks.Resend).toHaveBeenCalledWith('re_test');
+    expect(mailMocks.resolve4).not.toHaveBeenCalled();
+    expect(mailMocks.resendSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: '"12% Café" <noreply@example.com>',
+        to: 'buyer@example.com',
+        subject: 'Cotización',
       }),
     );
   });

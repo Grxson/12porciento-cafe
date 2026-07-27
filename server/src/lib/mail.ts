@@ -1,12 +1,19 @@
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 import net from 'net';
+import { Resend } from 'resend';
 
 let smtpTransport: nodemailer.Transporter | null = null;
-let smtpInitPromise: Promise<boolean> | null = null;
+let resendClient: Resend | null = null;
+let mailInitPromise: Promise<boolean> | null = null;
 
 function getSender(): string {
-  return process.env.SMTP_FROM || 'noreply@12porciento.cafe';
+  return (
+    process.env.MAIL_FROM ||
+    process.env.RESEND_FROM ||
+    process.env.SMTP_FROM ||
+    'noreply@12porciento.cafe'
+  );
 }
 
 async function resolveSmtpEndpoint(hostname: string): Promise<{
@@ -27,12 +34,20 @@ async function resolveSmtpEndpoint(hostname: string): Promise<{
 }
 
 export async function initMail(): Promise<boolean> {
-  if (smtpTransport) return true;
-  if (smtpInitPromise) return smtpInitPromise;
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) return false;
+  if (resendClient || smtpTransport) return true;
+  if (mailInitPromise) return mailInitPromise;
+  if (!process.env.RESEND_API_KEY && (!process.env.SMTP_HOST || !process.env.SMTP_USER)) {
+    return false;
+  }
 
-  smtpInitPromise = (async () => {
+  mailInitPromise = (async () => {
     try {
+      if (process.env.RESEND_API_KEY) {
+        resendClient = new Resend(process.env.RESEND_API_KEY);
+        console.log('[mail] Using Resend HTTPS API');
+        return true;
+      }
+
       const endpoint = await resolveSmtpEndpoint(process.env.SMTP_HOST!);
       smtpTransport = nodemailer.createTransport({
         host: endpoint.host,
@@ -58,9 +73,9 @@ export async function initMail(): Promise<boolean> {
   })();
 
   try {
-    return await smtpInitPromise;
+    return await mailInitPromise;
   } finally {
-    smtpInitPromise = null;
+    mailInitPromise = null;
   }
 }
 
@@ -70,20 +85,37 @@ export async function sendMail(options: {
   html: string;
   text?: string;
 }): Promise<boolean> {
-  if (!smtpTransport && !(await initMail())) {
+  if (!resendClient && !smtpTransport && !(await initMail())) {
     console.error('[mail] No mail provider available — cannot send email');
     return false;
   }
   const from = getSender();
   const { to, subject, html, text } = options;
+  const plainText = text || html.replace(/<[^>]+>/g, '');
 
   try {
+    if (resendClient) {
+      const response = await resendClient.emails.send({
+        from: `"12% Café" <${from}>`,
+        to,
+        subject,
+        html,
+        text: plainText,
+      });
+      if (response.error) {
+        console.error(`[mail] Resend rejected email to ${to}:`, response.error);
+        return false;
+      }
+      console.log(`[mail] Sent via Resend to ${to}: "${subject}" (${response.data?.id})`);
+      return true;
+    }
+
     const sendMailPromise = smtpTransport!.sendMail({
       from: `"12% Café" <${from}>`,
       to,
       subject,
       html,
-      text: text || html.replace(/<[^>]+>/g, ''),
+      text: plainText,
     });
 
     let timeoutHandle: NodeJS.Timeout | null = null;

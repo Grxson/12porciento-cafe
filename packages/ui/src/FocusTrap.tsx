@@ -4,11 +4,18 @@ interface FocusTrapProps {
   children: React.ReactNode;
   active?: boolean;
   initialFocusRef?: React.RefObject<HTMLElement>;
+  className?: string;
 }
 
-const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export default function FocusTrap({ children, active = true, initialFocusRef }: FocusTrapProps) {
+export default function FocusTrap({
+  children,
+  active = true,
+  initialFocusRef,
+  className,
+}: FocusTrapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -52,7 +59,7 @@ export default function FocusTrap({ children, active = true, initialFocusRef }: 
   }, []);
 
   return (
-    <div ref={containerRef} onKeyDown={handleKeyDown}>
+    <div ref={containerRef} onKeyDown={handleKeyDown} className={className}>
       {children}
     </div>
   );

@@ -645,7 +645,7 @@ model B2BInquiry {
   folio             String           @unique
   requestId         String?          @unique
   empresa           String
-  rfc               String
+  rfc               String?
   contactoNombre    String
   contactoEmail     String
   contactoTelefono  String

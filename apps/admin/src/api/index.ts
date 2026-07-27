@@ -573,10 +573,11 @@ export const b2bApi = {
   updateInquiryStatus: (
     id: string,
     data: {
-      status: import('../types').B2BInquiryStatus;
+      status?: import('../types').B2BInquiryStatus;
       lostReason?: string;
       nextAction?: string;
       nextFollowUpAt?: string;
+      assignedAdminId?: string | null;
     },
   ) => api.patch(`/b2b/inquiries/${id}/status`, data),
   addActivity: (id: string, message: string) =>
@@ -595,7 +596,7 @@ export const b2bApi = {
   acceptQuote: (quoteId: string) => api.post(`/b2b/quotes/${quoteId}/accept`),
   convertInquiry: (
     inquiryId: string,
-    data?: { address?: string; city?: string; state?: string; zipCode?: string },
+    data?: { rfc?: string; address?: string; city?: string; state?: string; zipCode?: string },
   ) => api.post(`/b2b/inquiries/${inquiryId}/convert`, data),
   companies: (params?: Record<string, unknown>) => api.get('/b2b/companies', { params }),
   getTiers: (productId: string) => api.get(`/b2b/tiers/${productId}`),

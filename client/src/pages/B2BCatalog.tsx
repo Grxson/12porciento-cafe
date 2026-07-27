@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Building2, Coffee, Search, SlidersHorizontal, Truck } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Building2, Coffee, RefreshCw, Search, SlidersHorizontal, Truck } from 'lucide-react';
 import { b2bApi } from '../api';
 import type { B2BFrequency, B2BProduct } from '../types';
 import B2BInquiryForm from '../components/b2b/B2BInquiryForm';
@@ -30,16 +30,27 @@ export default function B2BCatalog() {
   const [search, setSearch] = useState('');
   const [region, setRegion] = useState('TODAS');
   const [formOpen, setFormOpen] = useState(false);
-  const { draft, upsertItem, removeItem, setBusinessType, setFrequency, reset } =
+  const { draft, upsertItem, removeItem, setBusinessType, setFrequency, reconcileItems, reset } =
     useB2BQuoteDraft();
 
+  const loadCatalog = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
+    try {
+      const response = await b2bApi.catalog();
+      const nextProducts = response.data.data;
+      setProducts(nextProducts);
+      reconcileItems(nextProducts);
+    } catch {
+      setLoadError('No pudimos cargar el catálogo empresarial. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  }, [reconcileItems]);
+
   useEffect(() => {
-    b2bApi
-      .catalog()
-      .then((response) => setProducts(response.data.data))
-      .catch(() => setLoadError('No pudimos cargar el catálogo empresarial. Intenta de nuevo.'))
-      .finally(() => setLoading(false));
-  }, []);
+    void loadCatalog();
+  }, [loadCatalog]);
 
   useEffect(() => {
     if (draft.businessType) return;
@@ -228,8 +239,19 @@ export default function B2BCatalog() {
                 ))}
               </div>
             ) : loadError ? (
-              <div className="mt-7 border border-red-800/30 bg-red-50 p-6 text-sm text-red-800 dark:bg-red-950/20 dark:text-red-200">
-                {loadError}
+              <div
+                role="alert"
+                className="mt-7 flex flex-col items-start gap-4 border border-red-800/30 bg-red-50 p-6 text-sm text-red-800 dark:bg-red-950/20 dark:text-red-200 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <p>{loadError}</p>
+                <button
+                  type="button"
+                  onClick={() => void loadCatalog()}
+                  className="action-focus inline-flex min-h-11 items-center gap-2 border border-current px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em]"
+                >
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                  Reintentar
+                </button>
               </div>
             ) : visibleProducts.length ? (
               <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

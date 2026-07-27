@@ -601,7 +601,7 @@ export interface B2BQuoteDraft {
 export interface B2BInquiryRequest {
   requestId: string;
   businessName: string;
-  rfc: string;
+  rfc?: string;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -671,7 +671,7 @@ export interface B2BInquiry {
   id: string;
   folio: string;
   empresa: string;
-  rfc: string;
+  rfc: string | null;
   contactoNombre: string;
   contactoEmail: string;
   contactoTelefono: string;

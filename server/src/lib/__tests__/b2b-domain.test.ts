@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  MAX_B2B_LINE_QUANTITY,
+  MAX_B2B_TOTAL_QUANTITY,
   calculateInquiryEstimate,
   canTransitionInquiry,
   createB2BFolio,
+  hasValidTierSet,
   selectTier,
   validateTierCandidate,
 } from '../b2b-domain';
@@ -44,6 +47,17 @@ describe('validateTierCandidate', () => {
     expect(
       validateTierCandidate(tiers, { id: 't2', minQty: 10, maxQty: 24, pricePerUnit: 105 }, 't2'),
     ).toBeNull();
+  });
+
+  it('rejects an invalid existing tier set', () => {
+    expect(hasValidTierSet(tiers)).toBe(true);
+    expect(
+      hasValidTierSet([
+        { id: 'a', minQty: 1, maxQty: 20, pricePerUnit: 100 },
+        { id: 'b', minQty: 10, maxQty: null, pricePerUnit: 90 },
+      ]),
+    ).toBe(false);
+    expect(hasValidTierSet([{ id: 'a', minQty: 0, maxQty: 2, pricePerUnit: 100 }])).toBe(false);
   });
 });
 
@@ -104,6 +118,33 @@ describe('calculateInquiryEstimate', () => {
       ),
     ).toThrow('cantidad');
   });
+
+  it('rejects duplicate products and abusive quantities', () => {
+    const product = {
+      id: 'p1',
+      name: 'Coatepec',
+      sku: null,
+      isB2BEnabled: true,
+      tiers: [{ id: 'open', minQty: 1, maxQty: null, pricePerUnit: 100 }],
+    };
+
+    expect(() =>
+      calculateInquiryEstimate(
+        [product],
+        [
+          { productId: 'p1', quantity: 1, frequency: 'MONTHLY' },
+          { productId: 'p1', quantity: 1, frequency: 'MONTHLY' },
+        ],
+      ),
+    ).toThrow('repetido');
+    expect(() =>
+      calculateInquiryEstimate(
+        [product],
+        [{ productId: 'p1', quantity: MAX_B2B_LINE_QUANTITY + 1, frequency: 'MONTHLY' }],
+      ),
+    ).toThrow('máxima');
+    expect(MAX_B2B_TOTAL_QUANTITY).toBeGreaterThanOrEqual(MAX_B2B_LINE_QUANTITY);
+  });
 });
 
 describe('inquiry workflow', () => {
@@ -111,7 +152,7 @@ describe('inquiry workflow', () => {
     expect(canTransitionInquiry('NEW', 'REVIEWING')).toBe(true);
     expect(canTransitionInquiry('REVIEWING', 'QUOTED')).toBe(true);
     expect(canTransitionInquiry('QUOTED', 'NEGOTIATING')).toBe(true);
-    expect(canTransitionInquiry('NEGOTIATING', 'WON')).toBe(true);
+    expect(canTransitionInquiry('NEGOTIATING', 'WON')).toBe(false);
     expect(canTransitionInquiry('REVIEWING', 'LOST')).toBe(true);
     expect(canTransitionInquiry('WON', 'NEW')).toBe(false);
     expect(canTransitionInquiry('NEW', 'WON')).toBe(false);

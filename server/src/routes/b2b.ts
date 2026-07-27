@@ -1,12 +1,14 @@
-import { randomInt } from 'crypto';
 import { Prisma } from '@prisma/client';
 import { Request, Response, Router } from 'express';
 import { prisma } from '../db';
 import {
   B2BInquiryStatus,
+  MAX_B2B_LINE_QUANTITY,
+  MAX_B2B_TOTAL_QUANTITY,
   calculateInquiryEstimate,
   canTransitionInquiry,
   createB2BFolio,
+  hasValidTierSet,
   validateTierCandidate,
 } from '../lib/b2b-domain';
 import { logAdminAction } from '../lib/adminLog';
@@ -27,13 +29,32 @@ const INQUIRY_STATUSES = new Set<B2BInquiryStatus>([
 const cleanString = (value: unknown, maxLength = 200): string =>
   typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 
+const escapeHtml = (value: string): string =>
+  value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]!,
+  );
+
 const isEmail = (value: string): boolean =>
   value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+const isValidRfc = (value: string): boolean => /^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/.test(value);
 
 const asPositiveInteger = (value: unknown): number | null => {
   const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 };
+
+const nextB2BFolio = async (tx: Prisma.TransactionClient): Promise<string> => {
+  const rows = await tx.$queryRaw<Array<{ sequence: bigint }>>`
+    SELECT nextval('"B2BFolioSequence"') AS sequence
+  `;
+  const sequence = Number(rows[0]?.sequence);
+  return createB2BFolio(sequence);
+};
+
+class TierValidationError extends Error {}
 
 const inquiryResponse = (inquiry: {
   id: string;
@@ -73,7 +94,9 @@ router.get('/catalog', async (_req: Request, res: Response) => {
       },
       orderBy: [{ b2bPriority: 'desc' }, { name: 'asc' }],
     });
-    res.json({ data: products });
+    res.json({
+      data: products.filter((product) => hasValidTierSet(product.b2bPriceTiers)),
+    });
   } catch (error) {
     console.error('[b2b] GET /catalog', error);
     res.status(500).json({ error: 'Error al obtener el catálogo empresarial.' });
@@ -127,7 +150,6 @@ async function createInquiry(req: Request, res: Response) {
     if (
       requestId.length < 8 ||
       !businessName ||
-      !rfc ||
       !contactName ||
       !isEmail(contactEmail) ||
       !contactPhone ||
@@ -139,6 +161,9 @@ async function createInquiry(req: Request, res: Response) {
       return res.status(400).json({
         error: 'Completa los datos de la empresa, una frecuencia válida y al menos un producto.',
       });
+    }
+    if (rfc && !isValidRfc(rfc)) {
+      return res.status(400).json({ error: 'El RFC no tiene un formato válido.' });
     }
 
     const existing = await prisma.b2BInquiry.findUnique({ where: { requestId } });
@@ -188,47 +213,86 @@ async function createInquiry(req: Request, res: Response) {
       });
     }
 
-    const inquiry = await prisma.$transaction(async (tx) => {
-      const created = await tx.b2BInquiry.create({
-        data: {
-          folio: createB2BFolio(randomInt(1, 1_000_000)),
-          requestId,
-          empresa: businessName,
-          rfc,
-          contactoNombre: contactName,
-          contactoEmail: contactEmail,
-          contactoTelefono: contactPhone,
-          volumenEstimado: `${estimate.items.reduce((sum, item) => sum + item.quantity, 0)} unidades`,
-          giroNegocio: businessType,
-          businessType,
-          frequency,
-          estimatedSubtotal: estimate.subtotal,
-          currency: 'MXN',
-          status: 'NEW',
-          items: {
-            create: estimate.items.map((item) => ({
-              productId: item.productId,
-              productName: item.productName,
-              sku: item.sku,
-              quantity: item.quantity,
-              frequency: item.frequency,
-              tierId: item.tierId,
-              unitPrice: item.unitPrice,
-              subtotal: item.subtotal,
-            })),
-          },
-        },
-      });
-      await tx.b2BActivity.create({
-        data: {
-          inquiryId: created.id,
-          type: 'CREATED',
-          message: 'Solicitud creada desde el cotizador empresarial.',
-          metadata: { source: 'public-builder', requestId },
-        },
-      });
-      return created;
+    let inquiry: Awaited<ReturnType<typeof prisma.b2BInquiry.create>> | null = null;
+    for (let attempt = 0; attempt < 3 && !inquiry; attempt += 1) {
+      try {
+        inquiry = await prisma.$transaction(async (tx) => {
+          const created = await tx.b2BInquiry.create({
+            data: {
+              folio: await nextB2BFolio(tx),
+              requestId,
+              empresa: businessName,
+              rfc: rfc || null,
+              contactoNombre: contactName,
+              contactoEmail: contactEmail,
+              contactoTelefono: contactPhone,
+              volumenEstimado: `${estimate.items.reduce((sum, item) => sum + item.quantity, 0)} unidades`,
+              giroNegocio: businessType,
+              businessType,
+              frequency,
+              estimatedSubtotal: estimate.subtotal,
+              currency: 'MXN',
+              status: 'NEW',
+              items: {
+                create: estimate.items.map((item) => ({
+                  productId: item.productId,
+                  productName: item.productName,
+                  sku: item.sku,
+                  quantity: item.quantity,
+                  frequency: item.frequency,
+                  tierId: item.tierId,
+                  unitPrice: item.unitPrice,
+                  subtotal: item.subtotal,
+                })),
+              },
+            },
+          });
+          await tx.b2BActivity.create({
+            data: {
+              inquiryId: created.id,
+              type: 'CREATED',
+              message: 'Solicitud creada desde el cotizador empresarial.',
+              metadata: { source: 'public-builder', requestId },
+            },
+          });
+          return created;
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          const duplicate = await prisma.b2BInquiry.findUnique({ where: { requestId } });
+          if (duplicate) return res.status(200).json({ data: inquiryResponse(duplicate) });
+          if (attempt < 2) continue;
+        }
+        throw error;
+      }
+    }
+    if (!inquiry) throw new Error('FOLIO_GENERATION_FAILED');
+
+    const receiptSent = await sendMail({
+      to: contactEmail,
+      subject: `${inquiry.folio} · Recibimos tu solicitud empresarial`,
+      html: `<div style="font-family:Arial,sans-serif;color:#27170f;max-width:680px;margin:auto">
+        <p style="letter-spacing:.18em;color:#7d4d1f">12% CAFÉ · EMPRESAS</p>
+        <h1>Recibimos tu selección, ${escapeHtml(contactName)}.</h1>
+        <p>Tu folio es <strong>${escapeHtml(inquiry.folio)}</strong>.</p>
+        <p>El estimado inicial es de <strong>$${inquiry.estimatedSubtotal.toFixed(2)} MXN</strong> antes de IVA.</p>
+        <p>Un especialista revisará disponibilidad, logística y condiciones comerciales. Te contactaremos en menos de 24 horas hábiles.</p>
+      </div>`,
     });
+    if (!receiptSent) {
+      await prisma.b2BActivity
+        .create({
+          data: {
+            inquiryId: inquiry.id,
+            type: 'RECEIPT_EMAIL_FAILED',
+            message: 'No fue posible enviar el acuse de recepción; requiere reintento.',
+            metadata: { contactEmail },
+          },
+        })
+        .catch((activityError) =>
+          console.error('[b2b] No fue posible registrar el fallo de correo', activityError),
+        );
+    }
 
     return res.status(201).json({ data: inquiryResponse(inquiry) });
   } catch (error) {
@@ -248,7 +312,6 @@ async function createInquiry(req: Request, res: Response) {
 }
 
 router.post('/inquiries', createInquiry);
-router.post('/inquiry', createInquiry); // temporary compatibility alias
 
 // Admin pipeline summary.
 router.get('/metrics', requireAuth, async (_req: AuthRequest, res: Response) => {
@@ -281,18 +344,45 @@ router.get('/inquiries', requireAuth, async (req: AuthRequest, res: Response) =>
     const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 25));
     const status = cleanString(req.query.status, 20);
     const search = cleanString(req.query.search, 120);
+    const assignedAdminId = cleanString(req.query.assignedAdminId, 80);
+    const from = req.query.from ? new Date(String(req.query.from)) : null;
+    const to = req.query.to ? new Date(String(req.query.to)) : null;
+    const sla = cleanString(req.query.sla, 20);
+    const filters: Prisma.B2BInquiryWhereInput[] = [];
+    if (search) {
+      filters.push({
+        OR: [
+          { folio: { contains: search, mode: 'insensitive' } },
+          { empresa: { contains: search, mode: 'insensitive' } },
+          { contactoEmail: { contains: search, mode: 'insensitive' } },
+          { rfc: { contains: search, mode: 'insensitive' } },
+        ],
+      });
+    }
+    if (sla === 'overdue') {
+      filters.push({
+        OR: [
+          { nextFollowUpAt: { lt: new Date() } },
+          { status: 'NEW', createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+        ],
+      });
+    }
     const where: Prisma.B2BInquiryWhereInput = {
       ...(INQUIRY_STATUSES.has(status as B2BInquiryStatus) ? { status } : {}),
-      ...(search
+      ...(assignedAdminId === 'unassigned'
+        ? { assignedAdminId: null }
+        : assignedAdminId
+          ? { assignedAdminId }
+          : {}),
+      ...((from && !Number.isNaN(from.getTime())) || (to && !Number.isNaN(to.getTime()))
         ? {
-            OR: [
-              { folio: { contains: search, mode: 'insensitive' } },
-              { empresa: { contains: search, mode: 'insensitive' } },
-              { contactoEmail: { contains: search, mode: 'insensitive' } },
-              { rfc: { contains: search, mode: 'insensitive' } },
-            ],
+            createdAt: {
+              ...(from && !Number.isNaN(from.getTime()) ? { gte: from } : {}),
+              ...(to && !Number.isNaN(to.getTime()) ? { lte: to } : {}),
+            },
           }
         : {}),
+      ...(filters.length ? { AND: filters } : {}),
     };
     const [data, total] = await Promise.all([
       prisma.b2BInquiry.findMany({
@@ -341,15 +431,37 @@ router.get('/inquiries/:id', requireAuth, async (req: AuthRequest, res: Response
 
 router.patch('/inquiries/:id/status', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const status = cleanString(req.body.status, 20) as B2BInquiryStatus;
+    const requestedStatus = cleanString(req.body.status, 20) as B2BInquiryStatus | '';
     const lostReason = cleanString(req.body.lostReason, 500);
-    if (!INQUIRY_STATUSES.has(status)) {
+    if (requestedStatus === 'WON') {
+      return res.status(409).json({
+        error: 'El estado ganado se asigna únicamente al convertir la cotización en pedido.',
+      });
+    }
+    if (requestedStatus && !INQUIRY_STATUSES.has(requestedStatus)) {
       return res.status(400).json({ error: 'Estado B2B inválido.' });
     }
     const current = await prisma.b2BInquiry.findUnique({ where: { id: req.params.id } });
     if (!current) return res.status(404).json({ error: 'Solicitud no encontrada.' });
+    const status = (requestedStatus || current.status) as B2BInquiryStatus;
+    const sameStatus = status === current.status;
+    const assignedAdminProvided = Object.prototype.hasOwnProperty.call(req.body, 'assignedAdminId');
+    const assignedAdminId = assignedAdminProvided
+      ? cleanString(req.body.assignedAdminId, 80) || null
+      : current.assignedAdminId;
+    const nextActionProvided = Object.prototype.hasOwnProperty.call(req.body, 'nextAction');
+    const nextFollowUpProvided = Object.prototype.hasOwnProperty.call(req.body, 'nextFollowUpAt');
+    const nextFollowUpAt =
+      nextFollowUpProvided && req.body.nextFollowUpAt
+        ? new Date(req.body.nextFollowUpAt)
+        : nextFollowUpProvided
+          ? null
+          : current.nextFollowUpAt;
+    if (nextFollowUpAt && Number.isNaN(nextFollowUpAt.getTime())) {
+      return res.status(400).json({ error: 'La fecha de seguimiento no es válida.' });
+    }
     if (
-      !canTransitionInquiry(current.status as B2BInquiryStatus, status) ||
+      (!sameStatus && !canTransitionInquiry(current.status as B2BInquiryStatus, status)) ||
       (status === 'LOST' && !lostReason)
     ) {
       return res.status(409).json({
@@ -360,38 +472,53 @@ router.patch('/inquiries/:id/status', requireAuth, async (req: AuthRequest, res:
       });
     }
     const updated = await prisma.$transaction(async (tx) => {
+      if (assignedAdminId) {
+        const assignee = await tx.adminUser.findUnique({
+          where: { id: assignedAdminId },
+          select: { id: true },
+        });
+        if (!assignee) throw new Error('ASSIGNEE_NOT_FOUND');
+      }
       const inquiry = await tx.b2BInquiry.update({
         where: { id: current.id },
         data: {
           status,
           lostReason: status === 'LOST' ? lostReason : null,
-          assignedAdminId: current.assignedAdminId ?? req.admin?.id,
-          nextAction: cleanString(req.body.nextAction, 240) || null,
-          nextFollowUpAt: req.body.nextFollowUpAt
-            ? new Date(req.body.nextFollowUpAt)
-            : current.nextFollowUpAt,
+          assignedAdminId,
+          nextAction: nextActionProvided
+            ? cleanString(req.body.nextAction, 240) || null
+            : current.nextAction,
+          nextFollowUpAt,
         },
       });
       await tx.b2BActivity.create({
         data: {
           inquiryId: current.id,
           adminId: req.admin?.id,
-          type: 'STATUS_CHANGED',
-          message: `Estado actualizado de ${current.status} a ${status}.`,
-          metadata: status === 'LOST' ? { lostReason } : undefined,
+          type: sameStatus ? 'FOLLOW_UP_UPDATED' : 'STATUS_CHANGED',
+          message: sameStatus
+            ? 'Responsable o próxima acción actualizados.'
+            : `Estado actualizado de ${current.status} a ${status}.`,
+          metadata:
+            status === 'LOST'
+              ? { lostReason }
+              : { assignedAdminId, nextAction: cleanString(req.body.nextAction, 240) || null },
         },
       });
       return inquiry;
     });
     await logAdminAction({
       adminId: req.admin?.id,
-      action: 'STATUS_CHANGE',
+      action: sameStatus ? 'UPDATE' : 'STATUS_CHANGE',
       entity: 'B2BInquiry',
       entityId: current.id,
-      metadata: { from: current.status, to: status },
+      metadata: { from: current.status, to: status, assignedAdminId, nextFollowUpAt },
     });
     return res.json({ data: updated });
   } catch (error) {
+    if (error instanceof Error && error.message === 'ASSIGNEE_NOT_FOUND') {
+      return res.status(400).json({ error: 'El responsable seleccionado no existe.' });
+    }
     console.error('[b2b] PATCH /inquiries/:id/status', error);
     return res.status(500).json({ error: 'No fue posible actualizar el estado.' });
   }
@@ -434,16 +561,23 @@ router.post('/inquiries/:id/quotes', requireAuth, async (req: AuthRequest, res: 
       };
     });
     const validUntil = new Date(req.body.validUntil);
+    const taxAmount = Math.round(Number(req.body.taxAmount ?? 0) * 100) / 100;
+    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
     if (
       !items.length ||
+      items.length > 25 ||
+      totalQuantity > MAX_B2B_TOTAL_QUANTITY ||
       items.some(
         (item) =>
           !item.productId ||
           !item.productName ||
           !item.quantity ||
+          item.quantity > MAX_B2B_LINE_QUANTITY ||
           !Number.isFinite(item.unitPrice) ||
           item.unitPrice <= 0,
       ) ||
+      !Number.isFinite(taxAmount) ||
+      taxAmount < 0 ||
       Number.isNaN(validUntil.getTime()) ||
       validUntil <= new Date()
     ) {
@@ -452,12 +586,12 @@ router.post('/inquiries/:id/quotes', requireAuth, async (req: AuthRequest, res: 
     const quote = await prisma.$transaction(async (tx) => {
       const inquiry = await tx.b2BInquiry.findUnique({ where: { id: req.params.id } });
       if (!inquiry) throw new Error('INQUIRY_NOT_FOUND');
+      if (['WON', 'LOST'].includes(inquiry.status)) throw new Error('INQUIRY_CLOSED');
       const latest = await tx.b2BQuote.findFirst({
         where: { inquiryId: inquiry.id },
         orderBy: { version: 'desc' },
       });
       const subtotal = Math.round(items.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;
-      const taxAmount = Math.round(Number(req.body.taxAmount || 0) * 100) / 100;
       const created = await tx.b2BQuote.create({
         data: {
           inquiryId: inquiry.id,
@@ -478,7 +612,7 @@ router.post('/inquiries/:id/quotes', requireAuth, async (req: AuthRequest, res: 
         where: {
           inquiryId: inquiry.id,
           id: { not: created.id },
-          status: { in: ['DRAFT', 'SENT'] },
+          status: 'DRAFT',
         },
         data: { status: 'SUPERSEDED' },
       });
@@ -505,6 +639,9 @@ router.post('/inquiries/:id/quotes', requireAuth, async (req: AuthRequest, res: 
     if (error instanceof Error && error.message === 'INQUIRY_NOT_FOUND') {
       return res.status(404).json({ error: 'Solicitud no encontrada.' });
     }
+    if (error instanceof Error && error.message === 'INQUIRY_CLOSED') {
+      return res.status(409).json({ error: 'La solicitud ya está cerrada.' });
+    }
     console.error('[b2b] POST /inquiries/:id/quotes', error);
     return res.status(500).json({ error: 'No fue posible crear la cotización.' });
   }
@@ -520,10 +657,20 @@ router.post('/quotes/:id/send', requireAuth, async (req: AuthRequest, res: Respo
     if (quote.status !== 'DRAFT') {
       return res.status(409).json({ error: 'Sólo se puede enviar una cotización en borrador.' });
     }
+    if (['WON', 'LOST'].includes(quote.inquiry.status)) {
+      return res.status(409).json({ error: 'La solicitud ya está cerrada.' });
+    }
+    if (quote.validUntil <= new Date()) {
+      await prisma.b2BQuote.update({
+        where: { id: quote.id },
+        data: { status: 'EXPIRED' },
+      });
+      return res.status(409).json({ error: 'La cotización venció; crea una nueva versión.' });
+    }
     const rows = quote.items
       .map(
         (item) =>
-          `<tr><td style="padding:8px">${item.productName}</td><td style="padding:8px;text-align:center">${item.quantity}</td><td style="padding:8px;text-align:right">$${item.subtotal.toFixed(2)}</td></tr>`,
+          `<tr><td style="padding:8px">${escapeHtml(item.productName)}</td><td style="padding:8px;text-align:center">${item.quantity}</td><td style="padding:8px;text-align:right">$${item.subtotal.toFixed(2)}</td></tr>`,
       )
       .join('');
     const sent = await sendMail({
@@ -531,13 +678,13 @@ router.post('/quotes/:id/send', requireAuth, async (req: AuthRequest, res: Respo
       subject: `${quote.inquiry.folio} · Cotización empresarial v${quote.version}`,
       html: `<div style="font-family:Arial,sans-serif;color:#27170f;max-width:680px;margin:auto">
         <p style="letter-spacing:.18em;color:#7d4d1f">12% CAFÉ · EMPRESAS</p>
-        <h1>Cotización para ${quote.inquiry.empresa}</h1>
-        <p>Hola ${quote.inquiry.contactoNombre}, preparamos esta selección para tu operación.</p>
+        <h1>Cotización para ${escapeHtml(quote.inquiry.empresa)}</h1>
+        <p>Hola ${escapeHtml(quote.inquiry.contactoNombre)}, preparamos esta selección para tu operación.</p>
         <table style="width:100%;border-collapse:collapse">${rows}</table>
         <p style="font-size:20px;text-align:right"><strong>Total: $${quote.total.toFixed(2)} MXN</strong></p>
         <p>Vigencia: ${quote.validUntil.toLocaleDateString('es-MX')}.</p>
-        ${quote.paymentTerms ? `<p>Condiciones: ${quote.paymentTerms}</p>` : ''}
-        ${quote.notes ? `<p>${quote.notes}</p>` : ''}
+        ${quote.paymentTerms ? `<p>Condiciones: ${escapeHtml(quote.paymentTerms)}</p>` : ''}
+        ${quote.notes ? `<p>${escapeHtml(quote.notes).replace(/\n/g, '<br>')}</p>` : ''}
         <p>Responde este correo para confirmar o solicitar ajustes.</p>
       </div>`,
     });
@@ -547,14 +694,27 @@ router.post('/quotes/:id/send', requireAuth, async (req: AuthRequest, res: Respo
       });
     }
     const updated = await prisma.$transaction(async (tx) => {
-      const saved = await tx.b2BQuote.update({
-        where: { id: quote.id },
+      const target = await tx.b2BQuote.updateMany({
+        where: { id: quote.id, status: 'DRAFT' },
         data: { status: 'SENT', sentAt: new Date() },
       });
-      await tx.b2BInquiry.update({
-        where: { id: quote.inquiryId },
+      if (target.count !== 1) throw new Error('QUOTE_STATE_CHANGED');
+      await tx.b2BQuote.updateMany({
+        where: {
+          inquiryId: quote.inquiryId,
+          id: { not: quote.id },
+          status: 'SENT',
+        },
+        data: { status: 'SUPERSEDED' },
+      });
+      const inquiry = await tx.b2BInquiry.updateMany({
+        where: {
+          id: quote.inquiryId,
+          status: { in: ['NEW', 'REVIEWING', 'QUOTED', 'NEGOTIATING'] },
+        },
         data: { status: 'QUOTED', assignedAdminId: req.admin?.id },
       });
+      if (inquiry.count !== 1) throw new Error('INQUIRY_CLOSED');
       await tx.b2BActivity.create({
         data: {
           inquiryId: quote.inquiryId,
@@ -564,10 +724,19 @@ router.post('/quotes/:id/send', requireAuth, async (req: AuthRequest, res: Respo
           metadata: { quoteId: quote.id },
         },
       });
-      return saved;
+      return tx.b2BQuote.findUniqueOrThrow({
+        where: { id: quote.id },
+        include: { items: true },
+      });
     });
     return res.json({ data: updated });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      ['QUOTE_STATE_CHANGED', 'INQUIRY_CLOSED'].includes(error.message)
+    ) {
+      return res.status(409).json({ error: 'La cotización o la solicitud cambiaron de estado.' });
+    }
     console.error('[b2b] POST /quotes/:id/send', error);
     return res.status(500).json({ error: 'No fue posible enviar la cotización.' });
   }
@@ -575,24 +744,42 @@ router.post('/quotes/:id/send', requireAuth, async (req: AuthRequest, res: Respo
 
 router.post('/quotes/:id/accept', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const quote = await prisma.b2BQuote.findUnique({ where: { id: req.params.id } });
+    const quote = await prisma.b2BQuote.findUnique({
+      where: { id: req.params.id },
+      include: { inquiry: { select: { status: true } } },
+    });
     if (!quote) return res.status(404).json({ error: 'Cotización no encontrada.' });
-    if (!['SENT', 'DRAFT'].includes(quote.status)) {
-      return res.status(409).json({ error: 'La cotización ya no puede aceptarse.' });
+    if (quote.status !== 'SENT') {
+      return res.status(409).json({ error: 'Sólo una cotización enviada puede aceptarse.' });
+    }
+    if (['WON', 'LOST'].includes(quote.inquiry.status)) {
+      return res.status(409).json({ error: 'La solicitud ya está cerrada.' });
+    }
+    if (quote.validUntil <= new Date()) {
+      await prisma.b2BQuote.update({
+        where: { id: quote.id },
+        data: { status: 'EXPIRED' },
+      });
+      return res.status(409).json({ error: 'La cotización está vencida.' });
     }
     const accepted = await prisma.$transaction(async (tx) => {
+      const target = await tx.b2BQuote.updateMany({
+        where: { id: quote.id, status: 'SENT' },
+        data: { status: 'ACCEPTED', acceptedAt: new Date() },
+      });
+      if (target.count !== 1) throw new Error('QUOTE_STATE_CHANGED');
       await tx.b2BQuote.updateMany({
         where: { inquiryId: quote.inquiryId, id: { not: quote.id }, status: { not: 'EXPIRED' } },
         data: { status: 'SUPERSEDED' },
       });
-      const saved = await tx.b2BQuote.update({
-        where: { id: quote.id },
-        data: { status: 'ACCEPTED', acceptedAt: new Date() },
+      const inquiry = await tx.b2BInquiry.updateMany({
+        where: {
+          id: quote.inquiryId,
+          status: { in: ['REVIEWING', 'QUOTED', 'NEGOTIATING'] },
+        },
+        data: { status: 'NEGOTIATING', assignedAdminId: req.admin?.id },
       });
-      await tx.b2BInquiry.update({
-        where: { id: quote.inquiryId },
-        data: { status: 'WON', assignedAdminId: req.admin?.id },
-      });
+      if (inquiry.count !== 1) throw new Error('INQUIRY_CLOSED');
       await tx.b2BActivity.create({
         data: {
           inquiryId: quote.inquiryId,
@@ -602,10 +789,16 @@ router.post('/quotes/:id/accept', requireAuth, async (req: AuthRequest, res: Res
           metadata: { quoteId: quote.id },
         },
       });
-      return saved;
+      return tx.b2BQuote.findUniqueOrThrow({ where: { id: quote.id } });
     });
     return res.json({ data: accepted });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      ['QUOTE_STATE_CHANGED', 'INQUIRY_CLOSED'].includes(error.message)
+    ) {
+      return res.status(409).json({ error: 'La cotización o la solicitud cambiaron de estado.' });
+    }
     console.error('[b2b] POST /quotes/:id/accept', error);
     return res.status(500).json({ error: 'No fue posible registrar la aceptación.' });
   }
@@ -627,14 +820,17 @@ router.post('/inquiries/:id/convert', requireAuth, async (req: AuthRequest, res:
       });
       if (!inquiry) throw new Error('INQUIRY_NOT_FOUND');
       if (inquiry.orderId) throw new Error('ALREADY_CONVERTED');
+      if (inquiry.status === 'LOST') throw new Error('INQUIRY_CLOSED');
       const quote = inquiry.quotes[0];
       if (!quote) throw new Error('ACCEPTED_QUOTE_REQUIRED');
+      const rfc = cleanString(req.body.rfc ?? inquiry.rfc, 20).toUpperCase();
+      if (!isValidRfc(rfc)) throw new Error('RFC_REQUIRED');
 
       const company = await tx.b2BCompany.upsert({
-        where: { rfc: inquiry.rfc },
+        where: { rfc },
         create: {
           businessName: inquiry.empresa,
-          rfc: inquiry.rfc,
+          rfc,
           contactName: inquiry.contactoNombre,
           contactEmail: inquiry.contactoEmail,
           contactPhone: inquiry.contactoTelefono,
@@ -661,7 +857,7 @@ router.post('/inquiries/:id/convert', requireAuth, async (req: AuthRequest, res:
           status: 'PENDING',
           orderType: 'B2B',
           businessName: inquiry.empresa,
-          rfc: inquiry.rfc,
+          rfc,
           paymentTerms: quote.paymentTerms,
           b2bCompanyId: company.id,
           sourceQuoteId: quote.id,
@@ -676,7 +872,7 @@ router.post('/inquiries/:id/convert', requireAuth, async (req: AuthRequest, res:
       });
       await tx.b2BInquiry.update({
         where: { id: inquiry.id },
-        data: { companyId: company.id, orderId: order.id, status: 'WON' },
+        data: { rfc, companyId: company.id, orderId: order.id, status: 'WON' },
       });
       await tx.b2BActivity.create({
         data: {
@@ -700,6 +896,12 @@ router.post('/inquiries/:id/convert', requireAuth, async (req: AuthRequest, res:
     }
     if (message === 'ACCEPTED_QUOTE_REQUIRED') {
       return res.status(409).json({ error: 'Primero registra una cotización aceptada.' });
+    }
+    if (message === 'RFC_REQUIRED') {
+      return res.status(400).json({ error: 'Captura un RFC válido antes de convertir.' });
+    }
+    if (message === 'INQUIRY_CLOSED') {
+      return res.status(409).json({ error: 'La solicitud está cerrada.' });
     }
     console.error('[b2b] POST /inquiries/:id/convert', error);
     return res.status(500).json({ error: 'No fue posible convertir la solicitud.' });
@@ -773,23 +975,29 @@ router.get('/tiers/:productId', requireAuth, async (req: AuthRequest, res: Respo
 
 router.post('/tiers/:productId', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const existing = await prisma.b2BPriceTier.findMany({
-      where: { productId: req.params.productId },
-    });
     const candidate = {
       minQty: Number(req.body.minQty),
       maxQty: req.body.maxQty === null || req.body.maxQty === '' ? null : Number(req.body.maxQty),
       pricePerUnit: Number(req.body.pricePerUnit),
     };
-    const validationError = validateTierCandidate(existing, candidate);
-    if (validationError) return res.status(400).json({ error: validationError });
-    const tier = await prisma.b2BPriceTier.create({
-      data: { productId: req.params.productId, ...candidate },
-    });
-    await prisma.product.update({
-      where: { id: req.params.productId },
-      data: { isB2BEnabled: true },
-    });
+    const tier = await prisma.$transaction(
+      async (tx) => {
+        const existing = await tx.b2BPriceTier.findMany({
+          where: { productId: req.params.productId },
+        });
+        const validationError = validateTierCandidate(existing, candidate);
+        if (validationError) throw new TierValidationError(validationError);
+        const created = await tx.b2BPriceTier.create({
+          data: { productId: req.params.productId, ...candidate },
+        });
+        await tx.product.update({
+          where: { id: req.params.productId },
+          data: { isB2BEnabled: true },
+        });
+        return created;
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
     await logAdminAction({
       adminId: req.admin?.id,
       action: 'CREATE',
@@ -799,6 +1007,12 @@ router.post('/tiers/:productId', requireAuth, async (req: AuthRequest, res: Resp
     });
     return res.status(201).json({ data: tier });
   } catch (error) {
+    if (error instanceof TierValidationError) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
+      return res.status(409).json({ error: 'Los precios cambiaron; vuelve a intentarlo.' });
+    }
     console.error('[b2b] POST /tiers/:productId', error);
     return res.status(500).json({ error: 'Error al crear precio por volumen.' });
   }
@@ -806,24 +1020,45 @@ router.post('/tiers/:productId', requireAuth, async (req: AuthRequest, res: Resp
 
 router.put('/tiers/item/:tierId', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const current = await prisma.b2BPriceTier.findUnique({ where: { id: req.params.tierId } });
-    if (!current) return res.status(404).json({ error: 'Tier no encontrado.' });
-    const existing = await prisma.b2BPriceTier.findMany({
-      where: { productId: current.productId },
-    });
     const candidate = {
       minQty: Number(req.body.minQty),
       maxQty: req.body.maxQty === null || req.body.maxQty === '' ? null : Number(req.body.maxQty),
       pricePerUnit: Number(req.body.pricePerUnit),
     };
-    const validationError = validateTierCandidate(existing, candidate, current.id);
-    if (validationError) return res.status(400).json({ error: validationError });
-    const tier = await prisma.b2BPriceTier.update({
-      where: { id: current.id },
-      data: candidate,
+    const tier = await prisma.$transaction(
+      async (tx) => {
+        const current = await tx.b2BPriceTier.findUnique({ where: { id: req.params.tierId } });
+        if (!current) throw new Error('TIER_NOT_FOUND');
+        const existing = await tx.b2BPriceTier.findMany({
+          where: { productId: current.productId },
+        });
+        const validationError = validateTierCandidate(existing, candidate, current.id);
+        if (validationError) throw new TierValidationError(validationError);
+        return tx.b2BPriceTier.update({
+          where: { id: current.id },
+          data: candidate,
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
+    await logAdminAction({
+      adminId: req.admin?.id,
+      action: 'UPDATE',
+      entity: 'B2BPriceTier',
+      entityId: tier.id,
+      metadata: { productId: tier.productId, ...candidate },
     });
     return res.json({ data: tier });
   } catch (error) {
+    if (error instanceof Error && error.message === 'TIER_NOT_FOUND') {
+      return res.status(404).json({ error: 'Tier no encontrado.' });
+    }
+    if (error instanceof TierValidationError) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
+      return res.status(409).json({ error: 'Los precios cambiaron; vuelve a intentarlo.' });
+    }
     console.error('[b2b] PUT /tiers/item/:tierId', error);
     return res.status(500).json({ error: 'Error al actualizar precio por volumen.' });
   }

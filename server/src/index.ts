@@ -144,7 +144,6 @@ app.use('/api/tipos-cata', adminLimiter, tiposCataRouter);
 app.use('/api/pricing', adminLimiter, pricingRouter);
 app.use('/api/product-versions', adminLimiter, productVersionsRouter);
 app.post('/api/b2b/inquiries', b2bInquiryLimiter);
-app.post('/api/b2b/inquiry', b2bInquiryLimiter);
 app.use('/api/b2b', b2bRouter);
 app.use('/api', sitemapRouter);
 

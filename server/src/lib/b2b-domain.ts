@@ -33,6 +33,9 @@ export interface B2BEstimatedItem {
   subtotal: number;
 }
 
+export const MAX_B2B_LINE_QUANTITY = 10_000;
+export const MAX_B2B_TOTAL_QUANTITY = 50_000;
+
 const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 export function selectTier<T extends B2BPriceTierLike>(tiers: T[], quantity: number): T | null {
@@ -74,20 +77,43 @@ export function validateTierCandidate(
   return overlaps ? 'El rango se cruza con un tier existente.' : null;
 }
 
+export function hasValidTierSet(tiers: B2BPriceTierLike[]): boolean {
+  if (!tiers.length) return false;
+  const accepted: B2BPriceTierLike[] = [];
+  for (const tier of [...tiers].sort((a, b) => a.minQty - b.minQty)) {
+    if (validateTierCandidate(accepted, tier)) return false;
+    accepted.push(tier);
+  }
+  return true;
+}
+
 export function calculateInquiryEstimate(
   products: B2BProductForEstimate[],
   requestedItems: B2BRequestedItem[],
 ): { items: B2BEstimatedItem[]; subtotal: number } {
   if (!requestedItems.length) throw new Error('Agrega al menos un producto.');
   const productMap = new Map(products.map((product) => [product.id, product]));
+  const requestedProductIds = new Set<string>();
+  let totalQuantity = 0;
 
   const items = requestedItems.map((request) => {
+    if (requestedProductIds.has(request.productId)) {
+      throw new Error('Cada producto debe aparecer una sola vez; elimina el producto repetido.');
+    }
+    requestedProductIds.add(request.productId);
     const product = productMap.get(request.productId);
     if (!product?.isB2BEnabled) {
       throw new Error('Uno de los productos no está disponible para mayoreo.');
     }
     if (!Number.isInteger(request.quantity) || request.quantity <= 0) {
       throw new Error('La cantidad debe ser un entero mayor que cero.');
+    }
+    if (request.quantity > MAX_B2B_LINE_QUANTITY) {
+      throw new Error(`La cantidad máxima por producto es ${MAX_B2B_LINE_QUANTITY}.`);
+    }
+    totalQuantity += request.quantity;
+    if (totalQuantity > MAX_B2B_TOTAL_QUANTITY) {
+      throw new Error(`La cantidad máxima por solicitud es ${MAX_B2B_TOTAL_QUANTITY}.`);
     }
     const tier = selectTier(product.tiers, request.quantity);
     if (!tier) {
@@ -115,8 +141,8 @@ export function calculateInquiryEstimate(
 const INQUIRY_TRANSITIONS: Record<B2BInquiryStatus, B2BInquiryStatus[]> = {
   NEW: ['REVIEWING', 'LOST'],
   REVIEWING: ['QUOTED', 'LOST'],
-  QUOTED: ['NEGOTIATING', 'WON', 'LOST'],
-  NEGOTIATING: ['QUOTED', 'WON', 'LOST'],
+  QUOTED: ['NEGOTIATING', 'LOST'],
+  NEGOTIATING: ['QUOTED', 'LOST'],
   WON: [],
   LOST: [],
 };

@@ -10,9 +10,10 @@ import {
   Phone,
   Plus,
   Send,
+  UserRoundCheck,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { b2bApi } from '../api';
+import { adminUsersApi, authApi, b2bApi } from '../api';
 import type { B2BInquiry, B2BInquiryStatus, B2BQuote, B2BQuoteItem } from '../types';
 import AdminErrorState from './components/AdminErrorState';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -27,8 +28,8 @@ type InquiryDetail = B2BInquiry & {
 const transitions: Record<B2BInquiryStatus, B2BInquiryStatus[]> = {
   NEW: ['REVIEWING', 'LOST'],
   REVIEWING: ['QUOTED', 'LOST'],
-  QUOTED: ['NEGOTIATING', 'WON', 'LOST'],
-  NEGOTIATING: ['QUOTED', 'WON', 'LOST'],
+  QUOTED: ['NEGOTIATING', 'LOST'],
+  NEGOTIATING: ['QUOTED', 'LOST'],
   WON: [],
   LOST: [],
 };
@@ -38,6 +39,15 @@ const defaultValidUntil = () => {
   date.setDate(date.getDate() + 15);
   return date.toISOString().slice(0, 10);
 };
+
+const toDateTimeInput = (value: string | null) => {
+  if (!value) return '';
+  const date = new Date(value);
+  const localTime = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 16);
+};
+
+const isExpired = (validUntil: string) => new Date(validUntil).getTime() < Date.now();
 
 export default function B2BInquiryDetail() {
   const { id = '' } = useParams();
@@ -50,6 +60,12 @@ export default function B2BInquiryDetail() {
   const [quoteNotes, setQuoteNotes] = useState('');
   const [note, setNote] = useState('');
   const [lostReason, setLostReason] = useState('');
+  const [nextAction, setNextAction] = useState('');
+  const [nextFollowUpAt, setNextFollowUpAt] = useState('');
+  const [assignedAdminId, setAssignedAdminId] = useState('');
+  const [admins, setAdmins] = useState<Array<{ id: string; name: string }>>([]);
+  const [currentAdmin, setCurrentAdmin] = useState<{ id: string; name: string } | null>(null);
+  const [conversionRfc, setConversionRfc] = useState('');
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState('');
   const [error, setError] = useState('');
@@ -58,9 +74,20 @@ export default function B2BInquiryDetail() {
     setLoading(true);
     setError('');
     try {
-      const response = await b2bApi.inquiryDetail(id);
+      const [response, adminsResponse, meResponse] = await Promise.all([
+        b2bApi.inquiryDetail(id),
+        adminUsersApi.list(),
+        authApi.me(),
+      ]);
       const data = response.data.data as InquiryDetail;
+      const signedInAdmin = meResponse.data.admin as { id: string; name: string };
       setInquiry(data);
+      setAdmins(adminsResponse.data);
+      setCurrentAdmin(signedInAdmin);
+      setAssignedAdminId(data.assignedAdmin?.id || '');
+      setNextAction(data.nextAction || '');
+      setNextFollowUpAt(toDateTimeInput(data.nextFollowUpAt));
+      setConversionRfc(data.rfc || '');
       setQuoteItems(
         data.items.map((item) => ({
           productId: item.productId,
@@ -93,16 +120,49 @@ export default function B2BInquiryDetail() {
       addToast('Escribe el motivo de pérdida.', 'error');
       return;
     }
+    if (status !== 'LOST' && (!nextAction.trim() || !nextFollowUpAt)) {
+      addToast('Define la próxima acción y su fecha antes de avanzar.', 'error');
+      return;
+    }
     setWorking(`status-${status}`);
     try {
       await b2bApi.updateInquiryStatus(inquiry.id, {
         status,
         ...(status === 'LOST' ? { lostReason } : {}),
+        ...(status !== 'LOST'
+          ? {
+              assignedAdminId: assignedAdminId || currentAdmin?.id || null,
+              nextAction: nextAction.trim(),
+              nextFollowUpAt: new Date(nextFollowUpAt).toISOString(),
+            }
+          : {}),
       });
       addToast(`Solicitud movida a ${B2B_STATUS[status].label}.`, 'success');
       await load();
     } catch {
       addToast('La transición no está permitida.', 'error');
+    } finally {
+      setWorking('');
+    }
+  };
+
+  const saveFollowUp = async () => {
+    if (!inquiry) return;
+    if (!nextAction.trim() || !nextFollowUpAt) {
+      addToast('Define la próxima acción y su fecha.', 'error');
+      return;
+    }
+    setWorking('follow-up');
+    try {
+      await b2bApi.updateInquiryStatus(inquiry.id, {
+        assignedAdminId: assignedAdminId || null,
+        nextAction: nextAction.trim(),
+        nextFollowUpAt: new Date(nextFollowUpAt).toISOString(),
+      });
+      addToast('Seguimiento comercial actualizado.', 'success');
+      await load();
+    } catch {
+      addToast('No fue posible guardar el seguimiento.', 'error');
     } finally {
       setWorking('');
     }
@@ -170,9 +230,14 @@ export default function B2BInquiryDetail() {
 
   const convert = async () => {
     if (!inquiry) return;
+    const rfc = (inquiry.rfc || conversionRfc).trim().toUpperCase();
+    if (!/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/.test(rfc)) {
+      addToast('Captura un RFC válido de 12 o 13 caracteres para convertir.', 'error');
+      return;
+    }
     setWorking('convert');
     try {
-      await b2bApi.convertInquiry(inquiry.id);
+      await b2bApi.convertInquiry(inquiry.id, { rfc });
       addToast('Empresa y pedido creados.', 'success');
       await load();
     } catch {
@@ -184,6 +249,8 @@ export default function B2BInquiryDetail() {
 
   if (loading) return <AdminSkeleton rows={8} />;
   if (error || !inquiry) return <AdminErrorState error={error} onRetry={load} />;
+  const canConvert =
+    !inquiry.order && Boolean(inquiry.quotes?.some((quote) => quote.status === 'ACCEPTED'));
 
   return (
     <div className="space-y-6">
@@ -223,10 +290,12 @@ export default function B2BInquiryDetail() {
               disabled={Boolean(working)}
               className={`border px-4 py-2 text-xs font-semibold uppercase tracking-wider ${B2B_STATUS[status].color} disabled:opacity-50`}
             >
-              {B2B_STATUS[status].label}
+              {inquiry.status === 'NEW' && status === 'REVIEWING'
+                ? 'Pasar a revisión'
+                : B2B_STATUS[status].label}
             </button>
           ))}
-          {inquiry.status === 'WON' && !inquiry.order && (
+          {canConvert && (
             <button
               type="button"
               onClick={convert}
@@ -253,6 +322,29 @@ export default function B2BInquiryDetail() {
         </label>
       )}
 
+      {canConvert && !(inquiry.rfc || '').trim() && (
+        <section className="border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <label className="block w-full max-w-md">
+              <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                RFC requerido para convertir
+              </span>
+              <input
+                value={conversionRfc}
+                onChange={(event) => setConversionRfc(event.target.value.toUpperCase())}
+                placeholder="XAXX010101000"
+                maxLength={13}
+                autoComplete="off"
+                className="w-full border border-amber-300 bg-white px-3 py-2 text-sm uppercase outline-none focus:border-gold-600 dark:border-amber-800 dark:bg-coffee-950"
+              />
+            </label>
+            <p className="max-w-lg text-xs leading-5 text-amber-800 dark:text-amber-300">
+              Se enviará con la conversión para identificar fiscalmente la empresa y su pedido.
+            </p>
+          </div>
+        </section>
+      )}
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-6">
           <section className="border border-coffee-200 bg-white dark:border-coffee-800 dark:bg-coffee-900">
@@ -261,33 +353,122 @@ export default function B2BInquiryDetail() {
                 Selección original
               </p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[620px] text-sm">
-                <thead className="bg-coffee-50 text-left text-xs uppercase tracking-wider text-coffee-500 dark:bg-coffee-950/40">
-                  <tr>
-                    <th className="px-5 py-3">Producto</th>
-                    <th className="px-5 py-3">Cantidad</th>
-                    <th className="px-5 py-3">Precio estimado</th>
-                    <th className="px-5 py-3 text-right">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {inquiry.items.map((item) => (
-                    <tr key={item.id} className="border-t border-coffee-100 dark:border-coffee-800">
-                      <td className="px-5 py-4">
-                        <p className="font-medium">{item.productName}</p>
-                        <p className="text-xs text-coffee-500">{item.sku || 'Sin SKU'}</p>
-                      </td>
-                      <td className="px-5 py-4">{item.quantity}</td>
-                      <td className="px-5 py-4">{formatB2BMoney(item.unitPrice)}</td>
-                      <td className="px-5 py-4 text-right font-medium">
-                        {formatB2BMoney(item.subtotal)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="divide-y divide-coffee-100 md:hidden dark:divide-coffee-800">
+              {inquiry.items.map((item) => (
+                <article key={item.id} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-coffee-950 dark:text-cream">
+                        {item.productName}
+                      </p>
+                      <p className="mt-0.5 text-xs text-coffee-500">{item.sku || 'Sin SKU'}</p>
+                    </div>
+                    <p className="shrink-0 font-serif text-lg">{formatB2BMoney(item.subtotal)}</p>
+                  </div>
+                  <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-coffee-100 pt-3 text-xs dark:border-coffee-800">
+                    <div>
+                      <dt className="uppercase tracking-wider text-coffee-400">Cantidad</dt>
+                      <dd className="mt-1 font-medium">{item.quantity}</dd>
+                    </div>
+                    <div>
+                      <dt className="uppercase tracking-wider text-coffee-400">Precio estimado</dt>
+                      <dd className="mt-1 font-medium">{formatB2BMoney(item.unitPrice)}</dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
             </div>
+            <table className="hidden w-full text-sm md:table">
+              <thead className="bg-coffee-50 text-left text-xs uppercase tracking-wider text-coffee-500 dark:bg-coffee-950/40">
+                <tr>
+                  <th className="px-5 py-3">Producto</th>
+                  <th className="px-5 py-3">Cantidad</th>
+                  <th className="px-5 py-3">Precio estimado</th>
+                  <th className="px-5 py-3 text-right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inquiry.items.map((item) => (
+                  <tr key={item.id} className="border-t border-coffee-100 dark:border-coffee-800">
+                    <td className="px-5 py-4">
+                      <p className="font-medium">{item.productName}</p>
+                      <p className="text-xs text-coffee-500">{item.sku || 'Sin SKU'}</p>
+                    </td>
+                    <td className="px-5 py-4">{item.quantity}</td>
+                    <td className="px-5 py-4">{formatB2BMoney(item.unitPrice)}</td>
+                    <td className="px-5 py-4 text-right font-medium">
+                      {formatB2BMoney(item.subtotal)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+
+          <section className="border border-coffee-200 bg-white p-5 dark:border-coffee-800 dark:bg-coffee-900">
+            <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-gold-700 dark:text-gold-400">
+              <UserRoundCheck className="h-4 w-4" /> Seguimiento comercial
+            </p>
+            <div className="mt-4 border-b border-coffee-100 pb-4 dark:border-coffee-800">
+              <label className="block">
+                <span className="mb-1 block text-xs text-coffee-500">Responsable</span>
+                <select
+                  value={assignedAdminId}
+                  onChange={(event) => setAssignedAdminId(event.target.value)}
+                  disabled={['WON', 'LOST'].includes(inquiry.status)}
+                  className="w-full border border-coffee-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-gold-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-coffee-700"
+                >
+                  <option value="">Sin responsable</option>
+                  {admins.map((admin) => (
+                    <option key={admin.id} value={admin.id}>
+                      {admin.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {currentAdmin &&
+                assignedAdminId !== currentAdmin.id &&
+                !['WON', 'LOST'].includes(inquiry.status) && (
+                  <button
+                    type="button"
+                    onClick={() => setAssignedAdminId(currentAdmin.id)}
+                    className="mt-2 text-xs font-medium text-gold-700 hover:text-gold-900 dark:text-gold-400"
+                  >
+                    Asignarme esta oportunidad
+                  </button>
+                )}
+            </div>
+            <label className="mt-4 block">
+              <span className="mb-1 block text-xs text-coffee-500">Próxima acción</span>
+              <input
+                value={nextAction}
+                onChange={(event) => setNextAction(event.target.value)}
+                disabled={['WON', 'LOST'].includes(inquiry.status)}
+                maxLength={240}
+                placeholder="Llamar para revisar volúmenes"
+                className="w-full border border-coffee-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-gold-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-coffee-700"
+              />
+            </label>
+            <label className="mt-3 block">
+              <span className="mb-1 block text-xs text-coffee-500">Fecha de seguimiento</span>
+              <input
+                type="datetime-local"
+                value={nextFollowUpAt}
+                onChange={(event) => setNextFollowUpAt(event.target.value)}
+                disabled={['WON', 'LOST'].includes(inquiry.status)}
+                className="w-full border border-coffee-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-gold-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-coffee-700"
+              />
+            </label>
+            {!['WON', 'LOST'].includes(inquiry.status) && (
+              <button
+                type="button"
+                onClick={saveFollowUp}
+                disabled={Boolean(working) || !nextAction.trim() || !nextFollowUpAt}
+                className="mt-4 w-full bg-coffee-950 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-cream disabled:cursor-not-allowed disabled:opacity-40 dark:bg-gold-500 dark:text-coffee-950"
+              >
+                Guardar seguimiento
+              </button>
+            )}
           </section>
 
           <section className="border border-coffee-200 bg-white p-5 dark:border-coffee-800 dark:bg-coffee-900">
@@ -394,7 +575,9 @@ export default function B2BInquiryDetail() {
                       <FileCheck2 className="h-4 w-4 text-gold-600" />
                       <p className="font-medium">Cotización v{quote.version}</p>
                       <span className="border border-coffee-200 px-2 py-0.5 text-[10px] uppercase tracking-wider dark:border-coffee-700">
-                        {QUOTE_STATUS[quote.status]}
+                        {quote.status === 'SENT' && isExpired(quote.validUntil)
+                          ? 'Vencida'
+                          : QUOTE_STATUS[quote.status]}
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-coffee-500">
@@ -413,7 +596,7 @@ export default function B2BInquiryDetail() {
                         <Send className="h-3.5 w-3.5" /> Enviar
                       </button>
                     )}
-                    {quote.status === 'SENT' && (
+                    {quote.status === 'SENT' && !isExpired(quote.validUntil) && (
                       <button
                         type="button"
                         onClick={() => quoteAction(quote, 'accept')}
@@ -421,6 +604,16 @@ export default function B2BInquiryDetail() {
                         className="flex items-center gap-2 bg-emerald-600 px-3 py-2 text-xs text-white"
                       >
                         <Check className="h-3.5 w-3.5" /> Registrar aceptación
+                      </button>
+                    )}
+                    {quote.status === 'SENT' && isExpired(quote.validUntil) && (
+                      <button
+                        type="button"
+                        disabled
+                        title="La vigencia terminó; crea y envía una nueva versión."
+                        className="flex cursor-not-allowed items-center gap-2 border border-coffee-200 px-3 py-2 text-xs text-coffee-400 dark:border-coffee-700"
+                      >
+                        <Check className="h-3.5 w-3.5" /> Cotización vencida
                       </button>
                     )}
                   </div>

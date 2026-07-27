@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { B2BFrequency, B2BQuoteDraft, B2BQuoteDraftItem } from '../types';
-import { B2B_DRAFT_KEY, createEmptyB2BDraft, parseStoredB2BDraft } from '../lib/b2b-quote';
+import type { B2BFrequency, B2BProduct, B2BQuoteDraft, B2BQuoteDraftItem } from '../types';
+import {
+  B2B_DRAFT_KEY,
+  createEmptyB2BDraft,
+  parseStoredB2BDraft,
+  selectB2BTier,
+} from '../lib/b2b-quote';
 
 const loadDraft = (): B2BQuoteDraft => {
   if (typeof window === 'undefined') return createEmptyB2BDraft();
@@ -48,11 +53,31 @@ export function useB2BQuoteDraft() {
     }));
   }, []);
 
+  const reconcileItems = useCallback((products: B2BProduct[]) => {
+    const productMap = new Map(products.map((product) => [product.id, product]));
+    setDraft((current) => {
+      const items = current.items.filter((item) => {
+        const product = productMap.get(item.productId);
+        return Boolean(product && selectB2BTier(product.b2bPriceTiers, item.quantity));
+      });
+      if (items.length === current.items.length) return current;
+      return { ...current, items };
+    });
+  }, []);
+
   const reset = useCallback(() => {
     const empty = createEmptyB2BDraft();
     setDraft(empty);
     window.localStorage.removeItem(B2B_DRAFT_KEY);
   }, []);
 
-  return { draft, upsertItem, removeItem, setBusinessType, setFrequency, reset };
+  return {
+    draft,
+    upsertItem,
+    removeItem,
+    setBusinessType,
+    setFrequency,
+    reconcileItems,
+    reset,
+  };
 }

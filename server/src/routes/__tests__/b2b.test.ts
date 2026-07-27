@@ -13,6 +13,7 @@ const { productFindMany, inquiryFindUnique, inquiryCreate, activityCreate, trans
       activityCreate,
       transaction: vi.fn(async (callback: (tx: unknown) => unknown) =>
         callback({
+          $queryRaw: vi.fn().mockResolvedValue([{ sequence: 123n }]),
           b2BInquiry: { create: inquiryCreate },
           b2BActivity: { create: activityCreate },
         }),
@@ -93,7 +94,6 @@ describe('B2B API', () => {
       .send({
         requestId: 'request-12345678',
         businessName: 'Café Oficinas SA de CV',
-        rfc: 'COF210101AA1',
         contactName: 'Ana Torres',
         contactEmail: 'ANA@EXAMPLE.COM',
         contactPhone: '5555555555',
@@ -112,6 +112,7 @@ describe('B2B API', () => {
     expect(inquiryCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         requestId: 'request-12345678',
+        rfc: null,
         contactoEmail: 'ana@example.com',
         estimatedSubtotal: 7000,
         items: {
@@ -164,5 +165,23 @@ describe('B2B API', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBeTruthy();
     expect(transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects quantities above the public safety limit', async () => {
+    const response = await request(app)
+      .post('/api/b2b/inquiries')
+      .send({
+        requestId: 'request-too-large',
+        businessName: 'Café Oficinas',
+        contactName: 'Ana',
+        contactEmail: 'ana@example.com',
+        contactPhone: '5555555555',
+        businessType: 'OFICINAS',
+        frequency: 'monthly',
+        items: [{ productId: 'coffee-1', quantity: 10_001, frequency: 'monthly' }],
+      });
+
+    expect(response.status).toBe(400);
+    expect(inquiryCreate).not.toHaveBeenCalled();
   });
 });

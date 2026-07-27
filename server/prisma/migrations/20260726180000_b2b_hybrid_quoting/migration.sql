@@ -8,8 +8,31 @@ UPDATE "Product"
 SET "isB2BEnabled" = true
 WHERE EXISTS (
   SELECT 1
-  FROM "B2BPriceTier"
-  WHERE "B2BPriceTier"."productId" = "Product"."id"
+  FROM "B2BPriceTier" AS valid_tier
+  WHERE valid_tier."productId" = "Product"."id"
+    AND valid_tier."minQty" > 0
+    AND (valid_tier."maxQty" IS NULL OR valid_tier."maxQty" >= valid_tier."minQty")
+    AND valid_tier."pricePerUnit" > 0
+)
+AND NOT EXISTS (
+  SELECT 1
+  FROM "B2BPriceTier" AS invalid_tier
+  WHERE invalid_tier."productId" = "Product"."id"
+    AND (
+      invalid_tier."minQty" <= 0
+      OR (invalid_tier."maxQty" IS NOT NULL AND invalid_tier."maxQty" < invalid_tier."minQty")
+      OR invalid_tier."pricePerUnit" <= 0
+    )
+)
+AND NOT EXISTS (
+  SELECT 1
+  FROM "B2BPriceTier" AS first_tier
+  JOIN "B2BPriceTier" AS second_tier
+    ON first_tier."productId" = second_tier."productId"
+   AND first_tier."id" < second_tier."id"
+  WHERE first_tier."productId" = "Product"."id"
+    AND first_tier."minQty" <= COALESCE(second_tier."maxQty", 2147483647)
+    AND second_tier."minQty" <= COALESCE(first_tier."maxQty", 2147483647)
 );
 
 -- Companies are promoted from won inquiries, never created by public input.
@@ -46,17 +69,28 @@ ADD COLUMN "lostReason" TEXT,
 ADD COLUMN "companyId" TEXT,
 ADD COLUMN "orderId" TEXT;
 
-UPDATE "B2BInquiry"
+WITH ranked_inquiries AS (
+  SELECT
+    "id",
+    ROW_NUMBER() OVER (ORDER BY "createdAt", "id") AS sequence_number
+  FROM "B2BInquiry"
+  WHERE "folio" IS NULL
+)
+UPDATE "B2BInquiry" AS inquiry
 SET
-  "folio" = CONCAT('B2B-LEGACY-', UPPER(SUBSTRING("id", 1, 8))),
+  "folio" = CONCAT('B2B-LEGACY-', LPAD(ranked.sequence_number::TEXT, 6, '0')),
   "status" = CASE
-    WHEN "status" = 'CONTACTED' THEN 'REVIEWING'
-    WHEN "status" = 'RESOLVED' THEN 'WON'
+    WHEN inquiry."status" = 'CONTACTED' THEN 'REVIEWING'
+    WHEN inquiry."status" = 'RESOLVED' THEN 'WON'
     ELSE 'NEW'
   END
-WHERE "folio" IS NULL;
+FROM ranked_inquiries AS ranked
+WHERE inquiry."id" = ranked."id";
 
 ALTER TABLE "B2BInquiry" ALTER COLUMN "folio" SET NOT NULL;
+ALTER TABLE "B2BInquiry" ALTER COLUMN "rfc" DROP NOT NULL;
+
+CREATE SEQUENCE "B2BFolioSequence" START 1;
 
 CREATE UNIQUE INDEX "B2BInquiry_folio_key" ON "B2BInquiry"("folio");
 CREATE UNIQUE INDEX "B2BInquiry_requestId_key" ON "B2BInquiry"("requestId");

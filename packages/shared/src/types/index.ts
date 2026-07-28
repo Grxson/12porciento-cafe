@@ -117,6 +117,11 @@ export interface Order {
   zipCode: string;
   total: number;
   status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  paidAt?: string | null;
+  paymentFailureReason?: string | null;
+  shippingCost: number;
+  currency: string;
   notes?: string;
   trackingNumber?: string | null;
   carrier?: string | null;
@@ -130,6 +135,9 @@ export interface Order {
 
 export type OrderStatus =
   'PENDING' | 'PROCESSING' | 'CONFIRMED' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+
+export type PaymentStatus =
+  'PENDING' | 'REQUIRES_ACTION' | 'PAID' | 'FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
 
 export interface OrderItemFull {
   id: string;
@@ -192,7 +200,7 @@ export interface Subscription {
 }
 
 export type SubscriptionPlan = 'FUNDADOR' | 'EXPLORADOR' | 'CONNOISSEUR' | 'EMPRESARIAL';
-export type SubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
+export type SubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED' | 'PENDING_PAYMENT';
 
 export const PLAN_SLOTS: Record<
   SubscriptionPlan,

@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
-import { sendMail } from '../lib/mail';
+import { sendReminderEmail } from '../lib/abandoned-cart-reminder';
 
 const router = Router();
 
@@ -64,39 +64,13 @@ router.post('/send-reminder', requireAuth, async (req: AuthRequest, res: Respons
       return;
     }
 
-    const items = JSON.parse(cart.items) as {
-      productId: string;
-      name?: string;
-      quantity: number;
-      price?: number;
-    }[];
-    const emailHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>🛒 ¡Tu carrito te espera!</h2>
-        <p>Notamos que dejaste algunos productos en tu carrito:</p>
-        <ul>${items.map((i) => `<li>${i.name || 'Producto'} x${i.quantity}${i.price ? ` — $${i.price}` : ''}</li>`).join('')}</ul>
-        ${cart.couponCode ? `<p>🔑 Tu código <strong>${cart.couponCode}</strong> sigue activo.</p>` : ''}
-        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/checkout" 
-           style="display: inline-block; padding: 12px 24px; background: #B8860B; color: white; text-decoration: none; border-radius: 8px;">
-          Completar mi compra
-        </a>
-      </div>
-    `;
-
     // Respond immediately — do not block the request on SMTP latency.
     res.json({ queued: true });
 
     // Fire-and-forget: send in background, log outcome, never throw into the request cycle.
-    sendMail({ to: cart.email, subject: '🛒 ¡Tu carrito de 12% Café te espera!', html: emailHtml })
-      .then(async (sent) => {
-        if (sent) {
-          await prisma.abandonedCart.update({
-            where: { id },
-            data: { reminderSentAt: new Date(), reminderCount: { increment: 1 } },
-          });
-        } else {
-          console.warn(`[abandoned-cart] Reminder email not sent for cart ${id}`);
-        }
+    sendReminderEmail(cart)
+      .then((sent) => {
+        if (!sent) console.warn(`[abandoned-cart] Reminder email not sent for cart ${id}`);
       })
       .catch((err) =>
         console.error(`[abandoned-cart] Background send failed for cart ${id}:`, err),

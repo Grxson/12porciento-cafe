@@ -96,38 +96,72 @@ model StockMovement {
 }
 
 model Order {
-  id                String      @id @default(cuid())
-  customerName      String
-  email             String
-  phone             String?
-  address           String
-  city              String
-  state             String
-  zipCode           String
-  total             Float
-  status            String      @default("PENDING")
-  notes             String?
-  trackingNumber    String?
-  carrier           String?
-  estimatedDelivery DateTime?
-  userId            String?
-  paymentIntentId   String?     @unique
-  orderType         String      @default("D2C")
-  businessName      String?
-  rfc               String?
-  paymentTerms      String?
-  b2bCompanyId      String?
-  b2bCompany        B2BCompany? @relation(fields: [b2bCompanyId], references: [id], onDelete: SetNull)
-  sourceQuoteId     String?     @unique
-  sourceQuote       B2BQuote?   @relation(fields: [sourceQuoteId], references: [id], onDelete: SetNull)
-  b2bInquiry        B2BInquiry? @relation("B2BInquiryOrder")
-  user              User?       @relation(fields: [userId], references: [id])
-  items             OrderItem[]
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  id                   String      @id @default(cuid())
+  customerName         String
+  email                String
+  phone                String?
+  address              String
+  city                 String
+  state                String
+  zipCode              String
+  total                Float
+  status               String      @default("PENDING") // fulfillment: PENDING|CONFIRMED|PREPARING|SHIPPED|DELIVERED|CANCELLED
+  paymentStatus        String      @default("PENDING") // PENDING|REQUIRES_ACTION|PAID|FAILED|REFUNDED|PARTIALLY_REFUNDED
+  paidAt               DateTime?
+  paymentFailureReason String?
+  shippingCost         Float       @default(0)
+  currency             String      @default("mxn")
+  notes                String?
+  trackingNumber       String?
+  carrier              String?
+  estimatedDelivery    DateTime?
+  userId               String?
+  paymentIntentId      String?     @unique
+  orderType            String      @default("D2C")
+  businessName         String?
+  rfc                  String?
+  paymentTerms         String?
+  b2bCompanyId         String?
+  b2bCompany           B2BCompany? @relation(fields: [b2bCompanyId], references: [id], onDelete: SetNull)
+  sourceQuoteId        String?     @unique
+  sourceQuote          B2BQuote?   @relation(fields: [sourceQuoteId], references: [id], onDelete: SetNull)
+  b2bInquiry           B2BInquiry? @relation("B2BInquiryOrder")
+  user                 User?       @relation(fields: [userId], references: [id])
+  items                OrderItem[]
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 
   @@index([b2bCompanyId])
   @@index([orderType])
+  @@index([paymentStatus])
+}
+
+// Per-state shipping rate, admin-managed. `state` is stored normalized
+// (trimmed, uppercased, accents stripped) so lookups from free-text checkout
+// input are reliable. The row with state = 'DEFAULT' is the fallback used
+// when no specific state rate is configured.
+model ShippingRate {
+  id             String   @id @default(cuid())
+  state          String   @unique
+  cost           Float
+  estimatedDays  String   @default("3-5 días hábiles")
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// Audit log + dedup guard for inbound Stripe webhook events (payments & subscriptions).
+model StripeWebhookEvent {
+  id             String    @id @default(cuid())
+  stripeEventId  String    @unique
+  eventType      String
+  status         String    @default("PROCESSED") // PROCESSED | FAILED
+  errorMessage   String?
+  payloadHash    String?
+  processedAt    DateTime  @default(now())
+
+  @@index([eventType])
+  @@index([status])
 }
 
 model OrderItem {

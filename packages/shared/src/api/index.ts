@@ -106,7 +106,7 @@ export const subscriptionsApi = {
     items: string[];
     userId?: string;
     paymentMethodId?: string;
-  }) => api.post('/subscriptions', data),
+  }) => api.post<{ id: string; status: string; clientSecret?: string }>('/subscriptions', data),
   createSetupIntent: () => api.post<{ clientSecret: string }>('/subscriptions/setup-intent'),
   list: (params?: Record<string, string>) => api.get('/subscriptions', { params }),
   updateStatus: (id: string, status: string) => api.put(`/subscriptions/${id}/status`, { status }),
@@ -340,11 +340,26 @@ export const paymentsApi = {
       amount: number;
       subtotal: number;
       discountAmount: number;
+      shippingCost: number;
+      estimatedDays: string;
     }>(
       '/payments/create-intent',
       data,
       idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined,
     ),
+};
+
+export const shippingRatesApi = {
+  quote: (state: string) =>
+    api.get<{ data: { cost: number; estimatedDays: string; matchedState: string } }>(
+      `/shipping-rates/quote?state=${encodeURIComponent(state)}`,
+    ),
+  list: () => api.get('/shipping-rates'),
+  create: (data: { state: string; cost: number; estimatedDays?: string }) =>
+    api.post('/shipping-rates', data),
+  update: (id: string, data: { cost?: number; estimatedDays?: string; isActive?: boolean }) =>
+    api.put(`/shipping-rates/${id}`, data),
+  delete: (id: string) => api.delete(`/shipping-rates/${id}`),
 };
 
 export const promoCodesApi = {

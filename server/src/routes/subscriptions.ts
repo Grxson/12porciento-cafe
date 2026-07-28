@@ -161,6 +161,12 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
     }
 
     let stripeSubscriptionId: string | undefined;
+    // Local status must reflect what Stripe actually confirmed — never mark a
+    // subscription ACTIVE just because we created a row. Defaults to
+    // PENDING_PAYMENT and only flips to ACTIVE once Stripe's subscription
+    // object itself reports 'active'/'trialing' below.
+    let localStatus = 'PENDING_PAYMENT';
+    let pendingClientSecret: string | undefined;
     if (stripeCustomerId) {
       try {
         const priceInCents = Math.round(
@@ -182,6 +188,21 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
           });
         }
 
+        // Attach payment method BEFORE creating the subscription so Stripe's
+        // first invoice attempt (fired synchronously on create) actually has
+        // a card to charge — attaching it after would be too late for that
+        // first charge's outcome to reflect in stripeSub.status below.
+        if (paymentMethodId && typeof paymentMethodId === 'string') {
+          try {
+            await stripe.paymentMethods.attach(paymentMethodId, { customer: stripeCustomerId });
+            await stripe.customers.update(stripeCustomerId, {
+              invoice_settings: { default_payment_method: paymentMethodId },
+            });
+          } catch (pmErr) {
+            console.warn('[subscription] Could not attach payment method:', pmErr);
+          }
+        }
+
         const stripeSub = await stripe.subscriptions.create({
           customer: stripeCustomerId,
           items: [
@@ -197,22 +218,25 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
               },
             },
           ],
+          ...(paymentMethodId ? { default_payment_method: paymentMethodId as string } : {}),
+          payment_behavior: 'default_incomplete',
+          expand: ['latest_invoice.payment_intent'],
         });
 
         stripeSubscriptionId = stripeSub.id;
+        localStatus =
+          stripeSub.status === 'active' || stripeSub.status === 'trialing'
+            ? 'ACTIVE'
+            : 'PENDING_PAYMENT';
 
-        // Attach payment method if provided
-        if (paymentMethodId && typeof paymentMethodId === 'string') {
-          try {
-            await stripe.paymentMethods.attach(paymentMethodId, { customer: stripeCustomerId });
-            await stripe.customers.update(stripeCustomerId, {
-              invoice_settings: { default_payment_method: paymentMethodId },
-            });
-            await stripe.subscriptions.update(stripeSub.id, {
-              default_payment_method: paymentMethodId,
-            });
-          } catch (pmErr) {
-            console.warn('[subscription] Could not attach payment method:', pmErr);
+        if (localStatus === 'PENDING_PAYMENT') {
+          const latestInvoice = stripeSub.latest_invoice;
+          const paymentIntent =
+            typeof latestInvoice === 'object' && latestInvoice
+              ? (latestInvoice as { payment_intent?: unknown }).payment_intent
+              : undefined;
+          if (typeof paymentIntent === 'object' && paymentIntent) {
+            pendingClientSecret = (paymentIntent as { client_secret?: string }).client_secret;
           }
         }
       } catch (stripeErr) {
@@ -233,7 +257,7 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
             frequency,
             grindPreference: 'GRANO',
             nextBilling,
-            status: 'ACTIVE',
+            status: localStatus,
             fulfillmentStatus: 'PENDIENTE',
             ...(userId ? { userId } : {}),
             ...(stripeSubscriptionId ? { stripeSubscriptionId } : {}),
@@ -254,6 +278,7 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
           frequency,
           grindPreference: 'GRANO',
           nextBilling,
+          status: localStatus,
           ...(userId ? { userId } : {}),
           ...(stripeSubscriptionId ? { stripeSubscriptionId } : {}),
           ...(stripeCustomerId ? { stripeCustomerId } : {}),
@@ -273,7 +298,10 @@ router.post('/', createLimiter, async (req: Request, res: Response) => {
       data: { subscriptionId: subscription.id, plan: subscription.plan },
     });
 
-    res.status(201).json(subscription);
+    res.status(201).json({
+      ...subscription,
+      ...(pendingClientSecret ? { clientSecret: pendingClientSecret } : {}),
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al crear suscripción' });
@@ -548,6 +576,36 @@ router.put('/:id/status', requireAuth, async (req: AuthRequest, res: Response) =
       res.status(400).json({ error: 'Estado inválido' });
       return;
     }
+
+    const current = await prisma.subscription.findUnique({ where: { id: req.params.id } });
+    if (!current) {
+      res.status(404).json({ error: 'Suscripción no encontrada' });
+      return;
+    }
+
+    // Keep Stripe in sync — an admin toggling status here must not leave the
+    // real Stripe subscription billing (or stuck paused) out of step with
+    // what the dashboard shows.
+    if (current.stripeSubscriptionId && status !== current.status) {
+      try {
+        if (status === 'CANCELLED') {
+          await stripe.subscriptions.cancel(current.stripeSubscriptionId);
+        } else if (status === 'PAUSED') {
+          await stripe.subscriptions.update(current.stripeSubscriptionId, {
+            pause_collection: { behavior: 'void' },
+          });
+        } else if (status === 'ACTIVE') {
+          await stripe.subscriptions.update(current.stripeSubscriptionId, {
+            pause_collection: null,
+          });
+        }
+      } catch (stripeErr) {
+        console.error('[subscription] Failed to sync status to Stripe:', stripeErr);
+        res.status(502).json({ error: 'No se pudo sincronizar el estado con Stripe.' });
+        return;
+      }
+    }
+
     const sub = await prisma.subscription.update({
       where: { id: req.params.id },
       data: { status },
@@ -623,6 +681,24 @@ router.patch('/pause', requireUserAuth, async (req: UserAuthRequest, res: Respon
       res.status(400).json({ error: 'Has alcanzado el máximo de pausas permitidas' });
       return;
     }
+
+    // Pause collection in Stripe first — a local-only pause would leave Stripe
+    // billing the customer on schedule while our UI claims nothing is charging.
+    if (subscription.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+          pause_collection: {
+            behavior: 'void',
+            ...(until ? { resumes_at: Math.floor(new Date(until).getTime() / 1000) } : {}),
+          },
+        });
+      } catch (stripeErr) {
+        console.error('[subscription] Failed to pause in Stripe:', stripeErr);
+        res.status(502).json({ error: 'No se pudo pausar el cobro en Stripe. Intenta de nuevo.' });
+        return;
+      }
+    }
+
     const updated = await prisma.subscription.update({
       where: { id: subscription.id },
       data: {
@@ -649,6 +725,21 @@ router.patch('/resume', requireUserAuth, async (req: UserAuthRequest, res: Respo
       res.status(404).json({ error: 'No tienes una suscripción pausada' });
       return;
     }
+
+    if (subscription.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+          pause_collection: null,
+        });
+      } catch (stripeErr) {
+        console.error('[subscription] Failed to resume in Stripe:', stripeErr);
+        res
+          .status(502)
+          .json({ error: 'No se pudo reanudar el cobro en Stripe. Intenta de nuevo.' });
+        return;
+      }
+    }
+
     const updated = await prisma.subscription.update({
       where: { id: subscription.id },
       data: {

@@ -34,6 +34,7 @@ import {
   MapPin,
   ChevronDown,
   ChevronRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
@@ -70,6 +71,7 @@ const navGroups = [
       { to: '/b2b/empresas', label: 'Empresas B2B', icon: Briefcase },
       { to: '/b2b/operacion', label: 'Pedidos y precios B2B', icon: DollarSign },
       { to: '/pagos-suscripciones', label: 'Pagos Suscripciones', icon: CreditCard },
+      { to: '/reconciliacion', label: 'Reconciliación', icon: AlertTriangle },
     ],
   },
   {
@@ -121,6 +123,7 @@ const pageTitles: Record<string, string> = {
   '/tipos-cata': 'Tipos de Cata',
   '/gift-cards': 'Gift Cards',
   '/pricing': 'Precios',
+  '/reconciliacion': 'Reconciliación',
 };
 
 function AdminLayoutInner() {

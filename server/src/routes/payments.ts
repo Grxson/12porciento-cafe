@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
+import { calculateShipping } from '../lib/shipping';
 
 const router = express.Router();
 
@@ -135,19 +136,19 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
 
   try {
     const { finalAmount, discountAmount } = await applyPromo(amount, promoCode);
-    const amountCentavos = Math.round(finalAmount * 100);
+    const shippingQuote = await calculateShipping(state || '');
+    const amountWithShipping = finalAmount + shippingQuote.cost;
+    const amountCentavos = Math.round(amountWithShipping * 100);
 
     if (amountCentavos < 1000) {
       return res.status(400).json({ error: 'El monto mínimo es $10 MXN' });
     }
 
     if (paymentMethodId && !stripeCustomerId) {
-      return res
-        .status(400)
-        .json({
-          error:
-            'Tu método de pago guardado requiere información de cliente. Intenta actualizar tu perfil o usar un método de pago nuevo.',
-        });
+      return res.status(400).json({
+        error:
+          'Tu método de pago guardado requiere información de cliente. Intenta actualizar tu perfil o usar un método de pago nuevo.',
+      });
     }
 
     const s = (v?: string) => (v ? v.slice(0, 500) : undefined);
@@ -175,6 +176,7 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
             items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
           ),
           ...(promoCode ? { promoCode } : {}),
+          shippingCost: String(shippingQuote.cost),
           ...(s(customerName) ? { customerName: s(customerName)! } : {}),
           ...(s(email) ? { email: s(email)! } : {}),
           ...(s(phone) ? { phone: s(phone)! } : {}),
@@ -192,9 +194,11 @@ router.post('/create-intent', paymentLimiter, async (req, res) => {
     return res.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      amount: finalAmount,
+      amount: amountWithShipping,
       subtotal: amount,
       discountAmount,
+      shippingCost: shippingQuote.cost,
+      estimatedDays: shippingQuote.estimatedDays,
     });
   } catch (error: unknown) {
     console.error('Stripe error:', error);

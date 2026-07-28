@@ -46,6 +46,7 @@ const statusConfig: Record<SubscriptionStatus, { label: string; color: string }>
   ACTIVE: { label: 'Activa', color: 'text-green-600 dark:text-green-400' },
   PAUSED: { label: 'Pausada', color: 'text-yellow-700 dark:text-yellow-400' },
   CANCELLED: { label: 'Cancelada', color: 'text-red-600 dark:text-red-400' },
+  PENDING_PAYMENT: { label: 'Pago pendiente', color: 'text-orange-600 dark:text-orange-400' },
 };
 
 const planLabels: Record<string, string> = {

@@ -14,7 +14,14 @@ import {
   Coffee,
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
-import { ordersApi, paymentsApi, promoCodesApi, usersApi, abandonedCartApi } from '../api';
+import {
+  ordersApi,
+  paymentsApi,
+  promoCodesApi,
+  usersApi,
+  abandonedCartApi,
+  shippingRatesApi,
+} from '../api';
 import { retryWithBackoff } from '../services/paymentRetry';
 import { useShallow } from 'zustand/react/shallow';
 import { useCart } from '../context/CartContext';
@@ -122,6 +129,8 @@ export default function Checkout() {
   const [clientSecret, setClientSecret] = useState('');
   const [paymentIntentId, setPaymentIntentId] = useState('');
   const [intentAmount, setIntentAmount] = useState(0);
+  const [shippingCost, setShippingCost] = useState<number | null>(null);
+  const [shippingDays, setShippingDays] = useState('');
   const [loadingIntent, setLoadingIntent] = useState(false);
   const [error, setError] = useState('');
   const [promoInput, setPromoInput] = useState('');
@@ -132,6 +141,12 @@ export default function Checkout() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [pendingOrderPayload, setPendingOrderPayload] = useState<null | {
+    form: FormData;
+    promoCode: string;
+    orderItems: { productId: string; quantity: number }[];
+    paymentIntentId: string;
+  }>(null);
 
   // Offline detection
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -183,11 +198,75 @@ export default function Checkout() {
     };
   }, [user?.stripeCustomerId]);
 
+  // Quote shipping cost as soon as the customer has typed a state, so the summary
+  // shows a real number instead of "+ envío según destino" before checkout.
+  useEffect(() => {
+    if (!form.state || form.state.trim().length < 2) {
+      setShippingCost(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      shippingRatesApi
+        .quote(form.state)
+        .then((res) => {
+          if (cancelled) return;
+          setShippingCost(res.data.data.cost);
+          setShippingDays(res.data.data.estimatedDays);
+        })
+        .catch(() => {
+          if (!cancelled) setShippingCost(null);
+        });
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [form.state]);
+
+  // Handle return from a Stripe redirect (3DS / OXXO / bank redirects). Stripe appends
+  // payment_intent + redirect_status to the return_url regardless of outcome — we must
+  // verify with the backend rather than trust the URL, and only then create the order.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('success') === 'true' && !success) {
-      setSuccess(true);
+    const returnedPI = params.get('payment_intent');
+    const redirectStatus = params.get('redirect_status');
+    if (!returnedPI || !redirectStatus) return;
+
+    window.history.replaceState({}, '', window.location.pathname);
+
+    if (redirectStatus !== 'succeeded') {
+      setError(
+        redirectStatus === 'processing'
+          ? 'Tu pago está siendo verificado. Te avisaremos por correo cuando se confirme.'
+          : 'El pago no fue aprobado. Intenta de nuevo.',
+      );
+      return;
     }
+
+    const raw = sessionStorage.getItem(`checkout_pending_${returnedPI}`);
+    if (!raw) {
+      setOrderError(
+        'Tu pago fue procesado. Si no ves tu pedido confirmado en unos minutos, contacta a soporte.',
+      );
+      return;
+    }
+    try {
+      const pending = JSON.parse(raw) as {
+        form: FormData;
+        promoCode: string;
+        orderItems: { productId: string; quantity: number }[];
+      };
+      setPaymentIntentId(returnedPI);
+      const payload = { ...pending, paymentIntentId: returnedPI };
+      setPendingOrderPayload(payload);
+      submitOrder(payload);
+    } catch {
+      setOrderError(
+        'Tu pago fue procesado. Si no ves tu pedido confirmado en unos minutos, contacta a soporte.',
+      );
+    }
+     
   }, []);
 
   // Track abandoned cart on mount + page leave (for logged-in users with items)
@@ -318,7 +397,17 @@ export default function Checkout() {
       setClientSecret(res.data.clientSecret);
       setPaymentIntentId(res.data.paymentIntentId ?? '');
       setIntentAmount(res.data.amount);
+      setShippingCost(res.data.shippingCost);
+      setShippingDays(res.data.estimatedDays);
       setStep(3);
+      // Persist enough to rebuild the order if Stripe does a full-page redirect
+      // (3DS challenge, OXXO, bank redirects) and this component remounts on return.
+      if (res.data.paymentIntentId) {
+        sessionStorage.setItem(
+          `checkout_pending_${res.data.paymentIntentId}`,
+          JSON.stringify({ form, promoCode, orderItems: expandedItems }),
+        );
+      }
     } catch (err: unknown) {
       const msg = getApiError(err, 'Error al iniciar el pago. Intenta de nuevo.');
       setError(msg);
@@ -343,7 +432,7 @@ export default function Checkout() {
       const result = await stripe.confirmPayment({
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/checkout?success=true`,
+          return_url: `${window.location.origin}/checkout`,
         },
         redirect: 'if_required',
       });
@@ -351,6 +440,10 @@ export default function Checkout() {
         setError(result.error.message || 'Error al procesar el pago.');
       } else if (result.paymentIntent?.status === 'succeeded') {
         await handlePaymentSuccess();
+      } else if (result.paymentIntent?.status === 'processing') {
+        setError('Tu pago está siendo procesado. Te avisaremos por correo cuando se confirme.');
+      } else {
+        setError('No se pudo confirmar el pago. Intenta de nuevo.');
       }
     } catch (err: unknown) {
       setError(getApiError(err, 'Error al procesar el pago.'));
@@ -360,39 +453,17 @@ export default function Checkout() {
   };
 
   const handlePaymentSuccess = async () => {
-    setOrderError('');
-    try {
-      const orderItems = items.flatMap((i) =>
-        i.itemType === 'product'
-          ? [{ productId: i.product.id, quantity: i.quantity }]
-          : i.bundle.items.map((bi) => ({
-              productId: bi.product.id,
-              quantity: bi.quantity * i.quantity,
-            })),
-      );
-      await retryWithBackoff(() =>
-        ordersApi.create({
-          ...form,
-          ...(user ? { userId: user.id } : {}),
-          ...(paymentIntentId ? { paymentIntentId } : {}),
-          ...(promoCode ? { promoCode } : {}),
-          items: orderItems,
-        }),
-      );
-      setSuccess(true);
-      clearCart();
-    } catch (err: unknown) {
-      console.error('Order creation failed after payment:', err);
-      addToast(
-        'Tu pago fue procesado pero no pudimos registrar tu pedido. Intenta de nuevo.',
-        'error',
-        8000,
-      );
-      setOrderError(
-        'El pago se realizó correctamente pero hubo un problema al registrar tu pedido. Haz clic en "Reintentar" para completarlo.',
-      );
-      /* keep cart intact — user can retry */
-    }
+    const orderItems = items.flatMap((i) =>
+      i.itemType === 'product'
+        ? [{ productId: i.product.id, quantity: i.quantity }]
+        : i.bundle.items.map((bi) => ({
+            productId: bi.product.id,
+            quantity: bi.quantity * i.quantity,
+          })),
+    );
+    const payload = { form, promoCode, orderItems, paymentIntentId };
+    setPendingOrderPayload(payload);
+    await submitOrder(payload);
   };
 
   const handlePaymentError = (msg: string) => {
@@ -441,7 +512,10 @@ export default function Checkout() {
             {orderError}
           </p>
           <div className="flex flex-col gap-3">
-            <button onClick={handlePaymentSuccess} className="btn-primary">
+            <button
+              onClick={() => pendingOrderPayload && submitOrder(pendingOrderPayload)}
+              className="btn-primary"
+            >
               Reintentar registro
             </button>
             <Link
@@ -957,6 +1031,7 @@ export default function Checkout() {
                       <StripePaymentForm
                         clientSecret={clientSecret}
                         amount={intentAmount}
+                        returnUrl={`${window.location.origin}/checkout`}
                         onSuccess={handlePaymentSuccess}
                         onError={handlePaymentError}
                       />
@@ -1094,14 +1169,12 @@ export default function Checkout() {
                 )}
 
                 <div className="border-t border-coffee-200 dark:border-coffee-700 pt-4">
-                  {promoDiscount > 0 && (
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-coffee-600 dark:text-coffee-400">Subtotal</span>
-                      <span className="text-coffee-800 dark:text-coffee-300">
-                        ${total().toLocaleString('es-MX')}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-coffee-600 dark:text-coffee-400">Subtotal</span>
+                    <span className="text-coffee-800 dark:text-coffee-300">
+                      ${total().toLocaleString('es-MX')}
+                    </span>
+                  </div>
                   {promoDiscount > 0 && (
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-green-600">Descuento</span>
@@ -1110,15 +1183,28 @@ export default function Checkout() {
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between font-semibold">
-                    <span className="text-coffee-900 dark:text-cream">Total</span>
-                    <span className="text-gold-600 text-lg">
-                      ${Math.max(total() - promoDiscount, 0).toLocaleString('es-MX')}
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-coffee-600 dark:text-coffee-400">Envío</span>
+                    <span className="text-coffee-800 dark:text-coffee-300">
+                      {shippingCost === null
+                        ? 'Según destino'
+                        : `$${shippingCost.toLocaleString('es-MX')}`}
                     </span>
                   </div>
-                  <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
-                    + envío según destino
-                  </p>
+                  <div className="flex justify-between font-semibold border-t border-coffee-200 dark:border-coffee-700 pt-2 mt-2">
+                    <span className="text-coffee-900 dark:text-cream">Total</span>
+                    <span className="text-gold-600 text-lg">
+                      $
+                      {Math.max(total() - promoDiscount + (shippingCost ?? 0), 0).toLocaleString(
+                        'es-MX',
+                      )}
+                    </span>
+                  </div>
+                  {shippingDays && (
+                    <p className="text-coffee-500 dark:text-coffee-400 text-xs mt-1">
+                      Entrega estimada: {shippingDays}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

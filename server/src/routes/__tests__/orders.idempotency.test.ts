@@ -10,6 +10,7 @@ const {
   mockTransaction,
   mockEmitEvent,
   mockSendOrderConfirmation,
+  mockAbandonedCartUpdateMany,
 } = vi.hoisted(() => ({
   mockRetrieve: vi.fn(),
   mockOrderFindUnique: vi.fn(),
@@ -18,6 +19,7 @@ const {
   mockTransaction: vi.fn(),
   mockEmitEvent: vi.fn(),
   mockSendOrderConfirmation: vi.fn().mockResolvedValue(undefined),
+  mockAbandonedCartUpdateMany: vi.fn().mockResolvedValue({ count: 0 }),
 }));
 
 vi.mock('stripe', () => {
@@ -37,6 +39,9 @@ vi.mock('../../db', () => ({
     },
     promoCode: {
       findUnique: mockPromoCodeFindUnique,
+    },
+    abandonedCart: {
+      updateMany: mockAbandonedCartUpdateMany,
     },
     $transaction: mockTransaction,
   },
@@ -145,5 +150,69 @@ describe('POST /orders — idempotency', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.id).toBe('o2');
+  });
+
+  it('last unit in stock: one racer succeeds, the other gets a clean 400 (no oversell)', async () => {
+    mockOrderFindUnique.mockResolvedValue(null);
+
+    // Shared mutable stock — simulates the real row both requests would race on.
+    let stock = 1;
+
+    mockTransaction.mockImplementation(
+      async (fn: (tx: Record<string, unknown>) => Promise<unknown>) =>
+        fn({
+          product: {
+            findUnique: vi.fn().mockImplementation(async () => ({
+              price: 100,
+              stock,
+              isActive: true,
+              name: 'Última pieza',
+            })),
+            updateMany: vi
+              .fn()
+              .mockImplementation(async ({ where }: { where: { stock: { gte: number } } }) => {
+                if (stock >= where.stock.gte) {
+                  stock -= where.stock.gte;
+                  return { count: 1 };
+                }
+                return { count: 0 };
+              }),
+          },
+          order: {
+            create: vi.fn().mockResolvedValue({
+              id: 'o-winner',
+              email: 't@t.com',
+              customerName: 'Test User',
+              total: 100,
+              items: [{ product: { name: 'Última pieza' }, quantity: 1, price: 100 }],
+            }),
+          },
+          promoCode: { update: vi.fn() },
+          stockMovement: { create: vi.fn() },
+        }),
+    );
+
+    const basePayload = {
+      items: [{ productId: 'p1', quantity: 1, price: 100 }],
+      customerName: 'Test User',
+      email: 't@t.com',
+      address: 'Calle Test 123',
+      city: 'CDMX',
+      state: 'CDMX',
+      zipCode: '00000',
+    };
+
+    const first = await request(app)
+      .post('/orders')
+      .send({ ...basePayload, paymentIntentId: 'pi_racer_a' });
+    const second = await request(app)
+      .post('/orders')
+      .send({ ...basePayload, paymentIntentId: 'pi_racer_b' });
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(400);
+    expect(second.body.error).not.toContain('VALIDATION:');
+    expect(second.body.error).toMatch(/stock insuficiente/i);
+    expect(stock).toBe(0); // exactly one unit sold, never oversold
   });
 });

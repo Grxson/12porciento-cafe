@@ -179,14 +179,16 @@ export default function Subscription() {
                   ACTIVE: 'bg-green-900/30 text-green-400 border-green-500/20',
                   PAUSED: 'bg-yellow-900/30 text-yellow-400 border-yellow-500/20',
                   CANCELLED: 'bg-red-900/30 text-red-400 border-red-500/20',
+                  PENDING_PAYMENT: 'bg-orange-900/30 text-orange-400 border-orange-500/20',
                 };
                 const statusLabels: Record<string, string> = {
                   ACTIVE: 'Activa',
                   PAUSED: 'Pausada',
                   CANCELLED: 'Cancelada',
+                  PENDING_PAYMENT: 'Pago pendiente',
                 };
-                const cls = statusStyles[sub.status] ?? statusStyles.ACTIVE;
-                const lbl = statusLabels[sub.status] ?? 'Activa';
+                const cls = statusStyles[sub.status] ?? statusStyles.PENDING_PAYMENT;
+                const lbl = statusLabels[sub.status] ?? sub.status;
                 return (
                   <span className={`text-xs px-2 py-1 border uppercase tracking-wider ${cls}`}>
                     {lbl}

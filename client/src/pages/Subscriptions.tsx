@@ -235,6 +235,33 @@ export default function Subscriptions() {
     goToStep(2);
   };
 
+  // Subscription creation can come back PENDING_PAYMENT when the first invoice
+  // needs 3DS/SCA confirmation — in that case a clientSecret is included and
+  // must be confirmed before this counts as a real success. Returns false
+  // (with an error already set) if confirmation didn't happen or failed.
+  const finalizeSubscriptionResult = async (data: {
+    status?: string;
+    clientSecret?: string;
+  }): Promise<boolean> => {
+    if (data.status !== 'PENDING_PAYMENT' || !data.clientSecret) return true;
+    const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+    if (!stripe) {
+      setError('No se pudo confirmar el pago. Intenta de nuevo.');
+      return false;
+    }
+    const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+      data.clientSecret,
+    );
+    if (confirmError || paymentIntent?.status !== 'succeeded') {
+      setError(
+        confirmError?.message ||
+          'Tu pago requiere confirmación adicional. Intenta de nuevo o contacta soporte.',
+      );
+      return false;
+    }
+    return true;
+  };
+
   const handleCoffeeNext = async () => {
     if (!selectedPlan) return;
     const slots = PLAN_SLOTS[selectedPlan.id];
@@ -245,7 +272,7 @@ export default function Subscriptions() {
       setError('');
       setIsUpgrade(true);
       try {
-        await subscriptionsApi.create({
+        const res = await subscriptionsApi.create({
           name: user.name ?? form.name,
           email: user.email ?? form.email,
           phone: user.phone ?? form.phone,
@@ -255,6 +282,8 @@ export default function Subscriptions() {
           items: selectedCoffees,
           userId: user.id,
         });
+        const confirmed = await finalizeSubscriptionResult(res.data);
+        if (!confirmed) return;
         useUser.getState().setHasSubscription(true);
         setCurrentPlan(selectedPlan.id);
         setSuccess(true);
@@ -291,13 +320,15 @@ export default function Subscriptions() {
     setError('');
     setIsUpgrade(false);
     try {
-      await subscriptionsApi.create({
+      const res = await subscriptionsApi.create({
         ...form,
         plan: selectedPlan.id,
         grindPreference: 'GRANO',
         items: selectedCoffees,
         ...(user ? { userId: user.id } : {}),
       });
+      const confirmed = await finalizeSubscriptionResult(res.data);
+      if (!confirmed) return;
       useUser.getState().setHasSubscription(true);
       setSuccess(true);
     } catch (err: unknown) {
@@ -1191,7 +1222,7 @@ export default function Subscriptions() {
                         setPaymentError('');
                         try {
                           setIsUpgrade(false);
-                          await subscriptionsApi.create({
+                          const res = await subscriptionsApi.create({
                             ...form,
                             plan: selectedPlan.id,
                             grindPreference: 'GRANO',
@@ -1199,6 +1230,8 @@ export default function Subscriptions() {
                             paymentMethodId: pmId,
                             ...(user ? { userId: user.id } : {}),
                           });
+                          const confirmed = await finalizeSubscriptionResult(res.data);
+                          if (!confirmed) return;
                           useUser.getState().setHasSubscription(true);
                           setSuccess(true);
                         } catch (err: unknown) {

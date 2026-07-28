@@ -202,20 +202,28 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
       return total;
     });
 
-    const intentAmountMatch = Math.abs(Math.round(subtotal * 100) - intent.amount) < 100;
+    // Shipping was computed and charged at /create-intent time (Fase 3) and stashed
+    // in metadata since PaymentIntent metadata is the only thing both this route and
+    // the webhook can independently read back. Intents created before this field
+    // existed simply have no shipping charge to account for.
+    const shippingCost = Number(intent.metadata?.shippingCost || 0) || 0;
+
+    const intentAmountMatch =
+      Math.abs(Math.round((subtotal + shippingCost) * 100) - intent.amount) < 100;
     if (!intentAmountMatch) {
       return res.status(400).json({
         error: 'El monto del pago no coincide con los productos ordenados.',
-        detail: `Total calculado: $${(subtotal / 100).toFixed(2)}, Cargo: $${(intent.amount / 100).toFixed(2)}`,
+        detail: `Total calculado: $${(subtotal + shippingCost).toFixed(2)}, Cargo: $${(intent.amount / 100).toFixed(2)}`,
       });
     }
 
-    const { total, promoId } = await applyPromo(subtotal, promoCode);
+    const { total: discountedSubtotal, promoId } = await applyPromo(subtotal, promoCode);
+    const total = discountedSubtotal + shippingCost;
     const expectedAmount = Math.round(total * 100);
     if (Math.abs(expectedAmount - intent.amount) >= 50) {
       return res.status(400).json({
         error: 'El descuento no se aplicó correctamente.',
-        detail: `Total con descuento: $${(total / 100).toFixed(2)}, Cargo: $${(intent.amount / 100).toFixed(2)}`,
+        detail: `Total con descuento: $${total.toFixed(2)}, Cargo: $${(intent.amount / 100).toFixed(2)}`,
       });
     }
 
@@ -240,8 +248,11 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
           data: {
             ...orderData,
             total,
+            shippingCost,
             ...(userId ? { userId } : {}),
             paymentIntentId,
+            paymentStatus: 'PAID',
+            paidAt: new Date(),
             items: {
               create: intentItems.map((item) => ({
                 productId: item.productId,
@@ -330,6 +341,14 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
         data: { orderId: order.id, total: order.total, customerName: order.customerName },
       });
 
+      // A completed order means any abandoned cart for this customer was recovered.
+      prisma.abandonedCart
+        .updateMany({
+          where: { recovered: false, ...(userId ? { userId } : { email: order.email }) },
+          data: { recovered: true },
+        })
+        .catch(() => {});
+
       res.status(201).json(order);
     } catch (err: unknown) {
       const code = getErrorCode(err);
@@ -347,7 +366,14 @@ router.post('/', orderLimiter, async (req: Request, res: Response) => {
       throw err;
     }
   } catch (err: unknown) {
-    res.status(500).json({ error: getErrorMessage(err, 'Error al crear pedido') });
+    const msg = getErrorMessage(err, 'Error al crear pedido');
+    // The initial stock/availability check (subtotal tx) throws with this prefix
+    // just like the order-creation tx — a losing racer on the last unit must get
+    // a clean 400, not a raw 500 with "VALIDATION:" leaked into the message.
+    if (msg.startsWith('VALIDATION:')) {
+      return res.status(400).json({ error: msg.replace('VALIDATION:', '') });
+    }
+    res.status(500).json({ error: msg });
   }
 });
 

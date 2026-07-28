@@ -519,6 +519,37 @@ export const adminApi = {
   ordersSummary: () => api.get<{ statusCounts: Record<string, number> }>('/admin/orders/summary'),
 };
 
+export interface StripeWebhookEventRow {
+  id: string;
+  stripeEventId: string;
+  eventType: string;
+  status: string;
+  errorMessage: string | null;
+  processedAt: string;
+}
+
+export interface StuckOrderRow {
+  id: string;
+  customerName: string;
+  email: string;
+  total: number;
+  paymentStatus: string;
+  paymentFailureReason: string | null;
+  paymentIntentId: string | null;
+  createdAt: string;
+}
+
+export const reconciliationApi = {
+  list: () =>
+    api.get<{
+      data: { failedWebhookEvents: StripeWebhookEventRow[]; stuckOrders: StuckOrderRow[] };
+    }>('/admin/reconciliation'),
+  retry: (stripeEventId: string) =>
+    api.post<{ data: { retried: boolean } }>(
+      `/admin/reconciliation/webhook-events/${stripeEventId}/retry`,
+    ),
+};
+
 export const pricingApi = {
   list: () => api.get('/pricing'),
   calculate: (inputs: Record<string, number>) => api.post('/pricing/calculate', inputs),

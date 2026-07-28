@@ -224,6 +224,40 @@ export default function Checkout() {
     };
   }, [form.state]);
 
+  const submitOrder = async (payload: {
+    form: FormData;
+    promoCode: string;
+    orderItems: { productId: string; quantity: number }[];
+    paymentIntentId: string;
+  }) => {
+    setOrderError('');
+    try {
+      await retryWithBackoff(() =>
+        ordersApi.create({
+          ...payload.form,
+          ...(user ? { userId: user.id } : {}),
+          paymentIntentId: payload.paymentIntentId,
+          ...(payload.promoCode ? { promoCode: payload.promoCode } : {}),
+          items: payload.orderItems,
+        }),
+      );
+      sessionStorage.removeItem(`checkout_pending_${payload.paymentIntentId}`);
+      setSuccess(true);
+      clearCart();
+    } catch (err: unknown) {
+      console.error('Order creation failed after payment:', err);
+      addToast(
+        'Tu pago fue procesado pero no pudimos registrar tu pedido. Intenta de nuevo.',
+        'error',
+        8000,
+      );
+      setOrderError(
+        'El pago se realizó correctamente pero hubo un problema al registrar tu pedido. Haz clic en "Reintentar" para completarlo.',
+      );
+      /* keep cart intact — user can retry */
+    }
+  };
+
   // Handle return from a Stripe redirect (3DS / OXXO / bank redirects). Stripe appends
   // payment_intent + redirect_status to the return_url regardless of outcome — we must
   // verify with the backend rather than trust the URL, and only then create the order.
@@ -266,7 +300,6 @@ export default function Checkout() {
         'Tu pago fue procesado. Si no ves tu pedido confirmado en unos minutos, contacta a soporte.',
       );
     }
-     
   }, []);
 
   // Track abandoned cart on mount + page leave (for logged-in users with items)

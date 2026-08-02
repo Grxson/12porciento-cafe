@@ -30,7 +30,7 @@ const primaryLinks = [
 ];
 
 const secondaryLinks = [
-  { to: '/juego', label: 'El videojuego', gated: false },
+  { to: '/juego', label: 'Bean Catcher', gated: false },
   { to: '/paquetes', label: 'Paquetes', gated: false },
   { to: '/galeria', label: 'Galería', gated: false },
   { to: '/b2b', label: 'Empresas', gated: false },

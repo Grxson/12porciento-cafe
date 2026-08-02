@@ -43,6 +43,13 @@ export function useUpdateNotification() {
     setUpdateError('');
     try {
       await updateServiceWorker();
+      // workbox's "controlling" event should trigger onNeedReload above, but
+      // it can be delayed or never fire (e.g. other tabs of the same origin
+      // still open). Force the reload so the UI never hangs on "Actualizando".
+      window.setTimeout(() => {
+        localStorage.setItem(JUST_UPDATED_KEY, 'true');
+        window.location.reload();
+      }, 3000);
     } catch {
       setIsUpdating(false);
       setUpdateError('No pudimos aplicar la actualización. Intenta de nuevo.');

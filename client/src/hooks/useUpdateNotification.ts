@@ -7,6 +7,7 @@ const JUST_UPDATED_KEY = 'pwa_just_updated';
 export function useUpdateNotification() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState('');
+  const [availableSince, setAvailableSince] = useState<number | null>(null);
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,
@@ -29,6 +30,7 @@ export function useUpdateNotification() {
   useEffect(() => {
     if (needRefresh) {
       setUserDismissed(false);
+      setAvailableSince((prev) => prev ?? Date.now());
       localStorage.removeItem(DISMISSED_KEY);
     }
   }, [needRefresh]);
@@ -62,6 +64,7 @@ export function useUpdateNotification() {
     showNotification: needRefresh && !userDismissed,
     isUpdating,
     updateError,
+    availableSince,
     handleDismiss,
     handleUpdate,
   };

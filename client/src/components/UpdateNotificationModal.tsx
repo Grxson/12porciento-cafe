@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,6 +10,17 @@ interface UpdateNotificationModalProps {
   onDismiss: () => void;
   isUpdating: boolean;
   updateError: string;
+  availableSince: number | null;
+}
+
+function formatElapsed(since: number, now: number): string {
+  const minutes = Math.floor((now - since) / 60000);
+  if (minutes < 1) return 'Disponible ahora mismo';
+  if (minutes < 60) return `Disponible desde hace ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Disponible desde hace ${hours} h`;
+  const days = Math.floor(hours / 24);
+  return `Disponible desde hace ${days} d`;
 }
 
 export default function UpdateNotificationModal({
@@ -18,9 +29,17 @@ export default function UpdateNotificationModal({
   onDismiss,
   isUpdating,
   updateError,
+  availableSince,
 }: UpdateNotificationModalProps) {
   const [expanded, setExpanded] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
   const visibleChangelog = expanded ? LATEST_CHANGES : LATEST_CHANGES.slice(0, 3);
+
+  useEffect(() => {
+    if (!open) return;
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, [open]);
 
   return (
     <AnimatePresence>
@@ -52,6 +71,11 @@ export default function UpdateNotificationModal({
                 </p>
               </div>
             </div>
+            {availableSince !== null && (
+              <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-3 -mt-1">
+                {formatElapsed(availableSince, now)}
+              </p>
+            )}
             <p className="text-coffee-600 dark:text-coffee-400 text-sm mb-3 leading-relaxed">
               Hemos mejorado el diseño de la app. Novedades:
             </p>

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useUser } from '../context/UserContext';
-import MonthlyWrap from './MonthlyWrap';
+
+const MonthlyWrap = lazy(() => import('./MonthlyWrap'));
 
 const STORAGE_KEY = 'monthly-wrap-month';
 
@@ -22,5 +23,9 @@ export default function MonthlyWrapTrigger() {
 
   if (!open || !user?.id) return null;
 
-  return <MonthlyWrap userId={user.id} onClose={handleClose} />;
+  return (
+    <Suspense fallback={null}>
+      <MonthlyWrap userId={user.id} onClose={handleClose} />
+    </Suspense>
+  );
 }

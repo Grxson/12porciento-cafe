@@ -46,6 +46,8 @@ interface FormData {
   notes: string;
 }
 
+const SHIPPING_DRAFT_KEY = 'checkout_shipping_draft';
+
 const validateShipping = (form: FormData): Partial<Record<keyof FormData, string>> => {
   const errors: Partial<Record<keyof FormData, string>> = {};
   if (!form.customerName.trim() || form.customerName.trim().length < 2) {
@@ -116,15 +118,24 @@ export default function Checkout() {
   const { add: addToast } = useToast();
   // step 1 = shipping, 2 = payment method (card selection), 3 = confirm payment
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [form, setForm] = useState<FormData>({
-    customerName: user?.name ?? '',
-    email: user?.email ?? '',
-    phone: user?.phone ?? '',
-    address: user?.address ?? '',
-    city: user?.city ?? '',
-    state: user?.state ?? '',
-    zipCode: user?.zipCode ?? '',
-    notes: '',
+  const [form, setForm] = useState<FormData>(() => {
+    const base: FormData = {
+      customerName: user?.name ?? '',
+      email: user?.email ?? '',
+      phone: user?.phone ?? '',
+      address: user?.address ?? '',
+      city: user?.city ?? '',
+      state: user?.state ?? '',
+      zipCode: user?.zipCode ?? '',
+      notes: '',
+    };
+    try {
+      const raw = localStorage.getItem(SHIPPING_DRAFT_KEY);
+      if (raw) return { ...base, ...(JSON.parse(raw) as Partial<FormData>) };
+    } catch {
+      // corrupted draft, ignore
+    }
+    return base;
   });
   const [clientSecret, setClientSecret] = useState('');
   const [paymentIntentId, setPaymentIntentId] = useState('');
@@ -169,6 +180,18 @@ export default function Checkout() {
       window.removeEventListener('offline', onOffline);
     };
   }, []);
+
+  // Auto-save shipping draft so it survives reload/offline drops
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      try {
+        localStorage.setItem(SHIPPING_DRAFT_KEY, JSON.stringify(form));
+      } catch {
+        // storage full/unavailable, skip silently
+      }
+    }, 800);
+    return () => window.clearTimeout(timeout);
+  }, [form]);
 
   // Fetch saved payment methods when user has a Stripe customer ID
   useEffect(() => {
@@ -242,6 +265,7 @@ export default function Checkout() {
         }),
       );
       sessionStorage.removeItem(`checkout_pending_${payload.paymentIntentId}`);
+      localStorage.removeItem(SHIPPING_DRAFT_KEY);
       setSuccess(true);
       clearCart();
     } catch (err: unknown) {

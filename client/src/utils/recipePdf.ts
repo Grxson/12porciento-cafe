@@ -1,7 +1,7 @@
-import jsPDF from 'jspdf';
 import type { Recipe } from '../types';
 
-export function downloadRecipePDF(recipe: Recipe) {
+export async function downloadRecipePDF(recipe: Recipe) {
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'mm', format: 'a5' });
   const W = doc.internal.pageSize.getWidth();
 

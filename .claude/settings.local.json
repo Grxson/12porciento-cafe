@@ -149,7 +149,8 @@
       "PowerShell(pip show *)",
       "PowerShell(git *)",
       "Bash(echo \"TSC:$?\")",
-      "Bash(echo \"LINT:$?\")"
+      "Bash(echo \"LINT:$?\")",
+      "mcp__tokensave__tokensave_context"
     ]
   }
 }

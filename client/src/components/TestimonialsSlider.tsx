@@ -62,7 +62,7 @@ export default function TestimonialsSlider() {
         <p className="text-gold-500 text-xs tracking-[0.35em] uppercase mb-4">Lo que dicen</p>
         <h2 className="font-serif text-4xl text-cream mb-12">Nuestros Clientes</h2>
 
-        <div className="relative min-h-[200px]">
+        <div className="relative min-h-[280px] sm:min-h-[220px]">
           <AnimatePresence custom={dir}>
             <motion.div
               key={idx}

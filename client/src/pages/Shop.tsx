@@ -238,59 +238,68 @@ export default function Shop() {
     certifications.length > 0,
   ].filter(Boolean).length;
 
-  const activeFilterChips = [
-    category !== 'TODOS' && {
-      key: 'cat',
-      label: `Cat: ${categories.find((c) => c.id === category)?.label ?? category}`,
-      remove: () => handleCategoryChange('TODOS'),
-    },
-    process !== 'Todos' && {
-      key: 'proc',
-      label: `Proc: ${process}`,
-      remove: () => {
-        setParam('proceso', 'Todos');
-        setPage(1);
-      },
-    },
-    roast !== 'Todos' && {
-      key: 'roast',
-      label: `Tueste: ${roast}`,
-      remove: () => {
-        setParam('tueste', 'Todos');
-        setPage(1);
-      },
-    },
-    ...selectedFlavors.map((f) => ({ key: `flav-${f}`, label: f, remove: () => toggleFlavor(f) })),
-    body && {
-      key: 'body',
-      label: `Cuerpo: ${body}`,
-      remove: () => {
-        setBody('');
-        setPage(1);
-      },
-    },
-    acidity && {
-      key: 'acid',
-      label: `Acidez: ${acidity}`,
-      remove: () => {
-        setAcidity('');
-        setPage(1);
-      },
-    },
-    brewMethod && {
-      key: 'method',
-      label: `Método: ${brewMethod}`,
-      remove: () => {
-        setBrewMethod('');
-        setPage(1);
-      },
-    },
-    ...certifications.map((c) => ({
-      key: `cert-${c}`,
-      label: c,
-      remove: () => toggleCertification(c),
-    })),
-  ].filter(Boolean) as Array<{ key: string; label: string; remove: () => void }>;
+  const activeFilterChips = useMemo(
+    () =>
+      [
+        category !== 'TODOS' && {
+          key: 'cat',
+          label: `Cat: ${categories.find((c) => c.id === category)?.label ?? category}`,
+          remove: () => handleCategoryChange('TODOS'),
+        },
+        process !== 'Todos' && {
+          key: 'proc',
+          label: `Proc: ${process}`,
+          remove: () => {
+            setParam('proceso', 'Todos');
+            setPage(1);
+          },
+        },
+        roast !== 'Todos' && {
+          key: 'roast',
+          label: `Tueste: ${roast}`,
+          remove: () => {
+            setParam('tueste', 'Todos');
+            setPage(1);
+          },
+        },
+        ...selectedFlavors.map((f) => ({
+          key: `flav-${f}`,
+          label: f,
+          remove: () => toggleFlavor(f),
+        })),
+        body && {
+          key: 'body',
+          label: `Cuerpo: ${body}`,
+          remove: () => {
+            setBody('');
+            setPage(1);
+          },
+        },
+        acidity && {
+          key: 'acid',
+          label: `Acidez: ${acidity}`,
+          remove: () => {
+            setAcidity('');
+            setPage(1);
+          },
+        },
+        brewMethod && {
+          key: 'method',
+          label: `Método: ${brewMethod}`,
+          remove: () => {
+            setBrewMethod('');
+            setPage(1);
+          },
+        },
+        ...certifications.map((c) => ({
+          key: `cert-${c}`,
+          label: c,
+          remove: () => toggleCertification(c),
+        })),
+      ].filter(Boolean) as Array<{ key: string; label: string; remove: () => void }>,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [category, process, roast, selectedFlavors, body, acidity, brewMethod, certifications],
+  );
 
   useEffect(() => {
     if (!filtersOpen) return;

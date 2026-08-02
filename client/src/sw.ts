@@ -53,6 +53,48 @@ registerRoute(
   },
 );
 
+// Product catalog — SWR so Shop/Bundles stay browsable offline with a 3-day cache
+registerRoute(
+  ({ url }) =>
+    /^\/api\/products(\/|$)/.test(url.pathname) || url.pathname === '/api/certifications',
+  ({ request, event }) => {
+    if (!offlineEnabled) {
+      return new NetworkFirst({
+        cacheName: 'api-runtime',
+        networkTimeoutSeconds: 3,
+      }).handle({ request, event });
+    }
+    return new StaleWhileRevalidate({
+      cacheName: 'products-cache',
+      plugins: [
+        new CacheableResponsePlugin({ statuses: [0, 200] }),
+        new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 3 * 24 * 60 * 60 }),
+      ],
+    }).handle({ request, event });
+  },
+);
+
+// User profile — cache last-known profile so it renders offline
+registerRoute(
+  ({ url, request }) => request.method === 'GET' && url.pathname === '/api/users/me',
+  ({ request, event }) => {
+    if (!offlineEnabled) {
+      return new NetworkFirst({
+        cacheName: 'api-runtime',
+        networkTimeoutSeconds: 3,
+      }).handle({ request, event });
+    }
+    return new NetworkFirst({
+      cacheName: 'user-profile-cache',
+      networkTimeoutSeconds: 5,
+      plugins: [
+        new CacheableResponsePlugin({ statuses: [0, 200] }),
+        new ExpirationPlugin({ maxEntries: 1, maxAgeSeconds: 24 * 60 * 60 }),
+      ],
+    }).handle({ request, event });
+  },
+);
+
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/'),
   ({ request, event }) => {
@@ -86,15 +128,21 @@ registerRoute(
   }),
 );
 
-// Navigate fallback
-const navigateFallback = '/index.html';
+// Navigate fallback — network first, then the cached SPA shell (client router
+// resolves the real page from any precached route chunk), then a static
+// offline page for the rare case nothing has been cached yet.
 self.addEventListener('fetch', (event) => {
   if (
     event.request.mode === 'navigate' &&
     !event.request.url.startsWith(self.location.origin + '/api/')
   ) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(navigateFallback) as Promise<Response>),
+      fetch(event.request).catch(
+        async () =>
+          (await caches.match('/index.html')) ??
+          (await caches.match('/offline.html')) ??
+          Response.error(),
+      ),
     );
   }
 });

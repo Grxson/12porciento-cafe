@@ -34,6 +34,8 @@ export default function MediaFrame({
       className={`relative max-w-full overflow-hidden bg-coffee-100 dark:bg-coffee-800 ${ratioClasses[ratio]} ${className}`}
     >
       <img
+        loading="lazy"
+        decoding="async"
         {...imageProps}
         src={src || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}
         alt={alt}

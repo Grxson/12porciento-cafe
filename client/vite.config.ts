@@ -70,6 +70,11 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
           if (id.includes('node_modules/@stripe')) return 'vendor-stripe';
           if (id.includes('node_modules/zustand')) return 'vendor-state';
+          // Dynamic-import-only libs: leave unassigned so Rollup splits them
+          // into their own on-demand chunk instead of bundling into vendor-core.
+          if (id.includes('node_modules/html2canvas')) return undefined;
+          if (id.includes('node_modules/jspdf')) return undefined;
+          if (id.includes('node_modules/recharts')) return 'vendor-recharts';
           // react stays in vendor-core — circular dep caused runtime error
           if (id.includes('node_modules')) return 'vendor-core';
         },

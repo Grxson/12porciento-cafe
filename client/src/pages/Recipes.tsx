@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -16,7 +16,7 @@ import {
 import { recipesApi } from '../api';
 import { useUser } from '../context/UserContext';
 import type { Recipe } from '../types';
-import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
+const RecipeLiveMode = lazy(() => import('../components/recipes/RecipeLiveMode'));
 import { downloadRecipePDF } from '../utils/recipePdf';
 import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
 import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
@@ -713,10 +713,12 @@ export default function Recipes() {
             )}
 
             {liveRecipeId && (
-              <RecipeLiveMode
-                recipe={recipes.find((r) => r.id === liveRecipeId)!}
-                onClose={() => setLiveRecipeId(null)}
-              />
+              <Suspense fallback={null}>
+                <RecipeLiveMode
+                  recipe={recipes.find((r) => r.id === liveRecipeId)!}
+                  onClose={() => setLiveRecipeId(null)}
+                />
+              </Suspense>
             )}
           </div>
         </div>

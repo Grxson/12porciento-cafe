@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Share2, X, Coffee, Star, Flame, Calendar } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import { useMonthlyWrap } from '../hooks/useMonthlyWrap';
 
 interface MonthlyWrapProps {
@@ -84,6 +83,7 @@ export default function MonthlyWrap({ userId, onClose }: MonthlyWrapProps) {
     if (!wrapRef.current) return;
     setSharing(true);
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(wrapRef.current, {
         backgroundColor: '#1c1917',
         scale: 2,
@@ -132,7 +132,7 @@ export default function MonthlyWrap({ userId, onClose }: MonthlyWrapProps) {
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.15 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-md"
+          className="relative w-full max-w-md max-h-[90dvh] overflow-y-auto overscroll-contain"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           role="dialog"
           aria-modal

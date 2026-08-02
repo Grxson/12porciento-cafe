@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -18,7 +18,7 @@ import {
 import { recipesApi, recipeRatingsApi } from '../api';
 import { useUser } from '../context/UserContext';
 import type { Recipe, RecipeRating } from '../types';
-import RecipeLiveMode from '../components/recipes/RecipeLiveMode';
+const RecipeLiveMode = lazy(() => import('../components/recipes/RecipeLiveMode'));
 import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
 import MediaFrame from '../components/ui/MediaFrame';
 import AttemptsList from '../components/recipes/AttemptsList';
@@ -577,7 +577,11 @@ export default function RecipeDetail() {
           </motion.div>
         )}
 
-        {liveRecipeId && <RecipeLiveMode recipe={recipe} onClose={() => setLiveRecipeId(null)} />}
+        {liveRecipeId && (
+          <Suspense fallback={null}>
+            <RecipeLiveMode recipe={recipe} onClose={() => setLiveRecipeId(null)} />
+          </Suspense>
+        )}
       </div>
     </div>
   );

@@ -20,11 +20,12 @@ import BottomNav from './components/BottomNav';
 import InstallPrompt from './components/InstallPrompt';
 import OfflineBanner from './components/OfflineBanner';
 import OfflineIndicator from './components/OfflineIndicator';
+import SocketErrorBadge from './components/SocketErrorBadge';
 import PageSkeleton from './components/PageSkeleton';
 import UpdateNotificationModal from './components/UpdateNotificationModal';
 import MonthlyWrapTrigger from './components/MonthlyWrapTrigger';
 import { useUpdateNotification } from './hooks/useUpdateNotification';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { ArrowUpToLine } from 'lucide-react';
 import { useIsStandalonePWA } from './hooks/useIsStandalonePWA';
 
@@ -175,6 +176,7 @@ function PublicLayout() {
       {showFooter && <Footer />}
       {showBottomNav && <BottomNav />}
       <OfflineIndicator />
+      <SocketErrorBadge />
       <OfflineBanner />
       <InstallPrompt />
       <ScrollToTopFab />
@@ -183,7 +185,7 @@ function PublicLayout() {
 }
 
 function PWAUpdateManager() {
-  const { showNotification, handleDismiss, handleUpdate, isUpdating, updateError } =
+  const { showNotification, handleDismiss, handleUpdate, isUpdating, updateError, availableSince } =
     useUpdateNotification();
   const addToast = useToast((s) => s.add);
 
@@ -202,6 +204,7 @@ function PWAUpdateManager() {
       onDismiss={handleDismiss}
       isUpdating={isUpdating}
       updateError={updateError}
+      availableSince={availableSince}
     />
   );
 }
@@ -221,208 +224,210 @@ export default function App() {
         <ErrorBoundary>
           <NotificationsProvider>
             <CartProvider>
-              <ThemeSync store={clientTheme} />
-              <ToastContainer />
-              <PWAUpdateManager />
-              <MonthlyWrapTrigger key={user?.id} />
-              <ScrollToTop />
-              <Routes>
-                {/* Public client routes (with Navbar/Footer layout) */}
-                <Route element={<PublicLayout />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/tienda" element={<Shop />} />
-                  <Route path="/tienda/:slug" element={<ProductDetail />} />
-                  <Route
-                    path="/changelog"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Changelog />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/suscripciones"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Subscriptions />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/nosotros"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <About />
-                      </Suspense>
-                    }
-                  />
-                  <Route path="/carrito" element={<Cart />} />
-                  <Route
-                    path="/checkout"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Checkout />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/paquetes"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Bundles />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/recetas"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Recipes />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/recetas/:slug"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <RecipeDetail />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/galeria"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Gallery />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/perfil/*"
-                    element={
-                      <UserRoute>
+              <MotionConfig reducedMotion="user">
+                <ThemeSync store={clientTheme} />
+                <ToastContainer />
+                <PWAUpdateManager />
+                <MonthlyWrapTrigger key={user?.id} />
+                <ScrollToTop />
+                <Routes>
+                  {/* Public client routes (with Navbar/Footer layout) */}
+                  <Route element={<PublicLayout />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/tienda" element={<Shop />} />
+                    <Route path="/tienda/:slug" element={<ProductDetail />} />
+                    <Route
+                      path="/changelog"
+                      element={
                         <Suspense fallback={<PageSkeleton />}>
-                          <Profile />
+                          <Changelog />
                         </Suspense>
-                      </UserRoute>
-                    }
-                  />
-                  <Route
-                    path="/perfil/barista/:userId"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <BaristaProfile />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/b2b"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <B2BCatalog />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/leaderboard"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Leaderboard />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/feed"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Feed />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="/recompensas"
-                    element={
-                      <UserRoute>
+                      }
+                    />
+                    <Route
+                      path="/suscripciones"
+                      element={
                         <Suspense fallback={<PageSkeleton />}>
-                          <RewardShop />
+                          <Subscriptions />
                         </Suspense>
-                      </UserRoute>
-                    }
-                  />
-                  <Route
-                    path="/logros"
-                    element={
-                      <UserRoute>
+                      }
+                    />
+                    <Route
+                      path="/nosotros"
+                      element={
                         <Suspense fallback={<PageSkeleton />}>
-                          <AchievementGallery />
+                          <About />
                         </Suspense>
-                      </UserRoute>
-                    }
-                  />
-                  <Route
-                    path="/gift-card"
-                    element={
-                      <UserRoute>
+                      }
+                    />
+                    <Route path="/carrito" element={<Cart />} />
+                    <Route
+                      path="/checkout"
+                      element={
                         <Suspense fallback={<PageSkeleton />}>
-                          <GiftCardPurchase />
+                          <Checkout />
                         </Suspense>
-                      </UserRoute>
-                    }
-                  />
-                  <Route
-                    path="/juego"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <Game />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="*"
-                    element={
-                      <Suspense fallback={<PageSkeleton />}>
-                        <NotFound />
-                      </Suspense>
-                    }
-                  />
-                </Route>
+                      }
+                    />
+                    <Route
+                      path="/paquetes"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Bundles />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/recetas"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Recipes />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/recetas/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <RecipeDetail />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/galeria"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Gallery />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/perfil/*"
+                      element={
+                        <UserRoute>
+                          <Suspense fallback={<PageSkeleton />}>
+                            <Profile />
+                          </Suspense>
+                        </UserRoute>
+                      }
+                    />
+                    <Route
+                      path="/perfil/barista/:userId"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BaristaProfile />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/b2b"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <B2BCatalog />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/leaderboard"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Leaderboard />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/feed"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Feed />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/recompensas"
+                      element={
+                        <UserRoute>
+                          <Suspense fallback={<PageSkeleton />}>
+                            <RewardShop />
+                          </Suspense>
+                        </UserRoute>
+                      }
+                    />
+                    <Route
+                      path="/logros"
+                      element={
+                        <UserRoute>
+                          <Suspense fallback={<PageSkeleton />}>
+                            <AchievementGallery />
+                          </Suspense>
+                        </UserRoute>
+                      }
+                    />
+                    <Route
+                      path="/gift-card"
+                      element={
+                        <UserRoute>
+                          <Suspense fallback={<PageSkeleton />}>
+                            <GiftCardPurchase />
+                          </Suspense>
+                        </UserRoute>
+                      }
+                    />
+                    <Route
+                      path="/juego"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <Game />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="*"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <NotFound />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
 
-                {/* Standalone pages (no layout) */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/registro" element={<Register />} />
-                <Route
-                  path="/olvide-contrasena"
-                  element={
-                    <Suspense fallback={<PageSkeleton />}>
-                      <ForgotPassword />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/restablecer-contrasena/:token"
-                  element={
-                    <Suspense fallback={<PageSkeleton />}>
-                      <ResetPassword />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/verificar-email/:token"
-                  element={
-                    <Suspense fallback={<PageSkeleton />}>
-                      <VerifyEmail />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/quiz"
-                  element={
-                    <Suspense fallback={<PageSkeleton />}>
-                      <Quiz />
-                    </Suspense>
-                  }
-                />
-              </Routes>
+                  {/* Standalone pages (no layout) */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/registro" element={<Register />} />
+                  <Route
+                    path="/olvide-contrasena"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <ForgotPassword />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/restablecer-contrasena/:token"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <ResetPassword />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/verificar-email/:token"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <VerifyEmail />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/quiz"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Quiz />
+                      </Suspense>
+                    }
+                  />
+                </Routes>
+              </MotionConfig>
             </CartProvider>
           </NotificationsProvider>
         </ErrorBoundary>

@@ -220,6 +220,13 @@
     }
   }
 
+  @media (max-height: 480px) {
+    .auth-shell {
+      padding-top: calc(var(--app-safe-top) + 0.75rem);
+      padding-bottom: calc(var(--app-safe-bottom) + 0.75rem);
+    }
+  }
+
   @media (min-width: 768px) {
     :root {
       --app-header-height: 5rem;

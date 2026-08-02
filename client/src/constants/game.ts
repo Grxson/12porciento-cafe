@@ -1,8 +1,14 @@
-// Placeholder content for the "El Videojuego" landing page (/juego).
-// Replace each value below once real game assets/copy are ready — every
+// Content for the "Bean Catcher" landing page (/juego).
+// Replace TODO-marked values once final assets are ready — every
 // field here is referenced from client/src/pages/Game.tsx.
 
-export const GAME_NAME = '[NOMBRE DEL VIDEOJUEGO]';
+export const GAME_NAME = 'Bean Catcher';
+
+export const GAME_DESCRIPTION =
+  'Bean Catcher es un videojuego de habilidad desarrollado en Unity: controla una taza de café ' +
+  'cuyo objetivo es alcanzar una extracción perfecta del 12% recolectando granos de café. ' +
+  'Evita moscas que reducen tus vidas y domina las corrientes de viento que suben la dificultad ' +
+  'en el segundo nivel.';
 
 // TODO: reemplazar con la URL real del instalador cuando esté disponible.
 export const GAME_DOWNLOAD_URL = '/downloads/juego-12-cafe-windows.zip';
@@ -10,8 +16,8 @@ export const GAME_DOWNLOAD_URL = '/downloads/juego-12-cafe-windows.zip';
 export const GAME_PLATFORM = 'Windows 10 / 11 · 64 bits';
 
 export const GAME_META = {
-  genero: 'Aventura y exploración',
-  duracion: '6-8 horas',
+  genero: 'Habilidad / Arcade',
+  duracion: 'Partidas rápidas (~5 min)',
   modo: 'Un jugador',
   plataforma: 'Windows (PC)',
 };
@@ -23,13 +29,13 @@ export const GAME_IMAGES = {
   presentation:
     'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
   features: {
-    explora:
+    recolecta:
       'https://images.unsplash.com/photo-1520371350581-1b0ea41d3e2b?auto=format&fit=crop&w=800&q=80',
-    descubre:
+    esquiva:
       'https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?auto=format&fit=crop&w=800&q=80',
-    prepara:
+    viento:
       'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=800&q=80',
-    desafios:
+    extraccion:
       'https://images.unsplash.com/photo-1542332213-31f87348057f?auto=format&fit=crop&w=800&q=80',
   },
   screenshots: [

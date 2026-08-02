@@ -3,10 +3,10 @@ import { motion, useReducedMotion } from 'framer-motion';
 import {
   Download,
   Gamepad2,
-  Compass,
-  Sparkles,
   Coffee,
-  Trophy,
+  Bug,
+  Wind,
+  Percent,
   MonitorCheck,
   Loader2,
   ChevronDown,
@@ -17,6 +17,7 @@ import GalleryLightbox from '../components/GalleryLightbox';
 import GameRequirementsModal from '../components/GameRequirementsModal';
 import {
   GAME_NAME,
+  GAME_DESCRIPTION,
   GAME_DOWNLOAD_URL,
   GAME_PLATFORM,
   GAME_META,
@@ -25,28 +26,28 @@ import {
 
 const FEATURES = [
   {
-    icon: Compass,
-    title: 'Explora',
-    desc: 'Recorre fincas, rutas de montaña y pueblos cafetaleros construidos como un mundo vivo por descubrir.',
-    image: GAME_IMAGES.features.explora,
-  },
-  {
-    icon: Sparkles,
-    title: 'Descubre',
-    desc: 'Encuentra lotes secretos, historias de productores y secretos escondidos en cada rincón del mapa.',
-    image: GAME_IMAGES.features.descubre,
-  },
-  {
     icon: Coffee,
-    title: 'Prepara',
-    desc: 'Domina métodos de preparación reales y desbloquea recetas a medida que avanzas en tu viaje.',
-    image: GAME_IMAGES.features.prepara,
+    title: 'Recolecta',
+    desc: 'Controla tu taza y atrapa los granos de café en caída libre para sumar puntos de extracción.',
+    image: GAME_IMAGES.features.recolecta,
   },
   {
-    icon: Trophy,
-    title: 'Completa desafíos',
-    desc: 'Supera retos de cata, tueste y precisión para ganar reconocimiento en la comunidad 12%.',
-    image: GAME_IMAGES.features.desafios,
+    icon: Bug,
+    title: 'Esquiva',
+    desc: 'Cada mosca que toques te resta una vida: mantente alerta y aléjate de ellas.',
+    image: GAME_IMAGES.features.esquiva,
+  },
+  {
+    icon: Wind,
+    title: 'Domina el viento',
+    desc: 'En el segundo nivel, corrientes de viento desvían tu taza y suben la dificultad.',
+    image: GAME_IMAGES.features.viento,
+  },
+  {
+    icon: Percent,
+    title: 'Alcanza el 12%',
+    desc: 'Precisión sobre velocidad: solo una extracción perfecta del 12% te corona campeón.',
+    image: GAME_IMAGES.features.extraccion,
   },
 ] as const;
 
@@ -76,11 +77,7 @@ export default function Game() {
 
   return (
     <div className="min-h-dvh bg-coffee-50 dark:bg-coffee-950">
-      <PageMeta
-        title={GAME_NAME}
-        description="Descarga el videojuego oficial del universo 12% Café: explora, descubre y prepara tu propia leyenda cafetalera."
-        image={GAME_IMAGES.heroArt}
-      />
+      <PageMeta title={GAME_NAME} description={GAME_DESCRIPTION} image={GAME_IMAGES.heroArt} />
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden bg-coffee-950 text-cream">
@@ -113,14 +110,14 @@ export default function Game() {
             </h1>
 
             <p className="mt-6 text-lg text-coffee-200 sm:text-xl">
-              Un viaje de exploración y aventura por el universo cafetalero de{' '}
-              <span className="text-cream">12% Café</span>. Recorre fincas, descubre lotes
-              legendarios y desbloquea el arte de la preparación perfecta.
+              Controla tu taza y atrapa los granos perfectos: un juego de habilidad hecho en Unity
+              donde cada partida te acerca —o aleja— del{' '}
+              <span className="text-cream">12% de extracción perfecta</span>.
             </p>
 
             <p className="mt-3 max-w-xl text-sm text-coffee-400">
-              El videojuego oficial de la marca: una aventura narrativa donde cada taza esconde una
-              historia por descubrir.
+              El videojuego oficial de 12% Café: esquiva moscas, domina el viento y demuestra que
+              tienes el toque justo.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -163,7 +160,7 @@ export default function Game() {
           <motion.div {...fadeUp(reduceMotion)}>
             <MediaFrame
               src={GAME_IMAGES.presentation}
-              alt="Escena de exploración del videojuego 12% Café"
+              alt={`Escena de ${GAME_NAME}: recolección de granos de café`}
               ratio="product"
               className="border border-coffee-200 dark:border-coffee-800"
             />
@@ -172,14 +169,10 @@ export default function Game() {
           <motion.div {...fadeUp(reduceMotion)} transition={{ duration: 0.6, delay: 0.1 }}>
             <div className="gold-line mb-4" />
             <h2 className="section-title mb-5">¿Qué es {GAME_NAME}?</h2>
-            <p className="prose-coffee dark:text-coffee-300 mb-4">
-              Una aventura narrativa que transforma el proceso del café de especialidad en un mundo
-              por explorar. Recorre fincas ficticias inspiradas en Chiapas, Veracruz y Oaxaca,
-              conversa con personajes cafetaleros y arma tu propia leyenda, taza a taza.
-            </p>
+            <p className="prose-coffee dark:text-coffee-300 mb-4">{GAME_DESCRIPTION}</p>
             <p className="prose-coffee dark:text-coffee-300 mb-8">
-              Detrás de cada nivel hay un método de preparación real esperando ser dominado. ¿Te
-              atreves a llegar hasta el último lote?
+              Cada partida pone a prueba tus reflejos: cuantos más granos perfectos recolectes, más
+              cerca estarás del 12% que solo los mejores alcanzan.
             </p>
 
             <dl className="grid grid-cols-2 gap-6 border-t border-coffee-200 pt-6 dark:border-coffee-800">
@@ -221,10 +214,10 @@ export default function Game() {
         <div className="content-width">
           <motion.div {...fadeUp(reduceMotion)} className="mb-12 max-w-xl">
             <div className="gold-line mb-4" />
-            <h2 className="section-title mb-4">Tu aventura te espera</h2>
+            <h2 className="section-title mb-4">Así se juega</h2>
             <p className="prose-coffee dark:text-coffee-300">
-              Cuatro pilares construyen cada partida: exploración, descubrimiento, dominio de
-              preparación y desafío.
+              Cuatro elementos definen cada partida de {GAME_NAME}: recolección, obstáculos, viento
+              y precisión.
             </p>
           </motion.div>
 
@@ -361,8 +354,8 @@ export default function Game() {
 
           <motion.div {...fadeUp(reduceMotion)} className="hidden md:block">
             <MediaFrame
-              src={GAME_IMAGES.features.prepara}
-              alt="Bolsa de café estilizada como empaque del videojuego"
+              src={GAME_IMAGES.features.extraccion}
+              alt={`Arte de ${GAME_NAME}: la taza alcanzando el 12% de extracción`}
               ratio="product"
               className="border border-coffee-800"
             />

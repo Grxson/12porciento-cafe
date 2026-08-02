@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Menu, X, Sun, Moon, Search } from 'lucide-react';
+import { ShoppingBag, Menu, X, Sun, Moon, Search, Gamepad2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useClientTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -184,6 +184,20 @@ export default function Navbar() {
             </div>
           </nav>
 
+          <NavLink
+            to="/juego"
+            className={({ isActive }) =>
+              `hidden lg:inline-flex min-h-11 items-center gap-1.5 border px-3.5 py-2 text-xs font-semibold tracking-widest uppercase transition-all duration-200 ${
+                isActive
+                  ? 'border-ember-500 bg-ember-500 text-coffee-950'
+                  : 'border-ember-500/50 bg-ember-500/10 text-ember-500 hover:bg-ember-500 hover:text-coffee-950'
+              }`
+            }
+          >
+            <Gamepad2 className="w-3.5 h-3.5" />
+            El videojuego
+          </NavLink>
+
           <form onSubmit={handleSearch} className="hidden md:flex items-center" role="search">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-coffee-400 pointer-events-none" />
@@ -298,6 +312,22 @@ export default function Navbar() {
                   />
                 </div>
               </form>
+              <div className="px-6 pb-4">
+                <NavLink
+                  to="/juego"
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `flex min-h-11 items-center justify-center gap-2 border px-4 py-3 text-sm font-semibold tracking-widest uppercase transition-colors ${
+                      isActive
+                        ? 'border-ember-500 bg-ember-500 text-coffee-950'
+                        : 'border-ember-500/50 bg-ember-500/10 text-ember-500 hover:bg-ember-500 hover:text-coffee-950'
+                    }`
+                  }
+                >
+                  <Gamepad2 className="w-4 h-4" />
+                  El videojuego
+                </NavLink>
+              </div>
               <nav className="flex flex-col px-6 gap-1">
                 {allLinks
                   .filter((link) => !link.gated || user)

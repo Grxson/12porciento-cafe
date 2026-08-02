@@ -78,6 +78,7 @@ const RewardShop = lazy(() => import('./pages/RewardShop'));
 const Bundles = lazy(() => import('./pages/Bundles'));
 const GiftCardPurchase = lazy(() => import('./pages/GiftCardPurchase'));
 const Changelog = lazy(() => import('./pages/Changelog'));
+const Game = lazy(() => import('./pages/Game'));
 
 const UserRoute = ({ children }: { children: React.ReactNode }) => {
   const token = useUser((s) => s.token);
@@ -366,6 +367,14 @@ export default function App() {
                           <GiftCardPurchase />
                         </Suspense>
                       </UserRoute>
+                    }
+                  />
+                  <Route
+                    path="/juego"
+                    element={
+                      <Suspense fallback={<PageSkeleton />}>
+                        <Game />
+                      </Suspense>
                     }
                   />
                   <Route

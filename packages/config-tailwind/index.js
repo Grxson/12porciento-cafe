@@ -25,6 +25,13 @@ export default {
           200: '#edddb8',
         },
         cream: '#f5f0e8',
+        // Gamer accent — reserved for the /juego landing (nav CTA + game page only).
+        ember: {
+          600: '#e35f0f',
+          500: '#ff7a29',
+          400: '#ff9a52',
+          300: '#ffb87d',
+        },
       },
       fontFamily: {
         serif: ['"Playfair Display SC"', '"Playfair Display"', 'Georgia', 'serif'],

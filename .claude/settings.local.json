@@ -1,4 +1,7 @@
 {
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787"
+  },
   "permissions": {
     "allow": [
       "Bash(git init *)",
@@ -144,10 +147,9 @@
       "PowerShell(pip install *)",
       "Bash(graphifyy . --output graph.json)",
       "PowerShell(pip show *)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "Bash(echo \"TSC:$?\")",
+      "Bash(echo \"LINT:$?\")"
     ]
-  },
-  "env": {
-    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787"
   }
 }

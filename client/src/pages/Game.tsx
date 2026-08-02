@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { PageMeta } from '../hooks/usePageMeta';
 import MediaFrame from '../components/ui/MediaFrame';
-import GalleryLightbox from '../components/GalleryLightbox';
 import GameRequirementsModal from '../components/GameRequirementsModal';
 import {
   GAME_NAME,
@@ -62,7 +61,6 @@ export default function Game() {
   const reduceMotion = useReducedMotion();
   const [downloading, setDownloading] = useState(false);
   const [requirementsOpen, setRequirementsOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const handleDownload = () => {
     if (downloading) return;
@@ -214,10 +212,10 @@ export default function Game() {
         <div className="content-width">
           <motion.div {...fadeUp(reduceMotion)} className="mb-12 max-w-xl">
             <div className="gold-line mb-4" />
-            <h2 className="section-title mb-4">Así se juega</h2>
+            <h2 className="section-title mb-4">Gameplay en acción</h2>
             <p className="prose-coffee dark:text-coffee-300">
               Cuatro elementos definen cada partida de {GAME_NAME}: recolección, obstáculos, viento
-              y precisión.
+              y precisión. Aquí ves capturas reales del juego.
             </p>
           </motion.div>
 
@@ -251,56 +249,6 @@ export default function Game() {
           </div>
         </div>
       </section>
-
-      {/* ── Galería ── */}
-      <section className="content-width py-20 md:py-28">
-        <motion.div {...fadeUp(reduceMotion)} className="mb-12 max-w-xl">
-          <div className="gold-line mb-4" />
-          <h2 className="section-title mb-4">Capturas del mundo</h2>
-          <p className="prose-coffee dark:text-coffee-300">
-            Vistazo al arte y las escenas de {GAME_NAME}. Estas imágenes son de referencia y se
-            sustituirán por screenshots reales del gameplay.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:auto-rows-[160px] md:auto-rows-[200px]">
-          {GAME_IMAGES.screenshots.map((src, i) => (
-            <motion.button
-              key={src}
-              {...fadeUp(reduceMotion)}
-              transition={{ duration: 0.5, delay: i * 0.06 }}
-              onClick={() => setLightboxIndex(i)}
-              aria-label={`Ampliar captura ${i + 1} de ${GAME_NAME}`}
-              className={`group relative min-h-11 overflow-hidden border border-coffee-200 dark:border-coffee-800 ${
-                i === 0
-                  ? 'col-span-2 row-span-2'
-                  : i === 3
-                    ? 'col-span-2 sm:col-span-1'
-                    : 'col-span-1'
-              }`}
-            >
-              <img
-                src={src}
-                alt={`Captura ${i + 1} de ${GAME_NAME}`}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-coffee-950/0 transition-colors duration-300 group-hover:bg-coffee-950/30" />
-            </motion.button>
-          ))}
-        </div>
-      </section>
-
-      {lightboxIndex !== null && (
-        <GalleryLightbox
-          images={GAME_IMAGES.screenshots.map((url, i) => ({
-            url,
-            alt: `Captura ${i + 1} de ${GAME_NAME}`,
-            productName: GAME_NAME,
-          }))}
-          initialIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-        />
-      )}
 
       {/* ── Descarga ── */}
       <section

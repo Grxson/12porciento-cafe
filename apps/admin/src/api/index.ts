@@ -7,6 +7,8 @@ import type {
   PaymentMethod,
   Recipe,
   RecipeStep,
+  RecipeIngredient,
+  RecipeEquipment,
   WishlistItem,
   Product,
   RecipeRating,
@@ -161,6 +163,29 @@ export const recipesApi = {
     api.delete(`/recipes/admin/${recipeId}/steps/${stepId}`),
   reorderSteps: (recipeId: string, stepIds: string[]) =>
     api.put<{ data: RecipeStep[] }>(`/recipes/admin/${recipeId}/steps/reorder`, { stepIds }),
+  addIngredient: (recipeId: string, data: Partial<RecipeIngredient> & { name: string }) =>
+    api.post<{ data: RecipeIngredient }>(`/recipes/admin/${recipeId}/ingredients`, data),
+  updateIngredient: (recipeId: string, ingredientId: string, data: Partial<RecipeIngredient>) =>
+    api.put<{ data: RecipeIngredient }>(
+      `/recipes/admin/${recipeId}/ingredients/${ingredientId}`,
+      data,
+    ),
+  deleteIngredient: (recipeId: string, ingredientId: string) =>
+    api.delete(`/recipes/admin/${recipeId}/ingredients/${ingredientId}`),
+  reorderIngredients: (recipeId: string, ingredientIds: string[]) =>
+    api.put<{ data: RecipeIngredient[] }>(`/recipes/admin/${recipeId}/ingredients/reorder`, {
+      ingredientIds,
+    }),
+  addEquipment: (recipeId: string, data: { name: string }) =>
+    api.post<{ data: RecipeEquipment }>(`/recipes/admin/${recipeId}/equipment`, data),
+  updateEquipment: (recipeId: string, equipmentId: string, data: Partial<RecipeEquipment>) =>
+    api.put<{ data: RecipeEquipment }>(`/recipes/admin/${recipeId}/equipment/${equipmentId}`, data),
+  deleteEquipment: (recipeId: string, equipmentId: string) =>
+    api.delete(`/recipes/admin/${recipeId}/equipment/${equipmentId}`),
+  reorderEquipment: (recipeId: string, equipmentIds: string[]) =>
+    api.put<{ data: RecipeEquipment[] }>(`/recipes/admin/${recipeId}/equipment/reorder`, {
+      equipmentIds,
+    }),
 };
 
 export const inventoryApi = {

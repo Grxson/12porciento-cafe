@@ -1,18 +1,7 @@
 import { useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  GlassWater,
-  Heart,
-  Lock,
-  Star,
-  Clock,
-  ChevronRight,
-  Download,
-  Play,
-  ChefHat,
-  X,
-} from 'lucide-react';
+import { Heart, Lock, Star, Clock, ChevronRight, Download, Play, ChefHat, X } from 'lucide-react';
 import { recipesApi } from '../api';
 import { useUser } from '../context/UserContext';
 import type { Recipe } from '../types';
@@ -23,6 +12,7 @@ import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
 import { PageMeta } from '../hooks/usePageMeta';
 import Breadcrumbs from '../components/Breadcrumbs';
 import MediaFrame from '../components/ui/MediaFrame';
+import MethodIcon from '../components/recipes/MethodIcon';
 
 function avgRating(ratings: { rating: number }[] | undefined): number {
   if (!ratings || ratings.length === 0) return 0;
@@ -32,23 +22,6 @@ function avgRating(ratings: { rating: number }[] | undefined): number {
 function isNew(createdAt: string): boolean {
   const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86400000;
   return daysSince < 14;
-}
-
-function MethodIcon({ method }: { method: string }) {
-  // R12: Method icons specific — map method → emoji
-  const methodLower = method.toLowerCase();
-  const emojis: Record<string, string> = {
-    v60: '▽',
-    chemex: '⬡',
-    aerop: '⊕',
-    french: '⊞',
-    moka: '☕',
-    cold: '🧊',
-  };
-  for (const [key, emoji] of Object.entries(emojis)) {
-    if (methodLower.includes(key)) return <span className="text-lg leading-none">{emoji}</span>;
-  }
-  return <GlassWater className="w-4 h-4" />;
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {

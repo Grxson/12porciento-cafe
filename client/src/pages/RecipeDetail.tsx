@@ -1,12 +1,9 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Coffee,
-  GlassWater,
   Heart,
-  Snowflake,
-  Wrench,
   Lock,
   Star,
   Clock,
@@ -14,6 +11,9 @@ import {
   Play,
   ChevronLeft,
   WifiOff,
+  Thermometer,
+  SlidersHorizontal,
+  Scale,
 } from 'lucide-react';
 import { recipesApi, recipeRatingsApi } from '../api';
 import { useUser } from '../context/UserContext';
@@ -22,18 +22,12 @@ const RecipeLiveMode = lazy(() => import('../components/recipes/RecipeLiveMode')
 import StepVideoPlayer from '../components/recipes/StepVideoPlayer';
 import MediaFrame from '../components/ui/MediaFrame';
 import AttemptsList from '../components/recipes/AttemptsList';
+import MethodIcon from '../components/recipes/MethodIcon';
 import { downloadRecipePDF } from '../utils/recipePdf';
 import { useRecipeFavorites } from '../hooks/useRecipeFavorites';
+import { useBrewedRecipes } from '../hooks/useBrewedRecipes';
 import { PageMeta } from '../hooks/usePageMeta';
 import { getCachedResponse } from '../lib/cacheHelper';
-
-function MethodIcon({ method }: { method: string }) {
-  const m = method.toLowerCase();
-  if (m.includes('espresso') || m.includes('americano')) return <Coffee className="w-4 h-4" />;
-  if (m.includes('cold') || m.includes('frío')) return <Snowflake className="w-4 h-4" />;
-  if (m.includes('moka') || m.includes('presión')) return <Wrench className="w-4 h-4" />;
-  return <GlassWater className="w-4 h-4" />;
-}
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   FÁCIL:
@@ -61,6 +55,19 @@ export default function RecipeDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [relatedRecipes, setRelatedRecipes] = useState<Recipe[]>([]);
   const { toggle: toggleFavorite, isFavorite } = useRecipeFavorites();
+  const { hasBrewed } = useBrewedRecipes();
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
+  const [portions, setPortions] = useState(1);
+  const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(new Set());
+  const [checkedEquipment, setCheckedEquipment] = useState<Set<string>>(new Set());
+
+  const toggleChecked = (set: Set<string>, id: string, apply: (next: Set<string>) => void) => {
+    const next = new Set(set);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    apply(next);
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -109,6 +116,24 @@ export default function RecipeDetail() {
       })
       .catch(() => {});
   }, [recipe?.id, user?.id]);
+
+  useEffect(() => {
+    if (!recipe) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length === 0) return;
+        const topMost = visible.reduce((a, b) =>
+          a.boundingClientRect.top < b.boundingClientRect.top ? a : b,
+        );
+        const idx = Number((topMost.target as HTMLElement).dataset.stepIndex);
+        setActiveStepIndex(idx);
+      },
+      { rootMargin: '-112px 0px -70% 0px', threshold: 0 },
+    );
+    stepRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [recipe]);
 
   if (error) {
     return (
@@ -172,6 +197,7 @@ export default function RecipeDetail() {
   }
 
   const isLocked = recipe.isPremium && !hasSubscription;
+  const stepsTotalSeconds = recipe.steps.reduce((sum, s) => sum + (s.duration ?? 0), 0);
 
   return (
     <div className="min-h-screen bg-coffee-50 dark:bg-coffee-950 py-16 px-4">
@@ -224,6 +250,11 @@ export default function RecipeDetail() {
                     Premium
                   </span>
                 )}
+                {hasBrewed(recipe.id) && (
+                  <span className="flex items-center gap-1 text-xs px-2 py-1 text-green-600 dark:text-green-400">
+                    ☕ <span className="font-bold uppercase tracking-wider">Ya preparaste</span>
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -235,30 +266,30 @@ export default function RecipeDetail() {
                 <Heart className={`w-5 h-5 ${isFavorite(recipe.id) ? 'fill-current' : ''}`} />
               </button>
               {!isLocked && (
-                <>
-                  <button
-                    onClick={() => setLiveRecipeId(recipe.id)}
-                    className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-gold-700 dark:hover:text-gold-400 transition-colors"
-                    title="Modo en vivo"
-                  >
-                    <Play className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => downloadRecipePDF(recipe)}
-                    className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-gold-700 dark:hover:text-gold-400 transition-colors"
-                    title="Descargar PDF"
-                  >
-                    <Download className="w-5 h-5" />
-                  </button>
-                </>
+                <button
+                  onClick={() => downloadRecipePDF(recipe)}
+                  className="p-2 text-coffee-600 dark:text-coffee-400 hover:text-gold-700 dark:hover:text-gold-400 transition-colors"
+                  title="Descargar PDF"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
               )}
             </div>
           </div>
 
           {recipe.description && (
-            <p className="text-coffee-600 dark:text-coffee-400 text-base leading-relaxed">
+            <p className="text-coffee-600 dark:text-coffee-400 text-base leading-relaxed mb-6">
               {recipe.description}
             </p>
+          )}
+
+          {!isLocked && (
+            <button
+              onClick={() => setLiveRecipeId(recipe.id)}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-gold-500 text-coffee-950 font-bold uppercase tracking-wider text-sm hover:bg-gold-400 transition-colors"
+            >
+              <Play className="w-5 h-5 fill-current" /> Empezar modo en vivo
+            </button>
           )}
         </div>
 
@@ -297,45 +328,212 @@ export default function RecipeDetail() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
           >
-            {(recipe.temp || recipe.grind || recipe.ratio || recipe.yield) && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: 'Temperatura', value: recipe.temp },
-                  { label: 'Molienda', value: recipe.grind },
-                  { label: 'Ratio', value: recipe.ratio },
-                  { label: 'Rendimiento', value: recipe.yield },
-                ]
-                  .filter((x) => x.value)
-                  .map((x) => (
-                    <div
-                      key={x.label}
-                      className="bg-coffee-100 dark:bg-coffee-800/50 p-4 text-center"
-                    >
-                      <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-1">
-                        {x.label}
+            {(recipe.product ||
+              recipe.temp ||
+              recipe.grind ||
+              recipe.ratio ||
+              recipe.yield ||
+              (recipe.ingredients && recipe.ingredients.length > 0) ||
+              (recipe.equipment && recipe.equipment.length > 0)) && (
+              <div className="bg-coffee-100 dark:bg-coffee-800/30 border border-coffee-200 dark:border-coffee-800 p-5">
+                <h2 className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider font-semibold mb-4">
+                  Lo que necesitas
+                </h2>
+                {recipe.product && (
+                  <Link
+                    to={`/tienda/${recipe.product.slug}`}
+                    className="flex items-center gap-4 hover:opacity-80 transition-opacity mb-4 pb-4 border-b border-coffee-200 dark:border-coffee-700"
+                  >
+                    <MediaFrame
+                      src={recipe.product.imageUrl}
+                      alt={recipe.product.name}
+                      ratio="avatar"
+                      className="h-14 w-14 shrink-0 rounded"
+                    />
+                    <div>
+                      <p className="text-gold-600 dark:text-gold-400 font-medium text-sm">
+                        {recipe.product.name}
                       </p>
-                      <p className="text-coffee-900 dark:text-cream text-sm font-medium">
-                        {x.value}
+                      <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
+                        Café recomendado · Ver en tienda →
                       </p>
                     </div>
-                  ))}
+                  </Link>
+                )}
+                {recipe.ingredients && recipe.ingredients.length > 0 && (
+                  <div className="mb-4 pb-4 border-b border-coffee-200 dark:border-coffee-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] text-coffee-500 uppercase tracking-wider">
+                        Ingredientes
+                      </p>
+                      <div className="flex gap-1">
+                        {[1, 2, 4].map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => setPortions(n)}
+                            className={`px-2 py-0.5 text-xs border transition-colors ${
+                              portions === n
+                                ? 'border-gold-500 text-gold-600 dark:text-gold-400 bg-gold-500/10'
+                                : 'border-coffee-200 dark:border-coffee-700 text-coffee-500 dark:text-coffee-400 hover:border-gold-500/50'
+                            }`}
+                          >
+                            x{n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <ul className="space-y-2">
+                      {recipe.ingredients.map((ing) => {
+                        const checked = checkedIngredients.has(ing.id);
+                        const amount = ing.amount != null ? ing.amount * portions : null;
+                        return (
+                          <li key={ing.id}>
+                            <label className="flex items-start gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() =>
+                                  toggleChecked(checkedIngredients, ing.id, setCheckedIngredients)
+                                }
+                                className="mt-0.5 w-4 h-4 accent-gold-500 shrink-0"
+                              />
+                              <span
+                                className={`text-sm ${checked ? 'line-through text-coffee-400 dark:text-coffee-600' : 'text-coffee-900 dark:text-cream'}`}
+                              >
+                                {ing.name}
+                                {(amount != null || ing.unit) && (
+                                  <span className="text-coffee-500 dark:text-coffee-400">
+                                    {' '}
+                                    — {amount ?? ''} {ing.unit ?? ''}
+                                  </span>
+                                )}
+                                {ing.note && (
+                                  <span className="block text-xs text-coffee-500 dark:text-coffee-400">
+                                    {ing.note}
+                                  </span>
+                                )}
+                              </span>
+                            </label>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+                {recipe.equipment && recipe.equipment.length > 0 && (
+                  <div className="mb-4 pb-4 border-b border-coffee-200 dark:border-coffee-700">
+                    <p className="text-[10px] text-coffee-500 uppercase tracking-wider mb-2">
+                      Equipo
+                    </p>
+                    <ul className="flex flex-wrap gap-2">
+                      {recipe.equipment.map((item) => {
+                        const checked = checkedEquipment.has(item.id);
+                        return (
+                          <li key={item.id}>
+                            <label
+                              className={`flex items-center gap-1.5 px-2.5 py-1 border text-xs cursor-pointer transition-colors ${
+                                checked
+                                  ? 'border-gold-500/50 bg-gold-500/10 text-coffee-400 dark:text-coffee-600 line-through'
+                                  : 'border-coffee-200 dark:border-coffee-700 text-coffee-900 dark:text-cream'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() =>
+                                  toggleChecked(checkedEquipment, item.id, setCheckedEquipment)
+                                }
+                                className="w-3.5 h-3.5 accent-gold-500"
+                              />
+                              {item.name}
+                            </label>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+                {(recipe.temp || recipe.grind || recipe.ratio || recipe.yield) && (
+                  <ul className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[
+                      { label: 'Temperatura', value: recipe.temp, Icon: Thermometer },
+                      { label: 'Molienda', value: recipe.grind, Icon: SlidersHorizontal },
+                      { label: 'Ratio', value: recipe.ratio, Icon: Scale },
+                      { label: 'Rendimiento', value: recipe.yield, Icon: Coffee },
+                    ]
+                      .filter((x) => x.value)
+                      .map((x) => (
+                        <li key={x.label} className="flex items-center gap-2">
+                          <x.Icon className="w-4 h-4 text-gold-600 dark:text-gold-400 shrink-0" />
+                          <div>
+                            <p className="text-[10px] text-coffee-500 uppercase tracking-wider">
+                              {x.label}
+                            </p>
+                            <p className="text-coffee-900 dark:text-cream text-sm font-medium">
+                              {x.value}
+                            </p>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                )}
               </div>
             )}
 
             <div className="space-y-6">
-              <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream">Pasos</h2>
-              <div className="space-y-5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="font-serif text-2xl text-coffee-900 dark:text-cream">Pasos</h2>
+                {stepsTotalSeconds > 0 && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-coffee-600 dark:text-coffee-400">
+                    <Clock className="w-3.5 h-3.5" />
+                    {recipe.steps.length} pasos · ~{Math.round(stepsTotalSeconds / 60)} min total
+                  </span>
+                )}
+              </div>
+              {recipe.steps.length > 2 && activeStepIndex !== null && (
+                <div
+                  className="sticky z-20 -mx-4 px-4 py-2 bg-coffee-50/95 dark:bg-coffee-950/95 backdrop-blur-sm border-b border-coffee-200 dark:border-coffee-800"
+                  style={{ top: 'calc(var(--app-header-height) + var(--app-safe-top))' }}
+                >
+                  <div className="flex items-center justify-between gap-3 mb-1.5">
+                    <span className="text-xs font-medium text-coffee-700 dark:text-coffee-300">
+                      Paso {activeStepIndex + 1} de {recipe.steps.length}
+                    </span>
+                    <span className="text-xs text-coffee-500">
+                      {recipe.steps[activeStepIndex]?.title}
+                    </span>
+                  </div>
+                  <div className="h-1 bg-coffee-200 dark:bg-coffee-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gold-500 transition-all duration-300"
+                      style={{
+                        width: `${((activeStepIndex + 1) / recipe.steps.length) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              <div className="space-y-0">
                 {recipe.steps.map((step, i) => (
                   <div
                     key={step.id}
-                    className="flex gap-4 pb-5 border-b border-coffee-200 dark:border-coffee-800 last:border-0 last:pb-0"
+                    ref={(el) => {
+                      stepRefs.current[i] = el;
+                    }}
+                    data-step-index={i}
+                    className="flex gap-4 relative"
                   >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center">
-                      <span className="text-gold-600 dark:text-gold-400 text-sm font-bold">
-                        {i + 1}
-                      </span>
+                    <div className="flex-shrink-0 flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center z-10">
+                        <span className="text-gold-600 dark:text-gold-400 text-sm font-bold">
+                          {i + 1}
+                        </span>
+                      </div>
+                      {i < recipe.steps.length - 1 && (
+                        <div className="w-px flex-1 bg-coffee-200 dark:bg-coffee-800 my-1" />
+                      )}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 pb-6">
                       <p className="text-coffee-900 dark:text-cream font-medium mb-2">
                         {step.title}
                       </p>
@@ -343,9 +541,9 @@ export default function RecipeDetail() {
                         {step.description}
                       </p>
                       {step.duration && (
-                        <p className="text-xs text-coffee-600 dark:text-coffee-400 flex items-center gap-1 mb-3">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 mb-3 bg-coffee-100 dark:bg-coffee-800/50 rounded-full text-xs text-coffee-600 dark:text-coffee-400">
                           <Clock className="w-3 h-3" /> {step.duration}s
-                        </p>
+                        </span>
                       )}
                       {step.imageUrl && (
                         <MediaFrame
@@ -361,33 +559,6 @@ export default function RecipeDetail() {
                 ))}
               </div>
             </div>
-
-            {recipe.product && (
-              <div className="border-t border-coffee-200 dark:border-coffee-800 pt-6">
-                <p className="text-xs text-coffee-600 dark:text-coffee-400 uppercase tracking-wider mb-3">
-                  Recomendado con:
-                </p>
-                <Link
-                  to={`/tienda/${recipe.product.slug}`}
-                  className="flex items-center gap-4 hover:opacity-80 transition-opacity"
-                >
-                  <MediaFrame
-                    src={recipe.product.imageUrl}
-                    alt={recipe.product.name}
-                    ratio="avatar"
-                    className="h-16 w-16 shrink-0 rounded"
-                  />
-                  <div>
-                    <p className="text-gold-600 dark:text-gold-400 font-medium">
-                      {recipe.product.name}
-                    </p>
-                    <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-0.5">
-                      Ver en tienda →
-                    </p>
-                  </div>
-                </Link>
-              </div>
-            )}
 
             {user && (
               <div className="border-t border-coffee-200 dark:border-coffee-800 pt-6">
@@ -416,6 +587,28 @@ export default function RecipeDetail() {
                   ({ratingCount} {ratingCount === 1 ? 'valoración' : 'valoraciones'})
                 </span>
               </div>
+
+              {ratingCount > 0 && (
+                <div className="space-y-1.5 mb-6 max-w-sm">
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const count = ratings.filter((r) => r.rating === star).length;
+                    const pct = ratingCount ? Math.round((count / ratingCount) * 100) : 0;
+                    return (
+                      <div key={star} className="flex items-center gap-2 text-xs">
+                        <span className="w-3 text-coffee-600 dark:text-coffee-400">{star}</span>
+                        <Star className="w-3 h-3 text-gold-500 fill-gold-500 shrink-0" />
+                        <div className="flex-1 h-1.5 bg-coffee-200 dark:bg-coffee-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gold-500 transition-all duration-300"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="w-8 text-right text-coffee-500">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {user && (
                 <div className="bg-coffee-100 dark:bg-coffee-800/50 p-5 mb-6">
@@ -558,19 +751,26 @@ export default function RecipeDetail() {
                 <Link
                   key={r.id}
                   to={`/recetas/${r.slug}`}
-                  className="p-4 border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/50 transition-colors"
+                  className="border border-coffee-200 dark:border-coffee-800 hover:border-gold-500/50 transition-colors overflow-hidden"
                 >
-                  <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">
-                    {r.title}
-                  </p>
-                  <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-1">{r.method}</p>
-                  {r.difficulty && (
-                    <span
-                      className={`inline-block text-xs px-1.5 py-0.5 mt-2 border rounded-sm ${DIFFICULTY_COLORS[r.difficulty] ?? ''}`}
-                    >
-                      {r.difficulty}
-                    </span>
+                  {r.imageUrl && (
+                    <MediaFrame src={r.imageUrl} alt={r.title} ratio="recipe" className="mb-0" />
                   )}
+                  <div className="p-4">
+                    <p className="text-coffee-900 dark:text-cream text-sm font-medium truncate">
+                      {r.title}
+                    </p>
+                    <p className="text-coffee-600 dark:text-coffee-400 text-xs mt-1 flex items-center gap-1.5">
+                      <MethodIcon method={r.method} className="w-3 h-3" /> {r.method}
+                    </p>
+                    {r.difficulty && (
+                      <span
+                        className={`inline-block text-xs px-1.5 py-0.5 mt-2 border rounded-sm ${DIFFICULTY_COLORS[r.difficulty] ?? ''}`}
+                      >
+                        {r.difficulty}
+                      </span>
+                    )}
+                  </div>
                 </Link>
               ))}
             </div>

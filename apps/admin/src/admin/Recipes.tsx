@@ -6,8 +6,9 @@ import { useModuleToast } from './context/ModuleContext';
 import RecipeList from '../components/recipes/RecipeList';
 import RecipeEditor from '../components/recipes/RecipeEditor';
 import StepEditor from '../components/recipes/StepEditor';
+import IngredientEditor from '../components/recipes/IngredientEditor';
 import ConfirmDialog from './components/ConfirmDialog';
-import type { Recipe, RecipeStep } from '../types';
+import type { Recipe, RecipeStep, RecipeIngredient, RecipeEquipment } from '../types';
 import type { RecipeFormData } from '../hooks/useRecipeForm';
 import { PageMeta } from '../hooks/usePageMeta';
 import { getApiError } from '@12porciento/shared';
@@ -18,7 +19,13 @@ interface StepModalState {
   stepId?: string;
 }
 
-// ─── Inner component (must live inside RecipesProvider) ──────────────────────
+// ─── Ingredient modal state shape ────────────────────────────────────────────
+interface IngredientModalState {
+  recipeId: string;
+  ingredientId?: string;
+}
+
+// ─── Inner component (must live inside RecipesProvider) ────────────────────
 function RecipesContent() {
   const { addToast } = useModuleToast();
   const { recipes, loading, createRecipe, updateRecipe, deleteRecipe, refresh } =
@@ -39,15 +46,24 @@ function RecipesContent() {
   const [stepModal, setStepModal] = useState<StepModalState | null>(null);
   const [savingStep, setSavingStep] = useState(false);
 
+  // Ingredient editor modal state
+  const [ingredientModal, setIngredientModal] = useState<IngredientModalState | null>(null);
+  const [savingIngredient, setSavingIngredient] = useState(false);
+
   // Delete confirm state
   const [confirmRecipe, setConfirmRecipe] = useState<Recipe | null>(null);
   const [confirmStep, setConfirmStep] = useState<{ recipeId: string; step: RecipeStep } | null>(
     null,
   );
+  const [confirmIngredient, setConfirmIngredient] = useState<{
+    recipeId: string;
+    ingredient: RecipeIngredient;
+  } | null>(null);
   const [deletingRecipe, setDeletingRecipe] = useState(false);
   const [deletingStep, setDeletingStep] = useState(false);
+  const [deletingIngredient, setDeletingIngredient] = useState(false);
 
-  // ── Recipe handlers ─────────────────────────────────────────────────────────
+  // ── Recipe handlers ────────────────────────────────────────────────────────
 
   const handleAddNew = () => setRecipeModal({ open: true });
 
@@ -98,7 +114,7 @@ function RecipesContent() {
     }
   };
 
-  // ── Step handlers ────────────────────────────────────────────────────────────
+  // ── Step handlers ──────────────────────────────────────────────────────────
 
   const handleAddStep = (recipeId: string) => {
     setStepModal({ recipeId });
@@ -161,16 +177,123 @@ function RecipesContent() {
     }
   };
 
-  // ── Resolve the step being edited (for StepEditor's step prop) ───────────────
+  // ── Resolve the step being edited (for StepEditor's step prop) ─────────────
   const editingStep = stepModal?.stepId
     ? recipes.find((r) => r.id === stepModal.recipeId)?.steps.find((s) => s.id === stepModal.stepId)
     : undefined;
 
-  // ── Summary counts ────────────────────────────────────────────────────────────
+  // ── Ingredient handlers ─────────────────────────────────────────────────────
+
+  const handleAddIngredient = (recipeId: string) => {
+    setIngredientModal({ recipeId });
+  };
+
+  const handleEditIngredient = (recipeId: string, ingredient: RecipeIngredient) => {
+    setIngredientModal({ recipeId, ingredientId: ingredient.id });
+  };
+
+  const handleDeleteIngredient = (recipeId: string, ingredient: RecipeIngredient) => {
+    setConfirmIngredient({ recipeId, ingredient });
+  };
+
+  const doDeleteIngredient = async () => {
+    if (!confirmIngredient) return;
+    setDeletingIngredient(true);
+    try {
+      await recipesApi.deleteIngredient(
+        confirmIngredient.recipeId,
+        confirmIngredient.ingredient.id,
+      );
+      addToast('Ingrediente eliminado', 'success');
+      await refresh();
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al eliminar ingrediente'), 'error');
+    } finally {
+      setDeletingIngredient(false);
+      setConfirmIngredient(null);
+    }
+  };
+
+  const handleReorderIngredient = async (recipeId: string, ingredientIds: string[]) => {
+    try {
+      await recipesApi.reorderIngredients(recipeId, ingredientIds);
+      await refresh();
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al reordenar'), 'error');
+    }
+  };
+
+  const handleCloseIngredientModal = () => setIngredientModal(null);
+
+  const handleSaveIngredient = async (data: Partial<RecipeIngredient>) => {
+    if (!ingredientModal) return;
+    setSavingIngredient(true);
+    try {
+      if (ingredientModal.ingredientId) {
+        await recipesApi.updateIngredient(
+          ingredientModal.recipeId,
+          ingredientModal.ingredientId,
+          data,
+        );
+        addToast('Ingrediente actualizado', 'success');
+      } else {
+        await recipesApi.addIngredient(
+          ingredientModal.recipeId,
+          data as Partial<RecipeIngredient> & { name: string },
+        );
+        addToast('Ingrediente agregado', 'success');
+      }
+      setIngredientModal(null);
+      await refresh();
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al guardar ingrediente'), 'error');
+    } finally {
+      setSavingIngredient(false);
+    }
+  };
+
+  const editingIngredient = ingredientModal?.ingredientId
+    ? recipes
+        .find((r) => r.id === ingredientModal.recipeId)
+        ?.ingredients?.find((i) => i.id === ingredientModal.ingredientId)
+    : undefined;
+
+  // ── Equipment handlers ──────────────────────────────────────────────────────
+
+  const handleAddEquipment = async (recipeId: string, name: string) => {
+    try {
+      await recipesApi.addEquipment(recipeId, { name });
+      addToast('Equipo agregado', 'success');
+      await refresh();
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al agregar equipo'), 'error');
+    }
+  };
+
+  const handleDeleteEquipment = async (recipeId: string, item: RecipeEquipment) => {
+    try {
+      await recipesApi.deleteEquipment(recipeId, item.id);
+      addToast('Equipo eliminado', 'success');
+      await refresh();
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al eliminar equipo'), 'error');
+    }
+  };
+
+  const handleReorderEquipment = async (recipeId: string, equipmentIds: string[]) => {
+    try {
+      await recipesApi.reorderEquipment(recipeId, equipmentIds);
+      await refresh();
+    } catch (err: unknown) {
+      addToast(getApiError(err, 'Error al reordenar'), 'error');
+    }
+  };
+
+  // ── Summary counts ────────────────────────────────────────────────────────
   const published = recipes.filter((r) => r.isPublished).length;
   const premium = recipes.filter((r) => r.isPremium).length;
 
-  // ── Search + filter ───────────────────────────────────────────────────────────
+  // ── Search + filter ──────────────────────────────────────────────────────
   const filtered = recipes.filter((recipe) => {
     const matchesSearch = !search || recipe.title.toLowerCase().includes(search.toLowerCase());
     const matchesStatus =
@@ -235,6 +358,13 @@ function RecipesContent() {
         onEditStep={handleEditStep}
         onDeleteStep={handleDeleteStep}
         onReorderStep={handleReorderStep}
+        onAddIngredient={handleAddIngredient}
+        onEditIngredient={handleEditIngredient}
+        onDeleteIngredient={handleDeleteIngredient}
+        onReorderIngredient={handleReorderIngredient}
+        onAddEquipment={handleAddEquipment}
+        onDeleteEquipment={handleDeleteEquipment}
+        onReorderEquipment={handleReorderEquipment}
       />
 
       {/* Mounted only while open + keyed by identity so the form re-initializes
@@ -263,6 +393,18 @@ function RecipesContent() {
         />
       )}
 
+      {ingredientModal && (
+        <IngredientEditor
+          key={ingredientModal.ingredientId ?? `new-${ingredientModal.recipeId}`}
+          open
+          ingredient={editingIngredient}
+          mode={ingredientModal.ingredientId ? 'edit' : 'add'}
+          onClose={handleCloseIngredientModal}
+          onSave={handleSaveIngredient}
+          loading={savingIngredient}
+        />
+      )}
+
       <ConfirmDialog
         open={!!confirmRecipe}
         title="¿Eliminar receta?"
@@ -284,11 +426,22 @@ function RecipesContent() {
         onConfirm={doDeleteStep}
         onCancel={() => setConfirmStep(null)}
       />
+
+      <ConfirmDialog
+        open={!!confirmIngredient}
+        title="¿Eliminar ingrediente?"
+        message={`¿Eliminar "${confirmIngredient?.ingredient.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        isDangerous
+        loading={deletingIngredient}
+        onConfirm={doDeleteIngredient}
+        onCancel={() => setConfirmIngredient(null)}
+      />
     </div>
   );
 }
 
-// ─── Default export wraps with provider ──────────────────────────────────────
+// ─── Default export wraps with provider ─────────────────────────────────────
 export default function AdminRecipes() {
   return (
     <RecipesProvider>

@@ -9,6 +9,23 @@ export interface RecipeStep {
   duration?: number | null;
 }
 
+export interface RecipeIngredient {
+  id: string;
+  recipeId: string;
+  order: number;
+  name: string;
+  amount?: number | null;
+  unit?: string | null;
+  note?: string | null;
+}
+
+export interface RecipeEquipment {
+  id: string;
+  recipeId: string;
+  order: number;
+  name: string;
+}
+
 export interface Recipe {
   id: string;
   title: string;
@@ -26,6 +43,8 @@ export interface Recipe {
   productId?: string | null;
   product?: { id: string; name: string; slug: string; imageUrl: string } | null;
   steps: RecipeStep[];
+  ingredients?: RecipeIngredient[];
+  equipment?: RecipeEquipment[];
   locked?: boolean;
   ratings?: { rating: number }[];
   imageUrl?: string | null;

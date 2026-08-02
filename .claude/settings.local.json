@@ -150,7 +150,14 @@
       "PowerShell(git *)",
       "Bash(echo \"TSC:$?\")",
       "Bash(echo \"LINT:$?\")",
-      "mcp__tokensave__tokensave_context"
+      "mcp__tokensave__tokensave_context",
+      "Bash(awk '/export const recipesApi/,/^};/' ../apps/admin/src/api/index.ts)",
+      "Read(//d/Proyectos/**)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/cafe12\" npx prisma generate)",
+      "Bash(railway --version)",
+      "Bash(railway whoami *)",
+      "Bash(railway status *)",
+      "Bash(railway run *)"
     ]
   }
 }

@@ -141,24 +141,24 @@ model Order {
 // input are reliable. The row with state = 'DEFAULT' is the fallback used
 // when no specific state rate is configured.
 model ShippingRate {
-  id             String   @id @default(cuid())
-  state          String   @unique
-  cost           Float
-  estimatedDays  String   @default("3-5 días hábiles")
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(cuid())
+  state         String   @unique
+  cost          Float
+  estimatedDays String   @default("3-5 días hábiles")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 // Audit log + dedup guard for inbound Stripe webhook events (payments & subscriptions).
 model StripeWebhookEvent {
-  id             String    @id @default(cuid())
-  stripeEventId  String    @unique
-  eventType      String
-  status         String    @default("PROCESSED") // PROCESSED | FAILED
-  errorMessage   String?
-  payloadHash    String?
-  processedAt    DateTime  @default(now())
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique
+  eventType     String
+  status        String   @default("PROCESSED") // PROCESSED | FAILED
+  errorMessage  String?
+  payloadHash   String?
+  processedAt   DateTime @default(now())
 
   @@index([eventType])
   @@index([status])
@@ -297,10 +297,12 @@ model Recipe {
   productId String?
   product   Product? @relation("productRecipes", fields: [productId], references: [id], onDelete: SetNull)
 
-  steps     RecipeStep[]
-  brewLogs  BrewLog[]
-  ratings   RecipeRating[]
-  favorites RecipeFavorite[]
+  steps       RecipeStep[]
+  ingredients RecipeIngredient[]
+  equipment   RecipeEquipment[]
+  brewLogs    BrewLog[]
+  ratings     RecipeRating[]
+  favorites   RecipeFavorite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -333,6 +335,31 @@ model RecipeStep {
   imageUrl    String?
   videoUrl    String?
   duration    Int?
+
+  @@unique([recipeId, order])
+  @@index([recipeId])
+}
+
+model RecipeIngredient {
+  id       String  @id @default(cuid())
+  recipeId String
+  recipe   Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  order    Int
+  name     String
+  amount   Float?
+  unit     String?
+  note     String?
+
+  @@unique([recipeId, order])
+  @@index([recipeId])
+}
+
+model RecipeEquipment {
+  id       String @id @default(cuid())
+  recipeId String
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  order    Int
+  name     String
 
   @@unique([recipeId, order])
   @@index([recipeId])

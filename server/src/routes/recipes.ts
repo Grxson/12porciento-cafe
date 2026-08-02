@@ -110,6 +110,8 @@ router.get('/', async (req: Request, res: Response) => {
         where,
         include: {
           steps: { orderBy: { order: 'asc' } },
+          ingredients: { orderBy: { order: 'asc' } },
+          equipment: { orderBy: { order: 'asc' } },
           product: { select: { id: true, name: true, slug: true, imageUrl: true } },
           ratings: { select: { rating: true } },
         },
@@ -149,6 +151,8 @@ router.get('/admin/all', requireAuth, async (req: AuthRequest, res: Response) =>
         take: pageSize,
         include: {
           steps: { orderBy: { order: 'asc' } },
+          ingredients: { orderBy: { order: 'asc' } },
+          equipment: { orderBy: { order: 'asc' } },
           product: { select: { id: true, name: true, slug: true } },
           _count: { select: { steps: true } },
         },
@@ -170,6 +174,8 @@ router.get('/by-slug/:slug', async (req: Request, res: Response) => {
       where: { slug: req.params.slug },
       include: {
         steps: { orderBy: { order: 'asc' } },
+        ingredients: { orderBy: { order: 'asc' } },
+        equipment: { orderBy: { order: 'asc' } },
         product: { select: { id: true, name: true, slug: true, imageUrl: true } },
       },
     });
@@ -223,6 +229,8 @@ router.get('/:id', async (req: Request, res: Response) => {
       where: { id: req.params.id },
       include: {
         steps: { orderBy: { order: 'asc' } },
+        ingredients: { orderBy: { order: 'asc' } },
+        equipment: { orderBy: { order: 'asc' } },
         product: { select: { id: true, name: true, slug: true, imageUrl: true } },
       },
     });
@@ -280,7 +288,12 @@ router.post('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
         isPublished,
         productId: productId || null,
       },
-      include: { steps: true, product: { select: { id: true, name: true, slug: true } } },
+      include: {
+        steps: true,
+        ingredients: true,
+        equipment: true,
+        product: { select: { id: true, name: true, slug: true } },
+      },
     });
 
     res.status(201).json({ data: recipe });
@@ -332,6 +345,8 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
       data,
       include: {
         steps: { orderBy: { order: 'asc' } },
+        ingredients: { orderBy: { order: 'asc' } },
+        equipment: { orderBy: { order: 'asc' } },
         product: { select: { id: true, name: true, slug: true } },
       },
     });
@@ -473,5 +488,217 @@ router.delete('/admin/:id/steps/:stepId', requireAuth, async (req: AuthRequest, 
     res.status(500).json({ error: 'Error al eliminar paso' });
   }
 });
+
+// ── Ingredient sub-resource ─────────────────────────────────────────────
+
+router.post('/admin/:id/ingredients', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, amount, unit, note } = req.body;
+    if (!name?.trim()) return res.status(400).json({ error: 'name es requerido' });
+
+    const last = await prisma.recipeIngredient.findFirst({
+      where: { recipeId: req.params.id },
+      orderBy: { order: 'desc' },
+    });
+    const order = (last?.order ?? 0) + 1;
+
+    const ingredient = await prisma.recipeIngredient.create({
+      data: {
+        recipeId: req.params.id,
+        order,
+        name: name.trim(),
+        amount:
+          amount !== undefined && amount !== null && amount !== '' ? parseFloat(amount) : null,
+        unit: unit?.trim() ?? null,
+        note: note?.trim() ?? null,
+      },
+    });
+
+    res.status(201).json({ data: ingredient });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al agregar ingrediente' });
+  }
+});
+
+// PUT /admin/:id/ingredients/reorder — MUST be before /ingredients/:ingredientId
+router.put(
+  '/admin/:id/ingredients/reorder',
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { ingredientIds } = req.body as { ingredientIds: string[] };
+      if (!Array.isArray(ingredientIds))
+        return res.status(400).json({ error: 'ingredientIds debe ser un arreglo' });
+
+      await prisma.$transaction(
+        ingredientIds.map((id, i) =>
+          prisma.recipeIngredient.update({ where: { id }, data: { order: 1000 + i } }),
+        ),
+      );
+      await prisma.$transaction(
+        ingredientIds.map((id, i) =>
+          prisma.recipeIngredient.update({ where: { id }, data: { order: i + 1 } }),
+        ),
+      );
+
+      const ingredients = await prisma.recipeIngredient.findMany({
+        where: { recipeId: req.params.id },
+        orderBy: { order: 'asc' },
+      });
+      res.json({ data: ingredients });
+    } catch {
+      res.status(500).json({ error: 'Error al reordenar ingredientes' });
+    }
+  },
+);
+
+router.put(
+  '/admin/:id/ingredients/:ingredientId',
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { name, amount, unit, note, order } = req.body;
+      const data: Prisma.RecipeIngredientUpdateInput = {};
+      if (name !== undefined) data.name = name.trim();
+      if (amount !== undefined)
+        data.amount = amount === null || amount === '' ? null : parseFloat(amount);
+      if (unit !== undefined) data.unit = unit?.trim() ?? null;
+      if (note !== undefined) data.note = note?.trim() ?? null;
+      if (order !== undefined) data.order = parseInt(order);
+
+      const ingredient = await prisma.recipeIngredient.update({
+        where: { id: req.params.ingredientId },
+        data,
+      });
+      res.json({ data: ingredient });
+    } catch {
+      res.status(500).json({ error: 'Error al actualizar ingrediente' });
+    }
+  },
+);
+
+router.delete(
+  '/admin/:id/ingredients/:ingredientId',
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      await prisma.recipeIngredient.delete({ where: { id: req.params.ingredientId } });
+
+      const remaining = await prisma.recipeIngredient.findMany({
+        where: { recipeId: req.params.id },
+        orderBy: { order: 'asc' },
+      });
+      type I = (typeof remaining)[number];
+      await prisma.$transaction(
+        remaining.map((it: I, i: number) =>
+          prisma.recipeIngredient.update({ where: { id: it.id }, data: { order: i + 1 } }),
+        ),
+      );
+
+      res.json({ success: true });
+    } catch {
+      res.status(500).json({ error: 'Error al eliminar ingrediente' });
+    }
+  },
+);
+
+// ── Equipment sub-resource ──────────────────────────────────────────────
+
+router.post('/admin/:id/equipment', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name } = req.body;
+    if (!name?.trim()) return res.status(400).json({ error: 'name es requerido' });
+
+    const last = await prisma.recipeEquipment.findFirst({
+      where: { recipeId: req.params.id },
+      orderBy: { order: 'desc' },
+    });
+    const order = (last?.order ?? 0) + 1;
+
+    const item = await prisma.recipeEquipment.create({
+      data: { recipeId: req.params.id, order, name: name.trim() },
+    });
+
+    res.status(201).json({ data: item });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al agregar equipo' });
+  }
+});
+
+// PUT /admin/:id/equipment/reorder — MUST be before /equipment/:equipmentId
+router.put('/admin/:id/equipment/reorder', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { equipmentIds } = req.body as { equipmentIds: string[] };
+    if (!Array.isArray(equipmentIds))
+      return res.status(400).json({ error: 'equipmentIds debe ser un arreglo' });
+
+    await prisma.$transaction(
+      equipmentIds.map((id, i) =>
+        prisma.recipeEquipment.update({ where: { id }, data: { order: 1000 + i } }),
+      ),
+    );
+    await prisma.$transaction(
+      equipmentIds.map((id, i) =>
+        prisma.recipeEquipment.update({ where: { id }, data: { order: i + 1 } }),
+      ),
+    );
+
+    const equipment = await prisma.recipeEquipment.findMany({
+      where: { recipeId: req.params.id },
+      orderBy: { order: 'asc' },
+    });
+    res.json({ data: equipment });
+  } catch {
+    res.status(500).json({ error: 'Error al reordenar equipo' });
+  }
+});
+
+router.put(
+  '/admin/:id/equipment/:equipmentId',
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { name, order } = req.body;
+      const data: Prisma.RecipeEquipmentUpdateInput = {};
+      if (name !== undefined) data.name = name.trim();
+      if (order !== undefined) data.order = parseInt(order);
+
+      const item = await prisma.recipeEquipment.update({
+        where: { id: req.params.equipmentId },
+        data,
+      });
+      res.json({ data: item });
+    } catch {
+      res.status(500).json({ error: 'Error al actualizar equipo' });
+    }
+  },
+);
+
+router.delete(
+  '/admin/:id/equipment/:equipmentId',
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      await prisma.recipeEquipment.delete({ where: { id: req.params.equipmentId } });
+
+      const remaining = await prisma.recipeEquipment.findMany({
+        where: { recipeId: req.params.id },
+        orderBy: { order: 'asc' },
+      });
+      type E = (typeof remaining)[number];
+      await prisma.$transaction(
+        remaining.map((it: E, i: number) =>
+          prisma.recipeEquipment.update({ where: { id: it.id }, data: { order: i + 1 } }),
+        ),
+      );
+
+      res.json({ success: true });
+    } catch {
+      res.status(500).json({ error: 'Error al eliminar equipo' });
+    }
+  },
+);
 
 export default router;

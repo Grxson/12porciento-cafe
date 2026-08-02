@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, ChevronDown, BookOpen } from 'lucide-react';
-import type { Recipe, RecipeStep } from '../../types';
+import type { Recipe, RecipeStep, RecipeIngredient, RecipeEquipment } from '../../types';
 import StepList from './StepList';
+import IngredientList from './IngredientList';
+import EquipmentList from './EquipmentList';
 
 interface RecipeListProps {
   recipes: Recipe[];
@@ -15,6 +17,13 @@ interface RecipeListProps {
   onEditStep: (recipeId: string, step: RecipeStep) => void;
   onDeleteStep: (recipeId: string, step: RecipeStep) => void;
   onReorderStep: (recipeId: string, stepIds: string[]) => Promise<void>;
+  onAddIngredient: (recipeId: string) => void;
+  onEditIngredient: (recipeId: string, ingredient: RecipeIngredient) => void;
+  onDeleteIngredient: (recipeId: string, ingredient: RecipeIngredient) => void;
+  onReorderIngredient: (recipeId: string, ingredientIds: string[]) => Promise<void>;
+  onAddEquipment: (recipeId: string, name: string) => Promise<void>;
+  onDeleteEquipment: (recipeId: string, item: RecipeEquipment) => Promise<void>;
+  onReorderEquipment: (recipeId: string, equipmentIds: string[]) => Promise<void>;
 }
 
 export default function RecipeList({
@@ -27,6 +36,13 @@ export default function RecipeList({
   onEditStep,
   onDeleteStep,
   onReorderStep,
+  onAddIngredient,
+  onEditIngredient,
+  onDeleteIngredient,
+  onReorderIngredient,
+  onAddEquipment,
+  onDeleteEquipment,
+  onReorderEquipment,
 }: RecipeListProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -161,6 +177,31 @@ export default function RecipeList({
                           </p>
                         )}
                       </div>
+                      <div>
+                        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2">
+                          <strong>Ingredientes ({recipe.ingredients?.length ?? 0})</strong>
+                        </p>
+                        <IngredientList
+                          ingredients={recipe.ingredients ?? []}
+                          onAddNew={() => onAddIngredient(recipe.id)}
+                          onEdit={(i) => onEditIngredient(recipe.id, i)}
+                          onDelete={(i) => onDeleteIngredient(recipe.id, i)}
+                          onReorder={(ids) => onReorderIngredient(recipe.id, ids)}
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2">
+                          <strong>Equipo ({recipe.equipment?.length ?? 0})</strong>
+                        </p>
+                        <EquipmentList
+                          equipment={recipe.equipment ?? []}
+                          onAdd={(name) => onAddEquipment(recipe.id, name)}
+                          onDelete={(i) => onDeleteEquipment(recipe.id, i)}
+                          onReorder={(ids) => onReorderEquipment(recipe.id, ids)}
+                        />
+                      </div>
+
                       <div>
                         <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-2">
                           <strong>Pasos ({recipe.steps.length})</strong>

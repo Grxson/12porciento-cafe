@@ -30,6 +30,7 @@ const primaryLinks = [
 ];
 
 const secondaryLinks = [
+  { to: '/juego', label: 'El videojuego', gated: false },
   { to: '/paquetes', label: 'Paquetes', gated: false },
   { to: '/galeria', label: 'Galería', gated: false },
   { to: '/b2b', label: 'Empresas', gated: false },
@@ -140,13 +141,17 @@ export default function Navbar() {
             <div ref={moreRef} className="relative">
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
-                className={`min-h-11 px-2 text-sm tracking-widest uppercase transition-colors duration-200 ${
+                className={`relative min-h-11 px-2 text-sm tracking-widest uppercase transition-colors duration-200 ${
                   moreOpen
                     ? 'text-gold-500'
                     : 'text-coffee-800 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream'
                 }`}
               >
                 Más
+                <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ember-500 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ember-500" />
+                </span>
               </button>
 
               <AnimatePresence>
@@ -161,42 +166,46 @@ export default function Navbar() {
                     <nav className="flex flex-col py-2">
                       {secondaryLinks
                         .filter((link) => !link.gated || user)
-                        .map(({ to, label }) => (
-                          <NavLink
-                            key={to}
-                            to={to}
-                            onClick={() => setMoreOpen(false)}
-                            className={({ isActive }) =>
-                              `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
-                                isActive
-                                  ? 'text-gold-500'
-                                  : 'text-coffee-800 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream'
-                              }`
-                            }
-                          >
-                            {label}
-                          </NavLink>
-                        ))}
+                        .map(({ to, label }) =>
+                          to === '/juego' ? (
+                            <NavLink
+                              key={to}
+                              to={to}
+                              onClick={() => setMoreOpen(false)}
+                              className={({ isActive }) =>
+                                `mx-2 mb-2 flex items-center gap-2 border px-3 py-2 text-sm font-semibold tracking-widest uppercase transition-colors ${
+                                  isActive
+                                    ? 'border-ember-500 bg-ember-500 text-coffee-950'
+                                    : 'border-ember-500/50 bg-ember-500/10 text-ember-500 hover:bg-ember-500 hover:text-coffee-950'
+                                }`
+                              }
+                            >
+                              <Gamepad2 className="w-3.5 h-3.5" />
+                              {label}
+                            </NavLink>
+                          ) : (
+                            <NavLink
+                              key={to}
+                              to={to}
+                              onClick={() => setMoreOpen(false)}
+                              className={({ isActive }) =>
+                                `px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
+                                  isActive
+                                    ? 'text-gold-500'
+                                    : 'text-coffee-800 dark:text-coffee-300 hover:text-coffee-950 dark:hover:text-cream'
+                                }`
+                              }
+                            >
+                              {label}
+                            </NavLink>
+                          ),
+                        )}
                     </nav>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </nav>
-
-          <NavLink
-            to="/juego"
-            className={({ isActive }) =>
-              `hidden lg:inline-flex min-h-11 items-center gap-1.5 border px-3.5 py-2 text-xs font-semibold tracking-widest uppercase transition-all duration-200 ${
-                isActive
-                  ? 'border-ember-500 bg-ember-500 text-coffee-950'
-                  : 'border-ember-500/50 bg-ember-500/10 text-ember-500 hover:bg-ember-500 hover:text-coffee-950'
-              }`
-            }
-          >
-            <Gamepad2 className="w-3.5 h-3.5" />
-            El videojuego
-          </NavLink>
 
           <form onSubmit={handleSearch} className="hidden md:flex items-center" role="search">
             <div className="relative">

@@ -25,6 +25,9 @@ const TEXT_TO_EMOJI: Record<string, string> = {
   trophy: '🏆',
   gift: '🎁',
   medal: '🏅',
+  triangle: '🔺',
+  'circle-plus': '➕',
+  circle_plus: '➕',
   sword: '⚔️',
   swords: '⚔️',
   heart: '❤️',
@@ -83,7 +86,7 @@ function normalizeIcon(icon: string): string | null {
 
   // Try mapping
   const normalized = trimmed.toLowerCase().replace(/[\s_-]+/g, '_');
-  return TEXT_TO_EMOJI[normalized] || TEXT_TO_EMOJI[trimmed] || null;
+  return TEXT_TO_EMOJI[normalized] || TEXT_TO_EMOJI[trimmed] || '🏆';
 }
 
 interface FixResult {

@@ -13,6 +13,9 @@
     "db:bootstrap:validate": "tsx prisma/bootstrap-production.ts --validate-only",
     "db:bootstrap:dry": "tsx prisma/bootstrap-production.ts --dry-run",
     "db:bootstrap": "tsx prisma/bootstrap-production.ts",
+    "db:catalog:validate": "tsx prisma/sync-catalog.ts --validate-only",
+    "db:catalog:dry": "tsx prisma/sync-catalog.ts --dry-run",
+    "db:catalog:sync": "tsx prisma/sync-catalog.ts --apply",
     "db:fix-icons": "tsx prisma/fix-icons.ts",
     "db:fix-icons:apply": "tsx prisma/fix-icons.ts --apply"
   },

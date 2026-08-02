@@ -15,6 +15,9 @@ export function iconToEmoji(icon?: string | null): string {
     trophy: '🏆',
     gift: '🎁',
     medal: '🏅',
+    triangle: '🔺',
+    'circle-plus': '➕',
+    circle_plus: '➕',
     sword: '⚔️',
     swords: '⚔️',
     heart: '❤️',
@@ -65,5 +68,5 @@ export function iconToEmoji(icon?: string | null): string {
 
   // Look up in map
   const normalized = trimmed.toLowerCase().replace(/[\s_-]+/g, '_');
-  return map[normalized] || map[trimmed] || trimmed;
+  return map[normalized] || map[trimmed] || '🏆';
 }

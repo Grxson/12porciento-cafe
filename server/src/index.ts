@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
@@ -129,6 +130,13 @@ app.use('/api/subscription-payments', subscriptionPaymentsRouter);
 app.use('/api/admin-users', adminLimiter, adminUsersRouter);
 app.use('/api/admin', adminLimiter, adminFixIconsRouter);
 app.use('/api/recipes', recipesRouter);
+const serverRoot =
+  path.basename(process.cwd()) === 'server' ? process.cwd() : path.resolve(process.cwd(), 'server');
+const catalogAssetsDir = path.join(serverRoot, 'public', 'catalog', 'products');
+app.use(
+  '/api/catalog/products',
+  express.static(catalogAssetsDir, { maxAge: '30d', immutable: true }),
+);
 app.use('/api/uploads', express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true }));
 app.use('/api/uploads', uploadsRouter);
 app.use('/api/barista', baristaRouter);

@@ -12,6 +12,9 @@ const TEXT_EMOJI_MAP: Record<string, string> = {
   trophy: '🏆',
   gift: '🎁',
   medal: '🏅',
+  triangle: '🔺',
+  'circle-plus': '➕',
+  circle_plus: '➕',
   sword: '⚔️',
   swords: '⚔️',
   heart: '❤️',
@@ -61,5 +64,5 @@ export function toEmoji(raw: string): string {
   if (emojiRegex.test(trimmed)) return trimmed;
   // Try map
   const key = trimmed.toLowerCase().replace(/[\s_-]+/g, '_');
-  return TEXT_EMOJI_MAP[key] || TEXT_EMOJI_MAP[trimmed] || trimmed;
+  return TEXT_EMOJI_MAP[key] || TEXT_EMOJI_MAP[trimmed] || '🏆';
 }

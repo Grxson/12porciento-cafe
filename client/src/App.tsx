@@ -81,6 +81,20 @@ const GiftCardPurchase = lazy(() => import('./pages/GiftCardPurchase'));
 const Changelog = lazy(() => import('./pages/Changelog'));
 const Game = lazy(() => import('./pages/Game'));
 
+// 12% Brew
+const BrewLayout = lazy(() => import('./pages/BrewLayout'));
+const BrewHome = lazy(() => import('./pages/BrewHome'));
+const BrewRecipes = lazy(() => import('./pages/BrewRecipes'));
+const BrewRecipeDetail = lazy(() => import('./pages/BrewRecipeDetail'));
+const BrewSessions = lazy(() => import('./pages/BrewSessions'));
+const BrewSessionDetail = lazy(() => import('./pages/BrewSessionDetail'));
+const BrewComparison = lazy(() => import('./pages/BrewComparison'));
+const BrewDialIn = lazy(() => import('./pages/BrewDialIn'));
+const BrewCoffees = lazy(() => import('./pages/BrewCoffees'));
+const BrewCoffee = lazy(() => import('./pages/BrewCoffee'));
+const BrewEquipment = lazy(() => import('./pages/BrewEquipment'));
+const BrewPrepare = lazy(() => import('./pages/BrewPrepare'));
+
 const UserRoute = ({ children }: { children: React.ReactNode }) => {
   const token = useUser((s) => s.token);
   return token ? <>{children}</> : <Navigate to="/login" replace />;
@@ -381,6 +395,95 @@ export default function App() {
                         </Suspense>
                       }
                     />
+                    <Route
+                      path="/brew/*"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrewLayout />
+                        </Suspense>
+                    >
+                      <Route index element={<BrewHome />} />
+                      <Route
+                        path="preparar"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewPrepare />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="recetas"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewRecipes />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="recetas/:slug"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewRecipeDetail />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="sesiones"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewSessions />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="sesiones/:id"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewSessionDetail />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="comparar"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewComparison />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="dial-in"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewDialIn />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="cafes"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewCoffees />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="cafes/:slug"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewCoffee />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="equipo"
+                        element={
+                          <Suspense fallback={<PageSkeleton />}>
+                            <BrewEquipment />
+                          </Suspense>
+                        }
+                      />
+                    </Route>
                     <Route
                       path="*"
                       element={

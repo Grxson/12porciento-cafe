@@ -65,9 +65,7 @@ export default function BrewRecipeDetail() {
   }
 
   const hasStructuredParams =
-    recipe.coffeeDoseGrams != null &&
-    recipe.waterGrams != null &&
-    recipe.ratio != null;
+    recipe.coffeeDoseGrams != null && recipe.waterGrams != null;
 
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
@@ -125,12 +123,12 @@ export default function BrewRecipeDetail() {
         )}
 
         {/* Ratio Calculator */}
-        {hasStructuredParams && recipe.coffeeDoseGrams != null && recipe.waterGrams != null && recipe.ratio != null && (
+        {hasStructuredParams && recipe.coffeeDoseGrams != null && recipe.waterGrams != null && (
           <section className="mb-10">
             <RatioCalculator
               initialCoffee={recipe.coffeeDoseGrams}
               initialWater={recipe.waterGrams}
-              ratio={recipe.ratio}
+              ratio={recipe.ratio ?? Number((recipe.waterGrams / recipe.coffeeDoseGrams).toFixed(2))}
             />
           </section>
         )}

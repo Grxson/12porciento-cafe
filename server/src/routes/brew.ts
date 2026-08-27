@@ -52,6 +52,31 @@ function paginatedResponse<T>(data: T[], total: number, page: number, pageSize: 
   return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }
 
+/**
+ * Parse a legacy Recipe.ratio string ("1:15" or "15") into a positive float.
+ * Returns null on empty / non-positive / non-numeric input.
+ */
+function parseRatioString(raw: string | null | undefined): number | null {
+  if (!raw) return null;
+  const trimmed = String(raw).trim();
+  if (!trimmed) return null;
+  if (trimmed.includes(':')) {
+    const [, r] = trimmed.split(':');
+    const n = parseFloat(r);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+  const n = parseFloat(trimmed);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
+ * Project a Recipe row into the shape the client expects (ratio as number).
+ * Use this for every recipe response so the type contract holds.
+ */
+function projectRecipe<T extends { ratio: string | null }>(r: T): T & { ratio: number | null } {
+  return { ...r, ratio: parseRatioString(r.ratio) };
+}
+
 /** Convert a Recipe + steps to a BrewRecipe snapshot. */
 function recipeToBrewRecipe(
   recipe: {
@@ -189,7 +214,7 @@ router.get('/recipes', async (req: Request, res: Response) => {
       prisma.recipe.count({ where }),
     ]);
 
-    res.json(paginatedResponse(data, total, page, pageSize));
+    res.json(paginatedResponse(data.map(projectRecipe), total, page, pageSize));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener recetas' });
@@ -214,7 +239,7 @@ router.get('/recipes/:slug', async (req: Request, res: Response) => {
     if (!recipe || !recipe.isPublished) {
       return res.status(404).json({ error: 'Receta no encontrada' });
     }
-    res.json({ data: recipe });
+    res.json({ data: projectRecipe(recipe) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener receta' });
@@ -238,7 +263,7 @@ router.get('/coffees/:slug/recipes', async (req: Request, res: Response) => {
       orderBy: [{ featured: 'desc' }, { title: 'asc' }],
     });
 
-    res.json({ coffee, data: recipes });
+    res.json({ coffee, data: recipes.map(projectRecipe) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener recetas del café' });

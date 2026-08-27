@@ -142,6 +142,9 @@ export interface BrewRecipeStructured {
   brewMethod?: Pick<BrewMethod, 'id' | 'slug' | 'name' | 'icon' | 'category'> | null;
   coffeeDoseGrams: number | null;
   waterGrams: number | null;
+  /** water:coffee as float (e.g. 15.0 for 1:15). Server parses the legacy
+   *  `Recipe.ratio` string ("15" or "1:15") so the client gets a number. */
+  ratio: number | null;
   waterTemperatureCelsius: number | null;
   grindTargetMicrons: number | null;
   profile: BrewRecipeProfile | null;

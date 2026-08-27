@@ -32,6 +32,7 @@ import {
 import type {
   BrewRecipeStructured,
   BrewSession,
+  BrewSessionResult,
   BrewStepStructured,
 } from '@12porciento/shared';
 import { useToast } from '../context/ToastContext';
@@ -213,13 +214,13 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
     }
   }
 
-  async function submitComplete(rating: number, notes: string, result?: string) {
+  async function submitComplete(rating: number, notes: string, result?: BrewSessionResult) {
     setSubmitting(true);
     try {
       await brewApi.completeSession(initialSession.id, {
         rating,
         notes: notes || undefined,
-        result: (result as never) || undefined,
+        result: result ?? undefined,
         brewTimeSeconds: stepStartedAtMs ? Math.floor((Date.now() - stepStartedAtMs) / 1000) : undefined,
       });
       // Also update params to what was actually used.
@@ -503,15 +504,15 @@ function FinishForm({
   onCancel,
   submitting,
 }: {
-  onSubmit: (rating: number, notes: string, result?: string) => void;
+  onSubmit: (rating: number, notes: string, result?: BrewSessionResult) => void;
   onCancel: () => void;
   submitting: boolean;
 }) {
   const [rating, setRating] = useState(4);
   const [notes, setNotes] = useState('');
-  const [result, setResult] = useState<string | undefined>(undefined);
+  const [result, setResult] = useState<BrewSessionResult | undefined>(undefined);
 
-  const RESULTS = [
+  const RESULTS: { value: BrewSessionResult; label: string }[] = [
     { value: 'EXCELLENT', label: 'Excelente' },
     { value: 'GOOD', label: 'Muy bueno' },
     { value: 'BALANCED', label: 'Balanceado' },

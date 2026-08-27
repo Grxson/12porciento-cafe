@@ -40,6 +40,7 @@ const AdminTiposCata = lazy(() => import('./admin/TiposCata'));
 const AdminGiftCards = lazy(() => import('./admin/GiftCards'));
 const AdminPricing = lazy(() => import('./admin/Pricing'));
 const Reconciliation = lazy(() => import('./admin/Reconciliation'));
+const AdminBrewMethods = lazy(() => import('./admin/BrewMethods'));
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('admin_token');
@@ -103,6 +104,7 @@ export default function App() {
               <Route path="gift-cards" element={<AdminGiftCards />} />
               <Route path="pricing" element={<AdminPricing />} />
               <Route path="reconciliacion" element={<Reconciliation />} />
+              <Route path="brew/metodos" element={<AdminBrewMethods />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
             <Route path="*" element={<Navigate to="/login" replace />} />

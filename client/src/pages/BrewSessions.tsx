@@ -21,8 +21,12 @@ export default function BrewSessions() {
     if (!user) return;
     setError(null);
     setLoading(true);
+    const filters = {
+      pageSize: '30',
+      favorites: filter === 'favorites' ? 'true' : undefined,
+    };
     brewApi
-      .listSessions({ pageSize: '30' })
+      .listSessions(filters)
       .then((r) => {
         setSessions(r.data.data);
         setTotal(r.data.total);
@@ -37,7 +41,8 @@ export default function BrewSessions() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, filter]);
 
   if (!user) {
     return (
@@ -55,7 +60,7 @@ export default function BrewSessions() {
     );
   }
 
-  const visible = filter === 'favorites' ? sessions.filter((s) => s.favorited) : sessions;
+  const visible = sessions;
 
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">

@@ -404,7 +404,16 @@ router.post('/sessions', requireUserAuth, async (req: UserAuthRequest, res: Resp
 router.get('/sessions', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { coffeeId, recipeId, brewMethodId, status, minRating, from, to } = req.query;
+    const {
+      coffeeId,
+      recipeId,
+      brewMethodId,
+      status,
+      minRating,
+      from,
+      to,
+      favorites,
+    } = req.query;
     const where: Prisma.BrewSessionWhereInput = { userId };
     if (coffeeId) where.coffeeId = coffeeId as string;
     if (recipeId) where.recipeId = recipeId as string;
@@ -416,6 +425,14 @@ router.get('/sessions', requireUserAuth, async (req: UserAuthRequest, res: Respo
       if (from) (where.createdAt as Prisma.DateTimeFilter).gte = new Date(from as string);
       if (to) (where.createdAt as Prisma.DateTimeFilter).lte = new Date(to as string);
     }
+    if (favorites === 'true') {
+      // Sub-select: only sessions the current user has favorited.
+      const favIds = await prisma.brewSessionFavorite.findMany({
+        where: { userId },
+        select: { sessionId: true },
+      });
+      where.id = { in: favIds.map((f) => f.sessionId) };
+    }
 
     const { page, pageSize, skip } = pagination(req, 25);
     const [data, total] = await Promise.all([
@@ -425,6 +442,10 @@ router.get('/sessions', requireUserAuth, async (req: UserAuthRequest, res: Respo
           coffee: { select: { id: true, slug: true, name: true, imageUrl: true } },
           recipe: { select: { id: true, slug: true, title: true } },
           brewMethod: { select: { id: true, slug: true, name: true, icon: true } },
+          favorites: {
+            where: { userId },
+            select: { id: true },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -433,7 +454,10 @@ router.get('/sessions', requireUserAuth, async (req: UserAuthRequest, res: Respo
       prisma.brewSession.count({ where }),
     ]);
 
-    res.json(paginatedResponse(data, total, page, pageSize));
+    // Annotate with favorited:boolean so the client can render the toggle state
+    // without an extra round-trip per session.
+    const annotated = data.map((s) => ({ ...s, favorited: s.favorites.length > 0 }));
+    res.json(paginatedResponse(annotated, total, page, pageSize));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener sesiones' });

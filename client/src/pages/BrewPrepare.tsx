@@ -138,6 +138,26 @@ export default function BrewPrepare() {
       </div>
     );
   }
+  if (sessionParam && session && !recipe) {
+    // Session exists but the recipe was unpublished/deleted after start.
+    // We still keep the session data + snapshot — let the user finish the brew
+    // with whatever they remember, or back out.
+    return (
+      <div className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl">
+          <EmptyState
+            title="Receta no disponible"
+            description="La receta original ya no está publicada. Tu sesión sigue guardada — puedes completarla manualmente o volver más tarde."
+            action={
+              <Link to="/brew/sesiones" className="btn-primary">
+                Ver mis preparaciones
+              </Link>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
 
   // ── Recipe detail mode ──
   if (recipeSlug) {

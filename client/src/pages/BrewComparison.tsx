@@ -183,8 +183,8 @@ export default function BrewComparison() {
         </div>
 
         {/* Diff table */}
-        <section className="overflow-hidden rounded border border-coffee-200 dark:border-coffee-800">
-          <table className="w-full text-sm">
+        <section className="overflow-x-auto rounded border border-coffee-200 dark:border-coffee-800">
+          <table className="w-full min-w-[28rem] text-sm">
             <thead className="bg-coffee-100 text-coffee-700 dark:bg-coffee-900 dark:text-coffee-200">
               <tr>
                 <th className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-widest">

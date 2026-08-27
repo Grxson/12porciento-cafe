@@ -10,6 +10,7 @@ export { baristaApi } from './api/barista';
 // Utils
 export { urlBase64ToUint8Array } from './utils/base64';
 export { resolveImageUrl } from './utils/imageUrl';
+export * from './utils/units';
 
 // Lib
 export { getApiError, getErrorStatus } from './lib/api-error';

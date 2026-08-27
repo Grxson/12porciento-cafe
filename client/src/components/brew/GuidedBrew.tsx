@@ -53,21 +53,41 @@ interface DraftState {
   startedAtMs: number | null;
   pausedAtMs: number | null;
   totalPausedMs: number;
+  /** When the draft was last persisted. Used to expire stale drafts. */
+  savedAtMs: number;
 }
 
 function draftKey(sessionId: string) {
   return `brew:guided:${sessionId}`;
 }
 
+/** Drafts older than 7 days are considered abandoned and ignored. */
+const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) {
   const navigate = useNavigate();
   const addToast = useToast((s) => s.add);
 
   // Hydrate from sessionStorage first, fall back to session defaults.
+  // Stale drafts (> 7 days) are ignored so the user doesn't accidentally resume
+  // a brew that started a week ago.
   const initialDraft = useMemo<DraftState | null>(() => {
     try {
       const raw = sessionStorage.getItem(draftKey(initialSession.id));
-      if (raw) return JSON.parse(raw) as DraftState;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as DraftState;
+      if (
+        typeof parsed.savedAtMs === 'number' &&
+        Date.now() - parsed.savedAtMs > DRAFT_TTL_MS
+      ) {
+        try {
+          sessionStorage.removeItem(draftKey(initialSession.id));
+        } catch {
+          /* noop */
+        }
+        return null;
+      }
+      return parsed;
     } catch {
       // ignore
     }
@@ -119,6 +139,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
         startedAtMs: stepStartedAtMs,
         pausedAtMs,
         totalPausedMs,
+        savedAtMs: Date.now(),
         ...overrides,
       };
       try {

@@ -266,6 +266,17 @@ router.post('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
       isPremium = false,
       isPublished = false,
       productId,
+      // 12% Brew structured fields
+      brewMethodId,
+      coffeeDoseGrams,
+      waterGrams,
+      waterTemperatureCelsius,
+      grindTargetMicrons,
+      profile,
+      recipeType,
+      featured,
+      official,
+      parentRecipeId,
     } = req.body;
 
     if (!title?.trim() || !slug?.trim() || !method?.trim()) {
@@ -287,12 +298,25 @@ router.post('/admin', requireAuth, async (req: AuthRequest, res: Response) => {
         isPremium,
         isPublished,
         productId: productId || null,
+        brewMethodId: brewMethodId || null,
+        coffeeDoseGrams: Number.isFinite(coffeeDoseGrams) ? Number(coffeeDoseGrams) : null,
+        waterGrams: Number.isFinite(waterGrams) ? Number(waterGrams) : null,
+        waterTemperatureCelsius: Number.isFinite(waterTemperatureCelsius)
+          ? Number(waterTemperatureCelsius)
+          : null,
+        grindTargetMicrons: Number.isFinite(grindTargetMicrons) ? Number(grindTargetMicrons) : null,
+        profile: profile || null,
+        recipeType: recipeType || 'OFFICIAL_12_PERCENT',
+        featured: Boolean(featured),
+        official: official !== false,
+        parentRecipeId: parentRecipeId || null,
       },
       include: {
         steps: true,
         ingredients: true,
         equipment: true,
         product: { select: { id: true, name: true, slug: true } },
+        brewMethod: { select: { id: true, slug: true, name: true, icon: true } },
       },
     });
 
@@ -323,6 +347,17 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
       isPremium,
       isPublished,
       productId,
+      // 12% Brew structured fields
+      brewMethodId,
+      coffeeDoseGrams,
+      waterGrams,
+      waterTemperatureCelsius,
+      grindTargetMicrons,
+      profile,
+      recipeType,
+      featured,
+      official,
+      parentRecipeId,
     } = req.body;
 
     const data: Prisma.RecipeUncheckedUpdateInput = {};
@@ -340,6 +375,24 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
     if (isPublished !== undefined) data.isPublished = isPublished;
     if (productId !== undefined) data.productId = productId || null;
 
+    // 12% Brew structured field updates
+    if (brewMethodId !== undefined) data.brewMethodId = brewMethodId || null;
+    if (coffeeDoseGrams !== undefined)
+      data.coffeeDoseGrams = Number.isFinite(coffeeDoseGrams) ? Number(coffeeDoseGrams) : null;
+    if (waterGrams !== undefined)
+      data.waterGrams = Number.isFinite(waterGrams) ? Number(waterGrams) : null;
+    if (waterTemperatureCelsius !== undefined)
+      data.waterTemperatureCelsius = Number.isFinite(waterTemperatureCelsius)
+        ? Number(waterTemperatureCelsius)
+        : null;
+    if (grindTargetMicrons !== undefined)
+      data.grindTargetMicrons = Number.isFinite(grindTargetMicrons) ? Number(grindTargetMicrons) : null;
+    if (profile !== undefined) data.profile = profile || null;
+    if (recipeType !== undefined) data.recipeType = recipeType || 'OFFICIAL_12_PERCENT';
+    if (featured !== undefined) data.featured = Boolean(featured);
+    if (official !== undefined) data.official = Boolean(official);
+    if (parentRecipeId !== undefined) data.parentRecipeId = parentRecipeId || null;
+
     const recipe = await prisma.recipe.update({
       where: { id: req.params.id },
       data,
@@ -348,6 +401,7 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
         ingredients: { orderBy: { order: 'asc' } },
         equipment: { orderBy: { order: 'asc' } },
         product: { select: { id: true, name: true, slug: true } },
+        brewMethod: { select: { id: true, slug: true, name: true, icon: true } },
       },
     });
 

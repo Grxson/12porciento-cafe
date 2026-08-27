@@ -70,6 +70,7 @@ model Product {
   b2bInquiryItems       B2BInquiryItem[]
   b2bQuoteItems         B2BQuoteItem[]
   brewLogs              BrewLog[]              @relation("beanBrews")
+  brewSessions          BrewSession[]          @relation("brewSessionCoffee")
 
   @@index([caficultorId])
 }
@@ -304,12 +305,38 @@ model Recipe {
   ratings     RecipeRating[]
   favorites   RecipeFavorite[]
 
+  // ── 12% Brew structured fields (added migration 12_percent_brew) ──
+  brewMethodId         String?
+  brewMethod           BrewMethod?             @relation(fields: [brewMethodId], references: [id], onDelete: SetNull)
+
+  coffeeDoseGrams      Float?
+  waterGrams           Float?
+  waterTemperatureCelsius Int?
+  grindTargetMicrons   Int?
+
+  profile              BrewRecipeProfile?     // BALANCED | SWEET | BRIGHT | ...
+  recipeType           BrewRecipeType         @default(OFFICIAL_12_PERCENT)
+  featured             Boolean                @default(false)
+  official             Boolean                @default(true)
+
+  parentRecipeId       String?
+  parentRecipe         Recipe?                @relation("recipeVariants", fields: [parentRecipeId], references: [id], onDelete: SetNull)
+  variants             Recipe[]               @relation("recipeVariants")
+
+  brewSessions         BrewSession[]          @relation("brewSessionRecipe")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([productId])
   @@index([method])
   @@index([isPremium])
+  @@index([brewMethodId])
+  @@index([profile])
+  @@index([recipeType])
+  @@index([official])
+  @@index([featured])
+  @@index([parentRecipeId])
 }
 
 model RecipeFavorite {
@@ -335,6 +362,18 @@ model RecipeStep {
   imageUrl    String?
   videoUrl    String?
   duration    Int?
+
+  // ── 12% Brew structured step fields ──
+  type                BrewStepType        @default(CUSTOM)
+  startTimeSeconds    Int?
+  waterAmountGrams    Float?
+  targetTotalWaterGrams Float?
+  action              BrewStepAction?
+  pourPattern         PourPattern?
+  flowRateGramsPerSecond Float?
+  temperatureCelsius  Int?
+  instruction         String?
+  optional            Boolean             @default(false)
 
   @@unique([recipeId, order])
   @@index([recipeId])
@@ -463,6 +502,11 @@ model User {
   following                     Follow[]                     @relation("FollowedBy")
   notifications                 Notification[]
   notificationPreferences       UserNotificationPreference[]
+
+  // ── 12% Brew relations ──
+  brewSessions                  BrewSession[]
+  brewSessionFavorites          BrewSessionFavorite[]
+  waterProfiles                 WaterProfile[]
 }
 
 model BaristaProfile {
@@ -1088,4 +1132,222 @@ model UserNotificationPreference {
   @@unique([userId, type])
   @@index([userId])
   @@map("user_notification_preferences")
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// 12% BREW — domain additions
+// ════════════════════════════════════════════════════════════════════════════
+
+enum BrewMethodCategory {
+  POUR_OVER
+  IMMERSION
+  PRESSURE
+  STOVETOP
+  COLD
+  TRADITIONAL
+  EVALUATION
+}
+
+enum BrewRecipeProfile {
+  BALANCED
+  SWEET
+  BRIGHT
+  FRUITY
+  FLORAL
+  FULL_BODY
+  CLEAN
+  INTENSE
+  REFRESHING
+  EXPERIMENTAL
+}
+
+enum BrewRecipeType {
+  OFFICIAL_12_PERCENT
+  CREATOR
+  BARISTA
+  COMPETITION
+  COMMUNITY
+  PERSONAL
+}
+
+enum BrewStepType {
+  PREPARE
+  RINSE
+  ADD_COFFEE
+  BLOOM
+  POUR
+  WAIT
+  STIR
+  SWIRL
+  PRESS
+  REMOVE_HEAT
+  COOL
+  SERVE
+  CUSTOM
+}
+
+enum BrewStepAction {
+  ADD
+  POUR
+  WAIT
+  STIR
+  SWIRL
+  TAP
+  PRESS
+  BREATHE
+  CUSTOM
+}
+
+enum PourPattern {
+  CENTER
+  CIRCULAR
+  SPIRAL_OUT
+  SPIRAL_IN
+  CENTER_TO_OUT
+  OUT_TO_CENTER
+  PULSE
+  CUSTOM
+}
+
+enum BrewSessionStatus {
+  IDLE
+  PREPARING
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum BrewSessionResult {
+  SOUR
+  BITTER
+  WATERY
+  STRONG
+  ASTRINGENT
+  UNDEREXTRACTED
+  OVEREXTRACTED
+  BALANCED
+  GOOD
+  EXCELLENT
+}
+
+model BrewMethod {
+  id                    String              @id @default(cuid())
+  slug                  String              @unique
+  name                  String
+  description           String?
+  shortDescription      String?
+  category              BrewMethodCategory
+  icon                  String?
+  image                 String?
+  difficulty            String              @default("MEDIA")
+  defaultRatioMin       Float               @default(13)
+  defaultRatioMax       Float               @default(18)
+  defaultTemperatureMin Int                 @default(88)
+  defaultTemperatureMax Int                 @default(96)
+  defaultGrindMin       Int?
+  defaultGrindMax       Int?
+  active                Boolean             @default(true)
+
+  recipes       Recipe[]
+  brewSessions  BrewSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([active])
+  @@map("brew_methods")
+}
+
+model BrewSession {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  coffeeId     String?
+  coffee       Product?          @relation("brewSessionCoffee", fields: [coffeeId], references: [id], onDelete: SetNull)
+
+  recipeId     String?
+  recipe       Recipe?           @relation("brewSessionRecipe", fields: [recipeId], references: [id], onDelete: SetNull)
+
+  brewMethodId String?
+  brewMethod   BrewMethod?       @relation(fields: [brewMethodId], references: [id], onDelete: SetNull)
+
+  // Immutable snapshot of the recipe + steps at the moment the brew started.
+  recipeSnapshot    Json?
+
+  // Parameters the user actually used
+  coffeeDoseGrams   Float?
+  waterGrams        Float?
+  ratio             Float? // water:coffee (e.g. 15.0 for 1:15)
+  temperatureCelsius Int?
+  grindSetting      String?
+  grindMicrons      Int?
+
+  brewTimeSeconds   Int?
+
+  // Equipment snapshot — IDs + metadata frozen at start
+  equipmentSnapshot Json?
+
+  // Feedback / result
+  rating            Int? // 1..5
+  notes             String?
+  sweetnessRating   Int? // 1..5
+  acidityRating     Int? // 1..5
+  bodyRating        Int? // 1..5
+  clarityRating     Int? // 1..5
+  result            BrewSessionResult?
+
+  // Lifecycle
+  status      BrewSessionStatus @default(IDLE)
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  favorites BrewSessionFavorite[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([recipeId])
+  @@index([coffeeId])
+  @@index([brewMethodId])
+  @@index([status])
+  @@map("brew_sessions")
+}
+
+model BrewSessionFavorite {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String
+  session   BrewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+
+  @@unique([userId, sessionId])
+  @@index([userId])
+  @@index([sessionId])
+  @@map("brew_session_favorites")
+}
+
+model WaterProfile {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  tds         Float?
+  gh          Float?
+  kh          Float?
+  calcium     Float?
+  magnesium   Float?
+  sodium      Float?
+  description String?
+  official    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([official])
+  @@map("water_profiles")
 }

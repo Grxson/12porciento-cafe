@@ -6,6 +6,7 @@ import type { BrewSession } from '@12porciento/shared';
 import { useUser } from '../context/UserContext';
 import MediaFrame from '../components/ui/MediaFrame';
 import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
 
 export default function BrewSessions() {
   const user = useUser((s) => s.user);
@@ -13,10 +14,12 @@ export default function BrewSessions() {
   const [sessions, setSessions] = useState<BrewSession[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
 
-  useEffect(() => {
+  function load() {
     if (!user) return;
+    setError(null);
     setLoading(true);
     brewApi
       .listSessions({ pageSize: '30' })
@@ -24,8 +27,16 @@ export default function BrewSessions() {
         setSessions(r.data.data);
         setTotal(r.data.total);
       })
-      .catch(() => setSessions([]))
+      .catch((err) => {
+        console.error('BrewSessions load error:', err);
+        setError('No pudimos cargar tus preparaciones. Revisa tu conexión.');
+      })
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   if (!user) {
@@ -74,6 +85,12 @@ export default function BrewSessions() {
               <div key={i} className="h-20 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800" />
             ))}
           </div>
+        ) : error ? (
+          <ErrorState
+            title="Sin acceso por ahora"
+            description={error}
+            onRetry={load}
+          />
         ) : visible.length === 0 ? (
           <EmptyState
             title={filter === 'favorites' ? 'Sin favoritas' : 'Sin preparaciones aún'}

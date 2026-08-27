@@ -32,6 +32,7 @@ import type {
 } from '@12porciento/shared';
 import MediaFrame from '../components/ui/MediaFrame';
 import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
 
 const CATEGORY_LABEL: Record<string, string> = {
   POUR_OVER: 'Vertido',
@@ -63,18 +64,20 @@ export default function BrewHome() {
   const [featured, setFeatured] = useState<BrewRecipeStructured[]>([]);
   const [recent, setRecent] = useState<BrewSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function load() {
+    setError(null);
+    setLoading(true);
     let cancelled = false;
     Promise.all([
-      brewApi.listMethods().then((r) => r.data.data).catch(() => []),
+      brewApi.listMethods().then((r) => r.data.data),
       brewApi
         .listRecipes({ featured: 'true', pageSize: '6' })
-        .then((r) => r.data.data)
-        .catch(() => []),
+        .then((r) => r.data.data),
       user
-        ? brewApi.listSessions({ pageSize: '3' }).then((r) => r.data.data).catch(() => [])
-        : Promise.resolve([]),
+        ? brewApi.listSessions({ pageSize: '3' }).then((r) => r.data.data)
+        : Promise.resolve([] as BrewSession[]),
     ])
       .then(([m, f, r]) => {
         if (cancelled) return;
@@ -82,13 +85,37 @@ export default function BrewHome() {
         setFeatured(f);
         setRecent(r);
       })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('BrewHome load error:', err);
+        setError('No pudimos cargar 12% Brew. Revisa tu conexión.');
+      })
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
+  }
+
+  useEffect(() => {
+    return load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const lastSession = recent[0];
+
+  if (error && !loading) {
+    return (
+      <div className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl">
+          <ErrorState
+            title="No pudimos cargar 12% Brew"
+            description={error}
+            onRetry={load}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="brew-home">

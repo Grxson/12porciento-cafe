@@ -5,6 +5,7 @@ import { brewApi } from '@12porciento/shared';
 import type { BrewMethod, BrewRecipeStructured, BrewRecipeProfile } from '@12porciento/shared';
 import MediaFrame from '../components/ui/MediaFrame';
 import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
 
 const PROFILE_LABEL: Record<BrewRecipeProfile, string> = {
   BALANCED: 'Balanceado',
@@ -25,6 +26,7 @@ export default function BrewRecipes() {
   const [recipes, setRecipes] = useState<BrewRecipeStructured[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const method = searchParams.get('method') || '';
   const profile = searchParams.get('profile') || '';
@@ -32,10 +34,14 @@ export default function BrewRecipes() {
   const q = searchParams.get('search') || '';
 
   useEffect(() => {
-    brewApi.listMethods().then((r) => setMethods(r.data.data)).catch(() => setMethods([]));
+    brewApi
+      .listMethods()
+      .then((r) => setMethods(r.data.data))
+      .catch(() => setMethods([]));
   }, []);
 
-  useEffect(() => {
+  function loadRecipes() {
+    setError(null);
     setLoading(true);
     brewApi
       .listRecipes({
@@ -49,8 +55,16 @@ export default function BrewRecipes() {
         setRecipes(r.data.data);
         setTotal(r.data.total);
       })
-      .catch(() => setRecipes([]))
+      .catch((err) => {
+        console.error('BrewRecipes load error:', err);
+        setError('No pudimos cargar las recetas. Revisa tu conexión.');
+      })
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadRecipes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [method, profile, difficulty, q]);
 
   function setParam(key: string, value: string) {
@@ -115,7 +129,13 @@ export default function BrewRecipes() {
           {loading ? 'Buscando…' : `${total} receta${total === 1 ? '' : 's'}`}
         </p>
 
-        {loading ? (
+        {error && !loading ? (
+          <ErrorState
+            title="Sin resultados por ahora"
+            description={error}
+            onRetry={loadRecipes}
+          />
+        ) : loading ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-64 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800" />

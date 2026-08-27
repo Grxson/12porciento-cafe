@@ -17,6 +17,7 @@ import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import MediaFrame from '../components/ui/MediaFrame';
 import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
 
 export default function BrewSessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,14 +27,25 @@ export default function BrewSessionDetail() {
 
   const [session, setSession] = useState<BrewSession | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   function load() {
     if (!id) return;
+    setError(null);
     setLoading(true);
     brewApi
       .getSession(id)
       .then((r) => setSession(r.data.data))
-      .catch(() => setSession(null))
+      .catch((err) => {
+        console.error('BrewSessionDetail load error:', err);
+        // 404 vs network error
+        const status = err?.response?.status;
+        if (status === 404) {
+          setSession(null); // fall through to "not found" EmptyState
+        } else {
+          setError('No pudimos cargar la preparación. Revisa tu conexión.');
+        }
+      })
       .finally(() => setLoading(false));
   }
 
@@ -44,6 +56,20 @@ export default function BrewSessionDetail() {
       <div className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <div className="h-40 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl">
+          <ErrorState
+            title="No pudimos cargar la preparación"
+            description={error}
+            onRetry={load}
+          />
         </div>
       </div>
     );

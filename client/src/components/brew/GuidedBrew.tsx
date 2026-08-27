@@ -35,7 +35,7 @@ import type {
   BrewSessionResult,
   BrewStepStructured,
 } from '@12porciento/shared';
-import { useToast } from '../context/ToastContext';
+import { useToast, type ToastStore } from '../../context/ToastContext';
 
 type BrewStatus = 'IDLE' | 'PREPARING' | 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
 
@@ -66,7 +66,7 @@ const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) {
   const navigate = useNavigate();
-  const addToast = useToast((s) => s.add);
+  const addToast = useToast((s: ToastStore) => s.add);
 
   // Hydrate from sessionStorage first, fall back to session defaults.
   // Stale drafts (> 7 days) are ignored so the user doesn't accidentally resume

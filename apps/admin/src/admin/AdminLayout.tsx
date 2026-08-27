@@ -35,6 +35,7 @@ import {
   ChevronDown,
   ChevronRight,
   AlertTriangle,
+  Coffee,
 } from 'lucide-react';
 import { ThemeSync, useAdminTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';

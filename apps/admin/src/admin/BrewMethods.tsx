@@ -1,12 +1,13 @@
 /**
  * 12% Brew — Admin: BrewMethod CRUD
  *
- * Mirrors the admin pattern used by Ubicaciones / TiposCata. Self-contained
- * module so it slots in without touching the central Recipes module.
+ * Mirrors the admin pattern used by Ubicaciones / TiposCata. Uses the
+ * project's existing admin primitives (FormField, AdminModal, ConfirmDialog,
+ * AdminErrorState, Pagination) — no new abstractions.
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { Coffee, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { api } from '@12porciento/shared';
 import { useModuleToast } from './context/ModuleContext';
 import AdminSkeleton from './components/AdminSkeleton';
@@ -71,7 +72,7 @@ const EMPTY_FORM: Form = {
   active: true,
 };
 
-const CATEGORIES = [
+const CATEGORIES: { value: string; label: string }[] = [
   { value: 'POUR_OVER', label: 'Vertido' },
   { value: 'IMMERSION', label: 'Inmersión' },
   { value: 'PRESSURE', label: 'Presión' },
@@ -81,7 +82,11 @@ const CATEGORIES = [
   { value: 'EVALUATION', label: 'Catación' },
 ];
 
-const DIFFICULTIES = ['FÁCIL', 'MEDIA', 'DIFÍCIL'];
+const DIFFICULTIES = [
+  { value: 'FÁCIL', label: 'Fácil' },
+  { value: 'MEDIA', label: 'Media' },
+  { value: 'DIFÍCIL', label: 'Difícil' },
+];
 
 export default function AdminBrewMethods() {
   const { addToast } = useModuleToast();
@@ -111,7 +116,8 @@ export default function AdminBrewMethods() {
       setTotalPages(d.totalPages ?? 1);
       setTotal(d.total ?? 0);
       setPage(p);
-    } catch {
+    } catch (err) {
+      console.error('AdminBrewMethods load error:', err);
       setError('Error al cargar métodos');
     } finally {
       setLoading(false);
@@ -215,8 +221,8 @@ export default function AdminBrewMethods() {
     }
   }
 
-  if (loading) return <AdminSkeleton variant="table" />;
-  if (error) return <AdminErrorState message={error} onRetry={() => fetchItems(page)} />;
+  if (loading) return <AdminSkeleton rows={6} />;
+  if (error) return <AdminErrorState error={error} onRetry={() => fetchItems(page)} />;
 
   return (
     <>
@@ -244,7 +250,7 @@ export default function AdminBrewMethods() {
         </header>
 
         <div className="overflow-x-auto rounded border border-coffee-200 bg-white dark:border-coffee-800 dark:bg-coffee-950">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[52rem] text-sm">
             <thead className="bg-coffee-50 text-coffee-700 dark:bg-coffee-900 dark:text-coffee-200">
               <tr>
                 <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-widest">
@@ -279,7 +285,7 @@ export default function AdminBrewMethods() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span className="grid h-8 w-8 place-items-center rounded-full bg-coffee-100 dark:bg-coffee-800">
-                        {m.icon || <Coffee className="h-4 w-4" />}
+                        {m.icon || '☕'}
                       </span>
                       <div>
                         <p className="font-medium text-coffee-900 dark:text-cream">{m.name}</p>
@@ -344,7 +350,7 @@ export default function AdminBrewMethods() {
           </table>
         </div>
 
-        <Pagination page={page} totalPages={totalPages} onPageChange={fetchItems} />
+        <Pagination page={page} totalPages={totalPages} onChange={fetchItems} />
       </div>
 
       {/* Form modal */}
@@ -352,121 +358,85 @@ export default function AdminBrewMethods() {
         open={showForm}
         onClose={() => setShowForm(false)}
         title={editing ? `Editar ${editing.name}` : 'Nuevo método'}
-        width="max-w-2xl"
+        maxWidth="max-w-2xl"
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="Nombre" required>
+          <FormField
+            label="Nombre"
+            value={form.name}
+            onChange={(v) => setForm({ ...form, name: String(v) })}
+            required
+          />
+          <FormField
+            label="Slug"
+            value={form.slug}
+            onChange={(v) => setForm({ ...form, slug: String(v) })}
+            required
+            placeholder="v60"
+          />
+          <FormField
+            label="Categoría"
+            value={form.category}
+            onChange={(v) => setForm({ ...form, category: String(v) })}
+            type="select"
+            options={CATEGORIES}
+          />
+          <FormField
+            label="Dificultad"
+            value={form.difficulty}
+            onChange={(v) => setForm({ ...form, difficulty: String(v) })}
+            type="select"
+            options={DIFFICULTIES}
+          />
+          <FormField
+            label="Icono (emoji o URL)"
+            value={form.icon}
+            onChange={(v) => setForm({ ...form, icon: String(v) })}
+            placeholder="☕"
+          />
+          <FormField
+            label="Ratio por defecto (mín–máx)"
+            value={form.defaultRatioMin}
+            onChange={(v) => setForm({ ...form, defaultRatioMin: Number(v) || 0 })}
+            type="number"
+          />
+          <FormField
+            label="Ratio por defecto (máx)"
+            value={form.defaultRatioMax}
+            onChange={(v) => setForm({ ...form, defaultRatioMax: Number(v) || 0 })}
+            type="number"
+          />
+          <FormField
+            label="Temperatura mín (°C)"
+            value={form.defaultTemperatureMin}
+            onChange={(v) => setForm({ ...form, defaultTemperatureMin: Number(v) || 0 })}
+            type="number"
+          />
+          <FormField
+            label="Temperatura máx (°C)"
+            value={form.defaultTemperatureMax}
+            onChange={(v) => setForm({ ...form, defaultTemperatureMax: Number(v) || 0 })}
+            type="number"
+          />
+          <FormField
+            label="Descripción corta"
+            value={form.shortDescription}
+            onChange={(v) => setForm({ ...form, shortDescription: String(v) })}
+          />
+          <FormField
+            label="Descripción"
+            value={form.description}
+            onChange={(v) => setForm({ ...form, description: String(v) })}
+            type="textarea"
+          />
+          <label className="flex items-center gap-2 text-sm">
             <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="admin-input"
+              type="checkbox"
+              checked={form.active}
+              onChange={(e) => setForm({ ...form, active: e.target.checked })}
             />
-          </FormField>
-          <FormField label="Slug" required>
-            <input
-              value={form.slug}
-              onChange={(e) => setForm({ ...form, slug: e.target.value })}
-              className="admin-input font-mono"
-              placeholder="v60"
-            />
-          </FormField>
-          <FormField label="Categoría">
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="admin-input"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField label="Dificultad">
-            <select
-              value={form.difficulty}
-              onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
-              className="admin-input"
-            >
-              {DIFFICULTIES.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField label="Icono (emoji o URL)">
-            <input
-              value={form.icon}
-              onChange={(e) => setForm({ ...form, icon: e.target.value })}
-              className="admin-input"
-              placeholder="☕"
-            />
-          </FormField>
-          <FormField label="Ratio por defecto (mín–máx)">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={form.defaultRatioMin}
-                step={0.5}
-                onChange={(e) => setForm({ ...form, defaultRatioMin: parseFloat(e.target.value) })}
-                className="admin-input"
-              />
-              <input
-                type="number"
-                value={form.defaultRatioMax}
-                step={0.5}
-                onChange={(e) => setForm({ ...form, defaultRatioMax: parseFloat(e.target.value) })}
-                className="admin-input"
-              />
-            </div>
-          </FormField>
-          <FormField label="Temperatura por defecto (°C)">
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={form.defaultTemperatureMin}
-                onChange={(e) =>
-                  setForm({ ...form, defaultTemperatureMin: parseInt(e.target.value) })
-                }
-                className="admin-input"
-              />
-              <input
-                type="number"
-                value={form.defaultTemperatureMax}
-                onChange={(e) =>
-                  setForm({ ...form, defaultTemperatureMax: parseInt(e.target.value) })
-                }
-                className="admin-input"
-              />
-            </div>
-          </FormField>
-          <FormField label="Descripción corta">
-            <input
-              value={form.shortDescription}
-              onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
-              className="admin-input"
-            />
-          </FormField>
-          <FormField label="Descripción" fullWidth>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-              className="admin-input"
-            />
-          </FormField>
-          <FormField label="Activo" fullWidth>
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.active}
-                onChange={(e) => setForm({ ...form, active: e.target.checked })}
-              />
-              Visible para usuarios
-            </label>
-          </FormField>
+            Visible para usuarios
+          </label>
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button
@@ -491,7 +461,8 @@ export default function AdminBrewMethods() {
         open={!!confirmDelete}
         title="Eliminar método"
         message={`¿Eliminar "${confirmDelete?.name}"? Las recetas que lo usan perderán el vínculo.`}
-        confirmLabel="Eliminar"
+        confirmText="Eliminar"
+        isDangerous
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={saving}

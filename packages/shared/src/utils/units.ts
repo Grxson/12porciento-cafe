@@ -128,3 +128,37 @@ export function roundHalf(n: number): number {
   if (!Number.isFinite(n)) return 0;
   return Math.round(n * 2) / 2;
 }
+
+// ─── Brewing math (shared between server + client) ────────────────────
+// Kept here so RatioCalculator (client) and RecipeEngine (server) use the
+// same arithmetic. Pure functions, no I/O.
+
+/** Derive water grams from a coffee dose and a water:coffee ratio. */
+export function calculateWater(coffeeDoseGrams: number, ratio: number): number {
+  if (!Number.isFinite(coffeeDoseGrams) || coffeeDoseGrams <= 0) {
+    throw new RangeError('coffeeDoseGrams debe ser > 0');
+  }
+  if (!Number.isFinite(ratio) || ratio <= 0) {
+    throw new RangeError('ratio debe ser > 0');
+  }
+  return roundHalf(coffeeDoseGrams * ratio);
+}
+
+/** Derive coffee grams from a target water amount and ratio. */
+export function calculateCoffee(waterGrams: number, ratio: number): number {
+  if (!Number.isFinite(waterGrams) || waterGrams <= 0) {
+    throw new RangeError('waterGrams debe ser > 0');
+  }
+  if (!Number.isFinite(ratio) || ratio <= 0) {
+    throw new RangeError('ratio debe ser > 0');
+  }
+  return roundHalf(waterGrams / ratio);
+}
+
+/** Compute water:coffee ratio from grams. */
+export function ratioFromCoffeeAndWater(coffeeGrams: number, waterGrams: number): number {
+  if (coffeeGrams <= 0 || waterGrams <= 0) {
+    throw new RangeError('coffeeGrams y waterGrams deben ser > 0');
+  }
+  return Number((waterGrams / coffeeGrams).toFixed(3));
+}

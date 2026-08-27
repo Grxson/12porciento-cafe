@@ -155,7 +155,7 @@ interface RecipeSeed {
   waterGrams: number;
   ratio: number;
   waterTemperatureCelsius: number;
-  grindDescription: string;
+  grind: string;
   grindTargetMicrons?: number;
   profile: 'BALANCED' | 'SWEET' | 'BRIGHT' | 'FRUITY' | 'FLORAL' | 'FULL_BODY' | 'CLEAN' | 'INTENSE' | 'REFRESHING' | 'EXPERIMENTAL';
   recipeType: 'OFFICIAL_12_PERCENT' | 'CREATOR' | 'BARISTA' | 'COMPETITION' | 'COMMUNITY' | 'PERSONAL';
@@ -200,7 +200,7 @@ const RECIPES: RecipeSeed[] = [
     waterGrams: 300,
     ratio: 15,
     waterTemperatureCelsius: 92,
-    grindDescription: 'Media',
+    grind: 'Media',
     grindTargetMicrons: 700,
     profile: 'SWEET',
     recipeType: 'OFFICIAL_12_PERCENT',
@@ -304,7 +304,7 @@ const RECIPES: RecipeSeed[] = [
     waterGrams: 288,
     ratio: 16,
     waterTemperatureCelsius: 93,
-    grindDescription: 'Media',
+    grind: 'Media',
     profile: 'BALANCED',
     recipeType: 'OFFICIAL_12_PERCENT',
     difficulty: 'FÁCIL',
@@ -369,7 +369,7 @@ const RECIPES: RecipeSeed[] = [
     waterGrams: 255,
     ratio: 15,
     waterTemperatureCelsius: 95,
-    grindDescription: 'Media-fina',
+    grind: 'Media-fina',
     grindTargetMicrons: 600,
     profile: 'BRIGHT',
     recipeType: 'OFFICIAL_12_PERCENT',
@@ -446,7 +446,7 @@ const RECIPES: RecipeSeed[] = [
     waterGrams: 150,
     ratio: 7.5,
     waterTemperatureCelsius: 92,
-    grindDescription: 'Media',
+    grind: 'Media',
     profile: 'REFRESHING',
     recipeType: 'OFFICIAL_12_PERCENT',
     difficulty: 'MEDIA',
@@ -507,7 +507,7 @@ const RECIPES: RecipeSeed[] = [
     waterGrams: 230,
     ratio: 13,
     waterTemperatureCelsius: 70,
-    grindDescription: 'Media-fina',
+    grind: 'Media-fina',
     profile: 'INTENSE',
     recipeType: 'OFFICIAL_12_PERCENT',
     difficulty: 'MEDIA',
@@ -574,7 +574,7 @@ const RECIPES: RecipeSeed[] = [
     waterGrams: 220,
     ratio: 15.7,
     waterTemperatureCelsius: 88,
-    grindDescription: 'Media-fina',
+    grind: 'Media-fina',
     profile: 'BALANCED',
     recipeType: 'OFFICIAL_12_PERCENT',
     difficulty: 'FÁCIL',
@@ -712,7 +712,7 @@ async function main() {
           coffeeDoseGrams: r.coffeeDoseGrams,
           waterGrams: r.waterGrams,
           waterTemperatureCelsius: r.waterTemperatureCelsius,
-          grindDescription: r.grindDescription,
+          grind: r.grind,
           grindTargetMicrons: r.grindTargetMicrons ?? null,
           profile: r.profile,
           recipeType: r.recipeType,
@@ -723,7 +723,6 @@ async function main() {
           // Legacy string mirrors
           ratio: String(r.ratio),
           temp: `${r.waterTemperatureCelsius} °C`,
-          grind: r.grindDescription,
           isPublished: true,
           isPremium: false,
           prepTime: 4,
@@ -758,7 +757,7 @@ async function main() {
           prepTime: 4,
           yield: `${Math.round(r.waterGrams / 200)} tazas`,
           temp: `${r.waterTemperatureCelsius} °C`,
-          grind: r.grindDescription,
+          grind: r.grind,
           ratio: String(r.ratio),
           isPublished: true,
           isPremium: false,
@@ -806,3 +805,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

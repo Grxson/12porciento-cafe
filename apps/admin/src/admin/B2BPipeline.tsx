@@ -137,7 +137,7 @@ export default function B2BPipeline() {
       const matchesSearch =
         !query ||
         [inquiry.folio, inquiry.empresa, inquiry.rfc, inquiry.contactoNombre]
-          .filter(Boolean)
+          .filter((v): v is string => Boolean(v))
           .some((value) => value.toLowerCase().includes(query));
       const matchesStatus = statusFilter === 'ALL' || inquiry.status === statusFilter;
       const matchesAssignee =

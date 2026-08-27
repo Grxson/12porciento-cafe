@@ -140,9 +140,9 @@ export default function BrewRecipeDetail() {
               {recipe.difficulty}
             </span>
           )}
-          {recipe.grind && (
-            <span className="rounded-full bg-coffee-100 px-3 py-1 text-coffee-700 dark:bg-coffee-800 dark:text-coffee-200">
-              Molienda {recipe.grind}
+          {recipe.steps.some((s) => s.duration) && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-coffee-100 px-3 py-1 font-semibold text-coffee-700 dark:bg-coffee-800 dark:text-coffee-200">
+              {recipe.steps.filter((s) => s.duration).length} pasos con tiempo
             </span>
           )}
         </section>

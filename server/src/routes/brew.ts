@@ -32,7 +32,6 @@
 import { Router, Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
-import { requireAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../db';
 import { getErrorCode } from '../lib/error-utils';
 import { scaleRecipe, validateRecipeConsistency, type BrewRecipe } from '../lib/recipe-engine';
@@ -185,7 +184,7 @@ router.get('/recipes', async (req: Request, res: Response) => {
     const { method, profile, difficulty, coffeeId, recipeType, featured, search } = req.query;
     const where: Prisma.RecipeWhereInput = { isPublished: true };
     if (method) where.method = method as string;
-    if (profile) where.profile = profile as Prisma.EnumBrewRecipeProfileFilter;
+    if (profile) where.profile = profile as Prisma.EnumBrewRecipeProfileNullableFilter<'Recipe'>;
     if (difficulty) where.difficulty = difficulty as string;
     if (recipeType) where.recipeType = recipeType as Prisma.EnumBrewRecipeTypeFilter;
     if (featured === 'true') where.featured = true;
@@ -787,10 +786,7 @@ router.delete('/water-profiles/:id', requireUserAuth, async (req: UserAuthReques
   }
 });
 
-// Suppress unused-import warning for AuthRequest when only some endpoints use admin
-void AuthRequest;
-
-export default router;
-
 // Re-export helper for admin router
 export { pagination, paginatedResponse };
+
+export default router;

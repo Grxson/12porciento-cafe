@@ -70,9 +70,10 @@ export default function BrewPrepare() {
     brewApi
       .getSession(sessionParam)
       .then((r) => {
-        setSession(r.data.data);
-        if (r.data.data.recipeId) {
-          return brewApi.getRecipe(r.data.data.recipe.slug).then((rec) => rec.data.data);
+        const s = r.data.data;
+        setSession(s);
+        if (s.recipeId && s.recipe) {
+          return brewApi.getRecipe(s.recipe.slug).then((rec) => rec.data.data);
         }
         return null;
       })

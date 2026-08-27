@@ -396,11 +396,12 @@ export default function App() {
                       }
                     />
                     <Route
-                      path="/brew/*"
+                      path="/brew"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <BrewLayout />
                         </Suspense>
+                      }
                     >
                       <Route index element={<BrewHome />} />
                       <Route

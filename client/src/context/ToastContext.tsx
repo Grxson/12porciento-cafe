@@ -14,6 +14,7 @@ interface ToastStore {
   remove: (id: string) => void;
 }
 
+export type { ToastStore };
 export const useToast = create<ToastStore>((set) => ({
   toasts: [],
   add: (message, type = 'info', duration = 3500) => {

@@ -92,7 +92,7 @@ export function recommend(input: DialInInput): DialInRecommendation {
 
 // ─── Per-result rules ──────────────────────────────────────────────────
 
-function recommendSour(current: DialInInput['current']): DialInRecommendation {
+function recommendSour(current: NonNullable<DialInInput['current']>): DialInRecommendation {
   return {
     primaryChange: 'Muele ligeramente más fino.',
     reason: 'Un café marcadamente ácido suele indicar subextracción — el agua no logra extraer los compuestos dulces.',
@@ -105,7 +105,7 @@ function recommendSour(current: DialInInput['current']): DialInRecommendation {
   };
 }
 
-function recommendBitter(current: DialInInput['current']): DialInRecommendation {
+function recommendBitter(current: NonNullable<DialInInput['current']>): DialInRecommendation {
   return {
     primaryChange: 'Muele ligeramente más grueso.',
     reason: 'Amargor o astringencia alta sugiere sobreextracción — el agua permanece demasiado tiempo en contacto con el café.',
@@ -116,7 +116,7 @@ function recommendBitter(current: DialInInput['current']): DialInRecommendation 
   };
 }
 
-function recommendWatery(current: DialInInput['current']): DialInRecommendation {
+function recommendWatery(current: NonNullable<DialInInput['current']>): DialInRecommendation {
   const ratioNote =
     current.ratio && current.ratio >= 16
       ? `Tu ratio actual es 1:${current.ratio} — algo flojo. Busca 1:14 a 1:15.`
@@ -144,7 +144,7 @@ function recommendStrong(_current: DialInInput['current']): DialInRecommendation
   };
 }
 
-function recommendAstringent(current: DialInInput['current']): DialInRecommendation {
+function recommendAstringent(current: NonNullable<DialInInput['current']>): DialInRecommendation {
   return {
     primaryChange: 'Muele más grueso y suaviza la agitación.',
     reason: 'Astringencia / sequedad indica canales en el lecho o sobreextracción localizada. Menos finos y menos agitación.',
@@ -159,39 +159,39 @@ function recommendAstringent(current: DialInInput['current']): DialInRecommendat
 
 // ─── Helpers (return string or null) ───────────────────────────────────
 
-function bumpTemp(current: DialInInput['current']): string | null {
+function bumpTemp(current: NonNullable<DialInInput['current']>): string | null {
   if (current.temperatureCelsius == null) return 'Sube la temperatura del agua 1–2 °C.';
   if (current.temperatureCelsius >= 96) return null;
   return `Sube la temperatura de ${current.temperatureCelsius} °C a ${current.temperatureCelsius + 1}–${current.temperatureCelsius + 2} °C.`;
 }
 
-function dropTemp(current: DialInInput['current']): string | null {
+function dropTemp(current: NonNullable<DialInInput['current']>): string | null {
   if (current.temperatureCelsius == null) return 'Baja la temperatura del agua 1–2 °C.';
   if (current.temperatureCelsius <= 86) return null;
   return `Baja la temperatura de ${current.temperatureCelsius} °C a ${current.temperatureCelsius - 1}–${current.temperatureCelsius - 2} °C.`;
 }
 
-function bumpContactTime(current: DialInInput['current']): string | null {
+function bumpContactTime(current: NonNullable<DialInInput['current']>): string | null {
   if (current.brewTimeSeconds == null) return 'Incrementa el tiempo total de contacto 10–15 s.';
   return `Incrementa el tiempo total de ${current.brewTimeSeconds}s a ${current.brewTimeSeconds + 10}–${current.brewTimeSeconds + 15}s.`;
 }
 
-function dropContactTime(current: DialInInput['current']): string | null {
+function dropContactTime(current: NonNullable<DialInInput['current']>): string | null {
   if (current.brewTimeSeconds == null) return 'Reduce el tiempo total de contacto 10–15 s.';
   return `Reduce el tiempo total de ${current.brewTimeSeconds}s a ${Math.max(0, current.brewTimeSeconds - 10)}–${current.brewTimeSeconds - 15}s.`;
 }
 
-function bumpRatioAgitation(current: DialInInput['current']): string | null {
+function bumpRatioAgitation(current: NonNullable<DialInInput['current']>): string | null {
   if (current.agitation === 'low') return 'Incrementa la agitación suavemente (1–2 swirls).';
   return null;
 }
 
-function keepAgitation(current: DialInInput['current']): string | null {
+function keepAgitation(current: NonNullable<DialInInput['current']>): string | null {
   if (current.agitation === 'high') return 'Reduce la agitación — estás extrayendo demasiado rápido.';
   return null;
 }
 
-function reduceAgitation(_current: DialInInput['current']): string | null {
+function reduceAgitation(_current: NonNullable<DialInInput['current']>): string | null {
   return 'Reduce la agitación a un swirl suave al final del último vertido.';
 }
 

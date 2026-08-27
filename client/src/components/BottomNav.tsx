@@ -1,9 +1,17 @@
 import { NavLink } from 'react-router-dom';
-import { Store, ShoppingBag, User, BookOpen, Coffee } from 'lucide-react';
+import { Store, ShoppingBag, User, BookOpen, Coffee, type LucideIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
-const tabs = [
+interface Tab {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: boolean;
+  gated?: boolean;
+}
+
+const tabs: Tab[] = [
   { to: '/tienda', label: 'Tienda', icon: Store },
   { to: '/brew', label: '12% Brew', icon: Coffee },
   { to: '/carrito', label: 'Carrito', icon: ShoppingBag, badge: true },

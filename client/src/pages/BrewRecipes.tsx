@@ -160,7 +160,7 @@ export default function BrewRecipes() {
                   alt={r.title}
                 />
                 <div className="flex flex-1 flex-col gap-2 p-5">
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-coffee-500">
+                  <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest text-coffee-500">
                     {r.brewMethod?.name && <span>{r.brewMethod.name}</span>}
                     {r.profile && (
                       <>
@@ -170,6 +170,11 @@ export default function BrewRecipes() {
                         </span>
                       </>
                     )}
+                    {r.difficulty && (
+                      <span className="rounded-full bg-coffee-100 px-1.5 py-0.5 text-[9px] dark:bg-coffee-800">
+                        {r.difficulty}
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-serif text-lg text-coffee-900 dark:text-cream">{r.title}</h3>
                   {(r.coffeeDoseGrams || r.waterGrams) && (
@@ -177,8 +182,13 @@ export default function BrewRecipes() {
                       {r.coffeeDoseGrams} g · {r.waterGrams} g · {r.waterTemperatureCelsius} °C
                     </p>
                   )}
-                  <div className="mt-auto flex justify-end">
-                    <ChevronRight className="h-4 w-4 text-coffee-400 transition-transform group-hover:translate-x-0.5" />
+                  <div className="mt-auto flex items-center justify-between">
+                    {r.featured && (
+                      <span className="text-[10px] font-semibold uppercase tracking-widest text-gold-600 dark:text-gold-400">
+                        ★ Destacada
+                      </span>
+                    )}
+                    <ChevronRight className="ml-auto h-4 w-4 text-coffee-400 transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </div>
               </Link>

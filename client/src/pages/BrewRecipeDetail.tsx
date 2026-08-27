@@ -67,6 +67,12 @@ export default function BrewRecipeDetail() {
   const hasStructuredParams =
     recipe.coffeeDoseGrams != null && recipe.waterGrams != null;
 
+  const totalSeconds = recipe.steps.reduce(
+    (sum, s) => sum + (s.duration ?? 0),
+    0,
+  );
+  const totalMinutes = Math.round(totalSeconds / 60);
+
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
@@ -121,6 +127,25 @@ export default function BrewRecipeDetail() {
             />
           </section>
         )}
+
+        {/* Quick stats: total time + servings */}
+        <section className="mb-8 flex flex-wrap items-center gap-2 text-xs">
+          {totalSeconds > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-coffee-100 px-3 py-1 font-semibold text-coffee-700 dark:bg-coffee-800 dark:text-coffee-200">
+              <Clock className="h-3 w-3" /> ~{totalMinutes} min
+            </span>
+          )}
+          {recipe.difficulty && (
+            <span className="rounded-full bg-coffee-100 px-3 py-1 font-semibold uppercase tracking-widest text-coffee-700 dark:bg-coffee-800 dark:text-coffee-200">
+              {recipe.difficulty}
+            </span>
+          )}
+          {recipe.grind && (
+            <span className="rounded-full bg-coffee-100 px-3 py-1 text-coffee-700 dark:bg-coffee-800 dark:text-coffee-200">
+              Molienda {recipe.grind}
+            </span>
+          )}
+        </section>
 
         {/* Ratio Calculator */}
         {hasStructuredParams && recipe.coffeeDoseGrams != null && recipe.waterGrams != null && (

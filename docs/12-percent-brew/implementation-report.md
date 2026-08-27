@@ -1,7 +1,7 @@
 # 12% Brew — reporte de implementación
 
 > Resumen ejecutivo del módulo 12% Brew.
-> Última actualización: FASE 14 — bug fixes + polish + push a `origin/main`.
+> Última actualización: FASE 15 — favoritos bug + integration tests + polish + final push.
 
 ## 1. Resumen
 
@@ -228,13 +228,28 @@ Pendiente fase 2: tests de permisos (admin vs user), ownership IDOR, snapshot in
 3. **`RecipeLiveMode.tsx` (880 líneas)** sigue intacto y vive paralelo a `GuidedBrew.tsx`. Ambos cumplen el mismo rol para dos entidades distintas (`BrewLog` vs `BrewSession`). Consolidación futura es una opción pero NO es trivial — son contextos de negocio diferentes. Mantener ambos por ahora.
 4. **`BrewMethods.tsx` admin** no expone aún los nuevos campos estructurados de Recipe (`profile`, `recipeType`, `featured`, `official`, `parentRecipeId`). La API los acepta; el editor de Recipe existente habría que extenderlo. Pendiente Fase 2.
 
-## 13b. Bugs detectados en code review post-MVP (FASE 14) — ya corregidos
+## 13b. Bugs detectados en code review post-MVP (FASE 14 + 15) — ya corregidos
 
 1. **`Recipe.ratio` String? legacy** — el tipo `BrewRecipeStructured` no declaraba `ratio`, así que `recipe.ratio != null` siempre era `false` en el cliente y `RatioCalculator` nunca se renderizaba en `BrewRecipeDetail` / `BrewPrepare`. **Fix**: añadido `ratio: number | null` al tipo compartido + helper `projectRecipe()` server-side que parsea `"15"` o `"1:15"` a float y se aplica a cada respuesta de recetas (list, detail, coffee detail).
 2. **`result: (result as never)` hack en `GuidedBrew`** — el `as never` silenciaba la validación de tipos. **Fix**: tipado explícito a `BrewSessionResult` union; `RESULTS` array ahora declara su tipo en lugar de inferir.
 3. **Fallos de red silenciosos** — `BrewHome`, `BrewRecipes`, `BrewSessions`, `BrewSessionDetail` atrapaban errores con `.catch(() => [])` mostrando estados vacíos engañosos en redes inestables (escenario crítico en móvil con WiFi de cafetería). **Fix**: cada página ahora distingue `error` y renderiza `<ErrorState>` con botón "Reintentar". 404 sigue cayendo al `EmptyState` correspondiente.
 4. **Tabla de comparación recortada en móvil** — `<section className="overflow-hidden">` cortaba celdas en pantallas angostas. **Fix**: `overflow-x-auto` + `min-w-[28rem]` para scroll horizontal limpio cuando sea necesario.
 5. **`/brew/preparar?session=ID` con receta borrada** — caía al method picker por defecto. **Fix**: branch explícito "Receta no disponible" con CTA al journal.
+6. **Filtro "Favoritas" en `/brew/sesiones` no funcionaba** — `listSessions` no incluía `BrewSessionFavorite` ni aceptaba filtro. **Fix**: server incluye `favorites: { where: { userId } }`, anota cada sesión con `favorited: boolean`, y acepta `favorites=true` para sub-select server-side (paginated correctly). Client envía el filtro en lugar de filtrar post-fetch.
+7. **Drafts de Guided Brew sin expiración** — un usuario que inicia un brew, lo abandona una semana y vuelve, vería estado stale. **Fix**: `savedAtMs` en payload + TTL de 7 días; drafts expirados se eliminan automáticamente de sessionStorage.
+
+## 13c. Tests añadidos (FASE 15b + 15c)
+
+| Suite | Tests |
+| --- | --- |
+| `server/src/lib/__tests__/recipe-engine.test.ts` | 16 |
+| `server/src/lib/__tests__/dial-in-engine.test.ts` | 18 |
+| `server/src/routes/__tests__/brew.test.ts` (dial-in + scale) | 6 |
+| `server/src/routes/__tests__/brew-routes.test.ts` (sessions + equipment + water-profiles) | 17 |
+| `client/src/components/brew/__tests__/RatioCalculator.test.tsx` | 7 |
+| **Total brew** | **64 tests** |
+
+Cobertura nueva: ownership 404, whitelist enforcement en PUT, rating 1-5 validation, result enum validation, equipment category allowlist, favorites sub-select filter, minRating filter, recipe snapshot capture, numeric coercion, RatioCalculator math live updates.
 
 ## 14. Archivos modificados / creados
 
@@ -401,4 +416,4 @@ pnpm --filter ./server test brew.test          # rutas HTTP
 
 ---
 
-**Total: 22 commits pequeños + limpios, app-ready, sin breaking changes en funcionalidad existente. Push a `origin/main` exitoso.**
+**Total: 27 commits pequeños + limpios, app-ready, sin breaking changes en funcionalidad existente. Push a `origin/main` exitoso.**

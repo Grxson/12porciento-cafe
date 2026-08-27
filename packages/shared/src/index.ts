@@ -1,11 +1,13 @@
 // Types
 export * from './types/index';
 export type { RecipeDraft, StepDraft } from './types/recipeDraft';
+export * from './types/brew';
 
 // API
 export { default as api } from './api/index';
 export * from './api/index';
 export { baristaApi } from './api/barista';
+export { brewApi } from './api/brew';
 
 // Utils
 export { urlBase64ToUint8Array } from './utils/base64';

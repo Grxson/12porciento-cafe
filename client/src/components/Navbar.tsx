@@ -24,6 +24,7 @@ const allLinks = [
 
 const primaryLinks = [
   { to: '/tienda', label: 'Tienda', gated: false },
+  { to: '/brew', label: '12% Brew', gated: false },
   { to: '/recetas', label: 'Recetas', gated: false },
   { to: '/suscripciones', label: 'Suscripciones', gated: false },
   { to: '/nosotros', label: 'Nosotros', gated: false },

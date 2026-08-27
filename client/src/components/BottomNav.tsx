@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { Store, ShoppingBag, User, BookOpen, Users } from 'lucide-react';
+import { Store, ShoppingBag, User, BookOpen, Coffee } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
 const tabs = [
   { to: '/tienda', label: 'Tienda', icon: Store },
-  { to: '/recetas', label: 'Recetas', icon: BookOpen },
+  { to: '/brew', label: '12% Brew', icon: Coffee },
   { to: '/carrito', label: 'Carrito', icon: ShoppingBag, badge: true },
-  { to: '/feed', label: 'Comunidad', icon: Users, gated: true },
+  { to: '/recetas', label: 'Recetas', icon: BookOpen },
   { to: '/perfil', label: 'Perfil', icon: User },
 ];
 

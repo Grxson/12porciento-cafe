@@ -43,6 +43,8 @@ import tiposCataRouter from './routes/tipos-cata';
 import pricingRouter from './routes/pricing';
 import productVersionsRouter from './routes/product-versions';
 import b2bRouter from './routes/b2b';
+import brewRouter from './routes/brew';
+import brewAdminRouter from './routes/admin/brew';
 import { UPLOAD_DIR } from './lib/uploads';
 import { startBillingScheduler } from './jobs/billing';
 import { startAbandonedCartScheduler } from './jobs/abandoned-cart';
@@ -158,6 +160,8 @@ app.use('/api/pricing', adminLimiter, pricingRouter);
 app.use('/api/product-versions', adminLimiter, productVersionsRouter);
 app.post('/api/b2b/inquiries', b2bInquiryLimiter);
 app.use('/api/b2b', b2bRouter);
+app.use('/api/brew', brewRouter);
+app.use('/api/brew/admin', adminLimiter, brewAdminRouter);
 app.use('/api', sitemapRouter);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

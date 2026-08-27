@@ -57,7 +57,7 @@ function recipeToBrewRecipe(
   recipe: {
     coffeeDoseGrams: number | null;
     waterGrams: number | null;
-    ratio: number | null;
+    ratio: string | null;
     waterTemperatureCelsius: number | null;
     grindTargetMicrons: number | null;
     steps: Array<{
@@ -79,10 +79,23 @@ function recipeToBrewRecipe(
   },
 ): BrewRecipe | null {
   if (!recipe.coffeeDoseGrams || !recipe.waterGrams || !recipe.ratio) return null;
+  // Legacy ratio is a string ("1:15" or "15"); coerce to a float for the engine.
+  const ratioNum = (() => {
+    const raw = String(recipe.ratio).trim();
+    if (!raw) return null;
+    if (raw.includes(':')) {
+      const [, r] = raw.split(':');
+      const n = parseFloat(r);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    }
+    const n = parseFloat(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  })();
+  if (!ratioNum) return null;
   return {
     coffeeDoseGrams: recipe.coffeeDoseGrams,
     waterGrams: recipe.waterGrams,
-    ratio: recipe.ratio,
+    ratio: ratioNum,
     waterTemperatureCelsius: recipe.waterTemperatureCelsius ?? null,
     grindTargetMicrons: recipe.grindTargetMicrons ?? null,
     steps: (recipe.steps ?? []).map((s) => ({

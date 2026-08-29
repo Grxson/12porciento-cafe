@@ -5,12 +5,15 @@
  * (mobile-first full-screen step-by-step timer) but persists to BrewSession
  * (the snapshot-preserving entity) instead of BrewLog (gamification).
  *
- * Uses timestamps for timer accuracy (no setInterval drift accumulation).
- * Persists the in-progress draft to sessionStorage keyed by session id so
- * a refresh keeps current step + parameters.
+ * Fase 4-7 (plan): explicit reducer state with separate general/step timers,
+ * a single `BrewConfiguration` as the source of truth for steps/water
+ * (scaled server-side by RecipeEngine, local fallback), full sessionStorage
+ * persistence (status, indexes, timestamps, paused accumulators, config),
+ * visibility-aware clock refresh + wake-lock re-request, and step-end
+ * feedback (no auto-advance; vibration + beep when the target elapses).
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X, Clock, Scale, ThermometerSun, Coffee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,119 +23,295 @@ import {
   formatGrams,
   formatSecondsPadded,
   calculateWater,
+  roundHalf,
+  scaleRecipeLocally,
 } from '@12porciento/shared';
 import type {
+  BrewConfiguration,
   BrewRecipeStructured,
   BrewSession,
   BrewSessionResult,
-  BrewStepStructured,
 } from '@12porciento/shared';
 import { useToast, type ToastStore } from '../../context/ToastContext';
 
-type BrewStatus = 'IDLE' | 'PREPARING' | 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+type GuidedBrewStatus = 'PREPARING' | 'RUNNING' | 'PAUSED' | 'COMPLETED';
 
 interface GuidedBrewProps {
   recipe: BrewRecipeStructured;
   initialSession: BrewSession;
 }
 
-interface DraftState {
+// ── State model (Fase 4) ────────────────────────────────────────────────
+
+interface GuidedBrewState {
+  status: GuidedBrewStatus;
   currentStepIndex: number;
-  coffeeDoseGrams: number;
-  waterGrams: number;
-  ratio: number;
-  grindSetting: string;
-  startedAtMs: number | null;
+
+  brewStartedAtMs: number | null;
+  stepStartedAtMs: number | null;
+
   pausedAtMs: number | null;
-  totalPausedMs: number;
-  /** When the draft was last persisted. Used to expire stale drafts. */
+
+  /** Accumulated paused time that must be subtracted from each timer. */
+  brewPausedMs: number;
+  stepPausedMs: number;
+
+  configuration: BrewConfiguration;
+}
+
+/** Shape persisted to sessionStorage (Fase 6). */
+interface GuidedBrewDraft extends GuidedBrewState {
   savedAtMs: number;
 }
+
+type GuidedBrewAction =
+  | { type: 'START_STEP'; now: number }
+  | { type: 'PAUSE'; now: number }
+  | { type: 'RESUME'; now: number }
+  | { type: 'NEXT' }
+  | { type: 'PREV' }
+  | { type: 'UPDATE_CONFIG'; configuration: BrewConfiguration }
+  | { type: 'COMPLETE' };
+
+function guidedBrewReducer(state: GuidedBrewState, action: GuidedBrewAction): GuidedBrewState {
+  switch (action.type) {
+    case 'START_STEP':
+      return {
+        ...state,
+        status: 'RUNNING',
+        brewStartedAtMs: state.brewStartedAtMs ?? action.now,
+        stepStartedAtMs: action.now,
+        pausedAtMs: null,
+      };
+    case 'PAUSE':
+      return { ...state, status: 'PAUSED', pausedAtMs: action.now };
+    case 'RESUME': {
+      const pausedFor = Math.max(0, action.now - (state.pausedAtMs ?? action.now));
+      return {
+        ...state,
+        status: 'RUNNING',
+        pausedAtMs: null,
+        brewPausedMs: state.brewPausedMs + pausedFor,
+        stepPausedMs: state.stepPausedMs + (state.stepStartedAtMs ? pausedFor : 0),
+      };
+    }
+    case 'NEXT':
+      return {
+        ...state,
+        currentStepIndex: state.currentStepIndex + 1,
+        stepStartedAtMs: null,
+        pausedAtMs: null,
+        stepPausedMs: 0,
+        status: 'PREPARING',
+      };
+    case 'PREV':
+      return {
+        ...state,
+        currentStepIndex: Math.max(0, state.currentStepIndex - 1),
+        stepStartedAtMs: null,
+        pausedAtMs: null,
+        stepPausedMs: 0,
+        status: 'PREPARING',
+      };
+    case 'UPDATE_CONFIG':
+      return { ...state, configuration: action.configuration };
+    case 'COMPLETE':
+      return { ...state, status: 'COMPLETED', pausedAtMs: null };
+    default:
+      return state;
+  }
+}
+
+// ── Draft persistence (Fase 6) ──────────────────────────────────────────
+
+const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function draftKey(sessionId: string) {
   return `brew:guided:${sessionId}`;
 }
 
-/** Drafts older than 7 days are considered abandoned and ignored. */
-const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+function initialConfiguration(
+  recipe: BrewRecipeStructured,
+  session: BrewSession,
+): BrewConfiguration {
+  const coffee = session.coffeeDoseGrams ?? recipe.coffeeDoseGrams ?? 20;
+  const water = session.waterGrams ?? recipe.waterGrams ?? 300;
+  const ratio = session.ratio ?? recipe.ratio ?? Number((water / coffee).toFixed(2));
+  return {
+    recipeId: recipe.id,
+    coffeeId: recipe.productId ?? undefined,
+    brewMethodId: recipe.brewMethodId ?? undefined,
+    coffeeDoseGrams: coffee,
+    waterGrams: water,
+    ratio,
+    temperatureCelsius: session.temperatureCelsius ?? recipe.waterTemperatureCelsius ?? undefined,
+    grindSetting: session.grindSetting ?? undefined,
+    grindMicrons: session.grindMicrons ?? undefined,
+    steps: recipe.steps,
+  };
+}
+
+function hydrateDraft(
+  sessionId: string,
+  recipe: BrewRecipeStructured,
+  session: BrewSession,
+): GuidedBrewState {
+  const fallback: GuidedBrewState = {
+    status: 'PREPARING',
+    currentStepIndex: 0,
+    brewStartedAtMs: null,
+    stepStartedAtMs: null,
+    pausedAtMs: null,
+    brewPausedMs: 0,
+    stepPausedMs: 0,
+    configuration: initialConfiguration(recipe, session),
+  };
+  try {
+    const raw = sessionStorage.getItem(draftKey(sessionId));
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<GuidedBrewDraft>;
+    if (typeof parsed.savedAtMs === 'number' && Date.now() - parsed.savedAtMs > DRAFT_TTL_MS) {
+      try {
+        sessionStorage.removeItem(draftKey(sessionId));
+      } catch {
+        /* noop */
+      }
+      return fallback;
+    }
+    if (!parsed.configuration) {
+      // Legacy draft (pre-Fase 6): keep step/params, loose timestamps.
+      const legacy = parsed as unknown as {
+        startedAtMs?: number | null;
+        totalPausedMs?: number;
+      };
+      return {
+        ...fallback,
+        currentStepIndex: parsed.currentStepIndex ?? 0,
+        stepStartedAtMs: legacy.startedAtMs ?? null,
+        pausedAtMs: parsed.pausedAtMs ?? null,
+        brewPausedMs: legacy.totalPausedMs ?? 0,
+        stepPausedMs: legacy.totalPausedMs ?? 0,
+      };
+    }
+    // Task: status hydrates as-is (RUNNING stays RUNNING and recomputes from
+    // timestamps; PAUSED stays paused).
+    return {
+      status:
+        parsed.status === 'RUNNING' || parsed.status === 'PAUSED' ? parsed.status : 'PREPARING',
+      currentStepIndex: parsed.currentStepIndex ?? 0,
+      brewStartedAtMs: parsed.brewStartedAtMs ?? null,
+      stepStartedAtMs: parsed.stepStartedAtMs ?? null,
+      pausedAtMs: parsed.pausedAtMs ?? null,
+      brewPausedMs: parsed.brewPausedMs ?? 0,
+      stepPausedMs: parsed.stepPausedMs ?? 0,
+      configuration: { ...fallback.configuration, ...parsed.configuration },
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+// ── Step-end alert (Fase 7) ─────────────────────────────────────────────
+
+interface StepAlertPref {
+  vibration: boolean;
+  sound: boolean;
+}
+
+const ALERT_KEY = 'brew:step-alert';
+
+function loadStepAlertPref(): StepAlertPref {
+  try {
+    const raw = localStorage.getItem(ALERT_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<StepAlertPref>;
+      return { vibration: parsed.vibration !== false, sound: parsed.sound !== false };
+    }
+  } catch {
+    /* noop */
+  }
+  return { vibration: true, sound: true };
+}
+
+let beepCtx: AudioContext | null = null;
+
+function playBeep() {
+  try {
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    beepCtx = beepCtx ?? new Ctx();
+    const osc = beepCtx.createOscillator();
+    const gain = beepCtx.createGain();
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.06, beepCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, beepCtx.currentTime + 0.12);
+    osc.connect(gain);
+    gain.connect(beepCtx.destination);
+    osc.start();
+    osc.stop(beepCtx.currentTime + 0.12);
+  } catch {
+    /* audio unavailable */
+  }
+}
+
+// ── Component ───────────────────────────────────────────────────────────
 
 export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) {
   const navigate = useNavigate();
   const addToast = useToast((s: ToastStore) => s.add);
 
-  // Hydrate from sessionStorage first, fall back to session defaults.
-  // Stale drafts (> 7 days) are ignored so the user doesn't accidentally resume
-  // a brew that started a week ago.
-  const initialDraft = useMemo<DraftState | null>(() => {
-    try {
-      const raw = sessionStorage.getItem(draftKey(initialSession.id));
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as DraftState;
-      if (
-        typeof parsed.savedAtMs === 'number' &&
-        // Timestamp check: impure by design — draft TTL must compare against wall clock.
-        // eslint-disable-next-line react-hooks/purity
-        Date.now() - parsed.savedAtMs > DRAFT_TTL_MS
-      ) {
-        try {
-          sessionStorage.removeItem(draftKey(initialSession.id));
-        } catch {
-          /* noop */
-        }
-        return null;
-      }
-      return parsed;
-    } catch {
-      // ignore
-    }
-    return null;
-  }, [initialSession.id]);
-
-  const [currentStepIndex, setCurrentStepIndex] = useState(initialDraft?.currentStepIndex ?? 0);
-  const [status, setStatus] = useState<BrewStatus>('PREPARING');
-  const [stepStartedAtMs, setStepStartedAtMs] = useState<number | null>(
-    initialDraft?.startedAtMs ?? null,
+  const [state, dispatch] = useReducer(guidedBrewReducer, undefined, () =>
+    hydrateDraft(initialSession.id, recipe, initialSession),
   );
-  const [pausedAtMs, setPausedAtMs] = useState<number | null>(initialDraft?.pausedAtMs ?? null);
-  const [totalPausedMs, setTotalPausedMs] = useState<number>(initialDraft?.totalPausedMs ?? 0);
+
   // Seed the clock once at mount; subsequent ticks come from the interval.
   // eslint-disable-next-line react-hooks/purity
   const [now, setNow] = useState<number>(Date.now());
-  const [coffeeDoseGrams, setCoffeeDoseGrams] = useState(
-    initialDraft?.coffeeDoseGrams ?? initialSession.coffeeDoseGrams ?? recipe.coffeeDoseGrams ?? 20,
-  );
-  const [waterGrams, setWaterGrams] = useState(
-    initialDraft?.waterGrams ?? initialSession.waterGrams ?? recipe.waterGrams ?? 300,
-  );
-  const [grindSetting, setGrindSetting] = useState(
-    initialDraft?.grindSetting ?? initialSession.grindSetting ?? '',
-  );
-  // Server-scaled steps (RecipeEngine) — single source of scaling truth.
-  const [scaledSteps, setScaledSteps] = useState<BrewStepStructured[] | null>(null);
-  const scaleTimeoutRef = useRef<number | null>(null);
-  const wakeLockRef = useRef<{ release: () => Promise<unknown> } | null>(null);
   const [showFinishForm, setShowFinishForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [stepAlert, setStepAlert] = useState<StepAlertPref>(loadStepAlertPref);
 
-  // Live "now" for the timer.
-  useEffect(() => {
-    if (status !== 'RUNNING') return;
-    const id = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(id);
-  }, [status]);
+  const scaleTimeoutRef = useRef<number | null>(null);
+  const wakeLockRef = useRef<{ release: () => Promise<unknown> } | null>(null);
+  const alertedStepRef = useRef<number>(-1);
 
-  // Keep the screen awake while a step is running (Wake Lock API with
-  // graceful fallback — timer still works if the browser refuses).
+  // ── Timer tick (timestamp-driven, no drift) ──
   useEffect(() => {
-    if (status !== 'RUNNING') return;
-    let cancelled = false;
-    let lock: { release: () => Promise<unknown> } | null = null;
+    if (state.status !== 'RUNNING' && state.status !== 'PAUSED') return;
+    const id = window.setInterval(() => {
+      setNow(() => Date.now());
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [state.status]);
+
+  // ── Clock refresh when the tab becomes visible again ──
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setNow(() => Date.now());
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  // ── Wake lock: request while RUNNING; re-request after re-focus, because
+  //    some browsers release the lock when the app is hidden (Fase 6). ──
+  useEffect(() => {
     const wl = (
       navigator as Navigator & {
         wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<unknown> }> };
       }
     ).wakeLock;
-    if (wl) {
+    if (!wl) return;
+
+    let cancelled = false;
+    let lock: { release: () => Promise<unknown> } | null = null;
+
+    function requestLock() {
+      if (cancelled || state.status !== 'RUNNING') return;
       wl.request('screen')
         .then((l) => {
           if (cancelled) {
@@ -144,141 +323,187 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
         })
         .catch(() => {});
     }
+
+    requestLock();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') requestLock();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
       lock?.release().catch(() => {});
       wakeLockRef.current = null;
     };
-  }, [status]);
+  }, [state.status]);
 
-  // Rescale the steps through the server RecipeEngine (fallback: local).
-  useEffect(() => {
-    if (!recipe.id || !coffeeDoseGrams) return;
-    let cancelled = false;
-    brewApi
-      .scaleRecipe(recipe.id, coffeeDoseGrams)
-      .then((r) => {
-        if (!cancelled) setScaledSteps(r.data.data.steps);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
+  // ── Persist draft on every meaningful change (Fase 6) ──
+  const persistDraft = useCallback(() => {
+    const draft: GuidedBrewDraft = {
+      ...state,
+      savedAtMs: Date.now(),
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe.id]);
-
-  // Persist draft on every meaningful change.
-  const persistDraft = useCallback(
-    (overrides?: Partial<DraftState>) => {
-      const draft: DraftState = {
-        currentStepIndex,
-        coffeeDoseGrams,
-        waterGrams,
-        ratio: waterGrams / coffeeDoseGrams,
-        grindSetting,
-        startedAtMs: stepStartedAtMs,
-        pausedAtMs,
-        totalPausedMs,
-        savedAtMs: Date.now(),
-        ...overrides,
-      };
-      try {
-        sessionStorage.setItem(draftKey(initialSession.id), JSON.stringify(draft));
-      } catch {
-        // ignore quota errors
-      }
-    },
-    [
-      initialSession.id,
-      currentStepIndex,
-      coffeeDoseGrams,
-      waterGrams,
-      grindSetting,
-      stepStartedAtMs,
-      pausedAtMs,
-      totalPausedMs,
-    ],
-  );
+    try {
+      sessionStorage.setItem(draftKey(initialSession.id), JSON.stringify(draft));
+    } catch {
+      /* ignore quota errors */
+    }
+  }, [initialSession.id, state]);
 
   useEffect(() => {
     persistDraft();
   }, [persistDraft]);
 
-  const step = recipe.steps[currentStepIndex];
+  // ── Single source of truth for steps (Fase 5) ──
+  const activeSteps = state.configuration.steps;
+  const step = activeSteps[state.currentStepIndex] ?? recipe.steps[state.currentStepIndex];
 
-  // Compute current step's target water (cumulative).
-  const cumulativeWater = useMemo(() => {
-    let sum = 0;
-    for (let i = 0; i <= currentStepIndex; i++) {
-      const w = recipe.steps[i].waterAmountGrams;
-      if (typeof w === 'number') sum += w;
-    }
-    return sum;
-  }, [currentStepIndex, recipe.steps]);
+  // If the session was created with custom dose/water (via RatioCalculator),
+  // rescale the recipe steps to match on mount (server wins later via the
+  // Parámetros editor; local fallback keeps the projection authoritative).
+  useEffect(() => {
+    if (!initialSession.coffeeDoseGrams || !recipe.coffeeDoseGrams) return;
+    if (initialSession.coffeeDoseGrams === recipe.coffeeDoseGrams) return;
+    const local = scaleRecipeLocally(
+      recipe.steps,
+      initialSession.coffeeDoseGrams,
+      state.configuration.ratio,
+      recipe.coffeeDoseGrams,
+    );
+    dispatch({
+      type: 'UPDATE_CONFIG',
+      configuration: { ...state.configuration, steps: local.steps },
+    });
+    // Rescale once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Scaled step water for current step. Server-scaled steps (RecipeEngine)
-  // win when available; local proportional scaling is the offline fallback.
-  const scaledStepWater = useMemo(() => {
-    if (!step || !step.waterAmountGrams || !recipe.coffeeDoseGrams) return null;
-    if (scaledSteps) {
-      const serverStep = scaledSteps.find((s) => s.order === step.order);
-      if (serverStep?.waterAmountGrams && serverStep.waterAmountGrams > 0) {
-        return Math.round(serverStep.waterAmountGrams * 2) / 2;
-      }
-    }
-    const scale = coffeeDoseGrams / recipe.coffeeDoseGrams;
-    return Math.round(step.waterAmountGrams * scale * 2) / 2;
-  }, [step, scaledSteps, coffeeDoseGrams, recipe.coffeeDoseGrams]);
+  // ── Water targets (Fase 5): everything derives from configuration. ──
+  const cumulativeWater = useMemo(
+    () =>
+      activeSteps
+        .slice(0, state.currentStepIndex + 1)
+        .reduce(
+          (acc, s) => acc + (typeof s.waterAmountGrams === 'number' ? s.waterAmountGrams : 0),
+          0,
+        ),
+    [activeSteps, state.currentStepIndex],
+  );
+  const stepWater =
+    typeof step?.waterAmountGrams === 'number' && step.waterAmountGrams > 0
+      ? step.waterAmountGrams
+      : null;
+  const totalWater = state.configuration.waterGrams;
 
-  const totalWater = calculateWater(coffeeDoseGrams, waterGrams / coffeeDoseGrams);
+  // ── Timers (Fase 4): step timer AND general brew timer, both from
+  //    timestamps with paused time subtracted. ──
+  const refNow = state.status === 'PAUSED' && state.pausedAtMs ? state.pausedAtMs : now;
+  const stepElapsedSec = state.stepStartedAtMs
+    ? Math.max(0, Math.floor((refNow - state.stepStartedAtMs - state.stepPausedMs) / 1000))
+    : 0;
+  const brewElapsedSec = state.brewStartedAtMs
+    ? Math.max(0, Math.floor((refNow - state.brewStartedAtMs - state.brewPausedMs) / 1000))
+    : 0;
 
-  const stepElapsedSec = useMemo(() => {
-    if (!stepStartedAtMs) return 0;
-    const refNow = pausedAtMs ?? now;
-    return Math.max(0, Math.floor((refNow - stepStartedAtMs - totalPausedMs) / 1000));
-  }, [stepStartedAtMs, pausedAtMs, now, totalPausedMs]);
+  // ── Step-end feedback (Fase 7): no auto-advance, alert once. ──
+  const targetReached = Boolean(
+    step?.duration && stepElapsedSec >= step.duration && state.status === 'RUNNING',
+  );
+  useEffect(() => {
+    if (!targetReached || alertedStepRef.current === state.currentStepIndex) return;
+    alertedStepRef.current = state.currentStepIndex;
+    if (stepAlert.vibration) navigator.vibrate?.([100, 50, 100]);
+    if (stepAlert.sound) playBeep();
+  }, [targetReached, state.currentStepIndex, stepAlert]);
 
-  // Step lifecycle actions.
+  // ── Parameter editing → rescale steps (server RecipeEngine, local fallback) ──
+  function updateConfig(config: BrewConfiguration) {
+    dispatch({ type: 'UPDATE_CONFIG', configuration: config });
+  }
+
+  function onCoffeeChange(n: number) {
+    if (!Number.isFinite(n) || n <= 0) return;
+    const newCoffee = roundHalf(n);
+    const baselineDose = recipe.coffeeDoseGrams ?? newCoffee;
+    const local = scaleRecipeLocally(
+      recipe.steps,
+      newCoffee,
+      state.configuration.ratio,
+      baselineDose,
+    );
+    updateConfig({
+      ...state.configuration,
+      coffeeDoseGrams: newCoffee,
+      waterGrams: local.waterGrams,
+      steps: local.steps,
+    });
+    if (scaleTimeoutRef.current) window.clearTimeout(scaleTimeoutRef.current);
+    scaleTimeoutRef.current = window.setTimeout(() => {
+      brewApi
+        .scaleRecipe(recipe.id, newCoffee)
+        .then((r) =>
+          updateConfig({
+            ...state.configuration,
+            coffeeDoseGrams: newCoffee,
+            waterGrams: roundHalf(r.data.data.waterGrams),
+            steps: r.data.data.steps,
+          }),
+        )
+        .catch(() => {});
+    }, 350);
+  }
+
+  function onWaterChange(n: number) {
+    if (!Number.isFinite(n) || n <= 0) return;
+    updateConfig({ ...state.configuration, waterGrams: roundHalf(n) });
+  }
+
+  function onRatioChange(n: number) {
+    if (!Number.isFinite(n) || n <= 0) return;
+    updateConfig({
+      ...state.configuration,
+      ratio: n,
+      waterGrams: calculateWater(state.configuration.coffeeDoseGrams, n),
+    });
+  }
+
+  function onGrindChange(v: string) {
+    updateConfig({ ...state.configuration, grindSetting: v });
+  }
+
+  // ── Step lifecycle ──
   function startStep() {
-    setStepStartedAtMs(Date.now());
-    setPausedAtMs(null);
-    setTotalPausedMs(0);
-    setStatus('RUNNING');
+    dispatch({ type: 'START_STEP', now: Date.now() });
   }
 
   function pauseStep() {
-    setPausedAtMs(Date.now());
-    setStatus('PAUSED');
+    dispatch({ type: 'PAUSE', now: Date.now() });
   }
 
   function resumeStep() {
-    if (pausedAtMs) {
-      setTotalPausedMs((p) => p + (Date.now() - pausedAtMs));
-    }
-    setPausedAtMs(null);
-    setStatus('RUNNING');
+    dispatch({ type: 'RESUME', now: Date.now() });
   }
 
   function nextStep() {
-    if (currentStepIndex < recipe.steps.length - 1) {
-      setCurrentStepIndex((c) => c + 1);
-      setStepStartedAtMs(null);
-      setPausedAtMs(null);
-      setTotalPausedMs(0);
-      setStatus('PREPARING');
+    if (state.currentStepIndex < activeSteps.length - 1) {
+      dispatch({ type: 'NEXT' });
     } else {
-      setStatus('COMPLETED');
+      dispatch({ type: 'COMPLETE' });
       setShowFinishForm(true);
     }
   }
 
   function prevStep() {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex((c) => c - 1);
-      setStepStartedAtMs(null);
-      setPausedAtMs(null);
-      setTotalPausedMs(0);
-      setStatus('PREPARING');
+    if (state.currentStepIndex > 0) dispatch({ type: 'PREV' });
+  }
+
+  function toggleAlert(partial: Partial<StepAlertPref>) {
+    const next = { ...stepAlert, ...partial };
+    setStepAlert(next);
+    try {
+      localStorage.setItem(ALERT_KEY, JSON.stringify(next));
+    } catch {
+      /* noop */
     }
   }
 
@@ -289,16 +514,17 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
         rating,
         notes: notes || undefined,
         result: result ?? undefined,
-        brewTimeSeconds: stepStartedAtMs
-          ? Math.floor((Date.now() - stepStartedAtMs) / 1000)
+        brewTimeSeconds: state.brewStartedAtMs
+          ? Math.floor((Date.now() - state.brewStartedAtMs - state.brewPausedMs) / 1000)
           : undefined,
       });
-      // Also update params to what was actually used.
+      // Also update params to what was actually used (Fase 4: complete uses
+      // the general timer, not the step timer).
       await brewApi.updateSession(initialSession.id, {
-        coffeeDoseGrams,
-        waterGrams,
-        ratio: waterGrams / coffeeDoseGrams,
-        grindSetting: grindSetting || undefined,
+        coffeeDoseGrams: state.configuration.coffeeDoseGrams,
+        waterGrams: state.configuration.waterGrams,
+        ratio: state.configuration.ratio,
+        grindSetting: state.configuration.grindSetting || undefined,
       });
       try {
         sessionStorage.removeItem(draftKey(initialSession.id));
@@ -337,26 +563,33 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
             {recipe.title}
           </h1>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (window.confirm('¿Salir? Tu progreso se guarda.')) {
-              persistDraft();
-              navigate(-1);
-            }
-          }}
-          className="p-2 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream"
-          aria-label="Salir"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-3">
+          {state.brewStartedAtMs && (
+            <p className="font-mono text-xs tabular-nums text-coffee-500 dark:text-coffee-400">
+              Total · {formatSecondsPadded(brewElapsedSec)}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('¿Salir? Tu progreso se guarda.')) {
+                persistDraft();
+                navigate(-1);
+              }
+            }}
+            className="p-2 text-coffee-500 hover:text-coffee-900 dark:hover:text-cream"
+            aria-label="Salir"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
       {/* Progress bar */}
       <div className="h-1 w-full overflow-hidden bg-coffee-100 dark:bg-coffee-800">
         <div
           className="h-full bg-gold-500 transition-all"
-          style={{ width: `${((currentStepIndex + 1) / recipe.steps.length) * 100}%` }}
+          style={{ width: `${((state.currentStepIndex + 1) / activeSteps.length) * 100}%` }}
         />
       </div>
 
@@ -364,7 +597,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
       <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-coffee-500">
-            Paso {currentStepIndex + 1} de {recipe.steps.length}
+            Paso {state.currentStepIndex + 1} de {activeSteps.length}
           </p>
 
           <h2 className="font-serif text-3xl text-coffee-900 dark:text-cream sm:text-4xl">
@@ -377,28 +610,36 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
             </p>
           )}
 
-          {/* Step water target */}
-          {scaledStepWater != null && scaledStepWater > 0 && (
-            <div className="rounded-lg border border-coffee-200 bg-white p-4 dark:border-coffee-800 dark:bg-coffee-900">
-              <p className="text-[10px] uppercase tracking-widest text-coffee-500">
-                Agrega en este paso
-              </p>
-              <p className="mt-1 font-mono text-4xl font-bold text-coffee-900 dark:text-cream">
-                {formatGrams(scaledStepWater)}
-              </p>
-              <p className="mt-2 text-xs text-coffee-500">
-                Total acumulado · {formatGrams(cumulativeWater)} / {formatGrams(totalWater)}
-              </p>
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-coffee-100 dark:bg-coffee-800">
-                <div
-                  className="h-full bg-gold-500 transition-all"
-                  style={{ width: `${Math.min(100, (cumulativeWater / totalWater) * 100)}%` }}
-                />
-              </div>
+          {/* Scale target (Fase 5): show where the scale should be, not the
+              delta textually first. */}
+          <div className="rounded-lg border border-coffee-200 bg-white p-5 dark:border-coffee-800 dark:bg-coffee-900">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-coffee-500">
+              Objetivo en báscula
+            </p>
+            <p className="mt-1 font-mono text-4xl font-bold text-coffee-900 dark:text-cream sm:text-5xl">
+              {formatGrams(roundHalf(cumulativeWater))}
+            </p>
+            <div className="mt-2 flex items-center justify-center gap-2 text-sm text-coffee-600 dark:text-coffee-300">
+              <Coffee className="h-3.5 w-3.5 text-gold-600 dark:text-gold-400" />
+              {stepWater != null ? (
+                <span>+{formatGrams(roundHalf(stepWater))} g en este vertido</span>
+              ) : (
+                <span>Sin vertido de agua en este paso</span>
+              )}
+              <span className="text-coffee-400">·</span>
+              <span>Total {formatGrams(roundHalf(totalWater))} g</span>
             </div>
-          )}
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-coffee-100 dark:bg-coffee-800">
+              <div
+                className="h-full bg-gold-500 transition-all"
+                style={{
+                  width: `${Math.min(100, (cumulativeWater / Math.max(1, totalWater)) * 100)}%`,
+                }}
+              />
+            </div>
+          </div>
 
-          {/* Timer */}
+          {/* Step timer */}
           <div className="rounded-full border border-coffee-200 bg-white px-6 py-4 dark:border-coffee-800 dark:bg-coffee-900">
             <p className="text-[10px] uppercase tracking-widest text-coffee-500">Tiempo paso</p>
             <p className="font-mono text-3xl font-bold tabular-nums text-coffee-900 dark:text-cream">
@@ -410,7 +651,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
                 </span>
               )}
             </p>
-            {status === 'PREPARING' && step.duration && (
+            {state.status === 'PREPARING' && step.duration && (
               <button
                 type="button"
                 onClick={startStep}
@@ -419,7 +660,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
                 <Clock className="h-4 w-4" /> Iniciar {step.duration}s
               </button>
             )}
-            {status === 'RUNNING' && (
+            {state.status === 'RUNNING' && (
               <button
                 type="button"
                 onClick={pauseStep}
@@ -428,12 +669,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
                 Pausar
               </button>
             )}
-            {status === 'RUNNING' && step.duration && stepElapsedSec >= step.duration && (
-              <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-gold-600 dark:text-gold-400">
-                ✓ Tiempo cumplido — avanza cuando esté listo
-              </p>
-            )}
-            {status === 'PAUSED' && (
+            {state.status === 'PAUSED' && (
               <button
                 type="button"
                 onClick={resumeStep}
@@ -441,6 +677,13 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
               >
                 Reanudar
               </button>
+            )}
+            {/* Fase 7: never auto-advance; show the target is met and let the
+                user move forward when ready. */}
+            {targetReached && (
+              <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-gold-600 dark:text-gold-400">
+                ✓ Tiempo objetivo cumplido — avanza cuando esté listo
+              </p>
             )}
           </div>
 
@@ -454,39 +697,22 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
                 icon={<Coffee className="h-4 w-4" />}
                 label="Café"
                 suffix="g"
-                value={coffeeDoseGrams}
-                onChange={(n) => {
-                  if (n <= 0) return;
-                  setCoffeeDoseGrams(n);
-                  setWaterGrams(calculateWater(n, waterGrams / coffeeDoseGrams));
-                  if (scaleTimeoutRef.current) window.clearTimeout(scaleTimeoutRef.current);
-                  scaleTimeoutRef.current = window.setTimeout(() => {
-                    brewApi
-                      .scaleRecipe(recipe.id, n)
-                      .then((r) => setScaledSteps(r.data.data.steps))
-                      .catch(() => {});
-                  }, 350);
-                }}
+                value={state.configuration.coffeeDoseGrams}
+                onChange={onCoffeeChange}
               />
               <ParamEdit
                 icon={<Scale className="h-4 w-4" />}
                 label="Agua"
                 suffix="g"
-                value={waterGrams}
-                onChange={(n) => {
-                  if (n <= 0) return;
-                  setWaterGrams(n);
-                }}
+                value={state.configuration.waterGrams}
+                onChange={onWaterChange}
               />
               <ParamEdit
                 icon={<ThermometerSun className="h-4 w-4" />}
                 label="Ratio"
                 prefix="1:"
-                value={Number((waterGrams / coffeeDoseGrams).toFixed(2))}
-                onChange={(n) => {
-                  if (n <= 0) return;
-                  setWaterGrams(calculateWater(coffeeDoseGrams, n));
-                }}
+                value={state.configuration.ratio}
+                onChange={onRatioChange}
               />
               <label className="block">
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-coffee-500">
@@ -494,15 +720,45 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
                 </span>
                 <input
                   type="text"
-                  value={grindSetting}
-                  onChange={(e) => setGrindSetting(e.target.value)}
+                  value={state.configuration.grindSetting ?? ''}
+                  onChange={(e) => onGrindChange(e.target.value)}
                   placeholder="ej. 18 clicks"
                   className="mt-1 w-full border border-coffee-200 bg-coffee-50 px-2 py-1.5 text-sm focus:border-gold-500 focus:outline-none dark:border-coffee-700 dark:bg-coffee-950"
                 />
               </label>
               <p className="text-[11px] text-coffee-500">
-                Ratio actual · {formatRatio(waterGrams / coffeeDoseGrams)}
+                Ratio actual ·{' '}
+                {formatRatio(
+                  state.configuration.coffeeDoseGrams > 0
+                    ? state.configuration.waterGrams / state.configuration.coffeeDoseGrams
+                    : state.configuration.ratio,
+                )}
               </p>
+
+              {/* Fase 7: step alert preferences */}
+              <div className="border-t border-coffee-100 pt-2 dark:border-coffee-800">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-coffee-500">
+                  Aviso de paso
+                </p>
+                <div className="mt-1.5 flex gap-4 text-xs text-coffee-700 dark:text-coffee-200">
+                  <label className="inline-flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={stepAlert.vibration}
+                      onChange={(e) => toggleAlert({ vibration: e.target.checked })}
+                    />
+                    Vibración
+                  </label>
+                  <label className="inline-flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={stepAlert.sound}
+                      onChange={(e) => toggleAlert({ sound: e.target.checked })}
+                    />
+                    Sonido
+                  </label>
+                </div>
+              </div>
             </div>
           </details>
         </div>
@@ -513,7 +769,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
         <button
           type="button"
           onClick={prevStep}
-          disabled={currentStepIndex === 0}
+          disabled={state.currentStepIndex === 0}
           className="flex min-h-11 items-center gap-1 px-3 text-sm font-semibold text-coffee-700 disabled:opacity-30 dark:text-coffee-200"
           aria-label="Paso anterior"
         >
@@ -524,7 +780,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
           onClick={nextStep}
           className="btn-primary flex min-h-11 items-center gap-1 px-5 text-sm"
         >
-          {currentStepIndex === recipe.steps.length - 1 ? 'Finalizar' : 'Siguiente'}
+          {state.currentStepIndex === activeSteps.length - 1 ? 'Finalizar' : 'Siguiente'}
           <ChevronRight className="h-5 w-5" />
         </button>
       </footer>
@@ -533,10 +789,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
       <AnimatePresence>
         {showFinishForm && (
           <FinishForm
-            onCancel={() => {
-              setShowFinishForm(false);
-              setStatus('COMPLETED');
-            }}
+            onCancel={() => setShowFinishForm(false)}
             onSubmit={submitComplete}
             submitting={submitting}
           />

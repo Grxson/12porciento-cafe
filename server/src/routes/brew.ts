@@ -33,9 +33,9 @@ import { Router, Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { requireUserAuth, UserAuthRequest } from '../middleware/userAuth';
 import { prisma } from '../db';
-import { getErrorCode } from '../lib/error-utils';
 import { scaleRecipe, validateRecipeConsistency, type BrewRecipe } from '../lib/recipe-engine';
 import { getDialInProvider, type BrewSessionResult } from '../lib/dial-in-engine';
+import { calculateXp, checkAndUnlockAchievements } from './barista';
 
 const router = Router();
 
@@ -541,11 +541,10 @@ router.post(
   async (req: UserAuthRequest, res: Response) => {
     try {
       const userId = req.user!.id;
-      const owned = await prisma.brewSession.findFirst({
+      const session = await prisma.brewSession.findFirst({
         where: { id: req.params.id, userId },
-        select: { id: true },
       });
-      if (!owned) return res.status(404).json({ error: 'Sesión no encontrada' });
+      if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
       const {
         rating,
@@ -582,12 +581,12 @@ router.post(
         where: { id: req.params.id },
         data: {
           rating: rating ?? null,
-          notes: notes ?? null,
-          result: result ?? null,
+          notes: (notes as string | undefined)?.trim() ?? null,
           sweetnessRating: sweetnessRating ?? null,
           acidityRating: acidityRating ?? null,
           bodyRating: bodyRating ?? null,
           clarityRating: clarityRating ?? null,
+          result: result ?? null,
           brewTimeSeconds: Number.isFinite(brewTimeSeconds)
             ? Math.floor(Number(brewTimeSeconds))
             : undefined,
@@ -596,7 +595,79 @@ router.post(
         },
       });
 
-      res.json({ data: updated });
+      // Fase 11: sesión completada → BrewLog (XP, achievements, streak, records).
+      // Idempotente vía clientBrewId = `session:${id}`.
+      let brewLog: Awaited<ReturnType<typeof prisma.brewLog.create>> | undefined;
+      let bonusXp = 0;
+      if (updated.recipeId) {
+        const clientBrewId = `session:${updated.id}`;
+        const existing = await prisma.brewLog.findUnique({ where: { clientBrewId } });
+        if (!existing) {
+          const recipe = await prisma.recipe.findUnique({
+            where: { id: updated.recipeId },
+            select: { difficulty: true, method: true },
+          });
+          if (recipe) {
+            await prisma.baristaProfile.upsert({
+              where: { userId },
+              create: { userId, favoriteMethod: recipe.method },
+              update: {},
+            });
+            const rating10 =
+              updated.rating != null
+                ? Math.min(10, Math.max(1, Math.round(updated.rating * 2)))
+                : 3;
+            const xpEarned = calculateXp(recipe.difficulty || 'MEDIA', rating10);
+            brewLog = await prisma.brewLog.create({
+              data: {
+                userId,
+                recipeId: updated.recipeId,
+                rating: rating10,
+                notes: updated.notes ?? null,
+                xpEarned,
+                clientBrewId,
+                grindSize: updated.grindSetting ?? null,
+                waterTemp: updated.temperatureCelsius ?? null,
+                brewTime: updated.brewTimeSeconds ?? null,
+                coffeeWeight:
+                  updated.coffeeDoseGrams != null ? Math.round(updated.coffeeDoseGrams) : null,
+                waterVolume: updated.waterGrams != null ? Math.round(updated.waterGrams) : null,
+                beanId: updated.coffeeId ?? null,
+                tags: [],
+              },
+            });
+            let profile = await prisma.baristaProfile.update({
+              where: { userId },
+              data: {
+                totalXp: { increment: xpEarned },
+                totalBrews: { increment: 1 },
+                favoriteMethod: recipe.method,
+              },
+            });
+            const correctLevel = Math.floor(profile.totalXp / 100) + 1;
+            if (profile.level !== correctLevel) {
+              profile = await prisma.baristaProfile.update({
+                where: { userId },
+                data: { level: correctLevel },
+              });
+            }
+            const newAchievements = await checkAndUnlockAchievements(userId);
+            bonusXp = newAchievements.reduce((sum, a) => sum + a.xpReward, 0);
+            if (bonusXp > 0) {
+              const after = await prisma.baristaProfile.update({
+                where: { userId },
+                data: { totalXp: { increment: bonusXp } },
+              });
+              await prisma.baristaProfile.update({
+                where: { userId },
+                data: { level: Math.floor(after.totalXp / 100) + 1 },
+              });
+            }
+          }
+        }
+      }
+
+      res.json({ data: updated, brewLog: brewLog ?? null, bonusXp });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Error al completar sesión' });

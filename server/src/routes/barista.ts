@@ -17,12 +17,12 @@ const brewLogLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-function calculateXp(recipeDifficulty: string, rating: number): number {
+export function calculateXp(recipeDifficulty: string, rating: number): number {
   const baseXp: Record<string, number> = { FÁCIL: 10, MEDIA: 25, DIFÍCIL: 50 };
   return (baseXp[recipeDifficulty] ?? 25) + (rating - 1) * 5;
 }
 
-async function checkAndUnlockAchievements(
+export async function checkAndUnlockAchievements(
   userId: string,
 ): Promise<{ id: string; name: string; icon: string; xpReward: number }[]> {
   const today = new Date().toISOString().split('T')[0];

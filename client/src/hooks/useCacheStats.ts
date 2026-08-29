@@ -24,7 +24,7 @@ interface CacheStats {
 }
 
 const CACHE_LABELS: Record<string, string> = {
-  'recipes-cache': 'Recetas (lista)',
+  'recipes-cache': 'Recetas 12% Brew (lista)',
   'recipe-details': 'Recetas (detalle)',
   'api-runtime': 'API general',
   'google-fonts': 'Fuentes',

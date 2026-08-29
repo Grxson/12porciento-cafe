@@ -13,13 +13,19 @@ let offlineEnabled = true;
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
-// Recipe detail — CacheFirst so full recipe (steps, ingredients) works offline
+// Recipe detail — CacheFirst so full recipe (steps, ingredients) works offline.
+// Brew detail shares the same pattern (GET /api/brew/recipes/:slug); POST
+// endpoints (scale/dial-in) are excluded and stay network-only.
 const isRecipeDetail = (pathname: string) =>
-  /^\/api\/recipes\/[\w-]+$/.test(pathname) || /^\/api\/recipes\/by-slug\/[\w-]+$/.test(pathname);
+  /^\/api\/recipes\/[\w-]+$/.test(pathname) ||
+  /^\/api\/recipes\/by-slug\/[\w-]+$/.test(pathname) ||
+  /^\/api\/brew\/recipes\/[\w-]+$/.test(pathname);
 
 // Recipe list — SWR so new recipes appear without refresh
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/recipes') && !isRecipeDetail(url.pathname),
+  ({ url }) =>
+    (url.pathname.startsWith('/api/recipes') && !isRecipeDetail(url.pathname)) ||
+    (url.pathname.startsWith('/api/brew/recipes') && !isRecipeDetail(url.pathname)),
   ({ request, event }) => {
     if (!offlineEnabled) {
       return new NetworkFirst({
@@ -35,7 +41,7 @@ registerRoute(
 );
 
 registerRoute(
-  ({ url }) => isRecipeDetail(url.pathname),
+  ({ url, request }) => request.method === 'GET' && isRecipeDetail(url.pathname),
   ({ request, event }) => {
     if (!offlineEnabled) {
       return new NetworkFirst({

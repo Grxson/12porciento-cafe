@@ -22,6 +22,7 @@ import {
   PackageX,
   AlertTriangle,
   CheckCircle,
+  ChevronRight,
 } from 'lucide-react';
 import { productsApi, reviewsApi, recipesApi, wishlistApi } from '../api';
 import { useCart, MAX_QTY_PER_PRODUCT } from '../context/CartContext';
@@ -31,7 +32,6 @@ import ProductGallery from '../components/ProductGallery';
 import StarRating from '../components/StarRating';
 import CoffeeTimeline from '../components/CoffeeTimeline';
 import Breadcrumbs from '../components/Breadcrumbs';
-import BrewingGuideModal from '../components/BrewingGuideModal';
 import ReviewThread from '../components/ReviewThread';
 import PriceHistory from '../components/PriceHistory';
 import PageSkeleton from '../components/PageSkeleton';
@@ -81,7 +81,6 @@ export default function ProductDetail() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviewError, setReviewError] = useState('');
-  const [brewingOpen, setBrewingOpen] = useState(false);
   const [inWishlist, setInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [priceHistory, setPriceHistory] = useState<
@@ -486,13 +485,13 @@ export default function ProductDetail() {
                 )}
 
                 {isCafe && productRecipes.length > 0 && (
-                  <button
-                    onClick={() => setBrewingOpen(true)}
+                  <Link
+                    to={`/brew/cafes/${product.slug}`}
                     className="btn-outline w-full flex items-center justify-center gap-2 mt-4"
                   >
                     <BookOpen className="w-4 h-4" />
-                    Guía de Preparación
-                  </button>
+                    Guía de Preparación en 12% Brew
+                  </Link>
                 )}
 
                 {loggedUser && (
@@ -824,69 +823,36 @@ export default function ProductDetail() {
 
                   {/* Recipes tab */}
                   {tab === 'recipes' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {productRecipes.map((recipe) => (
-                        <div
-                          key={recipe.id}
-                          className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 p-6"
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">
-                              {recipe.title}
-                            </h3>
-                            <span className="text-xs text-gold-600 dark:text-gold-500 border border-gold-500/40 px-2 py-1 uppercase tracking-widest">
-                              {recipe.method}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-coffee-200 dark:border-coffee-700">
-                            <div>
-                              <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-1">
-                                Temperatura
-                              </p>
-                              <p className="text-coffee-800 dark:text-cream text-sm font-medium">
-                                {recipe.temp}
-                              </p>
+                    <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {productRecipes.map((recipe) => (
+                          <Link
+                            key={recipe.id}
+                            to={`/brew/recetas/${recipe.slug}`}
+                            className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-700 p-6 transition-colors hover:border-gold-500/50 group"
+                          >
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-serif text-xl text-coffee-900 dark:text-cream">
+                                {recipe.title}
+                              </h3>
+                              <span className="text-xs text-gold-600 dark:text-gold-500 border border-gold-500/40 px-2 py-1 uppercase tracking-widest">
+                                {recipe.method}
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-1">
-                                Molido
-                              </p>
-                              <p className="text-coffee-800 dark:text-cream text-sm font-medium">
-                                {recipe.grind}
-                              </p>
+                            <div className="flex items-center justify-between mt-4 text-sm text-coffee-600 dark:text-coffee-400">
+                              <span>Ver en 12% Brew</span>
+                              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                             </div>
-                            <div>
-                              <p className="text-coffee-600 dark:text-coffee-400 text-xs uppercase tracking-widest mb-1">
-                                Ratio
-                              </p>
-                              <p className="text-coffee-800 dark:text-cream text-sm font-medium">
-                                {recipe.ratio}
-                              </p>
-                            </div>
-                          </div>
-
-                          <ol className="space-y-3">
-                            {recipe.steps.map((step, si) => (
-                              <li
-                                key={step.id}
-                                className="flex gap-3 text-sm text-coffee-700 dark:text-coffee-300"
-                              >
-                                <span className="text-gold-600 dark:text-gold-500 font-bold w-5 shrink-0">
-                                  {si + 1}.
-                                </span>
-                                <span>
-                                  <span className="font-medium text-coffee-900 dark:text-cream">
-                                    {step.title}
-                                  </span>
-                                  {step.title && step.description ? ' — ' : ''}
-                                  {step.description}
-                                </span>
-                              </li>
-                            ))}
-                          </ol>
-                        </div>
-                      ))}
+                          </Link>
+                        ))}
+                      </div>
+                      <Link
+                        to={`/brew/cafes/${product.slug}`}
+                        className="inline-flex items-center gap-2 mt-6 text-sm font-medium text-gold-600 dark:text-gold-500 hover:underline"
+                      >
+                        <Coffee className="w-4 h-4" />
+                        Ver todas las recetas de este café en 12% Brew
+                      </Link>
                     </div>
                   )}
 
@@ -1046,12 +1012,6 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
-
-        <BrewingGuideModal
-          recipes={productRecipes}
-          open={brewingOpen}
-          onClose={() => setBrewingOpen(false)}
-        />
 
         {/* Sticky mobile add-to-cart bar — sits above BottomNav */}
         <div

@@ -44,7 +44,11 @@ function ProductCartItem({ item }: { item: CartItemFull & { itemType: 'product' 
               {product.name}
             </Link>
             <div className="flex items-center gap-2 mt-1">
-              {product.region && <span className="text-coffee-500 dark:text-coffee-400 text-xs">{product.region}</span>}
+              {product.region && (
+                <span className="text-coffee-500 dark:text-coffee-400 text-xs">
+                  {product.region}
+                </span>
+              )}
               {product.weight && (
                 <span className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 text-xs border border-coffee-200 dark:border-coffee-700 px-1.5 py-0.5">
                   <Tag className="w-2.5 h-2.5" />

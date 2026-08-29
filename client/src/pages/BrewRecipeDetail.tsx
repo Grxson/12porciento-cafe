@@ -64,13 +64,9 @@ export default function BrewRecipeDetail() {
     );
   }
 
-  const hasStructuredParams =
-    recipe.coffeeDoseGrams != null && recipe.waterGrams != null;
+  const hasStructuredParams = recipe.coffeeDoseGrams != null && recipe.waterGrams != null;
 
-  const totalSeconds = recipe.steps.reduce(
-    (sum, s) => sum + (s.duration ?? 0),
-    0,
-  );
+  const totalSeconds = recipe.steps.reduce((sum, s) => sum + (s.duration ?? 0), 0);
   const totalMinutes = Math.round(totalSeconds / 60);
 
   return (
@@ -153,7 +149,9 @@ export default function BrewRecipeDetail() {
             <RatioCalculator
               initialCoffee={recipe.coffeeDoseGrams}
               initialWater={recipe.waterGrams}
-              ratio={recipe.ratio ?? Number((recipe.waterGrams / recipe.coffeeDoseGrams).toFixed(2))}
+              ratio={
+                recipe.ratio ?? Number((recipe.waterGrams / recipe.coffeeDoseGrams).toFixed(2))
+              }
               steps={recipe.steps}
               remoteScale={(dose) => brewApi.scaleRecipe(recipe.id, dose).then((r) => r.data.data)}
             />
@@ -178,7 +176,7 @@ export default function BrewRecipeDetail() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-coffee-900 dark:text-cream">
-                        {s.title ?? (s.type ?? 'Paso')}
+                        {s.title ?? s.type ?? 'Paso'}
                       </p>
                       {s.description && (
                         <p className="mt-1 text-sm leading-relaxed text-coffee-600 dark:text-coffee-400">

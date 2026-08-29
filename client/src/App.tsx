@@ -1,5 +1,13 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { Routes, Route, Navigate, Outlet, useLocation, useNavigationType, useParams } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigationType,
+  useParams,
+} from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';

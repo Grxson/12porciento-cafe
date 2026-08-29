@@ -46,19 +46,25 @@ export const useCart = create<CartStore>()(
 
         const items = get().items;
         const key = `prod_${product.id}`;
-        const existing = items.find((i) => i.itemType === 'product' && i.product.id === product.id) as CartItem | undefined;
+        const existing = items.find(
+          (i) => i.itemType === 'product' && i.product.id === product.id,
+        ) as CartItem | undefined;
         const desiredQty = existing ? existing.quantity + quantity : quantity;
         const cappedQty = Math.min(desiredQty, product.stock, MAX_QTY_PER_PRODUCT);
 
         if (cappedQty < desiredQty) {
-          useToast.getState().add(
-            `Máximo ${MAX_QTY_PER_PRODUCT} unidades de "${product.name}" por pedido`,
-            'warning',
-          );
+          useToast
+            .getState()
+            .add(
+              `Máximo ${MAX_QTY_PER_PRODUCT} unidades de "${product.name}" por pedido`,
+              'warning',
+            );
         }
 
         if (existing) {
-          set({ items: items.map((i) => getItemKey(i) === key ? { ...i, quantity: cappedQty } : i) });
+          set({
+            items: items.map((i) => (getItemKey(i) === key ? { ...i, quantity: cappedQty } : i)),
+          });
         } else {
           set({ items: [...items, { itemType: 'product', product, quantity: cappedQty }] });
         }
@@ -80,12 +86,13 @@ export const useCart = create<CartStore>()(
           return;
         }
 
-        set({ items: [...items, { itemType: 'bundle', bundleId: bundle.id, bundle, quantity: 1 }] });
+        set({
+          items: [...items, { itemType: 'bundle', bundleId: bundle.id, bundle, quantity: 1 }],
+        });
         useToast.getState().add(`"${bundle.name}" agregado al carrito`, 'success');
       },
 
-      removeItem: (itemKey) =>
-        set({ items: get().items.filter((i) => getItemKey(i) !== itemKey) }),
+      removeItem: (itemKey) => set({ items: get().items.filter((i) => getItemKey(i) !== itemKey) }),
 
       updateQuantity: (itemKey, quantity) => {
         if (quantity <= 0) {
@@ -100,17 +107,17 @@ export const useCart = create<CartStore>()(
         if (item.itemType === 'product') {
           cappedQty = Math.min(quantity, item.product.stock, MAX_QTY_PER_PRODUCT);
           if (cappedQty < quantity) {
-            useToast.getState().add(
-              `Máximo ${MAX_QTY_PER_PRODUCT} unidades de "${item.product.name}" por pedido`,
-              'warning',
-            );
+            useToast
+              .getState()
+              .add(
+                `Máximo ${MAX_QTY_PER_PRODUCT} unidades de "${item.product.name}" por pedido`,
+                'warning',
+              );
           }
         }
 
         set({
-          items: get().items.map((i, j) =>
-            j === idx ? { ...i, quantity: cappedQty } : i,
-          ),
+          items: get().items.map((i, j) => (j === idx ? { ...i, quantity: cappedQty } : i)),
         });
       },
 
@@ -122,8 +129,7 @@ export const useCart = create<CartStore>()(
           return sum + Number(i.bundle?.finalPrice ?? 0) * i.quantity;
         }, 0),
 
-      count: () =>
-        get().items.reduce((sum, i) => sum + i.quantity, 0),
+      count: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
     {
       name: 'cafe-12-cart',
@@ -133,6 +139,4 @@ export const useCart = create<CartStore>()(
   ),
 );
 
-export const CartProvider = ({ children }: { children: React.ReactNode }) => (
-  <>{children}</>
-);
+export const CartProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;

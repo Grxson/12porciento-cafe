@@ -174,15 +174,14 @@ export default function BrewRecipes() {
         </p>
 
         {error && !loading ? (
-          <ErrorState
-            title="Sin resultados por ahora"
-            description={error}
-            onRetry={loadRecipes}
-          />
+          <ErrorState title="Sin resultados por ahora" description={error} onRetry={loadRecipes} />
         ) : loading ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-64 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800" />
+              <div
+                key={i}
+                className="h-64 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800"
+              />
             ))}
           </div>
         ) : recipes.length === 0 ? (
@@ -198,11 +197,7 @@ export default function BrewRecipes() {
                 to={`/brew/recetas/${r.slug}`}
                 className="group relative flex flex-col overflow-hidden border border-coffee-200 bg-white transition-all hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-lg dark:border-coffee-800 dark:bg-coffee-950"
               >
-                <MediaFrame
-                  ratio="recipe"
-                  src={r.imageUrl ?? r.product?.imageUrl}
-                  alt={r.title}
-                />
+                <MediaFrame ratio="recipe" src={r.imageUrl ?? r.product?.imageUrl} alt={r.title} />
                 {user && (
                   <button
                     type="button"

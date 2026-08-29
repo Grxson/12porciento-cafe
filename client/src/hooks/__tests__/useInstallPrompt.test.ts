@@ -10,7 +10,9 @@ describe('useInstallPrompt', () => {
     evt.prompt = vi.fn().mockResolvedValue(undefined);
     evt.userChoice = Promise.resolve({ outcome: 'accepted' });
 
-    act(() => { window.dispatchEvent(evt); });
+    act(() => {
+      window.dispatchEvent(evt);
+    });
     await waitFor(() => expect(result.current.canInstall).toBe(true));
   });
 
@@ -20,10 +22,14 @@ describe('useInstallPrompt', () => {
     const evt: any = new Event('beforeinstallprompt');
     evt.prompt = promptFn;
     evt.userChoice = Promise.resolve({ outcome: 'accepted' });
-    act(() => { window.dispatchEvent(evt); });
+    act(() => {
+      window.dispatchEvent(evt);
+    });
     await waitFor(() => expect(result.current.canInstall).toBe(true));
 
-    await act(async () => { await result.current.promptInstall(); });
+    await act(async () => {
+      await result.current.promptInstall();
+    });
     expect(promptFn).toHaveBeenCalled();
     await waitFor(() => expect(result.current.canInstall).toBe(false));
   });

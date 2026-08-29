@@ -25,8 +25,13 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
       prisma.user.findMany({
         where,
         select: {
-          id: true, name: true, email: true, phone: true,
-          city: true, state: true, createdAt: true,
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          city: true,
+          state: true,
+          createdAt: true,
           _count: { select: { orders: true, subscriptions: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -60,7 +65,10 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
         _count: { select: { orders: true, subscriptions: true } },
       },
     });
-    if (!user) { res.status(404).json({ error: 'Cliente no encontrado' }); return; }
+    if (!user) {
+      res.status(404).json({ error: 'Cliente no encontrado' });
+      return;
+    }
     const { password: _password, ...safeUser } = user;
     res.json({ data: safeUser });
   } catch {

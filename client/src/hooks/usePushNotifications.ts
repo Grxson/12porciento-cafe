@@ -119,7 +119,10 @@ export function usePushNotifications() {
 
   const requestPermission = useCallback(async () => {
     if (Notification.permission === 'denied') {
-      addToast('Permiso de notificaciones denegado previamente. Cámbialo desde la configuración del navegador.', 'error');
+      addToast(
+        'Permiso de notificaciones denegado previamente. Cámbialo desde la configuración del navegador.',
+        'error',
+      );
       return;
     }
     try {

@@ -44,7 +44,10 @@ export default function BrewCoffees() {
         {loading ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-72 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800" />
+              <div
+                key={i}
+                className="h-72 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800"
+              />
             ))}
           </div>
         ) : coffees.length === 0 ? (

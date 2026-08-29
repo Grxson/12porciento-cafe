@@ -110,8 +110,12 @@ router.post('/methods', async (req: AuthRequest, res: Response) => {
         difficulty: difficulty ?? 'MEDIA',
         defaultRatioMin: Number.isFinite(defaultRatioMin) ? Number(defaultRatioMin) : 13,
         defaultRatioMax: Number.isFinite(defaultRatioMax) ? Number(defaultRatioMax) : 18,
-        defaultTemperatureMin: Number.isFinite(defaultTemperatureMin) ? Number(defaultTemperatureMin) : 88,
-        defaultTemperatureMax: Number.isFinite(defaultTemperatureMax) ? Number(defaultTemperatureMax) : 96,
+        defaultTemperatureMin: Number.isFinite(defaultTemperatureMin)
+          ? Number(defaultTemperatureMin)
+          : 88,
+        defaultTemperatureMax: Number.isFinite(defaultTemperatureMax)
+          ? Number(defaultTemperatureMax)
+          : 96,
         defaultGrindMin: Number.isFinite(defaultGrindMin) ? Number(defaultGrindMin) : null,
         defaultGrindMax: Number.isFinite(defaultGrindMax) ? Number(defaultGrindMax) : null,
         active: active !== false,
@@ -159,7 +163,14 @@ router.put('/methods/:id', async (req: AuthRequest, res: Response) => {
       if (key === 'category' && !VALID_CATEGORIES.includes(value)) {
         return res.status(400).json({ error: `category inválida (${VALID_CATEGORIES.join('|')})` });
       }
-      if (key === 'name' || key === 'description' || key === 'shortDescription' || key === 'icon' || key === 'image' || key === 'difficulty') {
+      if (
+        key === 'name' ||
+        key === 'description' ||
+        key === 'shortDescription' ||
+        key === 'icon' ||
+        key === 'image' ||
+        key === 'difficulty'
+      ) {
         (data as Record<string, unknown>)[key] = typeof value === 'string' ? value.trim() : value;
       } else {
         (data as Record<string, unknown>)[key] = value;

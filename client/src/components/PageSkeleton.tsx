@@ -82,7 +82,10 @@ function ProfileListSkeleton() {
   return (
     <div className="space-y-3 py-4">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 flex items-center gap-4">
+        <div
+          key={i}
+          className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 flex items-center gap-4"
+        >
           <div className="shimmer dark:shimmer-dark h-12 w-12 rounded" />
           <div className="flex-1 space-y-2">
             <div className="shimmer dark:shimmer-dark h-4 w-3/4" />

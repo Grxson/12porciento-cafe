@@ -77,11 +77,7 @@ export async function getAdminPreferences(adminId: string): Promise<Record<strin
   return result;
 }
 
-export async function upsertAdminPreference(
-  adminId: string,
-  eventType: string,
-  enabled: boolean,
-) {
+export async function upsertAdminPreference(adminId: string, eventType: string, enabled: boolean) {
   return prisma.adminNotificationPreference.upsert({
     where: { adminId_eventType: { adminId, eventType } },
     create: { adminId, eventType, enabled },

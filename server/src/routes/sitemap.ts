@@ -58,12 +58,16 @@ router.get('/sitemap.xml', async (_req, res) => {
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url>
+${urls
+  .map(
+    (u) => `  <url>
     <loc>${BASE_URL}${u.loc}</loc>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>
     ${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}
-  </url>`).join('\n')}
+  </url>`,
+  )
+  .join('\n')}
 </urlset>`;
 
     res.setHeader('Content-Type', 'application/xml');

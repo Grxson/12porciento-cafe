@@ -87,15 +87,14 @@ export default function BrewSessions() {
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-20 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800" />
+              <div
+                key={i}
+                className="h-20 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800"
+              />
             ))}
           </div>
         ) : error ? (
-          <ErrorState
-            title="Sin acceso por ahora"
-            description={error}
-            onRetry={load}
-          />
+          <ErrorState title="Sin acceso por ahora" description={error} onRetry={load} />
         ) : visible.length === 0 ? (
           <EmptyState
             title={filter === 'favorites' ? 'Sin favoritas' : 'Sin preparaciones aún'}

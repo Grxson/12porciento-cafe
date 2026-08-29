@@ -65,11 +65,7 @@ export default function BrewSessionDetail() {
     return (
       <div className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl">
-          <ErrorState
-            title="No pudimos cargar la preparación"
-            description={error}
-            onRetry={load}
-          />
+          <ErrorState title="No pudimos cargar la preparación" description={error} onRetry={load} />
         </div>
       </div>
     );
@@ -181,17 +177,23 @@ export default function BrewSessionDetail() {
           {session.rating != null && (
             <div className="flex shrink-0 items-center gap-1 text-sm">
               <Star className="h-4 w-4 fill-gold-500 text-gold-500" />
-              <span className="font-bold text-coffee-900 dark:text-cream">
-                {session.rating}/5
-              </span>
+              <span className="font-bold text-coffee-900 dark:text-cream">{session.rating}/5</span>
             </div>
           )}
         </header>
 
         {/* Parameters */}
         <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <ParamCard icon={<Scale className="h-4 w-4" />} label="Dosis" value={`${session.coffeeDoseGrams ?? '—'} g`} />
-          <ParamCard icon={<Scale className="h-4 w-4" />} label="Agua" value={`${session.waterGrams ?? '—'} g`} />
+          <ParamCard
+            icon={<Scale className="h-4 w-4" />}
+            label="Dosis"
+            value={`${session.coffeeDoseGrams ?? '—'} g`}
+          />
+          <ParamCard
+            icon={<Scale className="h-4 w-4" />}
+            label="Agua"
+            value={`${session.waterGrams ?? '—'} g`}
+          />
           <ParamCard
             icon={<Scale className="h-4 w-4" />}
             label="Ratio"
@@ -219,7 +221,10 @@ export default function BrewSessionDetail() {
         )}
 
         {/* Taste profile */}
-        {(session.sweetnessRating || session.acidityRating || session.bodyRating || session.clarityRating) && (
+        {(session.sweetnessRating ||
+          session.acidityRating ||
+          session.bodyRating ||
+          session.clarityRating) && (
           <section className="mb-6 border border-coffee-200 bg-white p-4 dark:border-coffee-800 dark:bg-coffee-900">
             <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-coffee-500">
               Perfil de sabor (1-5)
@@ -297,7 +302,15 @@ export default function BrewSessionDetail() {
   );
 }
 
-function ParamCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function ParamCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="border border-coffee-200 bg-white p-3 text-center dark:border-coffee-800 dark:bg-coffee-900">
       <div className="mx-auto mb-1 grid h-7 w-7 place-items-center rounded-full bg-gold-500/10 text-gold-600 dark:text-gold-400">
@@ -320,10 +333,7 @@ function TasteBar({ label, value }: { label: string; value: number | null | unde
         </span>
       </p>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-coffee-100 dark:bg-coffee-800">
-        <div
-          className="h-full bg-gold-500 transition-all"
-          style={{ width: `${(v / 5) * 100}%` }}
-        />
+        <div className="h-full bg-gold-500 transition-all" style={{ width: `${(v / 5) * 100}%` }} />
       </div>
     </div>
   );

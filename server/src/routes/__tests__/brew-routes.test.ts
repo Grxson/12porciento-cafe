@@ -8,36 +8,46 @@ beforeAll(() => {
 });
 
 // ── Prisma mocks ────────────────────────────────────────────────────────
-const mockBrewSession = {
-  create: vi.fn(),
-  findMany: vi.fn(),
-  findFirst: vi.fn(),
-  findUnique: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-  count: vi.fn(),
-};
-const mockBrewSessionFavorite = {
-  findUnique: vi.fn(),
-  create: vi.fn(),
-  delete: vi.fn(),
-  deleteMany: vi.fn(),
-  findMany: vi.fn(),
-};
-const mockRecipe = { findUnique: vi.fn() };
-const mockBaristaEquipment = {
-  findMany: vi.fn(),
-  create: vi.fn(),
-  findFirst: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-};
-const mockWaterProfile = {
-  findMany: vi.fn(),
-  create: vi.fn(),
-  findUnique: vi.fn(),
-  delete: vi.fn(),
-};
+// vi.hoisted: vi.mock factories are hoisted above top-level consts, so the
+// mocks must be created inside the hoisted block and destructured back out.
+const {
+  mockBrewSession,
+  mockBrewSessionFavorite,
+  mockRecipe,
+  mockBaristaEquipment,
+  mockWaterProfile,
+} = vi.hoisted(() => ({
+  mockBrewSession: {
+    create: vi.fn(),
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+  },
+  mockBrewSessionFavorite: {
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+    findMany: vi.fn(),
+  },
+  mockRecipe: { findUnique: vi.fn() },
+  mockBaristaEquipment: {
+    findMany: vi.fn(),
+    create: vi.fn(),
+    findFirst: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+  mockWaterProfile: {
+    findMany: vi.fn(),
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
 
 vi.mock('../../db', () => ({
   prisma: {
@@ -56,6 +66,9 @@ import brewRouter from '../brew';
 const app = express();
 app.use(express.json());
 app.use('/api/brew', brewRouter);
+
+// uidjwt.sign below needs the secret at module scope, before beforeAll runs.
+process.env.JWT_SECRET = 'test-secret-for-brew-routes';
 
 const USER_JWT = jwt.sign(
   { id: 'user-1', email: 'u@x.com', name: 'User', role: 'USER' },
@@ -95,6 +108,14 @@ describe('POST /api/brew/sessions', () => {
       ratio: 15,
       startedAt: new Date(),
     };
+    mockRecipe.findUnique.mockResolvedValueOnce({
+      coffeeDoseGrams: 20,
+      waterGrams: 300,
+      ratio: '15',
+      waterTemperatureCelsius: 92,
+      grindTargetMicrons: 700,
+      steps: [{ order: 1, title: 'Bloom', description: 'x', type: 'BLOOM', duration: 45 }],
+    });
     mockBrewSession.create.mockResolvedValueOnce(created);
 
     const res = await request(app)
@@ -178,7 +199,13 @@ describe('GET /api/brew/sessions (list)', () => {
     resetAll();
     const sessions = [
       { id: 's1', coffee: null, recipe: null, brewMethod: null, favorites: [] },
-      { id: 's2', coffee: { id: 'c1', slug: 'c', name: 'C', imageUrl: '' }, recipe: null, brewMethod: null, favorites: [{ id: 'fav1' }] },
+      {
+        id: 's2',
+        coffee: { id: 'c1', slug: 'c', name: 'C', imageUrl: '' },
+        recipe: null,
+        brewMethod: null,
+        favorites: [{ id: 'fav1' }],
+      },
     ];
     mockBrewSession.findMany.mockResolvedValueOnce(sessions);
     mockBrewSession.count.mockResolvedValueOnce(2);
@@ -201,9 +228,7 @@ describe('GET /api/brew/sessions (list)', () => {
     mockBrewSession.findMany.mockResolvedValueOnce([]);
     mockBrewSession.count.mockResolvedValueOnce(0);
 
-    const res = await request(app)
-      .get('/api/brew/sessions?favorites=true')
-      .set(authHeader);
+    const res = await request(app).get('/api/brew/sessions?favorites=true').set(authHeader);
     expect(res.status).toBe(200);
     expect(mockBrewSessionFavorite.findMany).toHaveBeenCalledWith({
       where: { userId: 'user-1' },
@@ -341,9 +366,7 @@ describe('POST /api/brew/sessions/:id/favorite (toggle)', () => {
     resetAll();
     mockBrewSessionFavorite.findUnique.mockResolvedValueOnce(null);
     mockBrewSessionFavorite.create.mockResolvedValueOnce({ id: 'fav-1' });
-    const res = await request(app)
-      .post('/api/brew/sessions/s1/favorite')
-      .set(authHeader);
+    const res = await request(app).post('/api/brew/sessions/s1/favorite').set(authHeader);
     expect(res.status).toBe(200);
     expect(res.body.data.favorited).toBe(true);
     expect(mockBrewSessionFavorite.create).toHaveBeenCalled();
@@ -353,9 +376,7 @@ describe('POST /api/brew/sessions/:id/favorite (toggle)', () => {
     resetAll();
     mockBrewSessionFavorite.findUnique.mockResolvedValueOnce({ id: 'fav-1' });
     mockBrewSessionFavorite.delete.mockResolvedValueOnce({});
-    const res = await request(app)
-      .post('/api/brew/sessions/s1/favorite')
-      .set(authHeader);
+    const res = await request(app).post('/api/brew/sessions/s1/favorite').set(authHeader);
     expect(res.status).toBe(200);
     expect(res.body.data.favorited).toBe(false);
     expect(mockBrewSessionFavorite.delete).toHaveBeenCalled();
@@ -413,10 +434,7 @@ describe('PUT /api/brew/equipment/:id', () => {
 describe('POST /api/brew/water-profiles', () => {
   it('requires name', async () => {
     resetAll();
-    const res = await request(app)
-      .post('/api/brew/water-profiles')
-      .set(authHeader)
-      .send({});
+    const res = await request(app).post('/api/brew/water-profiles').set(authHeader).send({});
     expect(res.status).toBe(400);
   });
 

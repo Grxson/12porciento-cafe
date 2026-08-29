@@ -23,7 +23,9 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
   if (!brew1 || !brew2) {
     return (
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">Comparar Intentos</h3>
+        <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">
+          Comparar Intentos
+        </h3>
         <div className="space-y-2 text-xs text-coffee-600 dark:text-coffee-400">
           <div>
             <label className="block mb-1">Primer brew:</label>
@@ -35,7 +37,8 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
               <option value="">Selecciona un brew...</option>
               {brews.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.recipe?.title ?? 'Receta'} — {b.rating}/10 ({new Date(b.createdAt).toLocaleDateString('es-MX')})
+                  {b.recipe?.title ?? 'Receta'} — {b.rating}/10 (
+                  {new Date(b.createdAt).toLocaleDateString('es-MX')})
                 </option>
               ))}
             </select>
@@ -50,7 +53,8 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
               <option value="">Selecciona un brew...</option>
               {brews.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.recipe?.title ?? 'Receta'} — {b.rating}/10 ({new Date(b.createdAt).toLocaleDateString('es-MX')})
+                  {b.recipe?.title ?? 'Receta'} — {b.rating}/10 (
+                  {new Date(b.createdAt).toLocaleDateString('es-MX')})
                 </option>
               ))}
             </select>
@@ -70,7 +74,10 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream">Comparación</h3>
         <button
-          onClick={() => { setBrew1Id(null); setBrew2Id(null); }}
+          onClick={() => {
+            setBrew1Id(null);
+            setBrew2Id(null);
+          }}
           className="text-xs text-coffee-600 dark:text-coffee-400 hover:text-gold-400"
         >
           ← Cambiar
@@ -82,20 +89,30 @@ export default function BrewComparator({ brews }: BrewComparatorProps) {
           { brew: brew1, label: 'A' },
           { brew: brew2, label: 'B', diff: ratingDiff },
         ].map(({ brew, label, diff }) => (
-          <div key={brew.id} className="border border-coffee-200/50 dark:border-coffee-700/50 p-3 rounded text-xs">
-            <p className="font-semibold text-coffee-900 dark:text-cream mb-1">{brew.recipe?.title ?? 'Receta'}</p>
+          <div
+            key={brew.id}
+            className="border border-coffee-200/50 dark:border-coffee-700/50 p-3 rounded text-xs"
+          >
+            <p className="font-semibold text-coffee-900 dark:text-cream mb-1">
+              {brew.recipe?.title ?? 'Receta'}
+            </p>
             <div className="text-coffee-600 dark:text-coffee-400 space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-gold-400 font-bold">{brew.rating}/10</span>
                 {diff !== undefined && diff !== 0 && (
                   <span className={`font-semibold ${diff > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {diff > 0 ? '+' : ''}{diff}
+                    {diff > 0 ? '+' : ''}
+                    {diff}
                   </span>
                 )}
               </div>
               <div className="text-xs">{new Date(brew.createdAt).toLocaleDateString('es-MX')}</div>
               {brew.photoUrl && (
-                <img src={brew.photoUrl} alt={`Brew ${label}`} className="w-full h-20 object-cover rounded mt-1" />
+                <img
+                  src={brew.photoUrl}
+                  alt={`Brew ${label}`}
+                  className="w-full h-20 object-cover rounded mt-1"
+                />
               )}
               {brew.notes && <p className="line-clamp-2 mt-1">{brew.notes}</p>}
             </div>

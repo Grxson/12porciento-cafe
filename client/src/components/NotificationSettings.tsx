@@ -4,7 +4,8 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 import ConfirmDialog from './ConfirmDialog';
 
 export default function NotificationSettings() {
-  const { supported, permission, subscribed, loading, requestPermission, unsubscribe } = usePushNotifications();
+  const { supported, permission, subscribed, loading, requestPermission, unsubscribe } =
+    usePushNotifications();
   const [showConfirm, setShowConfirm] = useState(false);
 
   if (!supported) {
@@ -15,7 +16,8 @@ export default function NotificationSettings() {
           <div>
             <p className="text-sm font-medium text-coffee-500">Notificaciones no disponibles</p>
             <p className="text-xs text-coffee-400 mt-0.5">
-              Tu navegador no soporta notificaciones push o no has agregado esta app a tu pantalla de inicio.
+              Tu navegador no soporta notificaciones push o no has agregado esta app a tu pantalla
+              de inicio.
             </p>
           </div>
         </div>
@@ -44,7 +46,8 @@ export default function NotificationSettings() {
           {permission === 'denied' && (
             <div>
               <p className="text-xs text-coffee-600 dark:text-coffee-400 mb-2">
-                Las notificaciones están bloqueadas. Para activarlas, ve a la configuración de tu navegador.
+                Las notificaciones están bloqueadas. Para activarlas, ve a la configuración de tu
+                navegador.
               </p>
               <p className="text-xs text-coffee-500 dark:text-coffee-500 font-mono">
                 Configuración &gt; Privacidad &gt; Notificaciones &gt; Permitir
@@ -70,7 +73,9 @@ export default function NotificationSettings() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-xs text-green-600 dark:text-green-400 font-medium">Activado</span>
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                  Activado
+                </span>
               </div>
               <p className="text-xs text-coffee-500 dark:text-coffee-400 mb-3">
                 Recibirás notificaciones de tus pedidos y novedades.

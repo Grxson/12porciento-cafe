@@ -11,8 +11,12 @@ const BASE = '12% — Café de Especialidad';
 
 export function PageMeta({ title, description, image, noSuffix }: PageMetaProps) {
   const fullTitle = noSuffix ? title : `${title} | ${BASE}`;
-  const desc = description ?? 'Café de especialidad mexicano. Solo el 12% del café producido en el mundo es de especialidad.';
-  const img = image ?? 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1200&q=80';
+  const desc =
+    description ??
+    'Café de especialidad mexicano. Solo el 12% del café producido en el mundo es de especialidad.';
+  const img =
+    image ??
+    'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1200&q=80';
 
   return (
     <Helmet>

@@ -1,7 +1,20 @@
 import { useState } from 'react';
 
 const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const MONTH_LABELS = [
+  'Ene',
+  'Feb',
+  'Mar',
+  'Abr',
+  'May',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dic',
+];
 
 function getColor(count: number, isDark: boolean): string {
   if (count === 0) return isDark ? 'bg-coffee-800' : 'bg-coffee-100';
@@ -11,7 +24,9 @@ function getColor(count: number, isDark: boolean): string {
   return 'bg-gold-500';
 }
 
-function getMonthLabels(dates: { date: string; count: number }[]): { label: string; index: number }[] {
+function getMonthLabels(
+  dates: { date: string; count: number }[],
+): { label: string; index: number }[] {
   const labels: { label: string; index: number }[] = [];
   let lastMonth = -1;
   dates.forEach((d, i) => {
@@ -29,8 +44,14 @@ interface StreakHeatmapProps {
 }
 
 export default function StreakHeatmap({ data }: StreakHeatmapProps) {
-  const [tooltip, setTooltip] = useState<{ date: string; count: number; x: number; y: number } | null>(null);
-  const isDark = typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
+  const [tooltip, setTooltip] = useState<{
+    date: string;
+    count: number;
+    x: number;
+    y: number;
+  } | null>(null);
+  const isDark =
+    typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
   const monthLabels = getMonthLabels(data);
 
   if (!data.length) return null;
@@ -40,12 +61,16 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
 
   return (
     <div className="bg-white dark:bg-coffee-900 border border-coffee-200 dark:border-coffee-800 p-4 mb-8">
-      <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">Actividad (90 días)</h3>
+      <h3 className="text-sm font-semibold text-coffee-900 dark:text-cream mb-3">
+        Actividad (90 días)
+      </h3>
 
       {/* Month labels */}
       <div className="ml-7 mb-1 flex text-xs text-coffee-500">
         {monthLabels.map((m) => (
-          <div key={m.label} style={{ marginLeft: m.index * (cellSize + gap) }}>{m.label}</div>
+          <div key={m.label} style={{ marginLeft: m.index * (cellSize + gap) }}>
+            {m.label}
+          </div>
         ))}
       </div>
 
@@ -53,7 +78,12 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
         {/* Day labels */}
         <div className="flex flex-col mr-1 text-xs text-coffee-500 leading-none">
           {DAY_LABELS.map((d) => (
-            <div key={d} style={{ height: cellSize, marginBottom: gap, lineHeight: `${cellSize}px` }}>{d}</div>
+            <div
+              key={d}
+              style={{ height: cellSize, marginBottom: gap, lineHeight: `${cellSize}px` }}
+            >
+              {d}
+            </div>
           ))}
         </div>
 
@@ -102,8 +132,13 @@ export default function StreakHeatmap({ data }: StreakHeatmapProps) {
           className="fixed z-[100] px-2 py-1 text-xs rounded shadow-lg bg-coffee-900 text-cream dark:bg-cream dark:text-coffee-900 pointer-events-none whitespace-nowrap"
           style={{ left: tooltip.x, top: tooltip.y }}
         >
-          {new Date(tooltip.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
-          {' — '}{tooltip.count} brew{tooltip.count !== 1 ? 's' : ''}
+          {new Date(tooltip.date).toLocaleDateString('es-MX', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+          {' — '}
+          {tooltip.count} brew{tooltip.count !== 1 ? 's' : ''}
         </div>
       )}
     </div>

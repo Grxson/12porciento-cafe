@@ -20,52 +20,60 @@ interface StripeWebhookEvent {
 }
 
 // GET /user/:subscriptionId/next-billing
-router.get('/user/:subscriptionId/next-billing', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const sub = await prisma.subscription.findFirst({
-      where: { id: req.params.subscriptionId, userId: req.user!.id },
-      select: { nextBilling: true, status: true, stripeSubscriptionId: true, frequency: true },
-    });
-    if (!sub) return res.status(404).json({ error: 'Suscripción no encontrada' });
+router.get(
+  '/user/:subscriptionId/next-billing',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const sub = await prisma.subscription.findFirst({
+        where: { id: req.params.subscriptionId, userId: req.user!.id },
+        select: { nextBilling: true, status: true, stripeSubscriptionId: true, frequency: true },
+      });
+      if (!sub) return res.status(404).json({ error: 'Suscripción no encontrada' });
 
-    const daysUntil = Math.ceil((new Date(sub.nextBilling).getTime() - Date.now()) / 86400000);
-    res.json({
-      nextBilling: sub.nextBilling,
-      status: sub.status,
-      frequency: sub.frequency,
-      daysUntilBilling: daysUntil,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener próxima fecha' });
-  }
-});
+      const daysUntil = Math.ceil((new Date(sub.nextBilling).getTime() - Date.now()) / 86400000);
+      res.json({
+        nextBilling: sub.nextBilling,
+        status: sub.status,
+        frequency: sub.frequency,
+        daysUntilBilling: daysUntil,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al obtener próxima fecha' });
+    }
+  },
+);
 
 // GET /user/:subscriptionId/payments
-router.get('/user/:subscriptionId/payments', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const sub = await prisma.subscription.findFirst({
-      where: { id: req.params.subscriptionId, userId: req.user!.id },
-    });
-    if (!sub) return res.status(404).json({ error: 'Suscripción no encontrada' });
+router.get(
+  '/user/:subscriptionId/payments',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const sub = await prisma.subscription.findFirst({
+        where: { id: req.params.subscriptionId, userId: req.user!.id },
+      });
+      if (!sub) return res.status(404).json({ error: 'Suscripción no encontrada' });
 
-    const payments = await prisma.subscriptionPayment.findMany({
-      where: { subscriptionId: sub.id },
-      orderBy: { billingDate: 'desc' },
-      take: 50,
-    });
+      const payments = await prisma.subscriptionPayment.findMany({
+        where: { subscriptionId: sub.id },
+        orderBy: { billingDate: 'desc' },
+        take: 50,
+      });
 
-    res.json({
-      subscriptionId: sub.id,
-      plan: sub.plan,
-      nextBilling: sub.nextBilling,
-      payments,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener historial' });
-  }
-});
+      res.json({
+        subscriptionId: sub.id,
+        plan: sub.plan,
+        nextBilling: sub.nextBilling,
+        payments,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al obtener historial' });
+    }
+  },
+);
 
 // POST / — handles invoice.payment_succeeded and invoice.payment_failed
 webhookRouter.post('/', async (req: Request, res: Response) => {
@@ -78,7 +86,11 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing stripe-signature header' });
     }
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret) as unknown as StripeWebhookEvent;
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        webhookSecret,
+      ) as unknown as StripeWebhookEvent;
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       console.error('[sub-webhook] Signature failed:', msg);
@@ -99,11 +111,15 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
     const stripeSubId = invoice.subscription as string;
     if (!stripeSubId) return res.json({ received: true });
 
-    const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSubId } });
+    const sub = await prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: stripeSubId },
+    });
     if (!sub) return res.json({ received: true, status: 'not_found' });
 
     const existing = invoice.id
-      ? await prisma.subscriptionPayment.findUnique({ where: { stripeInvoiceId: invoice.id as string } })
+      ? await prisma.subscriptionPayment.findUnique({
+          where: { stripeInvoiceId: invoice.id as string },
+        })
       : null;
     if (existing) return res.json({ received: true, status: 'already_processed' });
 
@@ -125,7 +141,12 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
 
       await prisma.subscription.update({
         where: { id: sub.id },
-        data: { lastPaymentDate: new Date(), lastPaymentId: payment.id, nextBilling, failedAttempts: 0 },
+        data: {
+          lastPaymentDate: new Date(),
+          lastPaymentId: payment.id,
+          nextBilling,
+          failedAttempts: 0,
+        },
       });
 
       console.log(`[sub-webhook] Payment processed for subscription ${sub.id}`);
@@ -134,13 +155,14 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       console.error('[sub-webhook] Error saving payment:', err);
       res.json({ received: true, status: 'error' });
     }
-
   } else if (event.type === 'invoice.payment_failed') {
     const invoice = event.data.object;
     const stripeSubId = invoice.subscription as string;
     if (!stripeSubId) return res.json({ received: true });
 
-    const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSubId } });
+    const sub = await prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: stripeSubId },
+    });
     if (!sub) return res.json({ received: true, status: 'not_found' });
 
     // Idempotency check for failed payments
@@ -151,7 +173,8 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       if (existingFailed) return res.json({ received: true, status: 'already_processed' });
     }
 
-    const lastFinalizationError = invoice.last_finalization_error as { message?: string } | undefined;
+    const lastFinalizationError = invoice.last_finalization_error as
+      { message?: string } | undefined;
 
     await prisma.subscriptionPayment.create({
       data: {
@@ -174,13 +197,20 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
 
     console.log(`[sub-webhook] Payment failed for subscription ${sub.id}`);
     res.json({ received: true, status: 'failure_processed' });
-
   } else if (event.type === 'customer.subscription.deleted') {
     const stripeSub = event.data.object as unknown as { id: string };
-    if (!stripeSub.id) { res.json({ received: true }); return; }
+    if (!stripeSub.id) {
+      res.json({ received: true });
+      return;
+    }
 
-    const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSub.id } });
-    if (!sub) { res.json({ received: true }); return; }
+    const sub = await prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: stripeSub.id },
+    });
+    if (!sub) {
+      res.json({ received: true });
+      return;
+    }
 
     await prisma.subscription.update({
       where: { id: sub.id },
@@ -195,13 +225,24 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       data: { subscriptionId: sub.id, email: sub.email },
     });
     res.json({ received: true, status: 'cancelled' });
-
   } else if (event.type === 'customer.subscription.updated') {
-    const stripeSub = event.data.object as unknown as { id: string; status?: string; items?: { data: { price?: { unit_amount?: number } }[] } };
-    if (!stripeSub.id) { res.json({ received: true }); return; }
+    const stripeSub = event.data.object as unknown as {
+      id: string;
+      status?: string;
+      items?: { data: { price?: { unit_amount?: number } }[] };
+    };
+    if (!stripeSub.id) {
+      res.json({ received: true });
+      return;
+    }
 
-    const sub = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: stripeSub.id } });
-    if (!sub) { res.json({ received: true }); return; }
+    const sub = await prisma.subscription.findUnique({
+      where: { stripeSubscriptionId: stripeSub.id },
+    });
+    if (!sub) {
+      res.json({ received: true });
+      return;
+    }
 
     const updateData: { status?: string } = {};
     if (stripeSub.status === 'active') updateData.status = 'ACTIVE';
@@ -212,7 +253,6 @@ webhookRouter.post('/', async (req: Request, res: Response) => {
       await prisma.subscription.update({ where: { id: sub.id }, data: updateData });
     }
     res.json({ received: true, status: 'updated' });
-
   } else {
     res.json({ received: true });
   }

@@ -16,70 +16,35 @@ const baseSteps = [
 
 describe('<RatioCalculator />', () => {
   it('renders initial coffee, water and ratio', () => {
-    render(
-      <RatioCalculator
-        initialCoffee={20}
-        initialWater={300}
-        ratio={15}
-        steps={baseSteps}
-      />,
-    );
+    render(<RatioCalculator initialCoffee={20} initialWater={300} ratio={15} steps={baseSteps} />);
     expect(screen.getByLabelText(/café/i)).toHaveValue(20);
     expect(screen.getByLabelText(/agua/i)).toHaveValue(300);
     expect(screen.getByLabelText(/ratio/i)).toHaveValue(15);
   });
 
   it('recomputes water when coffee dose changes (preserves ratio)', () => {
-    render(
-      <RatioCalculator
-        initialCoffee={20}
-        initialWater={300}
-        ratio={15}
-        steps={baseSteps}
-      />,
-    );
+    render(<RatioCalculator initialCoffee={20} initialWater={300} ratio={15} steps={baseSteps} />);
     const coffeeInput = screen.getByLabelText(/café/i);
     fireEvent.change(coffeeInput, { target: { value: '17' } });
     expect(screen.getByLabelText(/agua/i)).toHaveValue(255);
   });
 
   it('recomputes coffee when water changes (preserves ratio)', () => {
-    render(
-      <RatioCalculator
-        initialCoffee={20}
-        initialWater={300}
-        ratio={15}
-        steps={baseSteps}
-      />,
-    );
+    render(<RatioCalculator initialCoffee={20} initialWater={300} ratio={15} steps={baseSteps} />);
     const waterInput = screen.getByLabelText(/agua/i);
     fireEvent.change(waterInput, { target: { value: '255' } });
     expect(screen.getByLabelText(/café/i)).toHaveValue(17);
   });
 
   it('recomputes water when ratio changes (preserves coffee)', () => {
-    render(
-      <RatioCalculator
-        initialCoffee={20}
-        initialWater={300}
-        ratio={15}
-        steps={baseSteps}
-      />,
-    );
+    render(<RatioCalculator initialCoffee={20} initialWater={300} ratio={15} steps={baseSteps} />);
     const ratioInput = screen.getByLabelText(/ratio/i);
     fireEvent.change(ratioInput, { target: { value: '16' } });
     expect(screen.getByLabelText(/agua/i)).toHaveValue(320);
   });
 
   it('shows scaled step amounts in the preview', () => {
-    render(
-      <RatioCalculator
-        initialCoffee={20}
-        initialWater={300}
-        ratio={15}
-        steps={baseSteps}
-      />,
-    );
+    render(<RatioCalculator initialCoffee={20} initialWater={300} ratio={15} steps={baseSteps} />);
     const coffeeInput = screen.getByLabelText(/café/i);
     fireEvent.change(coffeeInput, { target: { value: '17' } });
     // Bloom was 50g → at 17g coffee it should scale to ~42.5g
@@ -89,26 +54,12 @@ describe('<RatioCalculator />', () => {
   });
 
   it('last step is marked as the rounding-adjustment step', () => {
-    render(
-      <RatioCalculator
-        initialCoffee={20}
-        initialWater={300}
-        ratio={15}
-        steps={baseSteps}
-      />,
-    );
+    render(<RatioCalculator initialCoffee={20} initialWater={300} ratio={15} steps={baseSteps} />);
     expect(screen.getByText(/\(ajuste\)/)).toBeInTheDocument();
   });
 
   it('shows ratio actual in the footer summary', () => {
-    render(
-      <RatioCalculator
-        initialCoffee={20}
-        initialWater={300}
-        ratio={15}
-        steps={baseSteps}
-      />,
-    );
+    render(<RatioCalculator initialCoffee={20} initialWater={300} ratio={15} steps={baseSteps} />);
     expect(screen.getByText(/1:15/i)).toBeInTheDocument();
   });
 });

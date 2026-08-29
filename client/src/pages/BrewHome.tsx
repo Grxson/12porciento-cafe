@@ -14,22 +14,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Coffee,
-  ArrowRight,
-  PlayCircle,
-  Star,
-  Clock,
-  ChevronRight,
-  Beaker,
-} from 'lucide-react';
+import { Coffee, ArrowRight, PlayCircle, Star, Clock, ChevronRight, Beaker } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { brewApi } from '@12porciento/shared';
-import type {
-  BrewMethod,
-  BrewRecipeStructured,
-  BrewSession,
-} from '@12porciento/shared';
+import type { BrewMethod, BrewRecipeStructured, BrewSession } from '@12porciento/shared';
 import MediaFrame from '../components/ui/MediaFrame';
 import EmptyState from '../components/ui/EmptyState';
 import ErrorState from '../components/ui/ErrorState';
@@ -72,9 +60,7 @@ export default function BrewHome() {
     let cancelled = false;
     Promise.all([
       brewApi.listMethods().then((r) => r.data.data),
-      brewApi
-        .listRecipes({ featured: 'true', pageSize: '6' })
-        .then((r) => r.data.data),
+      brewApi.listRecipes({ featured: 'true', pageSize: '6' }).then((r) => r.data.data),
       user
         ? brewApi.listSessions({ pageSize: '3' }).then((r) => r.data.data)
         : Promise.resolve([] as BrewSession[]),
@@ -107,11 +93,7 @@ export default function BrewHome() {
     return (
       <div className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl">
-          <ErrorState
-            title="No pudimos cargar 12% Brew"
-            description={error}
-            onRetry={load}
-          />
+          <ErrorState title="No pudimos cargar 12% Brew" description={error} onRetry={load} />
         </div>
       </div>
     );
@@ -192,8 +174,8 @@ export default function BrewHome() {
                   {lastSession.coffeeDoseGrams && lastSession.waterGrams && (
                     <>
                       {' · '}
-                      {lastSession.coffeeDoseGrams} g · {lastSession.waterGrams} g ·{' '}
-                      1:{lastSession.ratio}
+                      {lastSession.coffeeDoseGrams} g · {lastSession.waterGrams} g · 1:
+                      {lastSession.ratio}
                     </>
                   )}
                 </p>
@@ -358,9 +340,7 @@ export default function BrewHome() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-coffee-900 dark:text-cream">
                         {s.recipe?.title ?? 'Receta libre'}
-                        {s.coffee && (
-                          <span className="text-coffee-500"> · {s.coffee.name}</span>
-                        )}
+                        {s.coffee && <span className="text-coffee-500"> · {s.coffee.name}</span>}
                       </p>
                       <p className="mt-0.5 flex items-center gap-2 text-xs text-coffee-500">
                         <Clock className="h-3 w-3" />
@@ -413,7 +393,9 @@ function SkeletonGrid({ count, tall }: { count: number; tall?: boolean }) {
   return (
     <div
       className={`grid gap-3 sm:gap-4 ${
-        tall ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+        tall
+          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+          : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
       }`}
     >
       {Array.from({ length: count }).map((_, i) => (

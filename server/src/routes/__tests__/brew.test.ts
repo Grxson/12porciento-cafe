@@ -2,8 +2,12 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 
 // Mock prisma to avoid DB requirement.
-const mockFindUnique = vi.fn();
-const mockRecipeFindUnique = vi.fn();
+// vi.hoisted: vi.mock factories are hoisted above top-level consts, so the
+// mocks must be created inside the hoisted block and destructured back out.
+const { mockFindUnique, mockRecipeFindUnique } = vi.hoisted(() => ({
+  mockFindUnique: vi.fn(),
+  mockRecipeFindUnique: vi.fn(),
+}));
 
 vi.mock('../../db', () => ({
   prisma: {
@@ -84,9 +88,7 @@ describe('POST /api/brew/recipes/:id/dial-in (ad-hoc, no DB)', () => {
 
 describe('POST /api/brew/recipes/:id/scale validation', () => {
   it('rejects missing coffeeDoseGrams with 400', async () => {
-    const res = await request(app)
-      .post('/api/brew/recipes/anything/scale')
-      .send({});
+    const res = await request(app).post('/api/brew/recipes/anything/scale').send({});
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/coffeeDoseGrams/);
   });
@@ -112,9 +114,10 @@ describe('GET /api/brew/methods (smoke, DB mocked)', () => {
     // Force prisma.brewMethod.findMany to throw by re-mocking the entire prisma
     vi.resetModules();
     const dbModule = await import('../../db');
-    (dbModule.prisma as unknown as { brewMethod: { findMany: () => Promise<never> } }).brewMethod = {
-      findMany: () => Promise.reject(new Error('boom')),
-    };
+    (dbModule.prisma as unknown as { brewMethod: { findMany: () => Promise<never> } }).brewMethod =
+      {
+        findMany: () => Promise.reject(new Error('boom')),
+      };
     // Re-import the router so it picks up the fresh mock
     vi.resetModules();
     const freshRouter = (await import('../brew')).default;

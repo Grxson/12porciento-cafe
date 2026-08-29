@@ -43,8 +43,14 @@ export default function BrewPrepare() {
   useEffect(() => {
     if (recipeSlug || sessionParam) return;
     Promise.all([
-      brewApi.listMethods().then((r) => r.data.data).catch(() => []),
-      brewApi.listRecipes({ pageSize: '12' }).then((r) => r.data.data).catch(() => []),
+      brewApi
+        .listMethods()
+        .then((r) => r.data.data)
+        .catch(() => []),
+      brewApi
+        .listRecipes({ pageSize: '12' })
+        .then((r) => r.data.data)
+        .catch(() => []),
     ]).then(([m, r]) => {
       setMethods(m);
       setRecipes(r);
@@ -187,8 +193,7 @@ export default function BrewPrepare() {
       );
     }
 
-    const hasParams =
-      recipe.coffeeDoseGrams != null && recipe.waterGrams != null;
+    const hasParams = recipe.coffeeDoseGrams != null && recipe.waterGrams != null;
 
     return (
       <div className="px-4 py-10 sm:px-6 lg:px-8">
@@ -224,8 +229,7 @@ export default function BrewPrepare() {
                 initialCoffee={recipe.coffeeDoseGrams!}
                 initialWater={recipe.waterGrams!}
                 ratio={
-                  recipe.ratio ??
-                  Number((recipe.waterGrams! / recipe.coffeeDoseGrams!).toFixed(2))
+                  recipe.ratio ?? Number((recipe.waterGrams! / recipe.coffeeDoseGrams!).toFixed(2))
                 }
                 steps={recipe.steps}
               />

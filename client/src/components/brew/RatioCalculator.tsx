@@ -162,8 +162,8 @@ export default function RatioCalculator({
       )}
 
       <p className="mt-4 text-[11px] text-coffee-500">
-        Ratio actual: <span className="font-semibold">{formatRatio(ratio)}</span>. El último
-        vertido absorbe el redondeo.
+        Ratio actual: <span className="font-semibold">{formatRatio(ratio)}</span>. El último vertido
+        absorbe el redondeo.
       </p>
     </section>
   );
@@ -194,9 +194,7 @@ function InputField({
         {icon} {label}
       </span>
       <div className="mt-1 flex items-center overflow-hidden rounded border border-coffee-200 bg-coffee-50 focus-within:border-gold-500 focus-within:ring-1 focus-within:ring-gold-500 dark:border-coffee-700 dark:bg-coffee-950">
-        {prefix && (
-          <span className="px-2 text-xs text-coffee-500">{prefix}</span>
-        )}
+        {prefix && <span className="px-2 text-xs text-coffee-500">{prefix}</span>}
         <input
           type="number"
           inputMode="decimal"

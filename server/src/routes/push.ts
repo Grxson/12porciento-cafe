@@ -18,7 +18,9 @@ import {
 const router = Router();
 
 // Validation helper
-function isValidSubscription(body: unknown): body is { endpoint: string; keys: { p256dh: string; auth: string } } {
+function isValidSubscription(
+  body: unknown,
+): body is { endpoint: string; keys: { p256dh: string; auth: string } } {
   if (!body || typeof body !== 'object') return false;
   const b = body as Record<string, unknown>;
   if (typeof b.endpoint !== 'string' || !b.endpoint.startsWith('https://')) return false;
@@ -96,13 +98,21 @@ router.get('/subscriptions', requireAuth, async (_req: AuthRequest, res: Respons
   try {
     const subs = await getAdminSubscriptions();
     return res.json({
-      subscriptions: subs.map((s: { id: string; endpoint: string; userId: string | null; userAgent: string | null; createdAt: Date }) => ({
-        id: s.id,
-        endpoint: s.endpoint,
-        userId: s.userId,
-        userAgent: s.userAgent,
-        createdAt: s.createdAt,
-      })),
+      subscriptions: subs.map(
+        (s: {
+          id: string;
+          endpoint: string;
+          userId: string | null;
+          userAgent: string | null;
+          createdAt: Date;
+        }) => ({
+          id: s.id,
+          endpoint: s.endpoint,
+          userId: s.userId,
+          userAgent: s.userAgent,
+          createdAt: s.createdAt,
+        }),
+      ),
     });
   } catch (err) {
     console.error('[PUSH] list error:', err);
@@ -156,12 +166,14 @@ router.get('/my-subscriptions', requireUserAuth, async (req: UserAuthRequest, re
   try {
     const subs = await getUserSubscriptions(req.user!.id);
     return res.json({
-      subscriptions: subs.map((s: { id: string; endpoint: string; userAgent: string | null; createdAt: Date }) => ({
-        id: s.id,
-        endpoint: s.endpoint,
-        userAgent: s.userAgent,
-        createdAt: s.createdAt,
-      })),
+      subscriptions: subs.map(
+        (s: { id: string; endpoint: string; userAgent: string | null; createdAt: Date }) => ({
+          id: s.id,
+          endpoint: s.endpoint,
+          userAgent: s.userAgent,
+          createdAt: s.createdAt,
+        }),
+      ),
     });
   } catch (err) {
     console.error('[PUSH] my-subscriptions error:', err);

@@ -386,7 +386,9 @@ router.put('/admin/:id', requireAuth, async (req: AuthRequest, res: Response) =>
         ? Number(waterTemperatureCelsius)
         : null;
     if (grindTargetMicrons !== undefined)
-      data.grindTargetMicrons = Number.isFinite(grindTargetMicrons) ? Number(grindTargetMicrons) : null;
+      data.grindTargetMicrons = Number.isFinite(grindTargetMicrons)
+        ? Number(grindTargetMicrons)
+        : null;
     if (profile !== undefined) data.profile = profile || null;
     if (recipeType !== undefined) data.recipeType = recipeType || 'OFFICIAL_12_PERCENT';
     if (featured !== undefined) data.featured = Boolean(featured);

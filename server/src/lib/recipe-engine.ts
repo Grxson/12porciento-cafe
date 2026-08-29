@@ -29,15 +29,7 @@ export type BrewStepType =
   | 'CUSTOM';
 
 export type BrewStepAction =
-  | 'ADD'
-  | 'POUR'
-  | 'WAIT'
-  | 'STIR'
-  | 'SWIRL'
-  | 'TAP'
-  | 'PRESS'
-  | 'BREATHE'
-  | 'CUSTOM';
+  'ADD' | 'POUR' | 'WAIT' | 'STIR' | 'SWIRL' | 'TAP' | 'PRESS' | 'BREATHE' | 'CUSTOM';
 
 export type PourPattern =
   | 'CENTER'

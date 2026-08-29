@@ -50,7 +50,10 @@ export default function BrewCoffee() {
     setLoading(true);
     Promise.all([
       api.get<{ data: CoffeeItem }>(`/products/${slug}`).then((r) => r.data.data),
-      brewApi.getRecipesForCoffee(slug).then((r) => r.data.data).catch(() => []),
+      brewApi
+        .getRecipesForCoffee(slug)
+        .then((r) => r.data.data)
+        .catch(() => []),
     ])
       .then(([c, r]) => {
         setCoffee(c);
@@ -153,7 +156,10 @@ export default function BrewCoffee() {
         </header>
 
         {/* Recommended brew params */}
-        {(coffee.recommendedBrewMethod || coffee.brewTemperature || coffee.brewRatio || coffee.grindSize) && (
+        {(coffee.recommendedBrewMethod ||
+          coffee.brewTemperature ||
+          coffee.brewRatio ||
+          coffee.grindSize) && (
           <section className="mb-8 border border-coffee-200 bg-white p-5 dark:border-coffee-800 dark:bg-coffee-900">
             <h2 className="mb-3 font-serif text-lg text-coffee-900 dark:text-cream">
               Recomendación del tostador

@@ -6,7 +6,10 @@ const mockHook = { canInstall: false, isStandalone: false, isIOS: false, promptI
 vi.mock('../../hooks/useInstallPrompt', () => ({ useInstallPrompt: () => mockHook }));
 
 describe('InstallPrompt', () => {
-  beforeEach(() => { localStorage.clear(); Object.assign(mockHook, { canInstall: false, isStandalone: false, isIOS: false }); });
+  beforeEach(() => {
+    localStorage.clear();
+    Object.assign(mockHook, { canInstall: false, isStandalone: false, isIOS: false });
+  });
 
   it('renders nothing when not installable and not iOS', () => {
     const { container } = render(<InstallPrompt />);

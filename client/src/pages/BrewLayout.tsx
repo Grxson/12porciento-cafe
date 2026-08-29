@@ -36,14 +36,14 @@ export default function BrewLayout() {
       >
         <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-2 py-2 sm:gap-2 sm:px-4">
           <div className="flex shrink-0 items-center gap-2 pr-3">
-<Link to="/brew" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-gold-500/10 text-gold-600 dark:text-gold-400">
-              <Coffee className="h-4 w-4" />
-            </span>
-            <span className="hidden text-xs font-semibold uppercase tracking-[0.24em] text-coffee-700 dark:text-coffee-300 sm:inline">
-              12% Brew
-            </span>
-          </Link>
+            <Link to="/brew" className="flex items-center gap-2">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-gold-500/10 text-gold-600 dark:text-gold-400">
+                <Coffee className="h-4 w-4" />
+              </span>
+              <span className="hidden text-xs font-semibold uppercase tracking-[0.24em] text-coffee-700 dark:text-coffee-300 sm:inline">
+                12% Brew
+              </span>
+            </Link>
           </div>
 
           <div className="flex shrink-0 items-center gap-1">

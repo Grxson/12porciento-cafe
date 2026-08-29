@@ -191,7 +191,10 @@ export default function BrewEquipment() {
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-16 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800" />
+              <div
+                key={i}
+                className="h-16 animate-pulse rounded bg-coffee-100 dark:bg-coffee-800"
+              />
             ))}
           </div>
         ) : items.length === 0 ? (
@@ -210,9 +213,7 @@ export default function BrewEquipment() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-coffee-900 dark:text-cream">
                     {item.name}
-                    {item.brand && (
-                      <span className="text-coffee-500"> · {item.brand}</span>
-                    )}
+                    {item.brand && <span className="text-coffee-500"> · {item.brand}</span>}
                   </p>
                   <p className="mt-0.5 text-[10px] uppercase tracking-widest text-coffee-500">
                     {CATEGORY_LABEL[item.category] ?? item.category}

@@ -1,5 +1,11 @@
 // Retryable only for transient/network errors — never for card declines.
-const RETRYABLE = ['api_connection_error', 'api_error', 'rate_limit', 'processing_error', 'timeout'];
+const RETRYABLE = [
+  'api_connection_error',
+  'api_error',
+  'rate_limit',
+  'processing_error',
+  'timeout',
+];
 
 export async function retryWithBackoff<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   const delays = [600, 1500, 3000];
@@ -30,7 +36,8 @@ export function friendlyStripeError(
     incorrect_number: 'El número de tarjeta es incorrecto.',
     insufficient_funds: 'Fondos insuficientes. Intenta con otra tarjeta.',
     processing_error: 'Hubo un error al procesar tu pago. Intenta de nuevo en unos momentos.',
-    authentication_required: 'Se requiere autenticación adicional. Sigue los pasos que muestra tu banco.',
+    authentication_required:
+      'Se requiere autenticación adicional. Sigue los pasos que muestra tu banco.',
     rate_limit: 'Demasiados intentos. Espera un momento e intenta de nuevo.',
   };
   if (error?.code && map[error.code]) return map[error.code];

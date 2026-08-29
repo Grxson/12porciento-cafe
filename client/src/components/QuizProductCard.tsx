@@ -43,9 +43,7 @@ export default function QuizProductCard({ product, matchPct }: QuizProductCardPr
           </h3>
         </Link>
 
-        {product.origin && (
-          <p className="text-xs text-coffee-500 mb-1">{product.origin}</p>
-        )}
+        {product.origin && <p className="text-xs text-coffee-500 mb-1">{product.origin}</p>}
 
         {/* Reason */}
         <p className="text-xs text-coffee-400 dark:text-coffee-500 italic mb-3 leading-snug">
@@ -56,7 +54,10 @@ export default function QuizProductCard({ product, matchPct }: QuizProductCardPr
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm">
             {product.scaScore && (
-              <span className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 text-xs" title="Puntaje SCA">
+              <span
+                className="flex items-center gap-1 text-coffee-600 dark:text-coffee-400 text-xs"
+                title="Puntaje SCA"
+              >
                 <Star className="w-3 h-3 text-gold-500" />
                 {product.scaScore}
               </span>
@@ -68,11 +69,11 @@ export default function QuizProductCard({ product, matchPct }: QuizProductCardPr
         </div>
 
         {/* Action */}
-          <button
-            onClick={() => {
-              addItem(product, 1);
-              addToast(`${product.name} agregado al carrito`, 'success');
-            }}
+        <button
+          onClick={() => {
+            addItem(product, 1);
+            addToast(`${product.name} agregado al carrito`, 'success');
+          }}
           className="mt-3 w-full flex items-center justify-center gap-2 border border-gold-500/40 text-coffee-900 dark:text-cream text-xs py-2 px-3 hover:bg-gold-500 hover:text-coffee-900 transition-colors"
           aria-label={`Agregar ${product.name} al carrito`}
         >

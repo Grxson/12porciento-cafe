@@ -38,7 +38,9 @@ export function startBillingScheduler(): void {
               where: { id: sub.id },
               data: { nextBilling },
             });
-            console.log(`[billing-job] Synced nextBilling for ${sub.id}: ${nextBilling.toISOString()}`);
+            console.log(
+              `[billing-job] Synced nextBilling for ${sub.id}: ${nextBilling.toISOString()}`,
+            );
           } else {
             console.log(`[billing-job] Skipping ${sub.id}: Stripe status is ${stripeSub.status}`);
           }

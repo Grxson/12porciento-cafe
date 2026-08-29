@@ -59,7 +59,10 @@ const ToastItem = memo(function ToastItem({
       <Icon className="w-4 h-4 shrink-0" />
       <span className="flex-1">{toast.message}</span>
       <button
-        onClick={(e) => { e.stopPropagation(); onRemove(toast.id); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(toast.id);
+        }}
         className="opacity-60 hover:opacity-100 transition-opacity shrink-0"
         aria-label="Cerrar"
       >

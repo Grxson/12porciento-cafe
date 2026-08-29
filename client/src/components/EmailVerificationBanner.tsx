@@ -36,8 +36,8 @@ export default function EmailVerificationBanner({ email }: EmailVerificationBann
             Verifica tu correo electronico
           </p>
           <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-            Enviamos un enlace de verificacion a <strong>{email}</strong>.
-            Algunas funciones requieren email verificado.
+            Enviamos un enlace de verificacion a <strong>{email}</strong>. Algunas funciones
+            requieren email verificado.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">

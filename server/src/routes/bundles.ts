@@ -89,14 +89,19 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
     res.status(201).json({ data: bundle });
   } catch (e: unknown) {
-    res.status(500).json({ error: 'Error al crear bundle', detail: e instanceof Error ? e.message : undefined });
+    res
+      .status(500)
+      .json({ error: 'Error al crear bundle', detail: e instanceof Error ? e.message : undefined });
   }
 });
 
 router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { name, description, basePrice, discountPct, imageUrl, isActive } = req.body;
-    if (discountPct !== undefined && (typeof discountPct !== 'number' || discountPct < 0 || discountPct > 100)) {
+    if (
+      discountPct !== undefined &&
+      (typeof discountPct !== 'number' || discountPct < 0 || discountPct > 100)
+    ) {
       return res.status(400).json({ error: 'Descuento debe ser entre 0 y 100' });
     }
     if (basePrice !== undefined && (typeof basePrice !== 'number' || basePrice <= 0)) {
@@ -113,8 +118,14 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
     const updateData: Prisma.BundleUpdateInput = {};
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
-    if (basePrice !== undefined) { updateData.basePrice = basePrice; updateData.finalPrice = finalPrice; }
-    if (discountPct !== undefined) { updateData.discountPct = discountPct; updateData.finalPrice = finalPrice; }
+    if (basePrice !== undefined) {
+      updateData.basePrice = basePrice;
+      updateData.finalPrice = finalPrice;
+    }
+    if (discountPct !== undefined) {
+      updateData.discountPct = discountPct;
+      updateData.finalPrice = finalPrice;
+    }
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
     if (isActive !== undefined) updateData.isActive = isActive;
 
@@ -126,7 +137,10 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
 
     res.json({ data: bundle });
   } catch (e: unknown) {
-    res.status(500).json({ error: 'Error al actualizar bundle', detail: e instanceof Error ? e.message : undefined });
+    res.status(500).json({
+      error: 'Error al actualizar bundle',
+      detail: e instanceof Error ? e.message : undefined,
+    });
   }
 });
 

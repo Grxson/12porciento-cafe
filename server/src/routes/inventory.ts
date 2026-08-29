@@ -11,17 +11,26 @@ router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
   try {
     const products = await prisma.product.findMany({
       select: {
-        id: true, name: true, slug: true, category: true, imageUrl: true,
-        price: true, costPrice: true, stock: true, lowStockThreshold: true,
-        isActive: true, sku: true, supplier: true,
+        id: true,
+        name: true,
+        slug: true,
+        category: true,
+        imageUrl: true,
+        price: true,
+        costPrice: true,
+        stock: true,
+        lowStockThreshold: true,
+        isActive: true,
+        sku: true,
+        supplier: true,
       },
       orderBy: { name: 'asc' },
     });
 
-    type P = typeof products[number];
+    type P = (typeof products)[number];
     const totalUnits = products.reduce((s: number, p: P) => s + p.stock, 0);
     const totalValue = products.reduce((s: number, p: P) => s + p.stock * p.price, 0);
-    const lowStock   = products.filter((p: P) => p.stock > 0 && p.stock <= p.lowStockThreshold);
+    const lowStock = products.filter((p: P) => p.stock > 0 && p.stock <= p.lowStockThreshold);
     const outOfStock = products.filter((p: P) => p.stock === 0);
 
     res.json({
@@ -38,7 +47,7 @@ router.get('/', requireAuth, async (_req: AuthRequest, res: Response) => {
         status: p.stock === 0 ? 'OUT' : p.stock <= p.lowStockThreshold ? 'LOW' : 'OK',
         inventoryValue: p.stock * p.price,
         costValue: p.costPrice ? p.stock * p.costPrice : null,
-        margin: p.costPrice ? ((p.price - p.costPrice) / p.price * 100).toFixed(1) : null,
+        margin: p.costPrice ? (((p.price - p.costPrice) / p.price) * 100).toFixed(1) : null,
       })),
     });
   } catch (err) {
@@ -57,7 +66,11 @@ router.get('/movements', requireAuth, async (req: AuthRequest, res: Response) =>
     if (dateFrom || dateTo) {
       where.createdAt = {};
       if (dateFrom) where.createdAt.gte = new Date(dateFrom as string);
-      if (dateTo) { const e = new Date(dateTo as string); e.setHours(23, 59, 59, 999); where.createdAt.lte = e; }
+      if (dateTo) {
+        const e = new Date(dateTo as string);
+        e.setHours(23, 59, 59, 999);
+        where.createdAt.lte = e;
+      }
     }
 
     const ps = Math.min(parseInt(pageSize as string) || 50, 200);
@@ -74,7 +87,13 @@ router.get('/movements', requireAuth, async (req: AuthRequest, res: Response) =>
       prisma.stockMovement.count({ where }),
     ]);
 
-    res.json({ data: movements, total, page: pg + 1, pageSize: ps, totalPages: Math.ceil(total / ps) });
+    res.json({
+      data: movements,
+      total,
+      page: pg + 1,
+      pageSize: ps,
+      totalPages: Math.ceil(total / ps),
+    });
   } catch {
     res.status(500).json({ error: 'Error al obtener movimientos' });
   }
@@ -97,16 +116,17 @@ router.get('/products/:id/movements', requireAuth, async (req: AuthRequest, res:
 // POST /adjust — manual stock adjustment
 router.post('/adjust', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, type, quantity, notes, unitCost, batchNumber, expiryDate, supplier } = req.body as {
-      productId: string;
-      type: 'RESTOCK' | 'ADJUSTMENT' | 'LOSS' | 'RETURN';
-      quantity: number;
-      notes?: string;
-      unitCost?: number;
-      batchNumber?: string;
-      expiryDate?: string;
-      supplier?: string;
-    };
+    const { productId, type, quantity, notes, unitCost, batchNumber, expiryDate, supplier } =
+      req.body as {
+        productId: string;
+        type: 'RESTOCK' | 'ADJUSTMENT' | 'LOSS' | 'RETURN';
+        quantity: number;
+        notes?: string;
+        unitCost?: number;
+        batchNumber?: string;
+        expiryDate?: string;
+        supplier?: string;
+      };
 
     if (!productId || !type || quantity === undefined) {
       res.status(400).json({ error: 'productId, type y quantity son requeridos' });
@@ -132,16 +152,26 @@ router.post('/adjust', requireAuth, async (req: AuthRequest, res: Response) => {
     // Determine direction: RESTOCK and RETURN are always positive (in), LOSS always negative (out)
     // ADJUSTMENT can be either — use the sign of quantity
     const delta =
-      type === 'RESTOCK' || type === 'RETURN' ? Math.abs(qty) :
-      type === 'LOSS' ? -Math.abs(qty) :
-      qty; // ADJUSTMENT: respect sign
+      type === 'RESTOCK' || type === 'RETURN'
+        ? Math.abs(qty)
+        : type === 'LOSS'
+          ? -Math.abs(qty)
+          : qty; // ADJUSTMENT: respect sign
 
-    const product = await prisma.product.findUnique({ where: { id: productId }, select: { stock: true } });
-    if (!product) { res.status(404).json({ error: 'Producto no encontrado' }); return; }
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { stock: true },
+    });
+    if (!product) {
+      res.status(404).json({ error: 'Producto no encontrado' });
+      return;
+    }
 
     const newStock = product.stock + delta;
     if (newStock < 0) {
-      res.status(400).json({ error: `Stock insuficiente. Stock actual: ${product.stock}, ajuste: ${delta}` });
+      res
+        .status(400)
+        .json({ error: `Stock insuficiente. Stock actual: ${product.stock}, ajuste: ${delta}` });
       return;
     }
 
@@ -167,7 +197,13 @@ router.post('/adjust', requireAuth, async (req: AuthRequest, res: Response) => {
       }),
     ]);
 
-    logAdminAction({ adminId: req.admin?.id, action: 'ADJUST', entity: 'Inventory', entityId: productId, metadata: { type, quantity: delta, previousStock: product.stock, newStock } });
+    logAdminAction({
+      adminId: req.admin?.id,
+      action: 'ADJUST',
+      entity: 'Inventory',
+      entityId: productId,
+      metadata: { type, quantity: delta, previousStock: product.stock, newStock },
+    });
     res.json({ product: updatedProduct, movement });
   } catch (err) {
     console.error(err);
@@ -200,13 +236,21 @@ router.get('/alerts', requireAuth, async (_req: AuthRequest, res: Response) => {
     const products = await prisma.product.findMany({
       where: { isActive: true },
       select: {
-        id: true, name: true, slug: true, sku: true, category: true,
-        stock: true, lowStockThreshold: true, price: true, costPrice: true,
-        supplier: true, imageUrl: true,
+        id: true,
+        name: true,
+        slug: true,
+        sku: true,
+        category: true,
+        stock: true,
+        lowStockThreshold: true,
+        price: true,
+        costPrice: true,
+        supplier: true,
+        imageUrl: true,
       },
     });
 
-    type P = typeof products[number];
+    type P = (typeof products)[number];
 
     const outOfStock = products.filter((p: P) => p.stock === 0);
     const lowStock = products.filter((p: P) => p.stock > 0 && p.stock <= p.lowStockThreshold);
@@ -223,7 +267,7 @@ router.get('/alerts', requireAuth, async (_req: AuthRequest, res: Response) => {
       orderBy: { expiryDate: 'asc' },
     });
 
-    type M = typeof expiringMovements[number];
+    type M = (typeof expiringMovements)[number];
     res.json({
       outOfStock,
       lowStock,
@@ -253,14 +297,33 @@ router.get('/export-csv', requireAuth, async (_req: AuthRequest, res: Response) 
   try {
     const products = await prisma.product.findMany({
       select: {
-        sku: true, name: true, category: true, stock: true, lowStockThreshold: true,
-        price: true, costPrice: true, supplier: true, weight: true, isActive: true,
+        sku: true,
+        name: true,
+        category: true,
+        stock: true,
+        lowStockThreshold: true,
+        price: true,
+        costPrice: true,
+        supplier: true,
+        weight: true,
+        isActive: true,
       },
       orderBy: { name: 'asc' },
     });
 
-    const headers = ['SKU', 'Nombre', 'Categoría', 'Stock', 'Umbral', 'Precio', 'Costo', 'Proveedor', 'Peso (g)', 'Activo'];
-    type P = typeof products[number];
+    const headers = [
+      'SKU',
+      'Nombre',
+      'Categoría',
+      'Stock',
+      'Umbral',
+      'Precio',
+      'Costo',
+      'Proveedor',
+      'Peso (g)',
+      'Activo',
+    ];
+    type P = (typeof products)[number];
     const rows = products.map((p: P) => [
       p.sku ?? '',
       p.name,
@@ -275,11 +338,18 @@ router.get('/export-csv', requireAuth, async (_req: AuthRequest, res: Response) 
     ]);
 
     const csv = [headers, ...rows]
-      .map((row) => row.map((cell: string | number | boolean | null) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .map((row) =>
+        row
+          .map((cell: string | number | boolean | null) => `"${String(cell).replace(/"/g, '""')}"`)
+          .join(','),
+      )
       .join('\n');
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="inventario-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="inventario-${new Date().toISOString().slice(0, 10)}.csv"`,
+    );
     res.send('﻿' + csv);
   } catch (err) {
     console.error(err);

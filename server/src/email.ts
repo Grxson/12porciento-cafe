@@ -2,7 +2,11 @@ import { sendMail } from './lib/mail';
 import crypto from 'crypto';
 
 function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 export function generateEmailVerificationToken(): string {
@@ -18,12 +22,16 @@ interface OrderEmailData {
 }
 
 function orderConfirmationHtml(data: OrderEmailData): string {
-  const itemRows = data.items.map((item) => `
+  const itemRows = data.items
+    .map(
+      (item) => `
     <tr>
       <td style="padding:8px 0;border-bottom:1px solid #2a1a0e;color:#d4b896;font-size:14px;">${esc(item.name)}</td>
       <td style="padding:8px 0;border-bottom:1px solid #2a1a0e;color:#8c6a4a;font-size:14px;text-align:center;">×${item.quantity}</td>
       <td style="padding:8px 0;border-bottom:1px solid #2a1a0e;color:#c9a227;font-size:14px;text-align:right;">$${(item.price * item.quantity).toLocaleString('es-MX')}</td>
-    </tr>`).join('');
+    </tr>`,
+    )
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -117,7 +125,10 @@ interface StatusEmailData {
   status: string;
 }
 
-const STATUS_COPY: Record<string, { subject: string; headline: string; body: string; cta: string; color: string }> = {
+const STATUS_COPY: Record<
+  string,
+  { subject: string; headline: string; body: string; cta: string; color: string }
+> = {
   PROCESSING: {
     subject: 'Tu pedido está siendo preparado',
     headline: 'Preparando tu café',
@@ -151,9 +162,10 @@ const STATUS_COPY: Record<string, { subject: string; headline: string; body: str
 function statusUpdateHtml(data: StatusEmailData): string {
   const copy = STATUS_COPY[data.status];
   if (!copy) return '';
-  const ctaUrl = data.status === 'DELIVERED'
-    ? `${process.env.CLIENT_URL || 'http://localhost'}/tienda`
-    : `${process.env.CLIENT_URL || 'http://localhost'}/perfil/pedidos`;
+  const ctaUrl =
+    data.status === 'DELIVERED'
+      ? `${process.env.CLIENT_URL || 'http://localhost'}/tienda`
+      : `${process.env.CLIENT_URL || 'http://localhost'}/perfil/pedidos`;
 
   return `<!DOCTYPE html>
 <html lang="es">

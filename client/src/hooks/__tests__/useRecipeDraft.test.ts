@@ -12,17 +12,26 @@ vi.stubGlobal('indexedDB', {
           objectStore: vi.fn(() => ({
             get: vi.fn((key: string) => {
               const r: any = {};
-              setTimeout(() => { r.result = mockStore[key]; r.onsuccess?.(); }, 0);
+              setTimeout(() => {
+                r.result = mockStore[key];
+                r.onsuccess?.();
+              }, 0);
               return r;
             }),
             put: vi.fn((val: any) => {
               const r: any = {};
-              setTimeout(() => { mockStore[val.id] = val; r.onsuccess?.(); }, 0);
+              setTimeout(() => {
+                mockStore[val.id] = val;
+                r.onsuccess?.();
+              }, 0);
               return r;
             }),
             delete: vi.fn((key: string) => {
               const r: any = {};
-              setTimeout(() => { delete mockStore[key]; r.onsuccess?.(); }, 0);
+              setTimeout(() => {
+                delete mockStore[key];
+                r.onsuccess?.();
+              }, 0);
               return r;
             }),
           })),

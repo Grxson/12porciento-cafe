@@ -12,13 +12,24 @@ export interface AnyAuthRequest extends Request {
 
 export const requireAnyAuth = (req: AnyAuthRequest, res: Response, next: NextFunction): void => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) { res.status(401).json({ error: 'No autorizado' }); return; }
+  if (!token) {
+    res.status(401).json({ error: 'No autorizado' });
+    return;
+  }
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as {
-      id: string; email: string; name: string; role?: string;
+      id: string;
+      email: string;
+      name: string;
+      role?: string;
     };
     if (payload.role === 'USER') {
-      (req as AnyAuthRequest).user = payload as { id: string; email: string; name: string; role: string };
+      (req as AnyAuthRequest).user = payload as {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+      };
     } else {
       (req as AnyAuthRequest).admin = payload;
     }

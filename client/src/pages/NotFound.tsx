@@ -17,13 +17,20 @@ export default function NotFound() {
         <h1 className="font-serif text-7xl sm:text-9xl font-black text-coffee-900 dark:text-cream leading-none mb-4">
           Oops
         </h1>
-        <p className="font-serif italic text-2xl text-coffee-700 dark:text-coffee-300 mb-3">esta página no existe</p>
+        <p className="font-serif italic text-2xl text-coffee-700 dark:text-coffee-300 mb-3">
+          esta página no existe
+        </p>
         <p className="text-coffee-600 dark:text-coffee-400 text-base mb-10 max-w-md mx-auto">
-          Parece que este grano se perdió en el proceso. Regresa a la tienda para encontrar tu café perfecto.
+          Parece que este grano se perdió en el proceso. Regresa a la tienda para encontrar tu café
+          perfecto.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/" className="btn-primary">Ir al inicio</Link>
-          <Link to="/tienda" className="btn-outline">Ver la tienda</Link>
+          <Link to="/" className="btn-primary">
+            Ir al inicio
+          </Link>
+          <Link to="/tienda" className="btn-outline">
+            Ver la tienda
+          </Link>
         </div>
       </motion.div>
     </div>

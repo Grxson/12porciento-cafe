@@ -267,10 +267,16 @@ export default function BrewComparison() {
         )}
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link to={`/brew/sesiones/${a.id}`} className="border border-coffee-200 px-4 py-2 text-sm dark:border-coffee-700">
+          <Link
+            to={`/brew/sesiones/${a.id}`}
+            className="border border-coffee-200 px-4 py-2 text-sm dark:border-coffee-700"
+          >
             Ver sesión A
           </Link>
-          <Link to={`/brew/sesiones/${b.id}`} className="border border-coffee-200 px-4 py-2 text-sm dark:border-coffee-700">
+          <Link
+            to={`/brew/sesiones/${b.id}`}
+            className="border border-coffee-200 px-4 py-2 text-sm dark:border-coffee-700"
+          >
             Ver sesión B
           </Link>
           <Link to="/brew/dial-in" className="btn-primary inline-flex items-center gap-2">

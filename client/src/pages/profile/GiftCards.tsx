@@ -138,7 +138,9 @@ export default function GiftCards() {
                         <Clock className="w-3 h-3" />
                         <span>{new Date(card.createdAt).toLocaleDateString('es-MX')}</span>
                         {card.expiresAt && (
-                          <span className="ml-2">Expira: {new Date(card.expiresAt).toLocaleDateString('es-MX')}</span>
+                          <span className="ml-2">
+                            Expira: {new Date(card.expiresAt).toLocaleDateString('es-MX')}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -150,9 +152,13 @@ export default function GiftCards() {
                       className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gold-500 border border-gold-500/30 hover:bg-gold-500/10 transition-colors shrink-0"
                     >
                       {copiedId === card.code ? (
-                        <><Check className="w-3.5 h-3.5" /> Copiado</>
+                        <>
+                          <Check className="w-3.5 h-3.5" /> Copiado
+                        </>
                       ) : (
-                        <><Copy className="w-3.5 h-3.5" /> Canjear</>
+                        <>
+                          <Copy className="w-3.5 h-3.5" /> Canjear
+                        </>
                       )}
                     </button>
                   )}

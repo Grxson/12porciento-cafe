@@ -112,7 +112,9 @@ export default function GiftCardPurchase() {
             </div>
 
             <div className="border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-900/50 p-6 space-y-4">
-              <h3 className="text-sm font-medium text-coffee-700 dark:text-coffee-300">Destinatario</h3>
+              <h3 className="text-sm font-medium text-coffee-700 dark:text-coffee-300">
+                Destinatario
+              </h3>
               <input
                 type="text"
                 placeholder="Nombre del destinatario (opcional)"
@@ -131,7 +133,9 @@ export default function GiftCardPurchase() {
             </div>
 
             <div className="border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-900/50 p-6 space-y-4">
-              <h3 className="text-sm font-medium text-coffee-700 dark:text-coffee-300">De parte de</h3>
+              <h3 className="text-sm font-medium text-coffee-700 dark:text-coffee-300">
+                De parte de
+              </h3>
               <input
                 type="text"
                 placeholder="Tu nombre"
@@ -148,9 +152,7 @@ export default function GiftCardPurchase() {
               />
             </div>
 
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button
               onClick={handleCreatePayment}
@@ -172,15 +174,15 @@ export default function GiftCardPurchase() {
             </button>
 
             <div className="border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-900/50 p-6 mb-6">
-              <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">Completar pago</h2>
+              <h2 className="font-serif text-xl text-coffee-900 dark:text-cream mb-1">
+                Completar pago
+              </h2>
               <p className="text-sm text-coffee-600 dark:text-coffee-400">
                 Gift Card de <strong>${amount} MXN</strong> para {recipientName || recipientEmail}
               </p>
             </div>
 
-            {error && (
-              <p className="text-red-500 text-sm mb-4">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
             <GiftCardPaymentForm
               clientSecret={clientSecret}
@@ -205,7 +207,9 @@ export default function GiftCardPurchase() {
             </p>
 
             <div className="border border-coffee-200 dark:border-coffee-800 bg-coffee-50 dark:bg-coffee-900/50 p-6 mb-8">
-              <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">Código</p>
+              <p className="text-xs text-coffee-500 dark:text-coffee-400 uppercase tracking-widest mb-2">
+                Código
+              </p>
               <p className="font-mono text-2xl font-bold text-gold-500 mb-4">{giftCode}</p>
 
               <div className="flex gap-3">
@@ -213,7 +217,15 @@ export default function GiftCardPurchase() {
                   onClick={copyCode}
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-gold-500 text-coffee-950 font-bold text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
                 >
-                  {copied ? <><Check className="w-4 h-4" /> Copiado</> : <><Copy className="w-4 h-4" /> Copiar código</>}
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" /> Copiado
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" /> Copiar código
+                    </>
+                  )}
                 </button>
               </div>
 

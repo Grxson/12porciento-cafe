@@ -78,7 +78,10 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 router.put('/:id/toggle', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const promo = await prisma.promoCode.findUnique({ where: { id: req.params.id } });
-    if (!promo) { res.status(404).json({ error: 'No encontrado' }); return; }
+    if (!promo) {
+      res.status(404).json({ error: 'No encontrado' });
+      return;
+    }
     const updated = await prisma.promoCode.update({
       where: { id: req.params.id },
       data: { isActive: !promo.isActive },
@@ -107,7 +110,12 @@ router.post('/validate', validateLimiter, async (req: Request, res: Response) =>
     }
     const promo = await prisma.promoCode.findUnique({ where: { code: code.trim().toUpperCase() } });
 
-    if (!promo || !promo.isActive || (promo.expiresAt && new Date() > promo.expiresAt) || (promo.maxUses && promo.usedCount >= promo.maxUses)) {
+    if (
+      !promo ||
+      !promo.isActive ||
+      (promo.expiresAt && new Date() > promo.expiresAt) ||
+      (promo.maxUses && promo.usedCount >= promo.maxUses)
+    ) {
       return res.status(400).json({ error: 'Código de descuento inválido' });
     }
 

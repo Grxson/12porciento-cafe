@@ -12,9 +12,7 @@ router.get('/:recipeId', async (req, res: Response) => {
       include: { user: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
     });
-    const avg = ratings.length
-      ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length
-      : 0;
+    const avg = ratings.length ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : 0;
     res.json({ data: ratings, average: Math.round(avg * 10) / 10, count: ratings.length });
   } catch {
     res.status(500).json({ error: 'Error al obtener valoraciones' });

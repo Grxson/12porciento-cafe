@@ -12,15 +12,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Clock,
-  Scale,
-  ThermometerSun,
-  Coffee,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Clock, Scale, ThermometerSun, Coffee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   brewApi,
@@ -78,6 +70,8 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
       const parsed = JSON.parse(raw) as DraftState;
       if (
         typeof parsed.savedAtMs === 'number' &&
+        // Timestamp check: impure by design — draft TTL must compare against wall clock.
+        // eslint-disable-next-line react-hooks/purity
         Date.now() - parsed.savedAtMs > DRAFT_TTL_MS
       ) {
         try {
@@ -94,19 +88,15 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
     return null;
   }, [initialSession.id]);
 
-  const [currentStepIndex, setCurrentStepIndex] = useState(
-    initialDraft?.currentStepIndex ?? 0,
-  );
+  const [currentStepIndex, setCurrentStepIndex] = useState(initialDraft?.currentStepIndex ?? 0);
   const [status, setStatus] = useState<BrewStatus>('PREPARING');
   const [stepStartedAtMs, setStepStartedAtMs] = useState<number | null>(
     initialDraft?.startedAtMs ?? null,
   );
-  const [pausedAtMs, setPausedAtMs] = useState<number | null>(
-    initialDraft?.pausedAtMs ?? null,
-  );
-  const [totalPausedMs, setTotalPausedMs] = useState<number>(
-    initialDraft?.totalPausedMs ?? 0,
-  );
+  const [pausedAtMs, setPausedAtMs] = useState<number | null>(initialDraft?.pausedAtMs ?? null);
+  const [totalPausedMs, setTotalPausedMs] = useState<number>(initialDraft?.totalPausedMs ?? 0);
+  // Seed the clock once at mount; subsequent ticks come from the interval.
+  // eslint-disable-next-line react-hooks/purity
   const [now, setNow] = useState<number>(Date.now());
   const [coffeeDoseGrams, setCoffeeDoseGrams] = useState(
     initialDraft?.coffeeDoseGrams ?? initialSession.coffeeDoseGrams ?? recipe.coffeeDoseGrams ?? 20,
@@ -137,12 +127,13 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
     if (status !== 'RUNNING') return;
     let cancelled = false;
     let lock: { release: () => Promise<unknown> } | null = null;
-    const wl = (navigator as Navigator & {
-      wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<unknown> }> };
-    }).wakeLock;
+    const wl = (
+      navigator as Navigator & {
+        wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<unknown> }> };
+      }
+    ).wakeLock;
     if (wl) {
-      wl
-        .request('screen')
+      wl.request('screen')
         .then((l) => {
           if (cancelled) {
             l.release().catch(() => {});
@@ -298,7 +289,9 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
         rating,
         notes: notes || undefined,
         result: result ?? undefined,
-        brewTimeSeconds: stepStartedAtMs ? Math.floor((Date.now() - stepStartedAtMs) / 1000) : undefined,
+        brewTimeSeconds: stepStartedAtMs
+          ? Math.floor((Date.now() - stepStartedAtMs) / 1000)
+          : undefined,
       });
       // Also update params to what was actually used.
       await brewApi.updateSession(initialSession.id, {

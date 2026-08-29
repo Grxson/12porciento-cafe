@@ -58,7 +58,8 @@ export function recommend(input: DialInInput): DialInRecommendation {
   if (isGoodResult(result)) {
     return {
       primaryChange: 'Mantén tu receta igual — ya está funcionando.',
-      reason: 'Tu calificación indica balance. Repetir con la misma molienda y mismos parámetros es lo correcto.',
+      reason:
+        'Tu calificación indica balance. Repetir con la misma molienda y mismos parámetros es lo correcto.',
       reasonCode: 'HOLD',
       suggestions: [
         'Anota los parámetros exactos en Mis preparaciones para repetirlos.',
@@ -95,20 +96,20 @@ export function recommend(input: DialInInput): DialInRecommendation {
 function recommendSour(current: NonNullable<DialInInput['current']>): DialInRecommendation {
   return {
     primaryChange: 'Muele ligeramente más fino.',
-    reason: 'Un café marcadamente ácido suele indicar subextracción — el agua no logra extraer los compuestos dulces.',
+    reason:
+      'Un café marcadamente ácido suele indicar subextracción — el agua no logra extraer los compuestos dulces.',
     reasonCode: 'GRIND_FINER',
-    suggestions: [
-      bumpTemp(current),
-      bumpContactTime(current),
-      bumpRatioAgitation(current),
-    ].filter(Boolean) as string[],
+    suggestions: [bumpTemp(current), bumpContactTime(current), bumpRatioAgitation(current)].filter(
+      Boolean,
+    ) as string[],
   };
 }
 
 function recommendBitter(current: NonNullable<DialInInput['current']>): DialInRecommendation {
   return {
     primaryChange: 'Muele ligeramente más grueso.',
-    reason: 'Amargor o astringencia alta sugiere sobreextracción — el agua permanece demasiado tiempo en contacto con el café.',
+    reason:
+      'Amargor o astringencia alta sugiere sobreextracción — el agua permanece demasiado tiempo en contacto con el café.',
     reasonCode: 'GRIND_COARSER',
     suggestions: [dropTemp(current), dropContactTime(current), keepAgitation(current)].filter(
       Boolean,
@@ -147,7 +148,8 @@ function recommendStrong(_current: DialInInput['current']): DialInRecommendation
 function recommendAstringent(current: NonNullable<DialInInput['current']>): DialInRecommendation {
   return {
     primaryChange: 'Muele más grueso y suaviza la agitación.',
-    reason: 'Astringencia / sequedad indica canales en el lecho o sobreextracción localizada. Menos finos y menos agitación.',
+    reason:
+      'Astringencia / sequedad indica canales en el lecho o sobreextracción localizada. Menos finos y menos agitación.',
     reasonCode: 'COARSER_LESS_AGITATION',
     suggestions: [
       'Mejora el patrón de vertido para evitar canalización (centro → espirales suaves).',
@@ -187,7 +189,8 @@ function bumpRatioAgitation(current: NonNullable<DialInInput['current']>): strin
 }
 
 function keepAgitation(current: NonNullable<DialInInput['current']>): string | null {
-  if (current.agitation === 'high') return 'Reduce la agitación — estás extrayendo demasiado rápido.';
+  if (current.agitation === 'high')
+    return 'Reduce la agitación — estás extrayendo demasiado rápido.';
   return null;
 }
 

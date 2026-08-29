@@ -43,7 +43,10 @@ const router = Router();
 
 function pagination(req: Request, defaultSize = 50, maxSize = 100) {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
-  const pageSize = Math.min(maxSize, Math.max(1, parseInt(req.query.pageSize as string) || defaultSize));
+  const pageSize = Math.min(
+    maxSize,
+    Math.max(1, parseInt(req.query.pageSize as string) || defaultSize),
+  );
   return { page, pageSize, skip: (page - 1) * pageSize };
 }
 
@@ -77,31 +80,29 @@ function projectRecipe<T extends { ratio: string | null }>(r: T): T & { ratio: n
 }
 
 /** Convert a Recipe + steps to a BrewRecipe snapshot. */
-function recipeToBrewRecipe(
-  recipe: {
-    coffeeDoseGrams: number | null;
-    waterGrams: number | null;
-    ratio: string | null;
-    waterTemperatureCelsius: number | null;
-    grindTargetMicrons: number | null;
-    steps: Array<{
-      order: number;
-      title?: string | null;
-      description?: string | null;
-      type?: string | null;
-      duration?: number | null;
-      startTimeSeconds?: number | null;
-      waterAmountGrams?: number | null;
-      targetTotalWaterGrams?: number | null;
-      action?: string | null;
-      pourPattern?: string | null;
-      flowRateGramsPerSecond?: number | null;
-      temperatureCelsius?: number | null;
-      instruction?: string | null;
-      optional?: boolean;
-    }>;
-  },
-): BrewRecipe | null {
+function recipeToBrewRecipe(recipe: {
+  coffeeDoseGrams: number | null;
+  waterGrams: number | null;
+  ratio: string | null;
+  waterTemperatureCelsius: number | null;
+  grindTargetMicrons: number | null;
+  steps: Array<{
+    order: number;
+    title?: string | null;
+    description?: string | null;
+    type?: string | null;
+    duration?: number | null;
+    startTimeSeconds?: number | null;
+    waterAmountGrams?: number | null;
+    targetTotalWaterGrams?: number | null;
+    action?: string | null;
+    pourPattern?: string | null;
+    flowRateGramsPerSecond?: number | null;
+    temperatureCelsius?: number | null;
+    instruction?: string | null;
+    optional?: boolean;
+  }>;
+}): BrewRecipe | null {
   if (!recipe.coffeeDoseGrams || !recipe.waterGrams || !recipe.ratio) return null;
   // Legacy ratio is a string ("1:15" or "15"); coerce to a float for the engine.
   const ratioNum = (() => {
@@ -325,7 +326,10 @@ router.post('/recipes/:id/dial-in', async (req: Request, res: Response) => {
 
     // Optional: validate recipe exists (gives better 404 than silent engine call)
     if (req.params.id !== 'ad-hoc') {
-      const exists = await prisma.recipe.findUnique({ where: { id: req.params.id }, select: { id: true } });
+      const exists = await prisma.recipe.findUnique({
+        where: { id: req.params.id },
+        select: { id: true },
+      });
       if (!exists) return res.status(404).json({ error: 'Receta no encontrada' });
     }
 
@@ -403,16 +407,7 @@ router.post('/sessions', requireUserAuth, async (req: UserAuthRequest, res: Resp
 router.get('/sessions', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const {
-      coffeeId,
-      recipeId,
-      brewMethodId,
-      status,
-      minRating,
-      from,
-      to,
-      favorites,
-    } = req.query;
+    const { coffeeId, recipeId, brewMethodId, status, minRating, from, to, favorites } = req.query;
     const where: Prisma.BrewSessionWhereInput = { userId };
     if (coffeeId) where.coffeeId = coffeeId as string;
     if (recipeId) where.recipeId = recipeId as string;
@@ -493,7 +488,10 @@ router.get('/sessions/:id', requireUserAuth, async (req: UserAuthRequest, res: R
 router.put('/sessions/:id', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const owned = await prisma.brewSession.findFirst({ where: { id: req.params.id, userId }, select: { id: true } });
+    const owned = await prisma.brewSession.findFirst({
+      where: { id: req.params.id, userId },
+      select: { id: true },
+    });
     if (!owned) return res.status(404).json({ error: 'Sesión no encontrada' });
 
     const {
@@ -509,13 +507,22 @@ router.put('/sessions/:id', requireUserAuth, async (req: UserAuthRequest, res: R
     } = req.body ?? {};
 
     const data: Prisma.BrewSessionUpdateInput = {};
-    if (coffeeDoseGrams !== undefined) data.coffeeDoseGrams = Number.isFinite(coffeeDoseGrams) ? Number(coffeeDoseGrams) : null;
-    if (waterGrams !== undefined) data.waterGrams = Number.isFinite(waterGrams) ? Number(waterGrams) : null;
+    if (coffeeDoseGrams !== undefined)
+      data.coffeeDoseGrams = Number.isFinite(coffeeDoseGrams) ? Number(coffeeDoseGrams) : null;
+    if (waterGrams !== undefined)
+      data.waterGrams = Number.isFinite(waterGrams) ? Number(waterGrams) : null;
     if (ratio !== undefined) data.ratio = Number.isFinite(ratio) ? Number(ratio) : null;
-    if (temperatureCelsius !== undefined) data.temperatureCelsius = Number.isFinite(temperatureCelsius) ? Number(temperatureCelsius) : null;
+    if (temperatureCelsius !== undefined)
+      data.temperatureCelsius = Number.isFinite(temperatureCelsius)
+        ? Number(temperatureCelsius)
+        : null;
     if (grindSetting !== undefined) data.grindSetting = grindSetting ?? null;
-    if (grindMicrons !== undefined) data.grindMicrons = Number.isFinite(grindMicrons) ? Number(grindMicrons) : null;
-    if (brewTimeSeconds !== undefined) data.brewTimeSeconds = Number.isFinite(brewTimeSeconds) ? Math.max(0, Math.floor(Number(brewTimeSeconds))) : null;
+    if (grindMicrons !== undefined)
+      data.grindMicrons = Number.isFinite(grindMicrons) ? Number(grindMicrons) : null;
+    if (brewTimeSeconds !== undefined)
+      data.brewTimeSeconds = Number.isFinite(brewTimeSeconds)
+        ? Math.max(0, Math.floor(Number(brewTimeSeconds)))
+        : null;
     if (status !== undefined) data.status = status;
     if (notes !== undefined) data.notes = notes ?? null;
 
@@ -528,71 +535,83 @@ router.put('/sessions/:id', requireUserAuth, async (req: UserAuthRequest, res: R
 });
 
 // POST /sessions/:id/complete — finalize with feedback
-router.post('/sessions/:id/complete', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const owned = await prisma.brewSession.findFirst({ where: { id: req.params.id, userId }, select: { id: true } });
-    if (!owned) return res.status(404).json({ error: 'Sesión no encontrada' });
+router.post(
+  '/sessions/:id/complete',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const owned = await prisma.brewSession.findFirst({
+        where: { id: req.params.id, userId },
+        select: { id: true },
+      });
+      if (!owned) return res.status(404).json({ error: 'Sesión no encontrada' });
 
-    const {
-      rating,
-      notes,
-      result,
-      sweetnessRating,
-      acidityRating,
-      bodyRating,
-      clarityRating,
-      brewTimeSeconds,
-    } = req.body ?? {};
+      const {
+        rating,
+        notes,
+        result,
+        sweetnessRating,
+        acidityRating,
+        bodyRating,
+        clarityRating,
+        brewTimeSeconds,
+      } = req.body ?? {};
 
-    if (rating !== undefined && (rating < 1 || rating > 5)) {
-      return res.status(400).json({ error: 'rating debe estar entre 1 y 5' });
+      if (rating !== undefined && (rating < 1 || rating > 5)) {
+        return res.status(400).json({ error: 'rating debe estar entre 1 y 5' });
+      }
+
+      const allowedResults: BrewSessionResult[] = [
+        'SOUR',
+        'BITTER',
+        'WATERY',
+        'STRONG',
+        'ASTRINGENT',
+        'UNDEREXTRACTED',
+        'OVEREXTRACTED',
+        'BALANCED',
+        'GOOD',
+        'EXCELLENT',
+      ];
+      if (result !== undefined && result !== null && !allowedResults.includes(result)) {
+        return res.status(400).json({ error: 'result inválido' });
+      }
+
+      const updated = await prisma.brewSession.update({
+        where: { id: req.params.id },
+        data: {
+          rating: rating ?? null,
+          notes: notes ?? null,
+          result: result ?? null,
+          sweetnessRating: sweetnessRating ?? null,
+          acidityRating: acidityRating ?? null,
+          bodyRating: bodyRating ?? null,
+          clarityRating: clarityRating ?? null,
+          brewTimeSeconds: Number.isFinite(brewTimeSeconds)
+            ? Math.floor(Number(brewTimeSeconds))
+            : undefined,
+          status: 'COMPLETED',
+          completedAt: new Date(),
+        },
+      });
+
+      res.json({ data: updated });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al completar sesión' });
     }
-
-    const allowedResults: BrewSessionResult[] = [
-      'SOUR',
-      'BITTER',
-      'WATERY',
-      'STRONG',
-      'ASTRINGENT',
-      'UNDEREXTRACTED',
-      'OVEREXTRACTED',
-      'BALANCED',
-      'GOOD',
-      'EXCELLENT',
-    ];
-    if (result !== undefined && result !== null && !allowedResults.includes(result)) {
-      return res.status(400).json({ error: 'result inválido' });
-    }
-
-    const updated = await prisma.brewSession.update({
-      where: { id: req.params.id },
-      data: {
-        rating: rating ?? null,
-        notes: notes ?? null,
-        result: result ?? null,
-        sweetnessRating: sweetnessRating ?? null,
-        acidityRating: acidityRating ?? null,
-        bodyRating: bodyRating ?? null,
-        clarityRating: clarityRating ?? null,
-        brewTimeSeconds: Number.isFinite(brewTimeSeconds) ? Math.floor(Number(brewTimeSeconds)) : undefined,
-        status: 'COMPLETED',
-        completedAt: new Date(),
-      },
-    });
-
-    res.json({ data: updated });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al completar sesión' });
-  }
-});
+  },
+);
 
 // DELETE /sessions/:id (owner)
 router.delete('/sessions/:id', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const owned = await prisma.brewSession.findFirst({ where: { id: req.params.id, userId }, select: { id: true } });
+    const owned = await prisma.brewSession.findFirst({
+      where: { id: req.params.id, userId },
+      select: { id: true },
+    });
     if (!owned) return res.status(404).json({ error: 'Sesión no encontrada' });
     await prisma.brewSession.delete({ where: { id: req.params.id } });
     res.json({ success: true });
@@ -603,34 +622,42 @@ router.delete('/sessions/:id', requireUserAuth, async (req: UserAuthRequest, res
 });
 
 // POST /sessions/:id/favorite (toggle)
-router.post('/sessions/:id/favorite', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const existing = await prisma.brewSessionFavorite.findUnique({
-      where: { userId_sessionId: { userId, sessionId: req.params.id } },
-    });
-    if (existing) {
-      await prisma.brewSessionFavorite.delete({ where: { id: existing.id } });
-      return res.json({ data: { favorited: false } });
+router.post(
+  '/sessions/:id/favorite',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const existing = await prisma.brewSessionFavorite.findUnique({
+        where: { userId_sessionId: { userId, sessionId: req.params.id } },
+      });
+      if (existing) {
+        await prisma.brewSessionFavorite.delete({ where: { id: existing.id } });
+        return res.json({ data: { favorited: false } });
+      }
+      await prisma.brewSessionFavorite.create({ data: { userId, sessionId: req.params.id } });
+      res.json({ data: { favorited: true } });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al marcar favorita' });
     }
-    await prisma.brewSessionFavorite.create({ data: { userId, sessionId: req.params.id } });
-    res.json({ data: { favorited: true } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al marcar favorita' });
-  }
-});
+  },
+);
 
-router.delete('/sessions/:id/favorite', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    await prisma.brewSessionFavorite.deleteMany({ where: { userId, sessionId: req.params.id } });
-    res.json({ data: { favorited: false } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al quitar favorita' });
-  }
-});
+router.delete(
+  '/sessions/:id/favorite',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      await prisma.brewSessionFavorite.deleteMany({ where: { userId, sessionId: req.params.id } });
+      res.json({ data: { favorited: false } });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al quitar favorita' });
+    }
+  },
+);
 
 // ════════════════════════════════════════════════════════════════════════
 // User: EQUIPMENT (wraps BaristaEquipment with brew-aware fields)
@@ -652,7 +679,15 @@ router.get('/equipment', requireUserAuth, async (req: UserAuthRequest, res: Resp
 router.post('/equipment', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
   try {
     const { name, brand, category, photoUrl, isFavorite } = req.body ?? {};
-    const allowedCategories = ['GRINDER', 'KETTLE', 'DRIPPER', 'SCALE', 'ESPRESSO_MACHINE', 'FILTER', 'OTHER'];
+    const allowedCategories = [
+      'GRINDER',
+      'KETTLE',
+      'DRIPPER',
+      'SCALE',
+      'ESPRESSO_MACHINE',
+      'FILTER',
+      'OTHER',
+    ];
     if (!name?.trim()) return res.status(400).json({ error: 'name es requerido' });
     if (category && !allowedCategories.includes(category)) {
       return res.status(400).json({ error: `category inválida (${allowedCategories.join('|')})` });
@@ -734,7 +769,10 @@ router.get('/water-profiles', async (req: Request, res: Response) => {
         // ignore — treat as public
       }
     }
-    const data = await prisma.waterProfile.findMany({ where, orderBy: [{ official: 'desc' }, { name: 'asc' }] });
+    const data = await prisma.waterProfile.findMany({
+      where,
+      orderBy: [{ official: 'desc' }, { name: 'asc' }],
+    });
     res.json({ data });
   } catch (err) {
     console.error(err);
@@ -768,23 +806,28 @@ router.post('/water-profiles', requireUserAuth, async (req: UserAuthRequest, res
   }
 });
 
-router.delete('/water-profiles/:id', requireUserAuth, async (req: UserAuthRequest, res: Response) => {
-  try {
-    const item = await prisma.waterProfile.findUnique({ where: { id: req.params.id } });
-    if (!item) return res.status(404).json({ error: 'Perfil no encontrado' });
+router.delete(
+  '/water-profiles/:id',
+  requireUserAuth,
+  async (req: UserAuthRequest, res: Response) => {
+    try {
+      const item = await prisma.waterProfile.findUnique({ where: { id: req.params.id } });
+      if (!item) return res.status(404).json({ error: 'Perfil no encontrado' });
 
-    const isOwner = item.userId === req.user!.id;
-    const isAdmin = req.user!.role === 'ADMIN';
-    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Sin permiso' });
-    if (item.official && !isAdmin) return res.status(403).json({ error: 'No se puede eliminar un perfil oficial' });
+      const isOwner = item.userId === req.user!.id;
+      const isAdmin = req.user!.role === 'ADMIN';
+      if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Sin permiso' });
+      if (item.official && !isAdmin)
+        return res.status(403).json({ error: 'No se puede eliminar un perfil oficial' });
 
-    await prisma.waterProfile.delete({ where: { id: req.params.id } });
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al eliminar perfil' });
-  }
-});
+      await prisma.waterProfile.delete({ where: { id: req.params.id } });
+      res.json({ success: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al eliminar perfil' });
+    }
+  },
+);
 
 // Re-export helper for admin router
 export { pagination, paginatedResponse };

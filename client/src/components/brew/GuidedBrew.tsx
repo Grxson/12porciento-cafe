@@ -117,6 +117,10 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
   const [grindSetting, setGrindSetting] = useState(
     initialDraft?.grindSetting ?? initialSession.grindSetting ?? '',
   );
+  // Server-scaled steps (RecipeEngine) — single source of scaling truth.
+  const [scaledSteps, setScaledSteps] = useState<BrewStepStructured[] | null>(null);
+  const scaleTimeoutRef = useRef<number | null>(null);
+  const wakeLockRef = useRef<{ release: () => Promise<unknown> } | null>(null);
   const [showFinishForm, setShowFinishForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -126,6 +130,51 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, [status]);
+
+  // Keep the screen awake while a step is running (Wake Lock API with
+  // graceful fallback — timer still works if the browser refuses).
+  useEffect(() => {
+    if (status !== 'RUNNING') return;
+    let cancelled = false;
+    let lock: { release: () => Promise<unknown> } | null = null;
+    const wl = (navigator as Navigator & {
+      wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<unknown> }> };
+    }).wakeLock;
+    if (wl) {
+      wl
+        .request('screen')
+        .then((l) => {
+          if (cancelled) {
+            l.release().catch(() => {});
+            return;
+          }
+          lock = l;
+          wakeLockRef.current = l;
+        })
+        .catch(() => {});
+    }
+    return () => {
+      cancelled = true;
+      lock?.release().catch(() => {});
+      wakeLockRef.current = null;
+    };
+  }, [status]);
+
+  // Rescale the steps through the server RecipeEngine (fallback: local).
+  useEffect(() => {
+    if (!recipe.id || !coffeeDoseGrams) return;
+    let cancelled = false;
+    brewApi
+      .scaleRecipe(recipe.id, coffeeDoseGrams)
+      .then((r) => {
+        if (!cancelled) setScaledSteps(r.data.data.steps);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipe.id]);
 
   // Persist draft on every meaningful change.
   const persistDraft = useCallback(
@@ -176,12 +225,19 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
     return sum;
   }, [currentStepIndex, recipe.steps]);
 
-  // Scaled step water for current step (proportional to coffeeDoseGrams).
+  // Scaled step water for current step. Server-scaled steps (RecipeEngine)
+  // win when available; local proportional scaling is the offline fallback.
   const scaledStepWater = useMemo(() => {
     if (!step || !step.waterAmountGrams || !recipe.coffeeDoseGrams) return null;
+    if (scaledSteps) {
+      const serverStep = scaledSteps.find((s) => s.order === step.order);
+      if (serverStep?.waterAmountGrams && serverStep.waterAmountGrams > 0) {
+        return Math.round(serverStep.waterAmountGrams * 2) / 2;
+      }
+    }
     const scale = coffeeDoseGrams / recipe.coffeeDoseGrams;
     return Math.round(step.waterAmountGrams * scale * 2) / 2;
-  }, [step, coffeeDoseGrams, recipe.coffeeDoseGrams]);
+  }, [step, scaledSteps, coffeeDoseGrams, recipe.coffeeDoseGrams]);
 
   const totalWater = calculateWater(coffeeDoseGrams, waterGrams / coffeeDoseGrams);
 
@@ -379,6 +435,11 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
                 Pausar
               </button>
             )}
+            {status === 'RUNNING' && step.duration && stepElapsedSec >= step.duration && (
+              <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-gold-600 dark:text-gold-400">
+                ✓ Tiempo cumplido — avanza cuando esté listo
+              </p>
+            )}
             {status === 'PAUSED' && (
               <button
                 type="button"
@@ -405,6 +466,13 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
                   if (n <= 0) return;
                   setCoffeeDoseGrams(n);
                   setWaterGrams(calculateWater(n, waterGrams / coffeeDoseGrams));
+                  if (scaleTimeoutRef.current) window.clearTimeout(scaleTimeoutRef.current);
+                  scaleTimeoutRef.current = window.setTimeout(() => {
+                    brewApi
+                      .scaleRecipe(recipe.id, n)
+                      .then((r) => setScaledSteps(r.data.data.steps))
+                      .catch(() => {});
+                  }, 350);
                 }}
               />
               <ParamEdit

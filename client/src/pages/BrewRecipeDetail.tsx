@@ -154,6 +154,8 @@ export default function BrewRecipeDetail() {
               initialCoffee={recipe.coffeeDoseGrams}
               initialWater={recipe.waterGrams}
               ratio={recipe.ratio ?? Number((recipe.waterGrams / recipe.coffeeDoseGrams).toFixed(2))}
+              steps={recipe.steps}
+              remoteScale={(dose) => brewApi.scaleRecipe(recipe.id, dose).then((r) => r.data.data)}
             />
           </section>
         )}

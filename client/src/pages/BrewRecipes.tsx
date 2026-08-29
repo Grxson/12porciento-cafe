@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, ChevronRight } from 'lucide-react';
-import { brewApi } from '@12porciento/shared';
+import { Search, ChevronRight, Heart } from 'lucide-react';
+import { brewApi, recipeFavoritesApi } from '@12porciento/shared';
 import type { BrewMethod, BrewRecipeStructured, BrewRecipeProfile } from '@12porciento/shared';
 import MediaFrame from '../components/ui/MediaFrame';
 import EmptyState from '../components/ui/EmptyState';
 import ErrorState from '../components/ui/ErrorState';
+import { useUser } from '../context/UserContext';
+import { useToast } from '../context/ToastContext';
 
 const PROFILE_LABEL: Record<BrewRecipeProfile, string> = {
   BALANCED: 'Balanceado',
@@ -22,11 +24,14 @@ const PROFILE_LABEL: Record<BrewRecipeProfile, string> = {
 
 export default function BrewRecipes() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const user = useUser((s) => s.user);
+  const addToast = useToast((s) => s.add);
   const [methods, setMethods] = useState<BrewMethod[]>([]);
   const [recipes, setRecipes] = useState<BrewRecipeStructured[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   const method = searchParams.get('method') || '';
   const profile = searchParams.get('profile') || '';
@@ -66,6 +71,45 @@ export default function BrewRecipes() {
     loadRecipes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [method, profile, difficulty, q]);
+
+  useEffect(() => {
+    if (!user) {
+      setFavoriteIds(new Set());
+      return;
+    }
+    recipeFavoritesApi
+      .list()
+      .then((r) => setFavoriteIds(new Set(r.data.data.map((f) => f.recipeId))))
+      .catch(() => setFavoriteIds(new Set()));
+  }, [user?.id]);
+
+  async function toggleFavorite(e: React.MouseEvent, recipeId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      addToast('Inicia sesión para guardar favoritas', 'info');
+      return;
+    }
+    const wasFavorite = favoriteIds.has(recipeId);
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (wasFavorite) next.delete(recipeId);
+      else next.add(recipeId);
+      return next;
+    });
+    try {
+      if (wasFavorite) await recipeFavoritesApi.remove(recipeId);
+      else await recipeFavoritesApi.add(recipeId);
+    } catch {
+      setFavoriteIds((prev) => {
+        const next = new Set(prev);
+        if (wasFavorite) next.add(recipeId);
+        else next.delete(recipeId);
+        return next;
+      });
+      addToast('No se pudo actualizar la favorita', 'error');
+    }
+  }
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams);
@@ -152,13 +196,27 @@ export default function BrewRecipes() {
               <Link
                 key={r.id}
                 to={`/brew/recetas/${r.slug}`}
-                className="group flex flex-col overflow-hidden border border-coffee-200 bg-white transition-all hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-lg dark:border-coffee-800 dark:bg-coffee-950"
+                className="group relative flex flex-col overflow-hidden border border-coffee-200 bg-white transition-all hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-lg dark:border-coffee-800 dark:bg-coffee-950"
               >
                 <MediaFrame
                   ratio="recipe"
                   src={r.imageUrl ?? r.product?.imageUrl}
                   alt={r.title}
                 />
+                {user && (
+                  <button
+                    type="button"
+                    onClick={(e) => toggleFavorite(e, r.id)}
+                    aria-label={favoriteIds.has(r.id) ? 'Quitar de favoritas' : 'Guardar favorita'}
+                    className={`absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full border shadow-sm transition-colors ${
+                      favoriteIds.has(r.id)
+                        ? 'border-gold-500 bg-gold-500 text-coffee-950'
+                        : 'border-coffee-200 bg-white/95 text-coffee-600 hover:border-gold-400 dark:border-coffee-700 dark:bg-coffee-950/95 dark:text-coffee-300'
+                    }`}
+                  >
+                    <Heart className={`h-4 w-4 ${favoriteIds.has(r.id) ? 'fill-current' : ''}`} />
+                  </button>
+                )}
                 <div className="flex flex-1 flex-col gap-2 p-5">
                   <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest text-coffee-500">
                     {r.brewMethod?.name && <span>{r.brewMethod.name}</span>}

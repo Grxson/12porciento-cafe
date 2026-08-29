@@ -18,13 +18,17 @@ import {
   formatGrams,
   formatRatio,
 } from '@12porciento/shared';
-import type { BrewStepStructured } from '@12porciento/shared';
+import type { BrewStepStructured, ScaledRecipe } from '@12porciento/shared';
 
 interface RatioCalculatorProps {
   initialCoffee: number;
   initialWater: number;
   ratio: number;
   steps?: BrewStepStructured[];
+  /** Remote scaling source (RecipeEngine server-side). When provided, dose
+   *  changes are scaled by the server and its step amounts win over the
+   *  local preview. Falls back to local arithmetic when absent or failing. */
+  remoteScale?: (coffeeGrams: number) => Promise<ScaledRecipe>;
 }
 
 export default function RatioCalculator({
@@ -32,9 +36,11 @@ export default function RatioCalculator({
   initialWater,
   ratio: initialRatio,
   steps = [],
+  remoteScale,
 }: RatioCalculatorProps) {
   const [coffee, setCoffee] = useState(roundHalf(initialCoffee));
   const [water, setWater] = useState(roundHalf(initialWater));
+  const [scaledSteps, setScaledSteps] = useState<BrewStepStructured[]>(steps);
 
   const ratio = useMemo(
     () => ratioFromCoffeeAndWater(coffee, water) || initialRatio,
@@ -42,24 +48,32 @@ export default function RatioCalculator({
   );
 
   // Preview of scaled water amounts per step (does not mutate the recipe).
+  // Server-scaled steps win when available (RecipeEngine is single source).
   const stepPreview = useMemo(() => {
-    if (steps.length === 0 || initialCoffee === 0) return [];
-    const scale = coffee / initialCoffee;
-    const waterSteps = steps.filter(
+    const target = scaledSteps.length > 0 ? scaledSteps : steps;
+    if (target.length === 0) return [];
+    const waterSteps = target.filter(
       (s) => typeof s.waterAmountGrams === 'number' && (s.waterAmountGrams ?? 0) > 0,
     );
     return waterSteps.map((s, idx) => {
       const isLast = idx === waterSteps.length - 1;
-      const projected = roundHalf((s.waterAmountGrams ?? 0) * scale);
-      return { order: s.order, title: s.title, grams: projected, isLast };
+      return { order: s.order, title: s.title, grams: roundHalf(s.waterAmountGrams ?? 0), isLast };
     });
-  }, [steps, coffee, initialCoffee]);
+  }, [scaledSteps, steps]);
 
-  function onChangeCoffee(n: number) {
+  async function onChangeCoffee(n: number) {
     if (!Number.isFinite(n) || n <= 0) return;
     const newCoffee = roundHalf(n);
     setCoffee(newCoffee);
     setWater(calculateWater(newCoffee, ratio));
+    if (!remoteScale) return;
+    try {
+      const scaled = await remoteScale(newCoffee);
+      setScaledSteps(scaled.steps);
+      setWater(roundHalf(scaled.waterGrams));
+    } catch {
+      // Keep local preview; server scale failed (offline or validation).
+    }
   }
 
   function onChangeWater(n: number) {

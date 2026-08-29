@@ -19,6 +19,17 @@ import MediaFrame from '../components/ui/MediaFrame';
 import EmptyState from '../components/ui/EmptyState';
 import ErrorState from '../components/ui/ErrorState';
 
+interface BrewLogMeta {
+  id: string;
+  xpEarned: number;
+  rating: number;
+  equipmentIds: string[];
+  tags: string[];
+  createdAt: string;
+}
+
+type SessionWithLog = BrewSession & { brewLog?: BrewLogMeta | null };
+
 export default function BrewSessionDetail() {
   const { id } = useParams<{ id: string }>();
   const user = useUser((s) => s.user);
@@ -35,7 +46,7 @@ export default function BrewSessionDetail() {
     setLoading(true);
     brewApi
       .getSession(id)
-      .then((r) => setSession(r.data.data))
+      .then((r) => setSession(r.data.data as BrewSession))
       .catch((err) => {
         console.error('BrewSessionDetail load error:', err);
         // 404 vs network error
@@ -263,6 +274,38 @@ export default function BrewSessionDetail() {
             >
               Obtener recomendación dial-in <ChevronRight className="h-3.5 w-3.5" />
             </Link>
+          </section>
+        )}
+
+        {/* Barista XP tied to this session (Fase 12) */}
+        {(session as SessionWithLog).brewLog && (
+          <section className="mb-6 rounded-lg border border-gold-500/40 bg-gold-500/5 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-gold-600 dark:text-gold-400">
+              Perfil barista
+            </p>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <p className="font-serif text-xl text-coffee-900 dark:text-cream">
+                +{(session as SessionWithLog).brewLog?.xpEarned ?? 0} XP
+              </p>
+              <Link
+                to="/barista"
+                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-gold-600 hover:text-gold-500 dark:text-gold-400"
+              >
+                Ver mi perfil <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            {((session as SessionWithLog).brewLog?.tags.length ?? 0) > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {(session as SessionWithLog).brewLog?.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full bg-gold-500/10 px-2 py-0.5 text-[10px] font-medium text-gold-700 dark:text-gold-300"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
           </section>
         )}
 

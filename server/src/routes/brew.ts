@@ -477,7 +477,24 @@ router.get('/sessions/:id', requireUserAuth, async (req: UserAuthRequest, res: R
     });
     if (!session) return res.status(404).json({ error: 'Sesión no encontrada' });
 
-    res.json({ data: { ...session, favorited: session.favorites.length > 0 } });
+    // Fase 12: expose the linked BrewLog (XP/achievements) when present.
+    const linkedLog = session.recipeId
+      ? await prisma.brewLog.findUnique({
+          where: { clientBrewId: `session:${session.id}` },
+          select: {
+            id: true,
+            xpEarned: true,
+            rating: true,
+            equipmentIds: true,
+            tags: true,
+            createdAt: true,
+          },
+        })
+      : null;
+
+    res.json({
+      data: { ...session, favorited: session.favorites.length > 0, brewLog: linkedLog },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener sesión' });

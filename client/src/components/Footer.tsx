@@ -54,7 +54,7 @@ export default function Footer() {
               {[
                 { to: '/tienda', label: 'Todos los cafés' },
                 { to: '/paquetes', label: 'Paquetes' },
-                { to: '/recetas', label: 'Recetas de preparación' },
+                { to: '/brew/recetas', label: 'Recetas de preparación' },
                 { to: '/suscripciones', label: 'Suscripciones' },
                 { to: '/carrito', label: 'Carrito' },
               ].map(({ to, label }) => (

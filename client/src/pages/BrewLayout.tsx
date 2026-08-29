@@ -6,8 +6,8 @@
  * existing PublicLayout (so the global Navbar/Footer/BottomNav remain).
  */
 
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Coffee, BookOpen, FlaskConical, Beaker, ChevronRight } from 'lucide-react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Coffee, BookOpen, FlaskConical, Beaker } from 'lucide-react';
 
 interface SubItem {
   to: string;
@@ -18,12 +18,9 @@ interface SubItem {
 }
 
 const SUB_ITEMS: SubItem[] = [
-  { to: '/brew', label: 'Inicio', icon: Coffee },
   { to: '/brew/preparar', label: 'Preparar', icon: Beaker },
-  { to: '/brew/recetas', label: 'Recetas', icon: BookOpen },
-  { to: '/brew/sesiones', label: 'Mis preparaciones', icon: FlaskConical },
-  { to: '/brew/dial-in', label: 'Dial-in', icon: ChevronRight },
-  { to: '/brew/cafes', label: 'Cafés', icon: Coffee },
+  { to: '/brew/recetas', label: 'Explorar', icon: BookOpen },
+  { to: '/brew/sesiones', label: 'Historial', icon: FlaskConical },
   { to: '/brew/equipo', label: 'Mi equipo', icon: Coffee },
 ];
 
@@ -39,12 +36,14 @@ export default function BrewLayout() {
       >
         <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-2 py-2 sm:gap-2 sm:px-4">
           <div className="flex shrink-0 items-center gap-2 pr-3">
+<Link to="/brew" className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-gold-500/10 text-gold-600 dark:text-gold-400">
               <Coffee className="h-4 w-4" />
             </span>
             <span className="hidden text-xs font-semibold uppercase tracking-[0.24em] text-coffee-700 dark:text-coffee-300 sm:inline">
               12% Brew
             </span>
+          </Link>
           </div>
 
           <div className="flex shrink-0 items-center gap-1">

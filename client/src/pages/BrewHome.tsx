@@ -207,7 +207,18 @@ export default function BrewHome() {
       {/* ── Methods ─────────────────────────────────────────────── */}
       <section className="px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader title="Métodos" subtitle="Elige cómo quieres preparar." />
+          <SectionHeader
+            title="Métodos"
+            subtitle="Elige cómo quieres preparar."
+            action={
+              <Link
+                to="/brew/cafes"
+                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-gold-600 hover:text-gold-500 dark:text-gold-400"
+              >
+                Ver cafés <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            }
+          />
           {loading && methods.length === 0 ? (
             <SkeletonGrid count={6} />
           ) : methods.length === 0 ? (

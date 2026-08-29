@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { Routes, Route, Navigate, Outlet, useLocation, useNavigationType } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigationType, useParams } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { useUser } from './context/UserContext';
@@ -58,11 +58,14 @@ function ScrollToTop() {
   return null;
 }
 
+function OldRecipeRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={slug ? `/brew/recetas/${slug}` : '/brew/recetas'} replace />;
+}
+
 const Subscriptions = lazy(() => import('./pages/Subscriptions'));
 const About = lazy(() => import('./pages/About'));
 const Checkout = lazy(() => import('./pages/Checkout'));
-const Recipes = lazy(() => import('./pages/Recipes'));
-const RecipeDetail = lazy(() => import('./pages/RecipeDetail'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
@@ -139,10 +142,10 @@ function PublicLayout() {
   const FOOTER_ROUTES = [
     '/',
     '/tienda',
+    '/brew',
     '/suscripciones',
     '/nosotros',
     '/paquetes',
-    '/recetas',
     '/galeria',
   ];
   const showFooter =
@@ -291,22 +294,8 @@ export default function App() {
                         </Suspense>
                       }
                     />
-                    <Route
-                      path="/recetas"
-                      element={
-                        <Suspense fallback={<PageSkeleton />}>
-                          <Recipes />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="/recetas/:slug"
-                      element={
-                        <Suspense fallback={<PageSkeleton />}>
-                          <RecipeDetail />
-                        </Suspense>
-                      }
-                    />
+                    <Route path="/recetas" element={<Navigate to="/brew/recetas" replace />} />
+                    <Route path="/recetas/:slug" element={<OldRecipeRedirect />} />
                     <Route
                       path="/galeria"
                       element={

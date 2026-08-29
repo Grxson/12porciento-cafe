@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Store, ShoppingBag, User, BookOpen, Coffee, type LucideIcon } from 'lucide-react';
+import { Store, ShoppingBag, User, Coffee, type LucideIcon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
@@ -15,7 +15,6 @@ const tabs: Tab[] = [
   { to: '/tienda', label: 'Tienda', icon: Store },
   { to: '/brew', label: '12% Brew', icon: Coffee },
   { to: '/carrito', label: 'Carrito', icon: ShoppingBag, badge: true },
-  { to: '/recetas', label: 'Recetas', icon: BookOpen },
   { to: '/perfil', label: 'Perfil', icon: User },
 ];
 
@@ -33,7 +32,7 @@ export default function BottomNav() {
       style={{ paddingBottom: 'var(--app-safe-bottom)' }}
     >
       <div
-        className="grid grid-cols-5"
+        className="grid grid-cols-4"
         style={{ paddingLeft: 'var(--app-safe-left)', paddingRight: 'var(--app-safe-right)' }}
       >
         {tabs.map(({ to, label, icon: Icon, badge, gated }) => {

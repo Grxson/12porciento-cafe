@@ -11,8 +11,8 @@ import CartDrawer from './CartDrawer';
 
 const allLinks = [
   { to: '/tienda', label: 'Tienda', gated: false },
+  { to: '/brew', label: '12% Brew', gated: false },
   { to: '/paquetes', label: 'Paquetes', gated: false },
-  { to: '/recetas', label: 'Recetas', gated: false },
   { to: '/galeria', label: 'Galería', gated: false },
   { to: '/leaderboard', label: 'Ranking', gated: true },
   { to: '/feed', label: 'Feed', gated: true },
@@ -25,7 +25,6 @@ const allLinks = [
 const primaryLinks = [
   { to: '/tienda', label: 'Tienda', gated: false },
   { to: '/brew', label: '12% Brew', gated: false },
-  { to: '/recetas', label: 'Recetas', gated: false },
   { to: '/suscripciones', label: 'Suscripciones', gated: false },
   { to: '/nosotros', label: 'Nosotros', gated: false },
 ];

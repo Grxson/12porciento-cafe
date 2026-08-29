@@ -599,6 +599,7 @@ router.post(
       // Idempotente vía clientBrewId = `session:${id}`.
       let brewLog: Awaited<ReturnType<typeof prisma.brewLog.create>> | undefined;
       let bonusXp = 0;
+      let unlockedAchievements: { id: string; name: string; icon: string; xpReward: number }[] = [];
       if (updated.recipeId) {
         const clientBrewId = `session:${updated.id}`;
         const existing = await prisma.brewLog.findUnique({ where: { clientBrewId } });
@@ -652,6 +653,7 @@ router.post(
               });
             }
             const newAchievements = await checkAndUnlockAchievements(userId);
+            unlockedAchievements = newAchievements;
             bonusXp = newAchievements.reduce((sum, a) => sum + a.xpReward, 0);
             if (bonusXp > 0) {
               const after = await prisma.baristaProfile.update({
@@ -667,7 +669,12 @@ router.post(
         }
       }
 
-      res.json({ data: updated, brewLog: brewLog ?? null, bonusXp });
+      res.json({
+        data: updated,
+        brewLog: brewLog ?? null,
+        bonusXp,
+        unlockedAchievements,
+      });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Error al completar sesión' });

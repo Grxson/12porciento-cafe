@@ -510,7 +510,7 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
   async function submitComplete(rating: number, notes: string, result?: BrewSessionResult) {
     setSubmitting(true);
     try {
-      await brewApi.completeSession(initialSession.id, {
+      const completeRes = await brewApi.completeSession(initialSession.id, {
         rating,
         notes: notes || undefined,
         result: result ?? undefined,
@@ -532,6 +532,17 @@ export default function GuidedBrew({ recipe, initialSession }: GuidedBrewProps) 
         /* noop */
       }
       addToast('Preparación guardada ☕', 'success');
+      const resultData = completeRes.data as {
+        bonusXp?: number;
+        unlockedAchievements?: { name: string; xpReward: number }[] | null;
+        brewLog?: unknown;
+      };
+      if (resultData.brewLog) {
+        addToast(`+${resultData.bonusXp ?? 0} XP al perfil barista`, 'success');
+        for (const a of resultData.unlockedAchievements ?? []) {
+          addToast(`Logro desbloqueado: ${a.name} +${a.xpReward} XP`, 'success');
+        }
+      }
       navigate(`/brew/sesiones/${initialSession.id}`);
     } catch {
       addToast('No se pudo guardar la preparación', 'error');

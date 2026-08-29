@@ -1,8 +1,9 @@
 // client/src/components/recipes/RecipeEditor.tsx
-import { type FormEvent } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import AdminModal from '../../admin/components/AdminModal';
 import SearchableProductSelect from '../SearchableProductSelect';
 import { useRecipeForm, type RecipeFormData } from '../../hooks/useRecipeForm';
+import { api } from '@12porciento/shared';
 import type { Recipe } from '../../types';
 
 const METHODS = [
@@ -20,9 +21,45 @@ const METHODS = [
 ];
 const DIFFICULTIES = ['FÁCIL', 'MEDIA', 'DIFÍCIL'] as const;
 
+const RECIPE_TYPES = [
+  { value: 'OFFICIAL_12_PERCENT', label: 'Oficial 12%' },
+  { value: 'BREW_GUIDE', label: 'Guía 12% Brew' },
+  { value: 'COMMUNITY', label: 'Comunidad' },
+];
+
+const PROFILES = [
+  { value: '', label: '— Sin perfil —' },
+  { value: 'BALANCED', label: 'Balanceado' },
+  { value: 'SWEET', label: 'Dulce' },
+  { value: 'FRUITY', label: 'Frutal' },
+  { value: 'CHOCOLATE', label: 'Chocolate' },
+  { value: 'LIGHT', label: 'Ligero' },
+  { value: 'BOLD', label: 'Intenso' },
+];
+
+interface BrewMethodOption {
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string | null;
+}
+
+// Shared `Recipe` type predates 12% Brew structured fields; the admin API
+// returns them, so extend locally instead of touching the shared package.
+type RecipeWithBrew = Recipe & {
+  recipeType?: string | null;
+  brewMethodId?: string | null;
+  coffeeDoseGrams?: number | null;
+  waterGrams?: number | null;
+  waterTemperatureCelsius?: number | null;
+  grindTargetMicrons?: number | null;
+  profile?: string | null;
+  featured?: boolean | null;
+};
+
 interface RecipeEditorProps {
   open: boolean;
-  recipe?: Recipe;
+  recipe?: RecipeWithBrew;
   mode: 'add' | 'edit';
   onClose: () => void;
   onSave: (data: RecipeFormData) => Promise<void>;
@@ -57,9 +94,34 @@ export default function RecipeEditor({
           isPremium: recipe.isPremium,
           isPublished: recipe.isPublished,
           productId: recipe.productId || '',
+          recipeType: recipe.recipeType || 'OFFICIAL_12_PERCENT',
+          brewMethodId: recipe.brewMethodId || '',
+          coffeeDoseGrams: recipe.coffeeDoseGrams?.toString() || '',
+          waterGrams: recipe.waterGrams?.toString() || '',
+          waterTemperatureCelsius: recipe.waterTemperatureCelsius?.toString() || '',
+          grindTargetMicrons: recipe.grindTargetMicrons?.toString() || '',
+          profile: recipe.profile || '',
+          featured: Boolean(recipe.featured),
         }
       : undefined,
   );
+
+  const [brewMethods, setBrewMethods] = useState<BrewMethodOption[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<{ data: BrewMethodOption[] }>('/brew/admin/methods')
+      .then((r) => {
+        if (!cancelled) setBrewMethods(r.data.data ?? []);
+      })
+      .catch(() => {
+        /* métodos opcionales en el editor */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -291,6 +353,143 @@ export default function RecipeEditor({
             />
             <span className="text-xs text-coffee-600 dark:text-coffee-300">Publicada</span>
           </label>
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.featured}
+              onChange={(e) => updateField('featured', e.target.checked)}
+              className="w-4 h-4 accent-gold-500"
+            />
+            <span className="text-xs text-coffee-600 dark:text-coffee-300">Destacada</span>
+          </label>
+        </div>
+
+        {/* 12% Brew structured fields */}
+        <div className="border-t border-coffee-200 dark:border-coffee-700 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold-600 dark:text-gold-400 mb-3">
+            12% Brew
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="recipe-type" className={labelCls}>
+                Tipo de receta
+              </label>
+              <select
+                id="recipe-type"
+                value={form.recipeType}
+                onChange={(e) => updateField('recipeType', e.target.value)}
+                className={inputCls}
+              >
+                {RECIPE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="recipe-brew-method" className={labelCls}>
+                Método 12% Brew
+              </label>
+              <select
+                id="recipe-brew-method"
+                value={form.brewMethodId}
+                onChange={(e) => updateField('brewMethodId', e.target.value)}
+                className={inputCls}
+              >
+                <option value="">— Sin método —</option>
+                {brewMethods.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.icon ? `${m.icon} ` : ''}
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="recipe-profile" className={labelCls}>
+                Perfil de tueste
+              </label>
+              <select
+                id="recipe-profile"
+                value={form.profile}
+                onChange={(e) => updateField('profile', e.target.value)}
+                className={inputCls}
+              >
+                {PROFILES.map((p) => (
+                  <option key={p.value || 'none'} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+            <div>
+              <label htmlFor="recipe-dose" className={labelCls}>
+                Dosis café (g)
+              </label>
+              <input
+                id="recipe-dose"
+                type="number"
+                min={1}
+                value={form.coffeeDoseGrams}
+                onChange={(e) => updateField('coffeeDoseGrams', e.target.value)}
+                className={inputCls}
+                placeholder="ej. 15"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="recipe-water" className={labelCls}>
+                Agua (g)
+              </label>
+              <input
+                id="recipe-water"
+                type="number"
+                min={1}
+                value={form.waterGrams}
+                onChange={(e) => updateField('waterGrams', e.target.value)}
+                className={inputCls}
+                placeholder="ej. 250"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="recipe-temp-brew" className={labelCls}>
+                Temp. agua (°C)
+              </label>
+              <input
+                id="recipe-temp-brew"
+                type="number"
+                min={1}
+                max={100}
+                value={form.waterTemperatureCelsius}
+                onChange={(e) => updateField('waterTemperatureCelsius', e.target.value)}
+                className={inputCls}
+                placeholder="ej. 92"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="recipe-grind-microns" className={labelCls}>
+                Molido (µm)
+              </label>
+              <input
+                id="recipe-grind-microns"
+                type="number"
+                min={1}
+                value={form.grindTargetMicrons}
+                onChange={(e) => updateField('grindTargetMicrons', e.target.value)}
+                className={inputCls}
+                placeholder="ej. 700"
+              />
+            </div>
+          </div>
         </div>
       </form>
     </AdminModal>

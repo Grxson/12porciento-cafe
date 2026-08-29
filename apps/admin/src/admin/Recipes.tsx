@@ -74,11 +74,19 @@ function RecipesContent() {
   const handleSaveRecipe = async (data: RecipeFormData) => {
     setSavingRecipe(true);
     try {
+      const toNum = (v: string | undefined) =>
+        v === undefined || v === '' ? null : Number(v);
       const payload = {
         ...data,
         prepTime:
           data.prepTime !== undefined && data.prepTime !== '' ? parseInt(data.prepTime) : undefined,
         productId: data.productId || undefined,
+        brewMethodId: data.brewMethodId || undefined,
+        coffeeDoseGrams: toNum(data.coffeeDoseGrams),
+        waterGrams: toNum(data.waterGrams),
+        waterTemperatureCelsius: toNum(data.waterTemperatureCelsius),
+        grindTargetMicrons: toNum(data.grindTargetMicrons),
+        profile: data.profile || undefined,
       };
       if (recipeModal.recipe) {
         await updateRecipe(recipeModal.recipe.id, payload);

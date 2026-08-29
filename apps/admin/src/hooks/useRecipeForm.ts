@@ -14,6 +14,15 @@ export interface RecipeFormData {
   isPremium: boolean;
   isPublished: boolean;
   productId: string;
+  // 12% Brew structured fields
+  recipeType: string;
+  brewMethodId: string;
+  coffeeDoseGrams: string;
+  waterGrams: string;
+  waterTemperatureCelsius: string;
+  grindTargetMicrons: string;
+  profile: string;
+  featured: boolean;
 }
 
 const EMPTY_FORM: RecipeFormData = {
@@ -30,6 +39,14 @@ const EMPTY_FORM: RecipeFormData = {
   isPremium: false,
   isPublished: false,
   productId: '',
+  recipeType: 'OFFICIAL_12_PERCENT',
+  brewMethodId: '',
+  coffeeDoseGrams: '',
+  waterGrams: '',
+  waterTemperatureCelsius: '',
+  grindTargetMicrons: '',
+  profile: '',
+  featured: false,
 };
 
 export function useRecipeForm(initialData?: RecipeFormData) {

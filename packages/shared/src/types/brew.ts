@@ -226,6 +226,37 @@ export interface ScaledRecipe {
   scale: number;
 }
 
+/**
+ * Single source of truth for a planned brew (Fase 1).
+ * Everything else — RatioCalculator, GuidedBrew, StartSession — derives from
+ * this shape instead of scattering params across Recipe/session/UI state.
+ * Produced by RecipeEngine (server) and hydrated from a recipe or a scaled
+ * result. `steps` are already scaled to coffeeDoseGrams/waterGrams.
+ */
+export interface BrewConfiguration {
+  recipeId: string;
+  coffeeId?: string;
+  brewMethodId?: string;
+
+  coffeeDoseGrams: number;
+  waterGrams: number;
+  ratio: number;
+
+  temperatureCelsius?: number;
+
+  grindSetting?: string;
+  grindMicrons?: number;
+
+  steps: BrewStepStructured[];
+}
+
+/** The three numbers a user can tweak before starting a brew. */
+export interface BrewConfigurationChange {
+  coffeeDoseGrams: number;
+  waterGrams: number;
+  ratio: number;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

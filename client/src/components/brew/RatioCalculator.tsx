@@ -1,91 +1,108 @@
 /**
  * 12% Brew — RatioCalculator
  *
- * Lets the user rebase a recipe on a new coffee dose or water amount.
- * Updates ratio/water/coffee in real time using the same arithmetic the
- * RecipeEngine uses server-side (calculateCoffee/calculateWater).
+ * Controlled component: receives the full `BrewConfiguration` (single source
+ * of truth, Fase 1) and reports an updated one through `onChange`. It never
+ * holds its own brew params.
+ *
+ * Updates:
+ *   - coffee dose changed → water recomputed via ratio, steps re-scaled by the
+ *     server RecipeEngine (fallback: `scaleRecipeLocally`, same ScaledRecipe
+ *     shape).
+ *   - water changed → coffee recomputed via ratio (steps untouched).
+ *   - ratio changed → water recomputed from coffee (steps untouched).
  *
  * Visualizes the effect on each water-bearing step in the recipe (preview).
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { Scale, Droplets, Divide } from 'lucide-react';
 import {
   calculateCoffee,
   calculateWater,
-  ratioFromCoffeeAndWater,
   roundHalf,
   formatGrams,
   formatRatio,
+  scaleRecipeLocally,
 } from '@12porciento/shared';
-import type { BrewStepStructured, ScaledRecipe } from '@12porciento/shared';
+import type { BrewConfiguration, BrewStepStructured, ScaledRecipe } from '@12porciento/shared';
 
 interface RatioCalculatorProps {
-  initialCoffee: number;
-  initialWater: number;
-  ratio: number;
-  steps?: BrewStepStructured[];
+  /** Current brew plan (recipe-derived or already tweaked). */
+  value: BrewConfiguration;
+  /** Reports the updated plan (new dose/water/ratio + scaled steps). */
+  onChange: (config: BrewConfiguration) => void;
   /** Remote scaling source (RecipeEngine server-side). When provided, dose
    *  changes are scaled by the server and its step amounts win over the
-   *  local preview. Falls back to local arithmetic when absent or failing. */
+   *  local fallback. Falls back to `scaleRecipeLocally` when absent/failing. */
   remoteScale?: (coffeeGrams: number) => Promise<ScaledRecipe>;
 }
 
-export default function RatioCalculator({
-  initialCoffee,
-  initialWater,
-  ratio: initialRatio,
-  steps = [],
-  remoteScale,
-}: RatioCalculatorProps) {
-  const [coffee, setCoffee] = useState(roundHalf(initialCoffee));
-  const [water, setWater] = useState(roundHalf(initialWater));
-  const [scaledSteps, setScaledSteps] = useState<BrewStepStructured[]>(steps);
+export default function RatioCalculator({ value, onChange, remoteScale }: RatioCalculatorProps) {
+  // Scaling is always relative to the recipe's ORIGINAL steps, not to a
+  // previous tweak. Capture the baseline on first render.
+  const baselineStepsRef = useRef<BrewStepStructured[]>(value.steps);
+  const baselineCoffeeRef = useRef<number>(value.coffeeDoseGrams);
 
-  const ratio = useMemo(
-    () => ratioFromCoffeeAndWater(coffee, water) || initialRatio,
-    [coffee, water, initialRatio],
-  );
+  const { coffeeDoseGrams: coffee, waterGrams: water, ratio } = value;
 
-  // Preview of scaled water amounts per step (does not mutate the recipe).
-  // Server-scaled steps win when available (RecipeEngine is single source).
+  // Preview of scaled water amounts per step (does not mutate the config).
   const stepPreview = useMemo(() => {
-    const target = scaledSteps.length > 0 ? scaledSteps : steps;
-    if (target.length === 0) return [];
-    const waterSteps = target.filter(
+    if (value.steps.length === 0) return [];
+    const waterSteps = value.steps.filter(
       (s) => typeof s.waterAmountGrams === 'number' && (s.waterAmountGrams ?? 0) > 0,
     );
     return waterSteps.map((s, idx) => {
       const isLast = idx === waterSteps.length - 1;
       return { order: s.order, title: s.title, grams: roundHalf(s.waterAmountGrams ?? 0), isLast };
     });
-  }, [scaledSteps, steps]);
+  }, [value.steps]);
 
   async function onChangeCoffee(n: number) {
     if (!Number.isFinite(n) || n <= 0) return;
     const newCoffee = roundHalf(n);
-    setCoffee(newCoffee);
-    setWater(calculateWater(newCoffee, ratio));
-    if (!remoteScale) return;
+    const locallyScaled = scaleRecipeLocally(
+      baselineStepsRef.current,
+      newCoffee,
+      ratio,
+      baselineCoffeeRef.current,
+    );
+    if (!remoteScale) {
+      onChange({
+        ...value,
+        coffeeDoseGrams: newCoffee,
+        waterGrams: locallyScaled.waterGrams,
+        steps: locallyScaled.steps,
+      });
+      return;
+    }
     try {
       const scaled = await remoteScale(newCoffee);
-      setScaledSteps(scaled.steps);
-      setWater(roundHalf(scaled.waterGrams));
+      onChange({
+        ...value,
+        coffeeDoseGrams: newCoffee,
+        waterGrams: roundHalf(scaled.waterGrams),
+        steps: scaled.steps,
+      });
     } catch {
-      // Keep local preview; server scale failed (offline or validation).
+      // Offline/validation failure → keep the local projection (same shape).
+      onChange({
+        ...value,
+        coffeeDoseGrams: newCoffee,
+        waterGrams: locallyScaled.waterGrams,
+        steps: locallyScaled.steps,
+      });
     }
   }
 
   function onChangeWater(n: number) {
     if (!Number.isFinite(n) || n <= 0) return;
-    const newWater = roundHalf(n);
-    setWater(newWater);
-    setCoffee(calculateCoffee(newWater, ratio));
+    onChange({ ...value, waterGrams: roundHalf(n), coffeeDoseGrams: calculateCoffee(n, ratio) });
   }
 
   function onChangeRatio(n: number) {
     if (!Number.isFinite(n) || n <= 0) return;
-    setWater(calculateWater(coffee, n));
+    onChange({ ...value, ratio: n, waterGrams: calculateWater(coffee, n) });
   }
 
   return (

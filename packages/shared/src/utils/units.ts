@@ -9,6 +9,8 @@
  * locale toggle lands we change one file.
  */
 
+import type { BrewStepStructured, ScaledRecipe } from '../types/brew';
+
 const LOCALE = 'es-MX';
 
 // ─── Grams ──────────────────────────────────────────────────────────────
@@ -161,4 +163,49 @@ export function ratioFromCoffeeAndWater(coffeeGrams: number, waterGrams: number)
     throw new RangeError('coffeeGrams y waterGrams deben ser > 0');
   }
   return Number((waterGrams / coffeeGrams).toFixed(3));
+}
+
+/**
+ * Offline fallback for RecipeEngine scaling (Fase 2). Scales every water
+ * step proportionally to a new coffee dose; the last water step absorbs the
+ * rounding so the sum equals `calculateWater(dose, ratio)` exactly.
+ * Same return shape as the server's `POST /brew/recipes/:id/scale`.
+ */
+export function scaleRecipeLocally(
+  steps: BrewStepStructured[],
+  coffeeDoseGrams: number,
+  ratio: number,
+  fromCoffeeDoseGrams: number,
+): ScaledRecipe {
+  if (!Number.isFinite(coffeeDoseGrams) || coffeeDoseGrams <= 0) {
+    throw new RangeError('coffeeDoseGrams debe ser > 0');
+  }
+  const waterGrams = calculateWater(coffeeDoseGrams, ratio);
+  const factor = fromCoffeeDoseGrams > 0 ? coffeeDoseGrams / fromCoffeeDoseGrams : 1;
+
+  const scaled = steps.map((s) =>
+    typeof s.waterAmountGrams === 'number'
+      ? { ...s, waterAmountGrams: roundHalf(s.waterAmountGrams * factor) }
+      : s,
+  );
+
+  const waterSteps = scaled.filter(
+    (s) => typeof s.waterAmountGrams === 'number' && (s.waterAmountGrams ?? 0) > 0,
+  );
+  const last = waterSteps[waterSteps.length - 1];
+  if (last) {
+    const sum = waterSteps.reduce((acc, s) => acc + (s.waterAmountGrams ?? 0), 0);
+    last.waterAmountGrams = roundHalf((last.waterAmountGrams ?? 0) + roundHalf(waterGrams - sum));
+    last.targetTotalWaterGrams = waterGrams;
+  }
+
+  return {
+    coffeeDoseGrams,
+    waterGrams,
+    ratio,
+    waterTemperatureCelsius: null,
+    grindTargetMicrons: null,
+    steps: scaled,
+    scale: factor,
+  };
 }

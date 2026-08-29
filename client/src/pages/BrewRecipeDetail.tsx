@@ -147,12 +147,20 @@ export default function BrewRecipeDetail() {
         {hasStructuredParams && recipe.coffeeDoseGrams != null && recipe.waterGrams != null && (
           <section className="mb-10">
             <RatioCalculator
-              initialCoffee={recipe.coffeeDoseGrams}
-              initialWater={recipe.waterGrams}
-              ratio={
-                recipe.ratio ?? Number((recipe.waterGrams / recipe.coffeeDoseGrams).toFixed(2))
-              }
-              steps={recipe.steps}
+              value={{
+                recipeId: recipe.id,
+                coffeeId: recipe.productId ?? undefined,
+                brewMethodId: recipe.brewMethodId ?? undefined,
+                coffeeDoseGrams: recipe.coffeeDoseGrams,
+                waterGrams: recipe.waterGrams,
+                ratio:
+                  recipe.ratio ?? Number((recipe.waterGrams / recipe.coffeeDoseGrams).toFixed(2)),
+                temperatureCelsius: recipe.waterTemperatureCelsius ?? undefined,
+                steps: recipe.steps,
+              }}
+              onChange={() => {
+                /* Inert preview on the recipe detail page — tweaks happen in /preparar. */
+              }}
               remoteScale={(dose) => brewApi.scaleRecipe(recipe.id, dose).then((r) => r.data.data)}
             />
           </section>

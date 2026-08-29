@@ -12,6 +12,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Beaker, ArrowRight, PlayCircle } from 'lucide-react';
 import {
   brewApi,
+  type BrewConfiguration,
   type BrewMethod,
   type BrewRecipeStructured,
   type BrewSession,
@@ -22,6 +23,21 @@ import RatioCalculator from '../components/brew/RatioCalculator';
 import GuidedBrew from '../components/brew/GuidedBrew';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
+
+/** Project a published recipe into the single source of truth (Fase 1-3). */
+function configFromRecipe(recipe: BrewRecipeStructured): BrewConfiguration | null {
+  if (recipe.coffeeDoseGrams == null || recipe.waterGrams == null) return null;
+  return {
+    recipeId: recipe.id,
+    coffeeId: recipe.productId ?? undefined,
+    brewMethodId: recipe.brewMethodId ?? undefined,
+    coffeeDoseGrams: recipe.coffeeDoseGrams,
+    waterGrams: recipe.waterGrams,
+    ratio: recipe.ratio ?? Number((recipe.waterGrams / recipe.coffeeDoseGrams).toFixed(2)),
+    temperatureCelsius: recipe.waterTemperatureCelsius ?? undefined,
+    steps: recipe.steps,
+  };
+}
 
 export default function BrewPrepare() {
   const [searchParams] = useSearchParams();
@@ -35,6 +51,7 @@ export default function BrewPrepare() {
   const [methods, setMethods] = useState<BrewMethod[]>([]);
   const [recipes, setRecipes] = useState<BrewRecipeStructured[]>([]);
   const [recipe, setRecipe] = useState<BrewRecipeStructured | null>(null);
+  const [brewConfig, setBrewConfig] = useState<BrewConfiguration | null>(null);
   const [session, setSession] = useState<BrewSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -64,8 +81,14 @@ export default function BrewPrepare() {
     setLoading(true);
     brewApi
       .getRecipe(recipeSlug)
-      .then((r) => setRecipe(r.data.data))
-      .catch(() => setRecipe(null))
+      .then((r) => {
+        setRecipe(r.data.data);
+        setBrewConfig(configFromRecipe(r.data.data));
+      })
+      .catch(() => {
+        setRecipe(null);
+        setBrewConfig(null);
+      })
       .finally(() => setLoading(false));
   }, [recipeSlug, sessionParam]);
 
@@ -91,7 +114,7 @@ export default function BrewPrepare() {
   }, [sessionParam]);
 
   async function startSession() {
-    if (!recipe || !user) {
+    if (!recipe || !user || !brewConfig) {
       if (!user) {
         addToast('Inicia sesión para guardar la preparación', 'info');
         navigate(`/login?redirect=/brew/preparar?recipe=${recipe?.slug ?? ''}`);
@@ -102,13 +125,13 @@ export default function BrewPrepare() {
     setStarting(true);
     try {
       const r = await brewApi.startSession({
-        recipeId: recipe.id,
-        coffeeId: recipe.productId ?? undefined,
-        brewMethodId: recipe.brewMethodId ?? undefined,
-        coffeeDoseGrams: recipe.coffeeDoseGrams ?? undefined,
-        waterGrams: recipe.waterGrams ?? undefined,
-        ratio: recipe.ratio ?? undefined,
-        temperatureCelsius: recipe.waterTemperatureCelsius ?? undefined,
+        recipeId: brewConfig.recipeId,
+        coffeeId: brewConfig.coffeeId,
+        brewMethodId: brewConfig.brewMethodId,
+        coffeeDoseGrams: brewConfig.coffeeDoseGrams,
+        waterGrams: brewConfig.waterGrams,
+        ratio: brewConfig.ratio,
+        temperatureCelsius: brewConfig.temperatureCelsius,
       });
       setSession(r.data.data);
       navigate(`/brew/preparar?session=${r.data.data.id}`, { replace: true });
@@ -223,15 +246,14 @@ export default function BrewPrepare() {
             />
           )}
 
-          {hasParams && (
+          {hasParams && brewConfig && (
             <div className="mb-6">
               <RatioCalculator
-                initialCoffee={recipe.coffeeDoseGrams!}
-                initialWater={recipe.waterGrams!}
-                ratio={
-                  recipe.ratio ?? Number((recipe.waterGrams! / recipe.coffeeDoseGrams!).toFixed(2))
+                value={brewConfig}
+                onChange={setBrewConfig}
+                remoteScale={(dose) =>
+                  brewApi.scaleRecipe(recipe.id, dose).then((r) => r.data.data)
                 }
-                steps={recipe.steps}
               />
             </div>
           )}
